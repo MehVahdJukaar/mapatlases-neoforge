@@ -1,0 +1,21 @@
+{
+  "minVersion": "0.8",
+  "required": true,
+  "compatibilityLevel": "JAVA_17",
+  "package": "pebjebs.mapatlases.mixin",
+  "mixins": [
+    "CartographyTableMenuMixin",
+    "LecternBlockEntityMixin",
+    "LecternBlockMixin",
+    "MixinCartographyTableAbstractContainerMenuSecondSlot",
+    "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
+    "MixinCartographyTableHandlerFirstSlot"
+  ],
+  "client": [
+    "MapAtlasesLecternBlockEntityRenderer",
+    "MapRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

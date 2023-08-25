@@ -5,6 +5,8 @@ pluginManagement {
             name = 'NeoForged'
             url = 'https://maven.neoforged.net/releases'
         }
+        maven { url = 'https://maven.parchmentmc.org' } // Add this line
+
     }
 }
 

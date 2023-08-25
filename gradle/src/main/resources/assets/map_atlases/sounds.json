@@ -1,0 +1,20 @@
+{
+  "atlas_open": {
+    "subtitle": "subtitles.map_atlases.atlas_open",
+    "sounds": [
+      "map_atlases:atlas_open"
+    ]
+  },
+  "atlas_page_turn": {
+    "subtitle": "subtitles.map_atlases.atlas_page_turn",
+    "sounds": [
+      "map_atlases:atlas_page_turn"
+    ]
+  },
+  "atlas_create_map": {
+    "subtitle": "subtitles.map_atlases.atlas_create_map",
+    "sounds": [
+      "map_atlases:atlas_create_map"
+    ]
+  }
+}
