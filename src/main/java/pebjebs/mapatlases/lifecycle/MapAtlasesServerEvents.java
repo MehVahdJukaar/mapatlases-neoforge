@@ -4,6 +4,8 @@ import com.mojang.datafixers.util.Pair;
 import io.netty.buffer.Unpooled;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -19,6 +21,9 @@ import pebjebs.mapatlases.MapAtlasesMod;
 import pebjebs.mapatlases.config.MapAtlasesClientConfig;
 import pebjebs.mapatlases.config.MapAtlasesConfig;
 import pebjebs.mapatlases.item.MapAtlasItem;
+import pebjebs.mapatlases.networking.MapAtlasNetowrking;
+import pebjebs.mapatlases.networking.S2CSetActiveMapPacket;
+import pebjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pebjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
@@ -52,15 +57,9 @@ public class MapAtlasesServerEvents {
             MapItemSavedData state = info.getValue();
             state.tickCarriedBy(player, atlas);
             state.getHoldingPlayer(player);
-            //TODO PORT
-            /*
-            PacketByteBuf packetByteBuf = new PacketByteBuf(Unpooled.buffer());
-            (new MapAtlasesInitAtlasS2CPacket(mapId, state)).write(packetByteBuf);
-            player.networkHandler.sendPacket(new CustomPayloadS2CPacket(
-                    MapAtlasesInitAtlasS2CPacket.MAP_ATLAS_INIT,
-                    packetByteBuf));
 
-             */
+            MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetMapDataPacket(mapId, state, true));
+
         }
     }
 
@@ -69,15 +68,15 @@ public class MapAtlasesServerEvents {
         ArrayList<String> seenPlayers = new ArrayList<>();
         var server = event.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            var playerName = player.getName().getString();
+            String playerName = player.getName().getString();
             seenPlayers.add(playerName);
             if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) continue;
             Map<String, MapItemSavedData> currentMapInfos =
                     MapAtlasesAccessUtils.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
-            Map.Entry<String, MapItemSavedData> activeInfo = MapAtlasesAccessUtils.getActiveAtlasMapItemSavedDataServer(
-                    currentMapInfos, player);
+            Map.Entry<String, MapItemSavedData> activeInfo =
+                    MapAtlasesAccessUtils.getActiveAtlasMapItemSavedDataServer(currentMapInfos, player);
             // changedMapItemSavedData has non-null value if player has a new active Map ID
             String changedMapItemSavedData = relayActiveMapIdToPlayerClient(activeInfo, player);
             if (activeInfo == null) {
@@ -158,20 +157,17 @@ public class MapAtlasesServerEvents {
     ) {
         int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getKey());
         //TODO PORT
-        /*
+
         Packet<?> p = null;
         int tries = 0;
         while (p == null && tries < 10) {
-            p = mapInfo.getValue().getPlayerMarkerPacket(mapId, player);
+            //WHY??
+            p = mapInfo.getValue().getUpdatePacket(mapId, player);
             tries++;
         }
         if (p != null) {
-            PacketByteBuf packetByteBuf = new PacketByteBuf(Unpooled.buffer());
-            p.write(packetByteBuf);
-            player.networkHandler.sendPacket(new CustomPayloadS2CPacket(
-                    MapAtlasesInitAtlasS2CPacket.MAP_ATLAS_SYNC,
-                    packetByteBuf));
-        }*/
+            player.connection.send(p);
+        }
     }
 
     private static String relayActiveMapIdToPlayerClient(
@@ -180,49 +176,26 @@ public class MapAtlasesServerEvents {
     ) {
         String playerName = player.getName().getString();
         String changedMapItemSavedData = null;
+        String cachedMapId = playerToActiveMapId.get(playerName);
         if (activeInfo != null) {
-            boolean addingPlayer = !playerToActiveMapId.containsKey(playerName);
-            boolean activatingPlayer = playerToActiveMapId.get(playerName) == null;
+            boolean addingPlayer = cachedMapId == null;
             // Players that pick up an atlas will need their MapItemSavedDatas initialized
-            if (addingPlayer || activatingPlayer) {
+            if (addingPlayer) {
                 mapAtlasPlayerJoinImpl(player);
             }
-            if (addingPlayer || activatingPlayer
-                    || activeInfo.getKey().compareTo(playerToActiveMapId.get(playerName)) != 0) {
-                changedMapItemSavedData = playerToActiveMapId.get(playerName);
-                playerToActiveMapId.put(playerName, activeInfo.getKey());
-                FriendlyByteBuf packetByteBuf = new FriendlyByteBuf(Unpooled.buffer());
-                packetByteBuf.writeUtf(activeInfo.getKey());
-
-                //TODO PORT
-                //player.networkHandler.sendPacket(new CustomPayloadS2CPacket(
-                //        MAP_ATLAS_ACTIVE_STATE_CHANGE, packetByteBuf));
+            String currentMapId = activeInfo.getKey();
+            if (addingPlayer || !currentMapId.equals(cachedMapId)) {
+                changedMapItemSavedData = cachedMapId;
+                playerToActiveMapId.put(playerName, currentMapId);
+                MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
             }
-        } else if (playerToActiveMapId.get(playerName) != null) {
-            FriendlyByteBuf packetByteBuf = new FriendlyByteBuf(Unpooled.buffer());
-            packetByteBuf.writeUtf("null");
-            //TODO PORT
-           // player.networkHandler.sendPacket(new CustomPayloadS2CPacket(
-           //         MAP_ATLAS_ACTIVE_STATE_CHANGE, packetByteBuf));
+        } else if (cachedMapId != null) {
             playerToActiveMapId.put(playerName, null);
+
+            MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
         }
         return changedMapItemSavedData;
     }
-
-    /*
-    public static void openGuiEvent(
-            MinecraftServer server,
-            ServerPlayer player,
-            ServerPlayNetworkHandler _handler,
-            PacketByteBuf buf,
-            PacketSender _responseSender) {
-        MapAtlasesOpenGUIC2SPacket p = new MapAtlasesOpenGUIC2SPacket();
-        p.read(buf);
-        server.execute(() -> {
-            ItemStack atlas = p.atlas;
-            player.openHandledScreen((MapAtlasItem) atlas.getItem());
-        });
-    }*/     //TODO PORT
 
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,

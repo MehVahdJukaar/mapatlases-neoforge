@@ -17,7 +17,8 @@ public class MapAtlasesMixinPlugin implements IMixinConfigPlugin {
     }
 
     @Override
-    public void onLoad(String mixinPackage) {}
+    public void onLoad(String mixinPackage) {
+    }
 
     @Override
     public String getRefMapperConfig() {

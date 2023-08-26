@@ -24,15 +24,16 @@ import net.minecraft.world.level.block.LecternBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 import pebjebs.mapatlases.MapAtlasesMod;
 import pebjebs.mapatlases.client.MapAtlasesClient;
 import pebjebs.mapatlases.config.MapAtlasesConfig;
 import pebjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pebjebs.mapatlases.screen.MapAtlasesAtlasOverviewContainerMenu;
+import pebjebs.mapatlases.utils.AtlasHolder;
 import pebjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.Arrays;
@@ -44,8 +45,6 @@ public class MapAtlasItem extends Item implements MenuProvider {
 
     public static final String EMPTY_MAP_NBT = "empty";
     public static final String MAP_LIST_NBT = "maps";
-
-    public static final BooleanProperty HAS_ATLAS = BooleanProperty.create("has_atlas");
 
     public MapAtlasItem(Properties settings) {
         super(settings);
@@ -78,7 +77,7 @@ public class MapAtlasItem extends Item implements MenuProvider {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_2", empties)
                         .withStyle(ChatFormatting.GRAY));
             }
-            MapItemSavedData mapState = level.getMapData(MapAtlasesClient.currentMapItemSavedDataId);
+            MapItemSavedData mapState = level.getMapData(MapAtlasesClient.getActiveMap());
             if (mapState == null) return;
             tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_3", 1 << mapState.scale)
                     .withStyle(ChatFormatting.GRAY));
@@ -87,12 +86,14 @@ public class MapAtlasItem extends Item implements MenuProvider {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        openHandledAtlasScreen(level, player);
+        if (player instanceof ServerPlayer serverPlayer) {
+            openHandledAtlasScreen(serverPlayer);
+        }
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
-    public void openHandledAtlasScreen(Level world, Player player) {
-        player.openMenu(this);
+    public void openHandledAtlasScreen(ServerPlayer player) {
+        NetworkHooks.openScreen(player, this, b -> this.writeScreenOpeningData(player, b));
     }
 
     @Override
@@ -127,8 +128,8 @@ public class MapAtlasItem extends Item implements MenuProvider {
         HitResult h = player.pick(10, 1, false);
         if (h.getType() == HitResult.Type.BLOCK) {
             BlockEntity e = player.level().getBlockEntity(BlockPos.containing(h.getLocation()));
-            if (e instanceof LecternBlockEntity) {
-                ItemStack book = ((LecternBlockEntity) e).getBook();
+            if (e instanceof LecternBlockEntity be) {
+                ItemStack book = be.getBook();
                 if (book.getItem() == MapAtlasesMod.MAP_ATLAS) {
                     return book;
                 }
@@ -156,10 +157,10 @@ public class MapAtlasItem extends Item implements MenuProvider {
             sendPlayerLecternAtlasData(serverPlayer, atlas);
         }
         if (atlas.isEmpty()) return;
-        var mapInfos = MapAtlasesAccessUtils.getAllMapInfoFromAtlas(
-                serverPlayer.level(), atlas);
-        var currentInfos = MapAtlasesAccessUtils.getCurrentDimMapInfoFromAtlas(
-                serverPlayer.level(), atlas);
+        var mapInfos = MapAtlasesAccessUtils
+                .getAllMapInfoFromAtlas(serverPlayer.level(), atlas);
+        var currentInfos = MapAtlasesAccessUtils
+                .getCurrentDimMapInfoFromAtlas(serverPlayer.level(), atlas);
         String centerMap = MapAtlasesAccessUtils
                 .getActiveAtlasMapItemSavedDataServer(currentInfos, serverPlayer).getKey();
         int atlasScale = MapAtlasesAccessUtils.getAtlasBlockScale(serverPlayer.level(), atlas);
@@ -199,7 +200,10 @@ public class MapAtlasItem extends Item implements MenuProvider {
             blockState = level.getBlockState(blockPos);
             LecternBlock.resetBookState(
                     context.getPlayer(), level, blockPos, blockState, true);
-            level.setBlockAndUpdate(blockPos, blockState.setValue(HAS_ATLAS, true));
+            if (level.getBlockEntity(blockPos) instanceof AtlasHolder ah) {
+                ah.mapatlases$setAtlas(true);
+                //level.sendBlockUpdated(blockPos, blockState, blockState, 3);
+            }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         if (blockState.is(BlockTags.BANNERS)) {

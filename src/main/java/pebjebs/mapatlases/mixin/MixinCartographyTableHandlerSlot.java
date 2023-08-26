@@ -50,19 +50,19 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 class MixinCartographyTableAbstractContainerMenuSecondSlotMaps  {
 
     @Shadow @Final
-    CartographyTableMenu field_17303;
+    CartographyTableMenu this$0;
 
     @Inject(method = "onTake", at = @At("HEAD"))
     void mapAtlasOnTakeItem(Player player, ItemStack stack, CallbackInfo info) {
-        ItemStack atlas = field_17303.slots.get(0).getItem();
-        Slot slotOne = field_17303.slots.get(1);
-        if (field_17303.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
+        ItemStack atlas = this$0.slots.get(0).getItem();
+        Slot slotOne = this$0.slots.get(1);
+        if (this$0.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
                 && (slotOne.getItem().getItem() == Items.MAP
                 || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOne.getItem().getItem() == Items.PAPER))) {
             int amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOne.getItem());
             // onTakeItem already calls takeStack(1) so we subtract that out
             slotOne.remove(amountToTake - 1);
-        } else if (field_17303.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
+        } else if (this$0.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
                 && slotOne.getItem().getItem() == Items.FILLED_MAP) {
             slotOne.remove(1);
         }

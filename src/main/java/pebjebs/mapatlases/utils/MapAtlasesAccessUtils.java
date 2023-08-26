@@ -187,7 +187,7 @@ public class MapAtlasesAccessUtils {
         if (world == null) {
             throw new InvalidParameterException("Given Level was null");
         }
-        if (atlas.getItem() != MapAtlasesMod.MAP_ATLAS) {
+        if (!(atlas.getItem() instanceof  MapAtlasItem)) {
             throw new InvalidParameterException("Given ItemStack was not an Atlas");
         }
         var mapState = getFirstMapItemSavedDataFromAtlas(world, atlas);

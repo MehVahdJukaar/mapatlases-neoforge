@@ -6,8 +6,8 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +29,7 @@ public class MapAtlasesClient {
 
     private static final ThreadLocal<Float> worldMapZoomLevel = new ThreadLocal<>();
 
-    public static String currentMapItemSavedDataId = null;
+    private static String currentMapItemSavedDataId = null;
 
     public static final Material OVERWORLD_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS,  MapAtlasesMod.res("entity/lectern_atlas"));
@@ -41,7 +41,6 @@ public class MapAtlasesClient {
             new Material(InventoryMenu.BLOCK_ATLAS,  MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
 
-
     public static final KeyMapping OPEN_ATLAS_KEYBIND = new KeyMapping(
             "key.map_atlases.open_minimap",
             InputConstants.Type.KEYSYM,
@@ -49,8 +48,15 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
-    public static void init() {
+    public static String getActiveMap() {
+        return currentMapItemSavedDataId;
+    }
 
+    public static void setActiveMap(String mapId) {
+        MapAtlasesClient.currentMapItemSavedDataId = mapId;
+    }
+
+    public static void init() {
         /*
         // Register client events
         ClientPlayNetworking.registerGlobalReceiver(MapAtlasesInitAtlasS2CPacket.MAP_ATLAS_INIT,
@@ -68,8 +74,6 @@ public class MapAtlasesClient {
             else
                 currentMapItemSavedDataId = str;
         });*/
-
-
 
 
         FMLJavaModLoadingContext.get().getModEventBus().register(MapAtlasesClient.class);

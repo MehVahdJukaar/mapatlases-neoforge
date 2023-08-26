@@ -335,7 +335,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
 
     // ================== Drawing Utils ==================
 
-    public static void drawMapComponentXZCoords(
+    public void drawMapComponentXZCoords(
             GuiGraphics context,
             int x,
             int y,

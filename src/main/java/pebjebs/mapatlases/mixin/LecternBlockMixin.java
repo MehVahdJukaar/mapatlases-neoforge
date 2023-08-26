@@ -1,6 +1,7 @@
 package pebjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +35,7 @@ public abstract class LecternBlockMixin extends Block {
     )
     public void injectAtlasScreen(Level level, BlockPos pos, Player player, CallbackInfo ci) {
         if (level.getBlockEntity(pos) instanceof AtlasHolder al && al.mapatlases$hasAtlas()) {
-            MapAtlasesMod.MAP_ATLAS.get().openHandledAtlasScreen(level, player);
+            MapAtlasesMod.MAP_ATLAS.get().openHandledAtlasScreen((ServerPlayer) player);
             ci.cancel();
         }
     }
