@@ -1,0 +1,12 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "map_atlases:item/atlas"
+  },
+  "overrides": [
+    { "predicate": { "atlas": 0.000000 }, "model": "map_atlases:item/atlas" },
+    { "predicate": { "atlas": 0.100000 }, "model": "map_atlases:item/overworld_atlas" },
+    { "predicate": { "atlas": 0.200000 }, "model": "map_atlases:item/nether_atlas" },
+    { "predicate": { "atlas": 0.300000 }, "model": "map_atlases:item/end_atlas" }
+  ]
+}

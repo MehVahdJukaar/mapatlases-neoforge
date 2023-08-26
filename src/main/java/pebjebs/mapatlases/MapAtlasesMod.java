@@ -27,7 +27,6 @@ import org.apache.logging.log4j.Logger;
 import pebjebs.mapatlases.client.MapAtlasesClient;
 import pebjebs.mapatlases.config.MapAtlasesClientConfig;
 import pebjebs.mapatlases.config.MapAtlasesConfig;
-import pebjebs.mapatlases.item.DummyFilledMap;
 import pebjebs.mapatlases.item.MapAtlasItem;
 import pebjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pebjebs.mapatlases.networking.MapAtlasNetowrking;
@@ -46,7 +45,6 @@ public class MapAtlasesMod {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static final Supplier<MapAtlasItem> MAP_ATLAS;
-    public static final Supplier<DummyFilledMap> DUMMY_FILLED_MAP;
 
     private static final DeferredRegister<RecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MOD_ID);
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MOD_ID);
@@ -77,14 +75,14 @@ public class MapAtlasesMod {
         RECIPES.register(bus);
         MENU_TYPES.register(bus);
         ITEMS.register(bus);
+        SOUND_EVENTS.register(bus);
 
         // Register config
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MapAtlasesConfig.spec);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MapAtlasesClientConfig.spec);
 
         // Register special recipes
-        MAP_ATLAS_CREATE_RECIPE = RECIPES.register("crafting_atlas",
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasCreateRecipe::new));
+        MAP_ATLAS_CREATE_RECIPE = RECIPES.register("crafting_atlas", MapAtlasCreateRecipe.Serializer::new);
         MAP_ATLAS_ADD_RECIPE = RECIPES.register("adding_atlas",
                 () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
         MAP_ATLAS_CUT_RECIPE = RECIPES.register("cutting_atlas",
@@ -97,7 +95,6 @@ public class MapAtlasesMod {
 
         // Register items
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
-        DUMMY_FILLED_MAP = ITEMS.register("dummy_filled_map", () -> new DummyFilledMap(new Item.Properties()));
 
         // Register messages
         MapAtlasNetowrking.register();
@@ -111,9 +108,10 @@ public class MapAtlasesMod {
             MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = event.getEntries();
             for (var v : entries) {
                 var i = v.getKey();
-                if (i.getItem() instanceof MapItem) {
+                if (i.getItem() instanceof EmptyMapItem) {
                     entries.putAfter(i, MAP_ATLAS.get().getDefaultInstance(),
                             CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+                    return;
                 }
             }
         }

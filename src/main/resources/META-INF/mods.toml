@@ -2,17 +2,17 @@ modLoader="javafml" #mandatory
 loaderVersion="${loader_version_range}" #mandatory
 
 license="${mod_license}"
-issueTrackerURL="${mod_github}/issues"
+#issueTrackerURL="${mod_github}"
 
 [[mods]] #mandatory
 
 modId="${mod_id}" #mandatory
 version="${mod_version}" #mandatory
 displayName="${mod_name}" #mandatory
-displayURL="${mod_homepage}"
+#displayURL="${mod_homepage}"
 
 logoFile="assets/map_atlases/icon.png"
-credits="${mod_credits}"
+#credits="${mod_credits}"
 authors="${mod_authors}" #optional
 description='''${mod_description}'''
 
