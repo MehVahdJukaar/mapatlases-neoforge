@@ -7,7 +7,7 @@ import pebjebs.mapatlases.utils.AtlasHolder;
 
 // TODO: use capabilities
 @Mixin(LecternBlockEntity.class)
-public class LecternBlockEntityMixin implements AtlasHolder {
+public abstract class LecternBlockEntityMixin implements AtlasHolder {
 
     @Unique
     private boolean mapatlases$hasAtlas = false;

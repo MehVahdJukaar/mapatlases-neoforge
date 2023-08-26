@@ -14,6 +14,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -64,7 +65,7 @@ public class MapAtlasesMod {
 
     public static final TagKey<Item> STICKY_ITEMS = ItemTags.create(res("sticky_crafting_items"));
 
-    public static final String TRINKETS_MOD_ID = "trinkets";
+    public static final boolean CURIOS = ModList.get().isLoaded("curios");
 
     static {
 
@@ -98,7 +99,7 @@ public class MapAtlasesMod {
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
         DUMMY_FILLED_MAP = ITEMS.register("dummy_filled_map", () -> new DummyFilledMap(new Item.Properties()));
 
-        // Registre messages
+        // Register messages
         MapAtlasNetowrking.register();
 
         MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);

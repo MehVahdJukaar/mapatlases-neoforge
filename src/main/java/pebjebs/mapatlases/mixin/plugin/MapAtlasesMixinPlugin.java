@@ -13,7 +13,7 @@ public class MapAtlasesMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        return !mixinClassName.contains("Trinkets") || ModList.get().isLoaded(MapAtlasesMod.TRINKETS_MOD_ID);
+        return !mixinClassName.contains("Curios") || ModList.get().isLoaded("curios");
     }
 
     @Override

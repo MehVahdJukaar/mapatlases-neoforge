@@ -4,7 +4,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(value = MapItemSavedData.class, priority = 1100)
-public class MapStateTrinketsMixin {
+public class MapStateCuriosMixin {
 /*
     @ModifyA(
             method ="tickCarriedBy",

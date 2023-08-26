@@ -12,11 +12,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.LiteralContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -105,7 +104,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
         int atlasDataScaledSize = (int) (atlasBgScaledSize - (2 * drawnMapBufferSize));
         int zoomLevelDim = getZoomLevelDim();
         MapAtlasesClient.setWorldMapZoomLevel(zoomLevelDim * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
-        float mapComponentureScale = (float) (atlasDataScaledSize / (128.0 * zoomLevelDim));
+        float mapTextureScale = (float) (atlasDataScaledSize / (128.0 * zoomLevelDim));
 
         // Draw map background
         double y = (height / 2.0) - (atlasBgScaledSize / 2.0);
@@ -148,7 +147,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
 
                 boolean drawPlayerIcons = stateDimStr.compareTo(initialWorldSelected) == 0;
                 if (!mapContainsMeaningfulIcons(state)) {
-                    drawMap(matrices, i, j, state, mapComponentX, mapComponentY, mapComponentureScale, drawPlayerIcons);
+                    drawMap(matrices, i, j, state, mapComponentX, mapComponentY, mapTextureScale, drawPlayerIcons);
                 }
             }
         }
@@ -168,7 +167,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
                 String stateDimStr = MapAtlasesAccessUtils.getMapItemSavedDataDimKey(state.getValue());
                 boolean drawPlayerIcons = stateDimStr.compareTo(initialWorldSelected) == 0;
                 if (mapContainsMeaningfulIcons(state)) {
-                    drawMap(matrices, i, j, state, mapComponentX, mapComponentY, mapComponentureScale, drawPlayerIcons);
+                    drawMap(matrices, i, j, state, mapComponentX, mapComponentY, mapTextureScale, drawPlayerIcons);
                 }
             }
         }
@@ -357,20 +356,20 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
             Map.Entry<String, MapItemSavedData> state,
             double mapComponentX,
             double mapComponentY,
-            float mapComponentureScale,
+            float mapTextureScale,
             boolean drawPlayerIcons
     ) {
         if (state == null || minecraft == null) return;
         int zoomLevelDim = getZoomLevelDim();
         boolean isCenterMap = (i == (zoomLevelDim / 2) && j == (zoomLevelDim / 2));
         // Draw the map
-        double curMapComponentX = mapComponentX + (mapComponentureScale * 128 * j);
-        double curMapComponentY = mapComponentY + (mapComponentureScale * 128 * i);
+        double curMapComponentX = mapComponentX + (mapTextureScale * 128 * j);
+        double curMapComponentY = mapComponentY + (mapTextureScale * 128 * i);
         MultiBufferSource.BufferSource vcp;
         vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
         matrices.pushPose();
         matrices.translate(curMapComponentX, curMapComponentY, 0.0);
-        matrices.scale(mapComponentureScale, mapComponentureScale, -1);
+        matrices.scale(mapTextureScale, mapTextureScale, -1);
         // Remove the off-map player icons temporarily during render
         Iterator<Map.Entry<String, MapDecoration>> it = state.getValue().decorations.entrySet().iterator();
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
@@ -688,7 +687,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
             } else {
                 RenderSystem.setShaderTexture(0, PAGE_UNSELECTED);
             }
-            drawComponentureFlippedX(
+            drawTextureFlippedX(
                     context,
                     (int) x - (int) (1.0 / 16 * atlasBgScaledSize),
                     (int) y + (int) (k * (4 / 32.0 * atlasBgScaledSize)) + (int) (1.0 / 16.0 * atlasBgScaledSize),
@@ -733,7 +732,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
         }
     }
 
-    private void drawComponentureFlippedX(GuiGraphics context, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
+    private void drawTextureFlippedX(GuiGraphics context, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
         var matrices = context.pose();
         matrices.pushPose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -772,7 +771,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
             if (mapState == null) continue;
             var mapIcon = entry.getValue();
             var mapIconComponent = mapIcon.getName() == null
-                    ? MutableComponent.create(Component.literal(
+                    ? MutableComponent.create(new LiteralContents(
                     firstCharCapitalize(mapIcon.getType().name().replace("_", " "))))
                     : mapIcon.getName();
             if (rawMouseXMoved >= (int) x - (int) (1.0 / 16 * atlasBgScaledSize)
@@ -780,7 +779,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
                     && rawMouseYMoved >= (int) y + (int) (k * (4 / 32.0 * atlasBgScaledSize)) + (int) (1.0 / 16.0 * atlasBgScaledSize)
                     && rawMouseYMoved <= (int) y + (int) (k * (4 / 32.0 * atlasBgScaledSize)) + (int) (1.0 / 16.0 * atlasBgScaledSize) + scaledWidth) {
                 // draw text
-                MutableComponent coordsComponent = Component.literal(
+                LiteralContents coordsComponent = new LiteralContents(
                         "X: " + (int) (dimAndCenters.getSecond().get(0) - (atlasScale / 2.0d) + ((atlasScale / 2.0d) * ((mapIcon.getX() + 128) / 128.0d)))
                                 + ", Z: "
                                 + (int) (dimAndCenters.getSecond().get(1) - (atlasScale / 2.0d) + ((atlasScale / 2.0d) * ((mapIcon.getY() + 128) / 128.0d)))

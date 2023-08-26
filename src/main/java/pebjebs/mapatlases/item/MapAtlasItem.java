@@ -97,7 +97,7 @@ public class MapAtlasItem extends Item implements MenuProvider {
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(getTranslationKey());
+        return Component.translatable(getDescriptionId());
     }
 
     @Nullable
@@ -146,7 +146,8 @@ public class MapAtlasItem extends Item implements MenuProvider {
         }
     }
 
-    @Override
+    //TODO:port
+    //@Override
     public void writeScreenOpeningData(ServerPlayer serverPlayer, FriendlyByteBuf packetByteBuf) {
         ItemStack atlas = getAtlasFromLookingLectern(serverPlayer);
         if (atlas.isEmpty()) {

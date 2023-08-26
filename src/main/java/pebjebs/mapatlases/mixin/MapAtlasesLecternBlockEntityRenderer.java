@@ -20,7 +20,7 @@ import pebjebs.mapatlases.utils.AtlasHolder;
 import static pebjebs.mapatlases.client.MapAtlasesClient.*;
 
 @Mixin(LecternRenderer.class)
-public class MapAtlasesLecternBlockEntityRenderer {
+public abstract class MapAtlasesLecternBlockEntityRenderer {
 
     @Unique
     @Nullable

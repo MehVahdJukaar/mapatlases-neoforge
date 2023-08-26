@@ -16,8 +16,8 @@ import pebjebs.mapatlases.MapAtlasesMod;
 import pebjebs.mapatlases.client.ActivationLocation;
 import pebjebs.mapatlases.config.MapAtlasesClientConfig;
 import pebjebs.mapatlases.config.MapAtlasesConfig;
+import pebjebs.mapatlases.integration.CuriosIntegration;
 import pebjebs.mapatlases.item.MapAtlasItem;
-import pebjebs.mapatlases.mixin.plugin.MapAtlasesMixinPlugin;
 
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -89,8 +89,8 @@ public class MapAtlasesAccessUtils {
                 .findFirst().orElse(null);
     }
 
-    public static ItemStack getAtlasFromPlayerByConfig(Player entity) {
-        Inventory inventory = entity.getInventory();
+    public static ItemStack getAtlasFromPlayerByConfig(Player player) {
+        Inventory inventory = player.getInventory();
         ItemStack itemStack = inventory.items.stream()
                 .limit(9)
                 .filter(i -> i != null && i.is(MapAtlasesMod.MAP_ATLAS.get()))
@@ -101,18 +101,14 @@ public class MapAtlasesAccessUtils {
             itemStack = getAtlasFromInventory(inventory);
         } else if (loc == ActivationLocation.HANDS) {
             itemStack = null;
-            ItemStack mainHand = inventory.items.get(inventory.selectedSlot);
+            ItemStack mainHand = inventory.items.get(inventory.selected);
             if (mainHand.getItem() == MapAtlasesMod.MAP_ATLAS)
                 itemStack = mainHand;
         }
-        if (itemStack == null && inventory.offHand.get(0).getItem() == MapAtlasesMod.MAP_ATLAS)
-            itemStack = inventory.offHand.get(0);
-        if (itemStack == null
-                && MapAtlasesMixinPlugin.isTrinketsLoaded()
-                && TrinketsApi.getTrinketComponent(entity).isPresent()
-                && TrinketsApi.getTrinketComponent(entity).get().getEquipped(MapAtlasesMod.MAP_ATLAS).size() > 0) {
-            itemStack = TrinketsApi.getTrinketComponent(entity)
-                    .get().getEquipped(MapAtlasesMod.MAP_ATLAS).get(0).getRight();
+        if (itemStack == null && inventory.offhand.get(0).getItem() == MapAtlasesMod.MAP_ATLAS)
+            itemStack = inventory.offhand.get(0);
+        if (itemStack == null && MapAtlasesMod.CURIOS){
+            itemStack = CuriosIntegration.getAtlasInCurio(player);
         }
         return itemStack != null ? itemStack : ItemStack.EMPTY;
     }
