@@ -2,11 +2,13 @@ package pebjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
 import io.netty.buffer.Unpooled;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -38,6 +40,7 @@ public class MapAtlasesServerEvents {
     private static final Semaphore mutex = new Semaphore(1);
 
     // Holds the current MapItemSavedData ID for each player
+    //maybe use weakhasmap with plauer
     private static final Map<String, String> playerToActiveMapId = new HashMap<>();
 
 
@@ -66,7 +69,7 @@ public class MapAtlasesServerEvents {
     @SubscribeEvent
     public static void mapAtlasServerTick(TickEvent.ServerTickEvent event) {
         ArrayList<String> seenPlayers = new ArrayList<>();
-        var server = event.getServer();
+        MinecraftServer server = event.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             String playerName = player.getName().getString();
             seenPlayers.add(playerName);
@@ -77,6 +80,8 @@ public class MapAtlasesServerEvents {
                     MapAtlasesAccessUtils.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
             Map.Entry<String, MapItemSavedData> activeInfo =
                     MapAtlasesAccessUtils.getActiveAtlasMapItemSavedDataServer(currentMapInfos, player);
+
+
             // changedMapItemSavedData has non-null value if player has a new active Map ID
             String changedMapItemSavedData = relayActiveMapIdToPlayerClient(activeInfo, player);
             if (activeInfo == null) {
@@ -104,7 +109,7 @@ public class MapAtlasesServerEvents {
             Map<String, MapItemSavedData> nearbyExistentMaps = currentMapInfos.entrySet().stream()
                     .filter(e -> discoveringEdges.stream()
                             .anyMatch(edge -> edge.getFirst() == e.getValue().centerX
-                                    && edge.getSecond() == e.getValue().centerX))
+                                    && edge.getSecond() == e.getValue().centerZ))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             for (var mapInfo : currentMapInfos.entrySet()) {
                 updateMapDataForPlayer(mapInfo, player, atlas);
@@ -166,6 +171,7 @@ public class MapAtlasesServerEvents {
             tries++;
         }
         if (p != null) {
+            //TODO: maybe use isComplex  update packet and inventory tick
             player.connection.send(p);
         }
     }

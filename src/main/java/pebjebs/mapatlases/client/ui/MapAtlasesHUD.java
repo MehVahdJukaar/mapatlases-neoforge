@@ -222,7 +222,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
             var key = world.getBiome(blockPos).unwrapKey();
             if (key.isPresent()) {
                 ResourceKey<Biome> biomeKey = key.get();
-                return Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).toString();
+                return Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
             }
         }
         return "";
