@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 
 @Mod(MapAtlasesMod.MOD_ID)
 public class MapAtlasesMod {
-//TODO: JEI AND CURIO
+
     public static final String MOD_ID = "map_atlases";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 

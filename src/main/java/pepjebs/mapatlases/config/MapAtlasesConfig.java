@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import pepjebs.mapatlases.client.ActivationLocation;
 
 import java.util.function.Supplier;
 
@@ -37,6 +38,11 @@ public class MapAtlasesConfig {
                 .comment("If 'true', Atlases will be able to store Empty Maps and auto-fill them as you explore.")
                 .define("enableEmptyMapEntryAndFill", true);
 
+        activationLocation = builder
+                .comment("Locations of where an atlas will be scanned for. By default only hotbar will be scanned")
+                .defineEnum("activationLocations", ActivationLocation.HOTBAR_AND_HANDS);
+
+
         spec = builder.build();
     }
 
@@ -46,6 +52,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> requireEmptyMapsToExpand;
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
+    public static final Supplier<ActivationLocation> activationLocation;
 
 
 }

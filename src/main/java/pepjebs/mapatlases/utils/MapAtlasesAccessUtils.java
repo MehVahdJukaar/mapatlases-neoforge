@@ -12,9 +12,8 @@ import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
@@ -85,7 +84,7 @@ public class MapAtlasesAccessUtils {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    @Nullable
+    @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
         int max = onlyHotbar ? 9 : inventory.getContainerSize();
         for (int i = 0; i < max; ++i) {
@@ -94,12 +93,13 @@ public class MapAtlasesAccessUtils {
                 return itemstack;
             }
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
+    @NotNull
     public static ItemStack getAtlasFromPlayerByConfig(Player player) {
         Inventory inventory = player.getInventory();
-        var loc = MapAtlasesClientConfig.activationLocation.get();
+        var loc = MapAtlasesConfig.activationLocation.get();
         // first scan hand
         ItemStack itemStack = player.getMainHandItem();
         if (itemStack.is(MapAtlasesMod.MAP_ATLAS.get())) {
@@ -115,11 +115,11 @@ public class MapAtlasesAccessUtils {
         //then curios
         if (MapAtlasesMod.CURIOS) {
             itemStack = CuriosCompat.getAtlasInCurio(player);
-            if(!itemStack.isEmpty())return itemStack;
+            if (!itemStack.isEmpty()) return itemStack;
         }
         if (MapAtlasesMod.TRINKETS) {
             itemStack = TrinketsCompat.getAtlasInTrinket(player);
-            if(!itemStack.isEmpty())return itemStack;
+            if (!itemStack.isEmpty()) return itemStack;
         }
         if (loc.scanAll()) {
             itemStack = getAtlasFromInventory(inventory, false);

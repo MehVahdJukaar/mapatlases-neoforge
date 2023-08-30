@@ -10,12 +10,14 @@ import java.util.List;
 public class TrinketsCompat {
 
     public static ItemStack getAtlasInTrinket(Player player) {
-
+//TODO: readd
+        /*
         TrinketComponent trinket = TrinketsApi.getTrinketComponent(player).orElse(null);
         if (trinket != null) {
             List<Tuple<SlotReference, ItemStack>> found = trinket.getEquipped(MapAtlasesMod.MAP_ATLAS.get());
             if (!found.isEmpty()) return found.get(0).getB();
         }
+        */
         return ItemStack.EMPTY;
     }
 }

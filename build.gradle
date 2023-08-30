@@ -180,9 +180,10 @@ dependencies {
 
     implementation fg.deobf("curse.maven:jei-238222:4712868")
     implementation fg.deobf("curse.maven:curios-309927:4583413")
-    compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
-    compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
-
+     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
+   // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
+    //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")
+    //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.1")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

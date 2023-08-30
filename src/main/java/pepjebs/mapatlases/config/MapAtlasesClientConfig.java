@@ -24,9 +24,6 @@ public class MapAtlasesClientConfig {
                 .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
                 .define("drawMiniMapHUD", true);
 
-        activationLocation = builder
-                .comment("Locations of where an atlas will be scanned for. By default only hotbar will be scanned")
-                .defineEnum("activationLocations", ActivationLocation.HOTBAR);
 
         forceWorldMapScaling = builder
                 .comment("Scale the world-map to a given % of the height of your screen.")
@@ -86,7 +83,6 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> drawMiniMapHUD;
     public static final Supplier<Integer> forceMiniMapScaling;
     public static final Supplier<Integer> forceWorldMapScaling;
-    public static final Supplier<ActivationLocation> activationLocation;
     public static final Supplier<Anchoring> miniMapAnchoring;
     public static final Supplier<Integer> miniMapHorizontalOffset;
     public static final Supplier<Integer> miniMapVerticalOffset;
