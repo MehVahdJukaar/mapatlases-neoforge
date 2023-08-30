@@ -2,8 +2,9 @@
   "minVersion": "0.8",
   "required": true,
   "compatibilityLevel": "JAVA_17",
-  "package": "pebjebs.mapatlases.mixin",
-  "plugin": "pebjebs.mapatlases.mixin.plugin.MapAtlasesMixinPlugin",
+  "package": "pepjebs.mapatlases.mixin",
+  "plugin": "pepjebs.mapatlases.mixin.plugin.MapAtlasesMixinPlugin",
+  "refmap": "map_atlases.refmap.json",
   "mixins": [
     "CartographyTableMenuMixin",
     "LecternBlockEntityMixin",
