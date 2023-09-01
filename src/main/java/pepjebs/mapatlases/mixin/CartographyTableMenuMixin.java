@@ -6,11 +6,33 @@
  */
 package pepjebs.mapatlases.mixin;
 
+import com.mojang.datafixers.util.Pair;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Mixin(CartographyTableMenu.class)
@@ -23,11 +45,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
     protected CartographyTableMenuMixin(@Nullable MenuType<?> arg, int i) {
         super(arg, i);
     }
-/*//TODO: PORT
 
     @Inject(method = "setupResultSlot", at = @At("HEAD"), cancellable = true)
     void mapAtlasUpdateResult(ItemStack atlas, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
-        if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS && bottomItem.getItem() == MapAtlasesMod.MAP_ATLAS) {
+        if (atlas.is(MapAtlasesMod.MAP_ATLAS.get()) && bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             final int[] allMapIds = Stream.of(Arrays.stream(MapAtlasesAccessUtils.getMapIdsFromItemStack(atlas)),
                     Arrays.stream(MapAtlasesAccessUtils.getMapIdsFromItemStack(bottomItem)))
                     .flatMapToInt(x -> x)
@@ -43,27 +64,27 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
                 mergedNbt.putIntArray(MapAtlasItem.MAP_LIST_NBT, filteredMapIds);
                 result.setTag(mergedNbt);
                 result.grow(1);
-                this.resultContainer.setItem(CartographyTableAbstractContainerMenu.RESULT_SLOT_INDEX, result);
+                this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
             });
 
-            this.sendContentUpdates();
+            this.broadcastChanges();
 
             info.cancel();
-        } else if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS && (bottomItem.getItem() == Items.MAP
-                || (MapAtlasesClientConfig.acceptPaperForEmptyMaps.get() && bottomItem.getItem() == Items.PAPER))) {
+        } else if (atlas.is(MapAtlasesMod.MAP_ATLAS.get()) && (bottomItem.getItem() == Items.MAP
+                || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && bottomItem.getItem() == Items.PAPER))) {
             ItemStack result = atlas.copy();
             CompoundTag nbt = result.getTag() != null ? result.getTag() : new CompoundTag();
             int amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(atlas, bottomItem);
             nbt.putInt(MapAtlasItem.EMPTY_MAP_NBT, nbt.getInt(MapAtlasItem.EMPTY_MAP_NBT) + amountToAdd);
-            result.setNbt(nbt);
-            this.resultInventory.setStack(CartographyTableAbstractContainerMenu.RESULT_SLOT_INDEX, result);
+            result.setTag(nbt);
+            this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
 
-            this.sendContentUpdates();
+            this.broadcastChanges();
 
             info.cancel();
-        } else if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS && bottomItem.getItem() == Items.FILLED_MAP) {
+        } else if (atlas.is( MapAtlasesMod.MAP_ATLAS.get()) && bottomItem.getItem() == Items.FILLED_MAP) {
             ItemStack result = atlas.copy();
-            if (bottomItem.getTag() == null || !bottomItem.hasNbt() || !bottomItem.getTag().contains("map"))
+            if (bottomItem.getTag() == null || !bottomItem.hasTag() || !bottomItem.getTag().contains("map"))
                 return;
             int mapId = bottomItem.getTag().getInt("map");
             CompoundTag compound = result.getTag();
@@ -74,33 +95,33 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
             if (!existentMapIds.contains(mapId)) {
                 existentMapIds.add(mapId);
             }
-            this.context.run((world, blockPos) -> {
+            this.access.execute((world, blockPos) -> {
                 int[] filteredMapIds =
                         filterIntArrayForUniqueMaps(world, existentMapIds.stream().mapToInt(s -> s).toArray());
 
                 compound.putIntArray(MapAtlasItem.MAP_LIST_NBT, filteredMapIds);
-                result.setNbt(compound);
+                result.setTag(compound);
 
-                this.resultInventory.setStack(CartographyTableAbstractContainerMenu.RESULT_SLOT_INDEX, result);
+                this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
             });
 
-            this.sendContentUpdates();
+            this.broadcastChanges();
 
             info.cancel();
         } else if (atlas.getItem() == Items.BOOK && bottomItem.getItem() == Items.FILLED_MAP) {
-            ItemStack result = new ItemStack(MapAtlasesMod.MAP_ATLAS);
-            if (bottomItem.getTag() == null || !bottomItem.hasNbt() || !bottomItem.getTag().contains("map"))
+            ItemStack result = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
+            if (bottomItem.getTag() == null || !bottomItem.hasTag() || !bottomItem.getTag().contains("map"))
                 return;
             int mapId = bottomItem.getTag().getInt("map");
             CompoundTag compound = new CompoundTag();
             compound.putIntArray(MapAtlasItem.MAP_LIST_NBT, new int[]{mapId});
-            if (MapAtlasesMod.CONFIG != null && MapAtlasesClientConfig.pityActivationMapCount.get() > 0) {
-                compound.putInt(MapAtlasItem.EMPTY_MAP_NBT, MapAtlasesClientConfig.pityActivationMapCount.get());
+            if (MapAtlasesConfig.pityActivationMapCount.get() > 0) {
+                compound.putInt(MapAtlasItem.EMPTY_MAP_NBT, MapAtlasesConfig.pityActivationMapCount.get());
             }
-            result.setNbt(compound);
-            this.resultInventory.setStack(CartographyTableAbstractContainerMenu.RESULT_SLOT_INDEX, result);
+            result.setTag(compound);
+            this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
 
-            this.sendContentUpdates();
+            this.broadcastChanges();
 
             info.cancel();
         }
@@ -112,12 +133,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
 
         Slot slot = this.slots.get(index);
 
-        if (slot.hasStack()) {
-            ItemStack stack = slot.getStack();
+        if (slot.hasItem()) {
+            ItemStack stack = slot.getItem();
 
             if (stack.getItem() != MapAtlasesMod.MAP_ATLAS) return;
 
-            boolean result = this.insertItem(stack, 0, 2, false);
+            boolean result = this.moveItemStackTo(stack, 0, 2, false);
 
             if (!result) {
                 info.setReturnValue(ItemStack.EMPTY);
@@ -126,17 +147,18 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
     }
 
     // Filters for both duplicate map id (e.g. "map_25") and duplicate X+Z+Dimension
+    @Unique
     private int[] filterIntArrayForUniqueMaps(Level world, int[] toFilter) {
         Map<String, Pair<Integer, MapItemSavedData>> uniqueXZMapIds =
                 Arrays.stream(toFilter)
                         .mapToObj(mId -> new Pair<>(mId, world.getMapData("map_" + mId)))
-                        .filter(m -> m.getRight() != null)
+                        .filter(m -> m.getSecond() != null)
                         .collect(Collectors.toMap(
-                                m -> m.getRight().centerX + ":" + m.getRight().centerZ
-                                        + ":"  + m.getRight().dimension,
+                                m -> m.getSecond().centerX + ":" + m.getSecond().centerZ
+                                        + ":"  + m.getSecond().dimension,
                                 m -> m,
                                 (m1, m2) -> m1));
-        return uniqueXZMapIds.values().stream().mapToInt(Pair::getLeft).toArray();
+        return uniqueXZMapIds.values().stream().mapToInt(Pair::getFirst).toArray();
     }
-*/
+
 }

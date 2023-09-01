@@ -32,16 +32,18 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         ItemStack shears = ItemStack.EMPTY;
         for (ItemStack i : inv.getItems()) {
             if (!i.isEmpty()) {
-                if (i.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                    if (!shears.isEmpty()) return false;
+                if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
+                        (MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(i) > 0 ||
+                                MapAtlasesAccessUtils.getMapIdsFromItemStack(atlas).length > 0)) {
+                    if (!atlas.isEmpty()) return false;
                     atlas = i;
                 } else if (i.is(Items.SHEARS) && i.getDamageValue() < i.getMaxDamage() - 1) {
-                    if (!atlas.isEmpty()) return false;
+                    if (!shears.isEmpty()) return false;
                     shears = i;
                 } else return false;
             }
         }
-        return true;
+        return !shears.isEmpty() && !atlas.isEmpty();
     }
 
     @Override
@@ -53,18 +55,15 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        if (atlas.getTag() == null) return ItemStack.EMPTY;
-        if (MapAtlasesAccessUtils.getMapCountFromItemStack(atlas) > 1) {
-            List<Integer> mapIds = Arrays.stream(atlas.getTag()
-                    .getIntArray(MapAtlasItem.MAP_LIST_NBT)).boxed().collect(Collectors.toList());
-            if (mapIds.size() > 0) {
-                int lastId = mapIds.remove(mapIds.size() - 1);
-                return MapAtlasesAccessUtils.createMapItemStackFromId(lastId);
-            }
+        int[] mapIds = MapAtlasesAccessUtils.getMapIdsFromItemStack(atlas);
+        if (mapIds.length > 1) {
+            int lastId = mapIds[mapIds.length - 1];
+            return MapAtlasesAccessUtils.createMapItemStackFromId(lastId);
         }
         if (MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(atlas) > 0) {
             return new ItemStack(Items.MAP);
         }
+        //should never run
         return ItemStack.EMPTY;
     }
 
@@ -73,9 +72,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         NonNullList<ItemStack> list = NonNullList.create();
         for (ItemStack i : container.getItems()) {
             ItemStack cur = i.copy();
+            //TODO: improve
             if (cur.getItem() == Items.SHEARS) {
                 cur.hurt(1, RandomSource.create(), null);
-            } else if (cur.getItem() == MapAtlasesMod.MAP_ATLAS && cur.getTag() != null) {
+            } else if (cur.is(MapAtlasesMod.MAP_ATLAS.get()) && cur.getTag() != null) {
                 boolean didRemoveFilled = false;
                 if (MapAtlasesAccessUtils.getMapCountFromItemStack(cur) > 1) {
                     List<Integer> mapIds = Arrays.stream(cur.getTag()

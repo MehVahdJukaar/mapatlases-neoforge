@@ -27,7 +27,7 @@ class MixinCartographyTableHandlerFirstSlot {
 
     @Inject(method = "mayPlace", at = @At("RETURN"), cancellable = true)
     void mapAtlasCanInsert(ItemStack stack, CallbackInfoReturnable<Boolean> info) {
-        info.setReturnValue(stack.getItem() == MapAtlasesMod.MAP_ATLAS || stack.getItem() ==  Items.BOOK ||
+        info.setReturnValue(stack.is(MapAtlasesMod.MAP_ATLAS.get()) || stack.getItem() ==  Items.BOOK ||
                 info.getReturnValueZ());
 
     }
@@ -38,7 +38,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 
     @Inject(method = "mayPlace", at = @At("RETURN"), cancellable = true)
     void mapAtlasCanInsert(ItemStack stack, CallbackInfoReturnable<Boolean> info) {
-        info.setReturnValue(stack.getItem() == MapAtlasesMod.MAP_ATLAS || stack.getItem() ==  Items.FILLED_MAP ||
+        info.setReturnValue(stack.is(MapAtlasesMod.MAP_ATLAS.get()) || stack.getItem() ==  Items.FILLED_MAP ||
                 info.getReturnValueZ());
     }
 }
@@ -53,14 +53,14 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps  {
     void mapAtlasOnTakeItem(Player player, ItemStack stack, CallbackInfo info) {
         ItemStack atlas = this$0.slots.get(0).getItem();
         Slot slotOne = this$0.slots.get(1);
-        if (this$0.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
-                && (slotOne.getItem().getItem() == Items.MAP
-                || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOne.getItem().getItem() == Items.PAPER))) {
+        if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())
+                && (slotOne.getItem().is( Items.MAP)
+                || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOne.getItem().is(Items.PAPER)))) {
             int amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOne.getItem());
             // onTakeItem already calls takeStack(1) so we subtract that out
             slotOne.remove(amountToTake - 1);
-        } else if (this$0.slots.get(0).getItem().getItem() == MapAtlasesMod.MAP_ATLAS
-                && slotOne.getItem().getItem() == Items.FILLED_MAP) {
+        } else if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())
+                && slotOne.getItem().is(Items.FILLED_MAP)) {
             slotOne.remove(1);
         }
     }

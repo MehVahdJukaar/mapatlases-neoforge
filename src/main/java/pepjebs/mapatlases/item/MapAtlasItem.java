@@ -130,7 +130,7 @@ public class MapAtlasItem extends Item implements MenuProvider {
             BlockEntity e = player.level().getBlockEntity(BlockPos.containing(h.getLocation()));
             if (e instanceof LecternBlockEntity be) {
                 ItemStack book = be.getBook();
-                if (book.getItem() == MapAtlasesMod.MAP_ATLAS) {
+                if (book.is(MapAtlasesMod.MAP_ATLAS.get())) {
                     return book;
                 }
             }
