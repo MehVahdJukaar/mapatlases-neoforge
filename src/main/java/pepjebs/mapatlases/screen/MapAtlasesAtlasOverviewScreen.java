@@ -50,14 +50,18 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
     public static final ResourceLocation PAGE_OTHER =
             new ResourceLocation("map_atlases:textures/gui/screen/unknown_atlas_page.png");
     public static final ResourceLocation MAP_ICON_TEXTURE = new ResourceLocation("textures/map/map_icons.png");
-    private static final RenderType MAP_ICONS = RenderType.entityCutout(MAP_ICON_TEXTURE);
+    private static final RenderType MAP_ICONS = RenderType.text(MAP_ICON_TEXTURE);
     private static final int ZOOM_BUCKET = 4;
     private static final int PAN_BUCKET = 25;
     private static final int MAX_TAB_DISP = 7;
 
     private final ItemStack atlas;
-    public final String centerMapId;
-    public Map<Integer, Pair<String, List<Integer>>> idsToCenters;
+
+    //usually player cant change this data while on the screen. however if it was moved it might
+
+    private final String centerMapId;
+    private final Map<Integer, Pair<String, List<Integer>>> idsToCenters;
+    private final List<String> dimensions;
     private int mouseXOffset = 0;
     private int mouseYOffset = 0;
     private int currentXCenter;
@@ -81,11 +85,16 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
         currentXCenter = coords.get(0);
         currentZCenter = coords.get(1);
         currentWorldSelected = MapAtlasesAccessUtils.getPlayerDimKey(inventory.player);
-        initialWorldSelected = MapAtlasesAccessUtils.getPlayerDimKey(inventory.player);
+        initialWorldSelected = currentWorldSelected;
+
+        dimensions = idsToCenters.values().stream().map(Pair::getFirst).collect(Collectors.toSet()).stream().toList();
         // Play open sound
         inventory.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
     }
+
+
+
 
     @Override
     public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
@@ -96,7 +105,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
     @Override
     protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
         if (minecraft == null || minecraft.player == null || minecraft.level == null) return;
-        var matrices = context.pose();
+        PoseStack matrices = context.pose();
 
         // Handle zooming
         int atlasBgScaledSize = getAtlasBgScaledSize();
@@ -237,8 +246,6 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         // Handle dim selector scroll
-        var dims =
-                idsToCenters.values().stream().map(Pair::getFirst).collect(Collectors.toSet()).stream().toList();
         int atlasBgScaledSize = getAtlasBgScaledSize();
         double x = (width / 2.0) - (atlasBgScaledSize / 2.0);
         double y = (height / 2.0) - (atlasBgScaledSize / 2.0);
@@ -246,7 +253,7 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
         int targetX = (int) x + (int) (29.5 / 32.0 * atlasBgScaledSize);
         if (mouseX >= targetX && mouseX <= targetX + scaledWidth) {
             dimSelectorOffset =
-                    Math.max(0, Math.min(dims.size() - MAX_TAB_DISP, dimSelectorOffset + (amount > 0 ? -1 : 1)));
+                    Math.max(0, Math.min(dimensions.size() - MAX_TAB_DISP, dimSelectorOffset + (amount > 0 ? -1 : 1)));
             return true;
         }
         // Handle map icon selector scroll
@@ -278,8 +285,6 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (minecraft == null || minecraft.player == null) return false;
         if (button == 0) {
-            var dims =
-                    idsToCenters.values().stream().map(Pair::getFirst).collect(Collectors.toSet()).stream().toList();
             int atlasBgScaledSize = getAtlasBgScaledSize();
             double x = (width / 2.0) - (atlasBgScaledSize / 2.0);
             double y = (height / 2.0) - (atlasBgScaledSize / 2.0);
@@ -291,10 +296,10 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
                 if (mouseX >= targetX && mouseX <= targetX + scaledWidth
                         && mouseY >= targetY && mouseY <= targetY + scaledWidth) {
                     int targetIdx = dimSelectorOffset + i;
-                    if (targetIdx >= dims.size()) {
+                    if (targetIdx >= dimensions.size()) {
                         continue;
                     }
-                    String newDim = dims.get(targetIdx);
+                    String newDim = dimensions.get(targetIdx);
                     currentWorldSelected = newDim;
                     // Set center map coords
                     int[] coords = getCenterMapCoordsForDimension(newDim);
@@ -596,8 +601,6 @@ public class MapAtlasesAtlasOverviewScreen extends AbstractContainerScreen<MapAt
             double y,
             int atlasBgScaledSize
     ) {
-        var dimensions =
-                idsToCenters.values().stream().map(Pair::getFirst).collect(Collectors.toSet()).stream().toList();
         int scaledWidth;
         for (int i = 0; i < MAX_TAB_DISP; i++) {
             int targetIdx = dimSelectorOffset + i;

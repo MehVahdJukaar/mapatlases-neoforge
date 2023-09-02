@@ -9,7 +9,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 
 import java.util.Optional;
 
-public class MapAtlasNetowrking {
+public class MapAtlasesNetowrking {
 
     private static final String VERSION = "1";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -24,6 +24,9 @@ public class MapAtlasNetowrking {
         CHANNEL.registerMessage(index++, S2CSetActiveMapPacket.class,
                 S2CSetActiveMapPacket::write, S2CSetActiveMapPacket::new, S2CSetActiveMapPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(index++, C2SAtlasKeybindPacket.class,
+                C2SAtlasKeybindPacket::write, C2SAtlasKeybindPacket::new, C2SAtlasKeybindPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
 
@@ -31,4 +34,7 @@ public class MapAtlasNetowrking {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), message);
     }
 
+    public static void sendToServer(Object atlasKeybindPacket) {
+        CHANNEL.sendToServer(atlasKeybindPacket);
+    }
 }

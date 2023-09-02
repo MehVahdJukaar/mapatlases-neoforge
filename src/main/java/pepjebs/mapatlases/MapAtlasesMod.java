@@ -29,7 +29,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
-import pepjebs.mapatlases.networking.MapAtlasNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
@@ -98,7 +98,7 @@ public class MapAtlasesMod {
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
 
         // Register messages
-        MapAtlasNetowrking.register();
+        MapAtlasesNetowrking.register();
 
         MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
         bus.addListener(MapAtlasesMod::addItemsToTabs);

@@ -16,10 +16,10 @@ import java.util.Map;
 //Is this even needed?
 public class MapAtlasesAtlasOverviewContainerMenu extends AbstractContainerMenu {
 
-    public ItemStack atlas = ItemStack.EMPTY;
-    public String centerMapId = "";
-    public int atlasScale = 128;
-    public Map<Integer, Pair<String,List<Integer>>> idsToCenters = new HashMap<>();
+    public final ItemStack atlas;
+    public final String centerMapId;
+    public final int atlasScale;
+    public final Map<Integer, Pair<String,List<Integer>>> idsToCenters = new HashMap<>();
 
     public MapAtlasesAtlasOverviewContainerMenu(int syncId, Inventory _playerInventory, FriendlyByteBuf buf) {
         super(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), syncId);
@@ -41,7 +41,7 @@ public class MapAtlasesAtlasOverviewContainerMenu extends AbstractContainerMenu 
                                                 String centerMapId1,
                                                 int atlasScale1) {
         super(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), syncId);
-        idsToCenters = idsToCenters1;
+        idsToCenters.putAll(idsToCenters1);
         atlas = atlas1;
         centerMapId = centerMapId1;
         atlasScale = atlasScale1;

@@ -19,7 +19,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.MapAtlasNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetActiveMapPacket;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -57,7 +57,7 @@ public class MapAtlasesServerEvents {
             state.tickCarriedBy(player, atlas);
             state.getHoldingPlayer(player);
 
-            MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetMapDataPacket(mapId, state, true));
+            MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetMapDataPacket(mapId, state, true));
 
         }
     }
@@ -189,12 +189,12 @@ public class MapAtlasesServerEvents {
             if (addingPlayer || !currentMapId.equals(cachedMapId)) {
                 changedMapItemSavedData = cachedMapId;
                 playerToActiveMapId.put(playerName, currentMapId);
-                MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
+                MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
             }
         } else if (cachedMapId != null) {
             playerToActiveMapId.put(playerName, null);
 
-            MapAtlasNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
+            MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
         }
         return changedMapItemSavedData;
     }

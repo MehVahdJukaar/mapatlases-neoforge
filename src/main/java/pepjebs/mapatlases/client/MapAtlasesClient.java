@@ -21,7 +21,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
-import pepjebs.mapatlases.lifecycle.MapAtlasClientEvents;
+import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.screen.MapAtlasesAtlasOverviewScreen;
 
 public class MapAtlasesClient {
@@ -59,7 +59,7 @@ public class MapAtlasesClient {
 
         FMLJavaModLoadingContext.get().getModEventBus().register(MapAtlasesClient.class);
 
-        MinecraftForge.EVENT_BUS.register(MapAtlasClientEvents.class);
+        MinecraftForge.EVENT_BUS.register(MapAtlasesClientEvents.class);
     }
 
     @SubscribeEvent
