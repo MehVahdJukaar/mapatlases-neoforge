@@ -125,7 +125,6 @@ public class MapAtlasesAccessUtils {
     }
 
     // KEEP NAME
-    //TODO: mae one per dimension
     @Deprecated(forRemoval = true)
     public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(
             Map<String, MapItemSavedData> currentDimMapInfos,

@@ -62,6 +62,8 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             Level.END, PAGE_END
     );
 
+
+    private static final int MAP_SIZE = 128;
     private static final RenderType MAP_ICONS = RenderType.text(MAP_ICON_TEXTURE);
     private static final int ZOOM_BUCKET = 4;
     private static final int PAN_BUCKET = 25;
@@ -72,22 +74,18 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     private final Level level;
     private final int atlasScale;
     private final List<ResourceKey<Level>> dimensions = new ArrayList<>();
+    private final ResourceKey<Level> initialWorldSelected;
+    private final MapItemSavedData initialMapSelected;
 
-    // height and width can change so can these
+    // height and width can change so can these4
+    @Deprecated(forRemoval = true)
     private int atlasBgScaledSize;
     private int leftPos;
     private int topPos;
 
-
-    //remove?
-    private final ResourceKey<Level> initialWorldSelected;
-    private final MapItemSavedData initialMapSelected;
-
-
     private final Map<ResourceKey<Level>, List<Pair<String, MapItemSavedData>>> dimToData = new HashMap<>();
     private final Map<Pair<Integer, Integer>, Pair<String, MapItemSavedData>> byCenter = new HashMap<>();
 
-    //usually player cant change this data while on the screen. however if it was moved it might
 
     private ResourceKey<Level> currentWorldSelected;
     private int mouseXOffset = 0;
@@ -112,17 +110,15 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
         tick();
 
-        initialMapSelected = MapAtlasesAccessUtils.getClosestMapData(dimToData.get(currentWorldSelected), player)
-                .getSecond();
+        initialMapSelected = MapAtlasesAccessUtils.getClosestMapData(dimToData.get(currentWorldSelected), player).getSecond();
 
-        atlasScale = (1 << initialMapSelected.scale) * 128;
+        atlasScale = (1 << initialMapSelected.scale) * MAP_SIZE;
         currentXCenter = initialMapSelected.centerX;
         currentZCenter = initialMapSelected.centerZ;
 
         // Play open sound
         player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
-
     }
 
     @Override
@@ -158,6 +154,17 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         renderBackground(graphics);
+        graphics.blit(
+                PAGE_SELECTED,
+                -20+leftPos ,
+                topPos ,
+                0,
+                0,
+                20,
+                18,
+                20,
+                20
+        );
 
         PoseStack matrices = graphics.pose();
 
@@ -166,7 +173,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         int atlasDataScaledSize = atlasBgScaledSize - (2 * drawnMapBufferSize);
         int zoomLevelDim = getZoomLevelDim();
         MapAtlasesClient.setWorldMapZoomLevel(zoomLevelDim * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
-        float mapTextureScale = (float) (atlasDataScaledSize / (128.0 * zoomLevelDim));
+        float mapTextureScale = atlasDataScaledSize / (MAP_SIZE * (float)zoomLevelDim);
 
         // Draw map background
         //TODO: check config
@@ -401,8 +408,8 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             boolean drawPlayerIcons
     ) {
         // Draw the map
-        double curMapComponentX = (128 * j);
-        double curMapComponentY = (128 * i);
+        double curMapComponentX = (MAP_SIZE * j);
+        double curMapComponentY = (MAP_SIZE * i);
         matrices.pushPose();
         matrices.translate(curMapComponentX, curMapComponentY, 0.0);
 
@@ -622,21 +629,24 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             Pair<MapItemSavedData, MapDecoration> decorationPair = mapDecorationList.get(targetIdx);
             // Draw selector
             MapItemSavedData decorationData = decorationPair.getFirst();
+            int offset = 0;
             if (currentXCenter == decorationData.centerX && currentZCenter == decorationData.centerZ) {
+                offset = 0;
                 RenderSystem.setShaderTexture(0, PAGE_SELECTED);
             } else {
+                offset = 20;
                 RenderSystem.setShaderTexture(0, PAGE_UNSELECTED);
             }
-            drawTextureFlippedX(
-                    context,
+            context.blit(
+                    PAGE_SELECTED,
                     leftPos - (int) (1.0 / 16 * atlasBgScaledSize),
                     topPos + (int) (k * (4 / 32.0 * atlasBgScaledSize)) + (int) (1.0 / 16.0 * atlasBgScaledSize),
                     0,
                     0,
-                    scaledWidth,
-                    scaledWidth,
-                    scaledWidth,
-                    scaledWidth
+                    20,
+                    18,
+                    20,
+                    20
             );
 
             // Draw map Icon
@@ -675,8 +685,11 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     }
 
     //TODO:use gui graphics
-    private void drawTextureFlippedX(GuiGraphics context, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
-        var matrices = context.pose();
+    private void drawTextureFlippedX(GuiGraphics graphics, int x, int y, float u, float v,
+                                     int width, int height, int textureWidth, int textureHeight) {
+        graphics.blit(PAGE_UNSELECTED,x,y,0,0, width,height, 20, 20 );
+        if(true)return;
+        var matrices = graphics.pose();
         matrices.pushPose();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         BufferBuilder bufferBuilder = Tesselator.getInstance().getBuilder();
@@ -685,11 +698,16 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         float u1 = (u + 0.0F) / textureWidth;
         float v0 = (v + 0.0F) / textureHeight;
         float v1 = (v + height) / textureHeight;
+
+        //TODO: merge textures
+
         bufferBuilder.vertex(matrices.last().pose(), x, (float) y + height, 0.00001F).uv(u0, v1).endVertex();
         bufferBuilder.vertex(matrices.last().pose(), (float) x + width, (float) y + height, 0.00002F).uv(u1, v1).endVertex();
         bufferBuilder.vertex(matrices.last().pose(), (float) x + width, y, 0.00003F).uv(u1, v0).endVertex();
         bufferBuilder.vertex(matrices.last().pose(), x, y, 0.00004F).uv(u0, v0).endVertex();
         BufferUploader.drawWithShader(bufferBuilder.end());
+
+
         matrices.popPose();
     }
 
