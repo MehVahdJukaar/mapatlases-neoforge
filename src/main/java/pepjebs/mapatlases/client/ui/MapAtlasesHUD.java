@@ -29,6 +29,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return false;
         // Check F3 menu displayed
         if (mc.options.renderDebug) return false;
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(mc.player);
+        ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(mc.player);
         // Check the player for an Atlas
         if (atlas.isEmpty()) return false;
         // Check the client has an active map id

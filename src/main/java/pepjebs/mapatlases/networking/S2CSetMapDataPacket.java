@@ -8,7 +8,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.function.Supplier;
 
@@ -53,7 +53,7 @@ public class S2CSetMapDataPacket {
             if (level == null) return;
 
             if (isOnJoin) {
-                ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+                ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
                 mapData.tickCarriedBy(player, atlas);
                 mapData.getHoldingPlayer(player);
             }

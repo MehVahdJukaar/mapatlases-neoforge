@@ -15,6 +15,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,8 +34,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         for (ItemStack i : inv.getItems()) {
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
-                        (MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(i) > 0 ||
-                                MapAtlasesAccessUtils.getMapIdsFromItemStack(atlas).length > 0)) {
+                        (MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(i) > 0 ||
+                                MapAtlasesAccessUtilsOld.getMapIdsFromItemStack(atlas).length > 0)) {
                     if (!atlas.isEmpty()) return false;
                     atlas = i;
                 } else if (i.is(Items.SHEARS) && i.getDamageValue() < i.getMaxDamage() - 1) {
@@ -60,7 +61,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             int lastId = mapIds[mapIds.length - 1];
             return MapAtlasesAccessUtils.createMapItemStackFromId(lastId);
         }
-        if (MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(atlas) > 0) {
+        if (MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas) > 0) {
             return new ItemStack(Items.MAP);
         }
         //should never run
@@ -77,7 +78,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 cur.hurt(1, RandomSource.create(), null);
             } else if (cur.is(MapAtlasesMod.MAP_ATLAS.get()) && cur.getTag() != null) {
                 boolean didRemoveFilled = false;
-                if (MapAtlasesAccessUtils.getMapCountFromItemStack(cur) > 1) {
+                if (MapAtlasesAccessUtilsOld.getMapCountFromItemStack(cur) > 1) {
                     List<Integer> mapIds = Arrays.stream(cur.getTag()
                             .getIntArray(MapAtlasItem.MAP_LIST_NBT)).boxed().collect(Collectors.toList());
                     if (!mapIds.isEmpty()) {
@@ -87,7 +88,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                     }
 
                 }
-                if (MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(cur) > 0 && !didRemoveFilled) {
+                if (MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(cur) > 0 && !didRemoveFilled) {
                     int multiplier = MapAtlasesConfig.mapEntryValueMultiplier.get();
                     int amountToSet = Math.max(cur.getTag().getInt(MapAtlasItem.EMPTY_MAP_NBT) - multiplier, 0);
                     cur.getTag().putInt(MapAtlasItem.EMPTY_MAP_NBT, amountToSet);

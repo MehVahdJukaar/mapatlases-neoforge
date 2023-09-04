@@ -22,6 +22,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetActiveMapPacket;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
@@ -48,9 +49,9 @@ public class MapAtlasesServerEvents {
     }
 
     public static void mapAtlasPlayerJoinImpl(ServerPlayer player) {
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
-        Map<String, MapItemSavedData> mapInfos = MapAtlasesAccessUtils.getAllMapInfoFromAtlas(player.level(), atlas);
+        Map<String, MapItemSavedData> mapInfos = MapAtlasesAccessUtilsOld.getAllMapInfoFromAtlas(player.level(), atlas);
         for (Map.Entry<String, MapItemSavedData> info : mapInfos.entrySet()) {
             String mapId = info.getKey();
             MapItemSavedData state = info.getValue();
@@ -70,12 +71,12 @@ public class MapAtlasesServerEvents {
             String playerName = player.getName().getString();
             seenPlayers.add(playerName);
             if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
-            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+            ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) continue;
             Map<String, MapItemSavedData> currentMapInfos =
-                    MapAtlasesAccessUtils.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
+                    MapAtlasesAccessUtilsOld.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
             Map.Entry<String, MapItemSavedData> activeInfo =
-                    MapAtlasesAccessUtils.getActiveAtlasMapStateServer(currentMapInfos, player);
+                    MapAtlasesAccessUtilsOld.getActiveAtlasMapStateServer(currentMapInfos, player);
 
 
             // changedMapItemSavedData has non-null value if player has a new active Map ID
@@ -119,7 +120,7 @@ public class MapAtlasesServerEvents {
 
             // Create new Map entries
             if (!MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) continue;
-            boolean isPlayerOutsideAllMapRegions = MapAtlasesAccessUtils.distanceBetweenMapItemSavedDataAndPlayer(
+            boolean isPlayerOutsideAllMapRegions = MapAtlasesAccessUtilsOld.distanceBetweenMapItemSavedDataAndPlayer(
                     activeState, player) > scaleWidth;
             if (isPlayerOutsideAllMapRegions) {
                 maybeCreateNewMapEntry(player, atlas, scale, Mth.floor(player.getX()),
@@ -217,7 +218,7 @@ public class MapAtlasesServerEvents {
                     MapAtlasesConfig.pityActivationMapCount.get());
             atlas.setTag(defaultAtlasNbt);
         }
-        int emptyCount = MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(atlas);
+        int emptyCount = MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
         if (mutex.availablePermits() > 0
                 && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {

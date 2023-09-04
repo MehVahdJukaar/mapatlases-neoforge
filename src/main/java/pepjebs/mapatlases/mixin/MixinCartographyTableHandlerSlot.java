@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$3")
 class MixinCartographyTableHandlerFirstSlot {
@@ -56,7 +56,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps  {
         if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())
                 && (slotOne.getItem().is( Items.MAP)
                 || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOne.getItem().is(Items.PAPER)))) {
-            int amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOne.getItem());
+            int amountToTake = MapAtlasesAccessUtilsOld.getMapCountToAdd(atlas, slotOne.getItem());
             // onTakeItem already calls takeStack(1) so we subtract that out
             slotOne.remove(amountToTake - 1);
         } else if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())

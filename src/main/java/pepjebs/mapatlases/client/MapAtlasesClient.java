@@ -68,7 +68,7 @@ public class MapAtlasesClient {
         ItemProperties.register( MapAtlasesMod.MAP_ATLAS.get(),MapAtlasesMod.res("atlas"),
                 MapAtlasesClient::getPredicateForAtlas);
 
-        MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
+        //MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
 
     }
 

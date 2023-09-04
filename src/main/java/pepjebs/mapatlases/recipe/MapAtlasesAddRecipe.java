@@ -17,7 +17,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,7 +33,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     @Override
     public boolean matches(CraftingContainer inv, Level world) {
         this.world = world;
-        List<ItemStack> itemStacks = MapAtlasesAccessUtils
+        List<ItemStack> itemStacks = MapAtlasesAccessUtilsOld
                 .getItemStacksFromGrid(inv)
                 .stream()
                 .map(ItemStack::copy)
@@ -44,7 +44,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         if (atlas.isEmpty()) {
             return false;
         }
-        MapItemSavedData sampleMap = MapAtlasesAccessUtils.getFirstMapItemSavedDataFromAtlas(world, atlas);
+        MapItemSavedData sampleMap = MapAtlasesAccessUtilsOld.getFirstMapItemSavedDataFromAtlas(world, atlas);
 
         // Ensure only correct ingredients are present
         List<Item> additems = new ArrayList<>(Arrays.asList(Items.FILLED_MAP, MapAtlasesMod.MAP_ATLAS.get()));
@@ -60,8 +60,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         List<MapItemSavedData> mapStates = getMapItemSavedDatasFromItemStacks(world, itemStacks);
 
         // Ensure we're not trying to add too many Maps
-        int mapCount = MapAtlasesAccessUtils.getMapCountFromItemStack(atlas)
-                + MapAtlasesAccessUtils.getEmptyMapCountFromItemStack(atlas);
+        int mapCount = MapAtlasesAccessUtilsOld.getMapCountFromItemStack(atlas)
+                + MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas);
         if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + itemStacks.size() - 1 > MapAtlasItem.getMaxMapCount()) {
             return false;
         }
@@ -78,7 +78,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     @Override
     public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
         if (world == null) return ItemStack.EMPTY;
-        List<ItemStack> itemStacks = MapAtlasesAccessUtils.getItemStacksFromGrid(inv)
+        List<ItemStack> itemStacks = MapAtlasesAccessUtilsOld.getItemStacksFromGrid(inv)
                 .stream()
                 .map(ItemStack::copy)
                 .toList();
