@@ -27,7 +27,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
-import pepjebs.mapatlases.screen.MapAtlasesAtlasOverviewScreen;
+import pepjebs.mapatlases.client.screen.MapAtlasesAtlasOverviewScreen;
 import pepjebs.mapatlases.utils.AtlasHolder;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 

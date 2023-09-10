@@ -25,10 +25,6 @@ public class MapAtlasesClientConfig {
                 .define("drawMiniMapHUD", true);
 
 
-        forceWorldMapScaling = builder
-                .comment("Scale the world-map to a given % of the height of your screen.")
-                .defineInRange("forceWorldMapScaling", 80, 0, 100);
-
         miniMapAnchoring = builder
                 .comment("Controls anchor position of mini-map")
                 .defineEnum("miniMapAnchoring", Anchoring.UPPER_LEFT);
@@ -82,7 +78,6 @@ public class MapAtlasesClientConfig {
 
     public static final Supplier<Boolean> drawMiniMapHUD;
     public static final Supplier<Integer> forceMiniMapScaling;
-    public static final Supplier<Integer> forceWorldMapScaling;
     public static final Supplier<Anchoring> miniMapAnchoring;
     public static final Supplier<Integer> miniMapHorizontalOffset;
     public static final Supplier<Integer> miniMapVerticalOffset;

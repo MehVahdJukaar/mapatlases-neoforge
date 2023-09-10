@@ -18,10 +18,10 @@ public class MapAtlasesClientEvents {
             Minecraft client = Minecraft.getInstance();
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(client.player);
-            if (!atlas.isEmpty()) {
+            if (atlas.getItem() instanceof MapAtlasItem) {
                 MapAtlasesNetowrking.sendToServer(new C2SOpenAtlasPacket());
+                ((MapAtlasItem)atlas.getItem()).openScreen(client.player);
             }
-            ((MapAtlasItem)atlas.getItem()).openScreen(client.player);
         }
     }
 

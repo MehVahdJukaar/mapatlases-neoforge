@@ -2,7 +2,6 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
@@ -22,7 +21,6 @@ import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
-import pepjebs.mapatlases.screen.MapAtlasesAtlasOverviewScreen;
 
 public class MapAtlasesClient {
 

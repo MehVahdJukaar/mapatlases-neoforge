@@ -11,7 +11,6 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.fml.ModList;
@@ -33,7 +32,6 @@ import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
-import pepjebs.mapatlases.screen.MapAtlasesAtlasOverviewContainerMenu;
 
 import java.util.function.Supplier;
 
@@ -54,8 +52,6 @@ public class MapAtlasesMod {
     public static final Supplier<RecipeSerializer<MapAtlasCreateRecipe>> MAP_ATLAS_CREATE_RECIPE;
     public static final Supplier<RecipeSerializer<MapAtlasesAddRecipe>> MAP_ATLAS_ADD_RECIPE;
     public static final Supplier<RecipeSerializer<MapAtlasesCutExistingRecipe>> MAP_ATLAS_CUT_RECIPE;
-
-    public static final Supplier<MenuType<MapAtlasesAtlasOverviewContainerMenu>> ATLAS_OVERVIEW_HANDLER;
 
     public static final Supplier<SoundEvent> ATLAS_OPEN_SOUND_EVENT = regSound("atlas_open");
     public static final Supplier<SoundEvent> ATLAS_PAGE_TURN_SOUND_EVENT = regSound("atlas_page_turn");
@@ -88,11 +84,6 @@ public class MapAtlasesMod {
                 () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
         MAP_ATLAS_CUT_RECIPE = RECIPES.register("cutting_atlas",
                 () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
-
-        // Register screen
-        ATLAS_OVERVIEW_HANDLER = MENU_TYPES.register("atlas_overview",
-                () -> IForgeMenuType.create(MapAtlasesAtlasOverviewContainerMenu::new)
-        );
 
         // Register items
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
