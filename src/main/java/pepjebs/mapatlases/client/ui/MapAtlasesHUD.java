@@ -21,11 +21,13 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -34,7 +36,7 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.Arrays;
 
-public class MapAtlasesHUD implements IGuiOverlay {
+public class MapAtlasesHUD   implements IGuiOverlay {
 
     public static final ResourceLocation MAP_BACKGROUND = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
@@ -46,7 +48,6 @@ public class MapAtlasesHUD implements IGuiOverlay {
     private static MapRenderer mapRenderer;
 
     public MapAtlasesHUD() {
-        //TODO: change this too
         mc = Minecraft.getInstance();
         mapRenderer = mc.gameRenderer.getMapRenderer();
     }
@@ -74,16 +75,15 @@ public class MapAtlasesHUD implements IGuiOverlay {
     }
 
     @Override
-    public void render(ForgeGui forgeGui, GuiGraphics context, float partialTick,
+    public void render(ForgeGui forgeGui, GuiGraphics graphics, float partialTick,
                        int screenWidth, int screenHeight) {
         if (!shouldDraw()) return;
-
         String curMapId = MapAtlasesClient.getActiveMap();
         ClientLevel level = mc.level;
         MapItemSavedData state = level.getMapData(curMapId);
         if (state == null) return;
 
-        PoseStack matrices = context.pose();
+        PoseStack matrices = graphics.pose();
 
         // Update client current map id
         LocalPlayer player = mc.player;
@@ -122,7 +122,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
                 y += (offsetForEffects - y);
             }
         }
-        context.blit(MAP_BACKGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
+        graphics.blit(MAP_BACKGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
 
         // Draw map data
         MultiBufferSource.BufferSource vcp;
@@ -140,7 +140,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
         );
         vcp.endBatch();
         matrices.popPose();
-        context.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
+        graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
 
         // Draw text data
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
@@ -151,7 +151,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
         }
         if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
             drawMapComponentCoords(
-                    context, x, y, textWidthOffset, textHeightOffset,
+                    graphics, x, y, textWidthOffset, textHeightOffset,
                     textScaling, new BlockPos(new Vec3i(
                             towardsZero(player.position().x),
                             towardsZero(player.position().y),
@@ -160,7 +160,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    context, x, y, textWidthOffset, textHeightOffset,
+                    graphics, x, y, textWidthOffset, textHeightOffset,
                     textScaling, player.blockPosition(), level);
         }
     }
@@ -185,8 +185,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
 
     public static void drawMapComponentCoords(
             GuiGraphics context,
-            int x,
-            int y,
+            int x, int y,
             int originOffsetWidth,
             int originOffsetHeight,
             float textScaling,
@@ -198,22 +197,25 @@ public class MapAtlasesHUD implements IGuiOverlay {
 
     public static void drawMapComponentBiome(
             GuiGraphics context,
-            int x,
-            int y,
+            int x, int y,
             int originOffsetWidth,
             int originOffsetHeight,
             float textScaling,
             BlockPos blockPos,
-            Level world
+            Level level
     ) {
-        String biomeToDisplay = getBiomeStringToDisplay(world, blockPos);
+        String biomeToDisplay = "";
+        var key = level.getBiome(blockPos).unwrapKey();
+        if (key.isPresent()) {
+            ResourceKey<Biome> biomeKey = key.get();
+            biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
+        }
         drawScaledComponent(context, x, y, biomeToDisplay, textScaling, originOffsetWidth, originOffsetHeight);
     }
 
     public static void drawScaledComponent(
             GuiGraphics context,
-            int x,
-            int y,
+            int x, int y,
             String text,
             float textScaling,
             int originOffsetWidth,
@@ -234,15 +236,5 @@ public class MapAtlasesHUD implements IGuiOverlay {
         context.drawString(mc.font, text, 0, 0, 0xE0E0E0, false);
         pose.popPose();
     }
-
-    private static String getBiomeStringToDisplay(Level level, BlockPos blockPos) {
-        var key = level.getBiome(blockPos).unwrapKey();
-        if (key.isPresent()) {
-            ResourceKey<Biome> biomeKey = key.get();
-            return Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
-        }
-        return "";
-    }
-
 
 }

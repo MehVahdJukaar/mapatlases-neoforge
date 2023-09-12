@@ -35,7 +35,7 @@ public class MapAtlasesAccessUtils {
         for (int mapId : mapIds) {
             String mapName = MapItem.makeKey(mapId);
             MapItemSavedData state = level.getMapData(mapName);
-            if (state == null && level instanceof ServerLevel) {
+            if (state == null) {
                 ItemStack map = createMapItemStackFromId(mapId);
                 state = MapItem.getSavedData(map, level);
             }

@@ -11,11 +11,13 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 
 @Mixin(value = MapRenderer.MapInstance.class, priority = 1100)
 public class MapRendererMixin {
-
     @Inject(method = "draw",
-            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V"))
+            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V",
+                    ordinal = 0),
+            require = 1)
     private void scaleProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci) {
         float multiplier = MapAtlasesClient.getWorldMapZoomLevel();
         poseStack.scale(multiplier, multiplier, 1);
     }
+
 }

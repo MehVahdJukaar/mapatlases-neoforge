@@ -22,11 +22,11 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetActiveMapPacket;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class MapAtlasesServerEvents {
@@ -34,7 +34,7 @@ public class MapAtlasesServerEvents {
     public static final ResourceLocation MAP_ATLAS_ACTIVE_STATE_CHANGE = MapAtlasesMod.res("active_state_change");
 
     // Used to prevent Map creation spam consuming all Empty Maps on auto-create
-    private static final Semaphore mutex = new Semaphore(1);
+    private static final ReentrantLock mutex = new ReentrantLock();
 
     // Holds the current MapItemSavedData ID for each player
     //maybe use weakhasmap with plauer
@@ -51,6 +51,7 @@ public class MapAtlasesServerEvents {
     public static void mapAtlasPlayerJoinImpl(ServerPlayer player) {
         ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
+        //we need to send all data for all dimensions as they are not sent automatically
         Map<String, MapItemSavedData> mapInfos = MapAtlasesAccessUtilsOld.getAllMapInfoFromAtlas(player.level(), atlas);
         for (Map.Entry<String, MapItemSavedData> info : mapInfos.entrySet()) {
             String mapId = info.getKey();
@@ -70,11 +71,14 @@ public class MapAtlasesServerEvents {
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             String playerName = player.getName().getString();
             seenPlayers.add(playerName);
+            //why isnt all this in client tick?
             if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
             ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) continue;
+            //gets all data from atas
             Map<String, MapItemSavedData> currentMapInfos =
                     MapAtlasesAccessUtilsOld.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
+            //gets closest data
             Map.Entry<String, MapItemSavedData> activeInfo =
                     MapAtlasesAccessUtilsOld.getActiveAtlasMapStateServer(currentMapInfos, player);
 
@@ -158,7 +162,7 @@ public class MapAtlasesServerEvents {
             ServerPlayer player
     ) {
         int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getKey());
-        //TODO PORT
+        //TODO make better
 
         Packet<?> p = null;
         int tries = 0;
@@ -220,37 +224,32 @@ public class MapAtlasesServerEvents {
         }
         int emptyCount = MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
-        if (mutex.availablePermits() > 0
+        if (!mutex.isLocked()
                 && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
-            try {
-                mutex.acquire();
+            mutex.lock();
 
-                // Make the new map
-                if (!player.isCreative() && !bypassEmptyMaps) {
-                    atlas.getTag().putInt(
-                            MapAtlasItem.EMPTY_MAP_NBT,
-                            atlas.getTag().getInt(MapAtlasItem.EMPTY_MAP_NBT) - 1
-                    );
-                }
-                ItemStack newMap = MapItem.create(
-                        player.level(),
-                        destX,
-                        destZ,
-                        (byte) scale,
-                        true,
-                        false);
-                mapIds.add(MapItem.getMapId(newMap));
-                atlas.getTag().putIntArray(MapAtlasItem.MAP_LIST_NBT, mapIds);
-
-                // Play the sound
-                player.level().playSound(null, player.blockPosition(),
-                        MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
-                        SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
-            } catch (InterruptedException e) {
-                MapAtlasesMod.LOGGER.warn(e);
-            } finally {
-                mutex.release();
+            // Make the new map
+            if (!player.isCreative() && !bypassEmptyMaps) {
+                atlas.getTag().putInt(
+                        MapAtlasItem.EMPTY_MAP_NBT,
+                        atlas.getTag().getInt(MapAtlasItem.EMPTY_MAP_NBT) - 1
+                );
             }
+            ItemStack newMap = MapItem.create(
+                    player.level(),
+                    destX,
+                    destZ,
+                    (byte) scale,
+                    true,
+                    false);
+            mapIds.add(MapItem.getMapId(newMap));
+            atlas.getTag().putIntArray(MapAtlasItem.MAP_LIST_NBT, mapIds);
+
+            // Play the sound
+            player.level().playSound(null, player.blockPosition(),
+                    MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
+                    SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+            mutex.unlock();
         }
     }
 

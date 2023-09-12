@@ -72,8 +72,7 @@ public class MapAtlasesClient {
 
     @SubscribeEvent
     public static void clientSetup(RegisterGuiOverlaysEvent event){
-        var hud = new MapAtlasesHUD();
-        event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", hud);
+        event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", new MapAtlasesHUD());
     }
 
     @SubscribeEvent

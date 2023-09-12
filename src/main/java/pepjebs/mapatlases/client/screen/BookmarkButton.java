@@ -8,18 +8,19 @@ import net.minecraft.network.chat.Component;
 public abstract class BookmarkButton extends AbstractWidget {
 
     private static final int BUTTON_H = 18;
-    private static final int BUTTON_W = 26;
+    private static final int BUTTON_HL = 14;
+    private static final int BUTTON_W = 24;
 
     private final int yOff;
-    private boolean selected;
+    private boolean selected = true;
 
     protected BookmarkButton(int pX, int pY, boolean right) {
-        super(pX + (right ? 0 : -BUTTON_W), pY, BUTTON_W, BUTTON_H, Component.empty());
+        super(pX + (right ? 0 : -BUTTON_W), pY, BUTTON_W, right ? BUTTON_H : BUTTON_HL, Component.empty());
         this.yOff = right ? 0 : BUTTON_H*2;
     }
 
-    public void onPress() {
-        this.selected = !this.selected;
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 
     public boolean selected() {
@@ -40,8 +41,4 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     }
 
-    @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
-    }
 }
