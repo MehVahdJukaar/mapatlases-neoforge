@@ -29,14 +29,17 @@ public abstract class AbstractAtlasWidget {
     private final MapItemSavedData originalCenterMap;
 
     protected boolean followingPlayer = true;
-    protected int currentXCenter;
-    protected int currentZCenter;
+    protected float currentXCenter;
+    protected float currentZCenter;
 
     protected AbstractAtlasWidget(int atlasesCount, MapItemSavedData originalCenterMap) {
 
         this.atlasesCount = atlasesCount;
         this.originalCenterMap = originalCenterMap;
         this.mapAtlasScale = (1 << originalCenterMap.scale) * MAP_DIMENSION;
+
+        this.currentXCenter = originalCenterMap.centerX;
+        this.currentZCenter = originalCenterMap.centerZ;
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height, Player player, float zoomLevelDim) {
@@ -50,8 +53,11 @@ public abstract class AbstractAtlasWidget {
         float mapScalingFactor = width / (float) (atlasesCount * MAP_DIMENSION);
         float zoomScale = atlasesCount / zoomLevelDim;
 
-        int centerMapX = round(currentXCenter, mapAtlasScale);
-        int centerMapZ = round(currentZCenter, mapAtlasScale);
+        int intXCenter = (int) (currentXCenter);
+        int intZCenter = (int) (currentZCenter);
+
+        int centerMapX = round( intXCenter, mapAtlasScale);
+        int centerMapZ = round( intZCenter, mapAtlasScale);
 
 
         poseStack.translate(x + width / 2f, y + height / 2f, 0);
@@ -60,16 +66,12 @@ public abstract class AbstractAtlasWidget {
         // Draw maps, putting active map in middle of grid
 
         MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-        // graphics.enableScissor(x, y, (x + width), (y + height));
+        graphics.enableScissor(x, y, (x + width), (y + height));
 
-        int offsetX = currentXCenter - centerMapX;
-        int offsetZ = currentZCenter - centerMapZ;
+        float offsetX = currentXCenter - centerMapX;
+        float offsetZ = currentZCenter - centerMapZ;
 
-        //follow player
-        if (followingPlayer) {
-            offsetX  -= (centerMapX - player.getX());
-            offsetX  -= (centerMapZ - player.getZ());
-        }
+
 
         poseStack.translate(-offsetX, -offsetZ, 0);
 
@@ -99,7 +101,7 @@ public abstract class AbstractAtlasWidget {
 
         vcp.endBatch();
         poseStack.popPose();
-        //    graphics.disableScissor();
+        graphics.disableScissor();
     }
 
     public abstract Pair<String, MapItemSavedData> getMapAtCenter(int centerX, int centerZ);

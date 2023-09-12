@@ -34,6 +34,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     private float targetZoomLevel = 3;
     private float zoomLevel = 3;
+    protected int targetXCenter;
+    protected int targetZCenter;
 
     private boolean isHovered;
     private float animationProgress = 0; //from zero to 1
@@ -49,8 +51,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.mapScreen = hack;
 
-        currentXCenter = originalCenterMap.centerX;
-        currentZCenter = originalCenterMap.centerZ;
+        this.targetXCenter = originalCenterMap.centerX;
+        this.targetZCenter = originalCenterMap.centerZ;
     }
 
     @Override
@@ -59,7 +61,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        isHovered = isMouseOver(pMouseX, pMouseY);
+        this.isHovered = isMouseOver(pMouseX, pMouseY);
 
 
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel);
@@ -69,7 +71,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             this.renderPositionText(graphics, pMouseX, pMouseY, zoomLevel);
         }
 
-        mapScreen.updateVisibleDecoration(currentXCenter, currentZCenter, zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
+        mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter, zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
     }
 
     @Override
@@ -93,7 +95,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         int hackOffset = +3;
         //TODO: fix coordinate being slightly offset
         //idk why
-        String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
+        String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset)
+                + "  " + currentXCenter + "    " + Mth.ceil(currentXCenter);
         MapAtlasesHUD.drawScaledComponent(
                 graphics, x, y, coordsToDisplay, textScaling, width, height + 16);
 
@@ -113,19 +116,24 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             //TODO: fix pan
             cumulativeMouseX += deltaX * hack;
             cumulativeMouseY += deltaY * hack;
-            int targetXCenter;
-            int targetZCenter;
-            if (false) {
+            int newXCenter;
+            int newZCenter;
+            boolean discrete = false;
+            if (discrete) {
                 //discrete mode
-                targetXCenter = currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale);
-                targetZCenter = currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale);
+                newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale));
+                newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale));
             } else {
-                targetXCenter = (int) (currentXCenter - cumulativeMouseX * mapAtlasScale / PAN_BUCKET);
-                targetZCenter = (int) (currentZCenter - cumulativeMouseY * mapAtlasScale / PAN_BUCKET);
+                newXCenter = (int) (currentXCenter - cumulativeMouseX * mapAtlasScale / PAN_BUCKET);
+                newZCenter = (int) (currentZCenter - cumulativeMouseY * mapAtlasScale / PAN_BUCKET);
             }
-            if (targetXCenter != currentXCenter || targetZCenter != currentZCenter) {
-                currentXCenter = targetXCenter;
-                currentZCenter = targetZCenter;
+            if (newXCenter != currentXCenter || newZCenter != currentZCenter) {
+                if (!discrete) {
+                    currentXCenter = newXCenter;
+                    currentZCenter = newZCenter;
+                }
+                targetXCenter = newXCenter;
+                targetZCenter = newZCenter;
                 cumulativeMouseX = 0;
                 cumulativeMouseY = 0;
             }
@@ -173,12 +181,13 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     public void resetAndCenter(int centerX, int centerZ, boolean followPlayer) {
-        currentXCenter = centerX;
-        currentZCenter = centerZ;
+        this.targetXCenter = centerX;
+        this.targetZCenter = centerZ;
         // Reset offset & zoom
-        cumulativeMouseX = 0;
-        cumulativeMouseY = 0;
-        cumulativeZoomValue = ZOOM_BUCKET;
+        this.cumulativeMouseX = 0;
+        this.cumulativeMouseY = 0;
+        this.cumulativeZoomValue = ZOOM_BUCKET;
+        this.targetZoomLevel = 2;
         this.followingPlayer = followPlayer;
     }
 
@@ -187,17 +196,39 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     public void tick() {
+        float animationSpeed = 0.4f;
         if (animationProgress != 0) {
-            animationProgress -= animationProgress * 0.5 - 0.01;
+            animationProgress -= animationProgress * animationSpeed - 0.01;
             animationProgress = Math.max(0, animationProgress);
         }
         if (this.zoomLevel != targetZoomLevel) {
-            float diff = targetZoomLevel - zoomLevel;
-            if (diff < 0) {
-                zoomLevel = (float) Math.max(targetZoomLevel, zoomLevel + diff * 0.2 - 0.001);
-            } else {
-                zoomLevel = (float) Math.min(targetZoomLevel, zoomLevel + diff * 0.2 + 0.001);
-            }
+            zoomLevel = interpolate(targetZoomLevel, zoomLevel, animationSpeed);
+        }
+        boolean test = true;
+        if (this.currentXCenter != targetXCenter) {
+            currentXCenter = interpolate(targetXCenter, currentXCenter, animationSpeed);
+            test = false;
+        }
+        if (this.currentZCenter != targetZCenter) {
+            currentZCenter = interpolate(targetZCenter, currentZCenter, animationSpeed);
+            test = false;
+        }
+
+        //follow player
+        if (followingPlayer) {
+
+            var player = Minecraft.getInstance().player;
+            targetXCenter = (int) player.getX();
+            targetZCenter = (int) player.getZ();
+        }
+    }
+
+    private float interpolate(float targetZCenter, float currentZCenter, float animationSpeed) {
+        float diff = targetZCenter - currentZCenter;
+        if (diff < 0) {
+            return Math.max(targetZCenter, currentZCenter + (diff * animationSpeed) - 0.001f);
+        } else {
+            return Math.min(targetZCenter, currentZCenter + (diff * animationSpeed) + 0.001f);
         }
     }
 }
