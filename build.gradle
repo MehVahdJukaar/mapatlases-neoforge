@@ -185,7 +185,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
 
     //implementation("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
-    runtimeOnly fg.deobf("net.mehvahdjukaar:supplementaries-forge:${supplementaries_version}")
+    implementation fg.deobf("net.mehvahdjukaar:supplementaries-forge:${supplementaries_version}")
 
     // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")

@@ -18,7 +18,9 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapDataCache;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
@@ -44,12 +46,8 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     private final ItemStack atlas;
     private final Player player;
     private final Level level;
-    private final List<ResourceKey<Level>> dimensions = new ArrayList<>();
     private final ResourceKey<Level> initialWorldSelected;
     private final MapItemSavedData initialMapSelected;
-
-    private final Map<ResourceKey<Level>, List<Pair<String, MapItemSavedData>>> dimToData = new HashMap<>();
-    private final Map<Pair<Integer, Integer>, Pair<String, MapItemSavedData>> byCenter = new HashMap<>();
 
     private MapWidget mapWidget;
     private final Map<DecorationBookmarkButton, MapItemSavedData> decorationBookmarks = new HashMap<>();
@@ -63,16 +61,17 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     public MapAtlasesAtlasOverviewScreen(Component title, ItemStack atlas) {
         super(title);
         this.atlas = atlas;
-
         this.level = Minecraft.getInstance().level;
         this.player = Minecraft.getInstance().player;
+
+        MapDataCache.acceptAtlasItem(level, atlas);
+
 
         initialWorldSelected = player.level().dimension();
         currentWorldSelected = initialWorldSelected;
 
-        tick();
-
-        initialMapSelected = MapAtlasesAccessUtils.getClosestMapData(dimToData.get(currentWorldSelected), player).getSecond();
+        initialMapSelected = MapDataCache.getClosestMapData(
+               player, MapAtlasItem.getScale(atlas), MapAtlasItem.getSelectedSlice(atlas));
 
 
         // Play open sound
@@ -86,7 +85,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
         tick();
         int i = 0;
-        for (var d : dimensions) {
+        for (var d : MapDataCache.getAtlasDimensions()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
                     (width + IMAGE_WIDTH) / 2 - 10,
                     (height - IMAGE_HEIGHT) / 2 + 15 + i * 22, d, this);
@@ -128,18 +127,6 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         if(mapWidget != null) mapWidget.tick();
         //TODO: update widgets
         //recalculate parameters
-        dimToData.clear();
-        dimToData.putAll(MapAtlasesAccessUtils.getAllMapDataByDimension(level, atlas));
-        dimensions.clear();
-        dimensions.addAll(dimToData.keySet());
-        Collections.sort(dimensions);
-
-        byCenter.clear();
-        for (var p : dimToData.get(currentWorldSelected)) {
-            MapItemSavedData data = p.getSecond();
-            byCenter.put(Pair.of(data.centerX, data.centerZ), p);
-        }
-
     }
 
     @Override

@@ -41,6 +41,9 @@ public class MapAtlasItem extends Item {
     public static final String MAP_LIST_NBT = "maps";
     public static final String LOCKED_NBT = "locked";
     public static final String SLICE_NBT = "selected_slice";
+    //We save this to tag for fast access.
+    // Only allowing same scale maps to eb merged
+    public static final String SCALE_NBT = "scale";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
@@ -50,17 +53,26 @@ public class MapAtlasItem extends Item {
         return MapAtlasesConfig.maxMapCount.get();
     }
 
+    public static byte getScale(ItemStack stack) {
+        var tag = stack.getTag();
+        if (tag != null && tag.contains(SCALE_NBT)) {
+            return tag.getByte(SLICE_NBT);
+        }
+        return 0;
+    }
+
     public static boolean isLocked(ItemStack stack) {
         var tag = stack.getTag();
         return tag != null && tag.getBoolean(LOCKED_NBT);
     }
 
     @Nullable
-    public static Integer getSelectedSlice(ItemStack stack){
+    public static Integer getSelectedSlice(ItemStack stack) {
         var tag = stack.getTag();
-        if(tag != null && tag.contains(SLICE_NBT)){
+        if (tag != null && tag.contains(SLICE_NBT)) {
             return tag.getInt(SLICE_NBT);
-        }return null;
+        }
+        return null;
     }
 
     @Override
@@ -91,12 +103,12 @@ public class MapAtlasItem extends Item {
             tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << mapState.scale)
                     .withStyle(ChatFormatting.GRAY));
 
-            if(isLocked(stack)){
+            if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked")
                         .withStyle(ChatFormatting.GRAY));
             }
             Integer slice = getSelectedSlice(stack);
-            if(slice != null){
+            if (slice != null) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice)
                         .withStyle(ChatFormatting.GRAY));
             }
@@ -110,8 +122,8 @@ public class MapAtlasItem extends Item {
             CompoundTag tag = stack.getOrCreateTag();
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
-            if(player.level().isClientSide){
-                player.displayClientMessage(Component.translatable( locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"),true);
+            if (player.level().isClientSide) {
+                player.displayClientMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }

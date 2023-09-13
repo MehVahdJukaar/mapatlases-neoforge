@@ -67,6 +67,7 @@ public class MapAtlasesAccessUtils {
     }
 
 
+    @Deprecated(forRemoval = true)
     public static Pair<String, MapItemSavedData> getClosestMapData(
             Collection<Pair<String, MapItemSavedData>> currentDimMapInfos,
             Player player) {
