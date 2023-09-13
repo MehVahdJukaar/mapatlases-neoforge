@@ -108,6 +108,13 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             this.updateVisibleDecoration(originalCenterMap.centerX, originalCenterMap.centerZ, 3 / 2f * MAP_DIMENSION,
                     true);
         }
+
+        SliceBookmarkButton sliceBookmark = new SliceBookmarkButton((width + IMAGE_WIDTH) / 2 - 13,
+                (height - IMAGE_HEIGHT) / 2 + 131,
+                -64, this);
+        this.addRenderableWidget(sliceBookmark);
+        this.addRenderableWidget(new SliceArrowButton(false, sliceBookmark ));
+        this.addRenderableWidget(new SliceArrowButton(true, sliceBookmark ));
     }
 
 
@@ -125,6 +132,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         dimToData.putAll(MapAtlasesAccessUtils.getAllMapDataByDimension(level, atlas));
         dimensions.clear();
         dimensions.addAll(dimToData.keySet());
+        Collections.sort(dimensions);
 
         byCenter.clear();
         for (var p : dimToData.get(currentWorldSelected)) {
@@ -200,6 +208,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         );
 
         poseStack.popPose();
+
     }
 
     // ================== Mouse Functions ==================

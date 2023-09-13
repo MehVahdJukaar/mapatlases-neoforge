@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 public class MapAtlasesMod {
 
     public static final String MOD_ID = "map_atlases";
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static final Logger LOGGER = LogManager.getLogger("Map Atlases");
 
     public static final Supplier<MapAtlasItem> MAP_ATLAS;
 
@@ -63,12 +63,13 @@ public class MapAtlasesMod {
     public static final boolean TRINKETS = ModList.get().isLoaded("trinkets");
 
     static {
+//sound
+        var bus = FMLJavaModLoadingContext.get().getModEventBus();
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             MapAtlasesClient.init();
         }
 
-        var bus = FMLJavaModLoadingContext.get().getModEventBus();
         RECIPES.register(bus);
         MENU_TYPES.register(bus);
         ITEMS.register(bus);

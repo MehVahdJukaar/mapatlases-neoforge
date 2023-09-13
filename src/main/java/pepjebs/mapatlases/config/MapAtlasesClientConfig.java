@@ -9,8 +9,6 @@ import java.util.function.Supplier;
 public class MapAtlasesClientConfig {
 
 
-    public static final ForgeConfigSpec spec;
-
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -91,6 +89,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> worldMapDecorationScale;
     public static final Supplier<Double> soundScalar;
 
+    public static final ForgeConfigSpec spec;
 
 
 }

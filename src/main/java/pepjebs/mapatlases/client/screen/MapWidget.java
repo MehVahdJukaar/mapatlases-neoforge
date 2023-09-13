@@ -95,8 +95,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         int hackOffset = +3;
         //TODO: fix coordinate being slightly offset
         //idk why
-        String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset)
-                + "  " + currentXCenter + "    " + Mth.ceil(currentXCenter);
+        String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
         MapAtlasesHUD.drawScaledComponent(
                 graphics, x, y, coordsToDisplay, textScaling, width, height + 16);
 

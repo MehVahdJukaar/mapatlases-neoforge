@@ -20,6 +20,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 
 public class MapAtlasesClient {
@@ -94,11 +95,12 @@ public class MapAtlasesClient {
         if (world == null && entity != null)
             world = (ClientLevel) entity.level();
         if (world == null) return 0.0f;
+        boolean unlocked = !MapAtlasItem.isLocked(stack);
 
         ResourceKey<Level> dimension = world.dimension();
-        if (dimension == Level.OVERWORLD) return 0.1f;
-        if (dimension == Level.NETHER) return 0.2f;
-        if (dimension == Level.END) return 0.3f;
+        if (dimension == Level.OVERWORLD) return unlocked ? 0.1f : 0.4f;
+        if (dimension == Level.NETHER) return unlocked ? 0.2f : 0.5f;
+        if (dimension == Level.END) return unlocked ? 0.3f : 0.6f;
         return 0.0f;
     }
 }

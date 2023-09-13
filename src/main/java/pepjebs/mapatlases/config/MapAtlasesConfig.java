@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 public class MapAtlasesConfig {
 
 
-    public static final ForgeConfigSpec spec;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -53,6 +52,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<ActivationLocation> activationLocation;
+    public static final ForgeConfigSpec spec;
 
 
 }

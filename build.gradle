@@ -140,9 +140,9 @@ repositories {
 
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
-    // flatDir {
-    //     dir 'libs'
-    // }
+     flatDir {
+         dir 'libs'
+     }
 
     maven {
         url "https://maven.fabricmc.net/"
@@ -180,10 +180,14 @@ dependencies {
 
     implementation fg.deobf("curse.maven:jei-238222:4712868")
     implementation fg.deobf("curse.maven:curios-309927:4583413")
-    implementation fg.deobf("curse.maven:supplementaries-412082:4707417")
-    implementation fg.deobf("curse.maven:selene-499980:4732621")
-     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
-   // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
+    //implementation fg.deobf("curse.maven:supplementaries-412082:4707417")
+    implementation fg.deobf("curse.maven:selene-499980:4748073")
+    compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
+
+    //implementation("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
+    runtimeOnly fg.deobf("net.mehvahdjukaar:supplementaries-forge:${supplementaries_version}")
+
+    // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.1")
 }

@@ -7,16 +7,15 @@ import net.minecraft.network.chat.Component;
 
 public abstract class BookmarkButton extends AbstractWidget {
 
-    private static final int BUTTON_H = 18;
-    private static final int BUTTON_HL = 14;
-    private static final int BUTTON_W = 24;
-
+    private final int xOff;
     private final int yOff;
-    private boolean selected = true;
+    protected boolean selected = true;
 
-    protected BookmarkButton(int pX, int pY, boolean right) {
-        super(pX + (right ? 0 : -BUTTON_W), pY, BUTTON_W, right ? BUTTON_H : BUTTON_HL, Component.empty());
-        this.yOff = right ? 0 : BUTTON_H*2;
+    protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff) {
+        super(pX, pY, width, height, Component.empty());
+        this.xOff = xOff;
+        this.yOff = yOff;
+
     }
 
     public void setSelected(boolean selected) {
@@ -30,7 +29,7 @@ public abstract class BookmarkButton extends AbstractWidget {
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         pGuiGraphics.blit(MapAtlasesAtlasOverviewScreen.ATLAS_TEXTURE,
-                this.getX(), this.getY(), MapAtlasesAtlasOverviewScreen.IMAGE_WIDTH,
+                this.getX(), this.getY(), xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
 

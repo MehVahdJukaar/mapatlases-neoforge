@@ -10,23 +10,26 @@ import org.jetbrains.annotations.Nullable;
 
 public class DimensionBookmarkButton extends BookmarkButton {
 
+    private static final int BUTTON_H = 18;
+    private static final int BUTTON_W = 24;
+
     private final int dimY;
     private final ResourceKey<Level> dimension;
     private final MapAtlasesAtlasOverviewScreen parentScreen;
 
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, MapAtlasesAtlasOverviewScreen screen) {
-        super(pX, pY, true);
+        super(pX, pY, BUTTON_W, BUTTON_H, 0,  MapAtlasesAtlasOverviewScreen.IMAGE_HEIGHT );
         this.dimension = dimension;
         this.parentScreen = screen;
         this.setTooltip(Tooltip.create(Component.literal(MapAtlasesAtlasOverviewScreen.getReadableName(dimension.location()))));
         if (dimension == Level.OVERWORLD) {
-            dimY = 72;
+            dimY = 0;
         } else if (dimension == Level.NETHER) {
-            dimY = 72 + 16;
+            dimY = 16;
         } else if (dimension == Level.END) {
-            dimY = 72 + 16 * 2;
+            dimY = 16 * 2;
         } else {
-            dimY = 72 + 16 * 3;
+            dimY = 16 * 3;
         }
     }
 

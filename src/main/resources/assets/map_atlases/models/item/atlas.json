@@ -4,9 +4,12 @@
     "layer0": "map_atlases:item/atlas"
   },
   "overrides": [
-    { "predicate": { "map_atlases:atlas": 0.000000 }, "model": "map_atlases:item/atlas" },
-    { "predicate": { "map_atlases:atlas": 0.100000 }, "model": "map_atlases:item/overworld_atlas" },
-    { "predicate": { "map_atlases:atlas": 0.200000 }, "model": "map_atlases:item/nether_atlas" },
-    { "predicate": { "map_atlases:atlas": 0.300000 }, "model": "map_atlases:item/end_atlas" }
+    { "predicate": { "map_atlases:atlas": 0.0 }, "model": "map_atlases:item/atlas" },
+    { "predicate": { "map_atlases:atlas": 0.1 }, "model": "map_atlases:item/overworld_atlas" },
+    { "predicate": { "map_atlases:atlas": 0.2 }, "model": "map_atlases:item/nether_atlas" },
+    { "predicate": { "map_atlases:atlas": 0.3 }, "model": "map_atlases:item/end_atlas_locked" },
+    { "predicate": { "map_atlases:atlas": 0.4 }, "model": "map_atlases:item/overworld_atlas_locked" },
+    { "predicate": { "map_atlases:atlas": 0.5 }, "model": "map_atlases:item/nether_atlas_locked" },
+    { "predicate": { "map_atlases:atlas": 0.6 }, "model": "map_atlases:item/end_atlas_locked" }
   ]
 }
