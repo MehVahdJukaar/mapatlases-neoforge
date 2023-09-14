@@ -68,10 +68,14 @@ public class MapAtlasesHUD   implements IGuiOverlay {
         if (MapAtlasesClient.getActiveMap() == null) return false;
         // Check the active map id is in the active atlas
         //TODO: remove tag access in render thread
+        return true;
+        /*
         return atlas.getTag() != null && atlas.getTag().contains(MapAtlasItem.MAP_LIST_NBT) &&
                 Arrays.stream(atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT))
                         .anyMatch(i ->
                                 i == MapAtlasesAccessUtils.getMapIntFromString(MapAtlasesClient.getActiveMap()));
+
+         */
     }
 
     @Override

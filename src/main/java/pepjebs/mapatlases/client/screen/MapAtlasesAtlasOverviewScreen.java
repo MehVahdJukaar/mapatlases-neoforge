@@ -18,10 +18,9 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.MapDataCache;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,6 +53,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
 
     private ResourceKey<Level> currentWorldSelected;
+    private Integer selectedSlice = null;
 
     private int mapIconSelectorScroll = 0;
     private int dimSelectorScroll = 0;
@@ -64,18 +64,13 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         this.level = Minecraft.getInstance().level;
         this.player = Minecraft.getInstance().player;
 
-        MapDataCache.acceptAtlasItem(level, atlas);
+        this.initialWorldSelected = player.level().dimension();
+        this.currentWorldSelected = initialWorldSelected;
 
-
-        initialWorldSelected = player.level().dimension();
-        currentWorldSelected = initialWorldSelected;
-
-        initialMapSelected = MapDataCache.getClosestMapData(
-               player, MapAtlasItem.getScale(atlas), MapAtlasItem.getSelectedSlice(atlas));
-
+        this.initialMapSelected = MapAtlasItem.getMaps(atlas).getActive().getSecond();
 
         // Play open sound
-        player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
+        this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
     }
 
@@ -83,9 +78,9 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     protected void init() {
         super.init();
 
-        tick();
         int i = 0;
-        for (var d : MapDataCache.getAtlasDimensions()) {
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+        for (var d : maps.getAvailableDimensions()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
                     (width + IMAGE_WIDTH) / 2 - 10,
                     (height - IMAGE_HEIGHT) / 2 + 15 + i * 22, d, this);
@@ -95,7 +90,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         }
 
         int mapSize = 128;
-        MapItemSavedData originalCenterMap = this.getClosestMapToPlayer();
+        MapItemSavedData originalCenterMap = maps.getActive().getSecond();
         this.mapWidget = this.addRenderableWidget(new MapWidget((width - mapSize) / 2,
                 (height - mapSize) / 2 + 5, mapSize, mapSize, 3,
                 this, originalCenterMap));
@@ -112,8 +107,8 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
                 (height - IMAGE_HEIGHT) / 2 + 131,
                 -64, this);
         this.addRenderableWidget(sliceBookmark);
-        this.addRenderableWidget(new SliceArrowButton(false, sliceBookmark ));
-        this.addRenderableWidget(new SliceArrowButton(true, sliceBookmark ));
+        this.addRenderableWidget(new SliceArrowButton(false, sliceBookmark));
+        this.addRenderableWidget(new SliceArrowButton(true, sliceBookmark));
     }
 
 
@@ -124,7 +119,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
     @Override
     public void tick() {
-        if(mapWidget != null) mapWidget.tick();
+        if (mapWidget != null) mapWidget.tick();
         //TODO: update widgets
         //recalculate parameters
     }
@@ -224,77 +219,29 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        super.mouseClicked(mouseX, mouseY, button);
-        /*
-            List<Pair<MapItemSavedData, MapDecoration>> decorationList = getMapDecorationList();
-            for (int k = 0; k < MAX_TAB_DISP; k++) {
-                int targetX = leftPos - (int) (1.0 / 16 * atlasBgScaledSize);
-                int targetY = topPos + (int) (k * (4 / 32.0 * atlasBgScaledSize)) + (int) (1.0 / 16.0 * atlasBgScaledSize);
-                if (mouseX >= targetX && mouseX <= targetX + scaledWidth
-                        && mouseY >= targetY && mouseY <= targetY + scaledWidth) {
-                    int targetIdx = mapIconSelectorOffset + k;
-                    if (targetIdx >= decorationList.size()) {
-                        continue;
-                    }
-                    MapItemSavedData targetData = decorationList.get(targetIdx).getFirst();
-                    // Set center map coords
-                    currentXCenter = targetData.centerX;
-                    currentZCenter = targetData.centerZ;
-                    // Reset offset & zoom
-                    mouseXOffset = 0;
-                    mouseYOffset = 0;
-                    zoomValue = ZOOM_BUCKET;
-                }
-            }
-        }*/
-        return false;
-    }
-
-
     // ================== Other Util Fns ==================
 
     public MapItemSavedData getCenterMapForSelectedDim() {
         if (currentWorldSelected.equals(initialWorldSelected)) {
             return initialMapSelected;
         } else {
-            //centers to any map that has decoration
-            return dimToData.get(currentWorldSelected).stream()
-                    .filter(state -> !state.getSecond().decorations.entrySet().stream()
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+            return maps.getAll()
+                    .stream().filter(state -> !state.getSecond().decorations.entrySet().stream()
                             .filter(e -> e.getValue().getType().isRenderedOnFrame())
                             .collect(Collectors.toSet())
                             .isEmpty())
-                    .findAny().orElseGet(() -> dimToData.get(currentWorldSelected)
-                            .stream().findAny().orElseThrow()).getSecond();
+                    .findAny().orElseGet(() -> maps.getClosest(0, 0,
+                            currentWorldSelected,
+                            MapAtlasItem.getSelectedSlice(atlas))).getSecond();
+            //centers to any map that has decoration
         }
     }
-
-    @Nullable
-    protected MapItemSavedData getClosestMapToPlayer() {
-        if (!currentWorldSelected.equals(player.level().dimension())) {
-            return null;
-        }
-        Pair<String, MapItemSavedData> returnVal = null;
-        double minDist = Double.MAX_VALUE;
-        for (var e : byCenter.entrySet()) {
-            var p = e.getKey();
-            double dist = Mth.square(p.getFirst() - player.getX()) + Mth.square(p.getSecond() - player.getZ());
-            if (dist < minDist) {
-                returnVal = e.getValue();
-                minDist = dist;
-            }
-        }
-        return returnVal == null ? null : returnVal.getSecond();
-    }
-
 
     @Nullable
     protected Pair<String, MapItemSavedData> findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-        return byCenter.get(Pair.of(reqXCenter, reqZCenter));
+        return MapAtlasItem.getMaps(atlas).select(reqXCenter, reqZCenter, currentWorldSelected, selectedSlice);
     }
-
 
     public static String getReadableName(ResourceLocation id) {
         String s = id.toShortLanguageKey();
@@ -314,18 +261,15 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         return new String(array);
     }
 
-    // ================== Map Icon Selectors ==================
-
     private List<Pair<MapItemSavedData, MapDecoration>> getMapDecorationList() {
-        List<Pair<String, MapItemSavedData>> currentData = dimToData.get(currentWorldSelected);
         List<Pair<MapItemSavedData, MapDecoration>> mapIcons = new ArrayList<>();
-        for (var p : currentData) {
+        for (var p : MapAtlasItem.getMaps(atlas).selectSection(currentWorldSelected, selectedSlice)) {
             MapItemSavedData data = p.getSecond();
-            for (var e : data.decorations.entrySet()) {
-                if (e.getValue().renderOnFrame()) {
-                    mapIcons.add(Pair.of(data, e.getValue()));
+                for (var e : data.decorations.entrySet()) {
+                    if (e.getValue().renderOnFrame()) {
+                        mapIcons.add(Pair.of(data, e.getValue()));
+                    }
                 }
-            }
         }
         return mapIcons;
     }

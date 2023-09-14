@@ -25,17 +25,6 @@ import java.util.stream.Collectors;
 @Deprecated(forRemoval = true)
 public class MapAtlasesAccessUtilsOld {
 
-    public static MapItemSavedData getFirstMapItemSavedDataFromAtlas(Level world, ItemStack atlas) {
-        return getMapItemSavedDataByIndexFromAtlas(world, atlas, 0);
-    }
-
-    public static MapItemSavedData getMapItemSavedDataByIndexFromAtlas(Level world, ItemStack atlas, int i) {
-        if (atlas.getTag() == null) return null;
-        int[] mapIds = Arrays.stream(atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT)).toArray();
-        if (i < 0 || i >= mapIds.length) return null;
-        return MapItem.getSavedData(mapIds[i], world);
-    }
-
     public static ItemStack createMapItemStackFromId(int id) {
         ItemStack map = new ItemStack(Items.FILLED_MAP);
         map.getOrCreateTag().putInt("map", id);
@@ -44,32 +33,6 @@ public class MapAtlasesAccessUtilsOld {
 
 
 
-    // KEEP NAME
-    public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level level, ItemStack atlas) {
-        if (atlas.getTag() == null) return new HashMap<>();
-        int[] mapIds = Arrays.stream(atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT)).toArray();
-        Map<String, MapItemSavedData> mapStates = new HashMap<>();
-        for (int mapId : mapIds) {
-            String mapName = MapItem.makeKey(mapId);
-            MapItemSavedData state = level.getMapData(mapName);
-            if (state == null && level instanceof ServerLevel) {
-                ItemStack map = createMapItemStackFromId(mapId);
-                state = MapItem.getSavedData(map, level);
-            }
-            if (state != null) {
-                mapStates.put(mapName, state);
-            }
-        }
-        return mapStates;
-    }
-
-    public static Map<String, MapItemSavedData> getCurrentDimMapInfoFromAtlas(Level world, ItemStack atlas) {
-        return getAllMapInfoFromAtlas(world, atlas)
-                .entrySet()
-                .stream()
-                .filter(state -> state.getValue().dimension.location().equals(world.dimension().location()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
 
     @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
@@ -157,26 +120,11 @@ public class MapAtlasesAccessUtilsOld {
         return minDistState;
     }
 
-    public static int getEmptyMapCountFromItemStack(ItemStack atlas) {
-        CompoundTag tag = atlas.getTag();
-        return tag != null && tag.contains(MapAtlasItem.EMPTY_MAP_NBT) ? tag.getInt(MapAtlasItem.EMPTY_MAP_NBT) : 0;
-    }
 
-    public static int[] getMapIdsFromItemStack(ItemStack atlas) {
-        CompoundTag tag = atlas.getTag();
-        return tag != null && tag.contains(MapAtlasItem.MAP_LIST_NBT)
-                ? tag.getIntArray(MapAtlasItem.MAP_LIST_NBT)
-                : new int[]{};
-    }
-
-    public static int getMapCountFromItemStack(ItemStack atlas) {
-        return getMapIdsFromItemStack(atlas).length;
-    }
 
     public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem) {
         int amountToAdd = bottomItem.getCount();
-        int existingMapCount = MapAtlasesAccessUtilsOld.getMapCountFromItemStack(atlas)
-                + MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas);
+        int existingMapCount = MapAtlasItem.getMaps(atlas).getCount() + MapAtlasItem.getEmptyMaps(atlas);
         amountToAdd *= MapAtlasesConfig.mapEntryValueMultiplier.get();
         if (MapAtlasItem.getMaxMapCount() != -1
                 && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {

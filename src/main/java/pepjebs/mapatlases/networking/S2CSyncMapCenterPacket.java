@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.networking;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
@@ -45,6 +46,7 @@ public class S2CSyncMapCenterPacket {
             if (data != null) {
                 setCenter(data, centerX, centerZ);
             }
+            context.get().setPacketHandled(true);
         });
 
     }

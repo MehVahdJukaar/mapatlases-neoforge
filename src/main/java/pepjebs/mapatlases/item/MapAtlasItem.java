@@ -1,8 +1,10 @@
 package pepjebs.mapatlases.item;
 
+import net.mehvahdjukaar.supplementaries.common.items.forge.QuiverItemImpl;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,52 +25,85 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.IMapCollection;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.MapAtlasesAtlasOverviewScreen;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.utils.AtlasHolder;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.List;
-import java.util.Map;
 
 public class MapAtlasItem extends Item {
 
-    public static final String EMPTY_MAP_NBT = "empty";
-    public static final String MAP_LIST_NBT = "maps";
-    public static final String LOCKED_NBT = "locked";
-    public static final String SLICE_NBT = "selected_slice";
-    //We save this to tag for fast access.
-    // Only allowing same scale maps to eb merged
-    public static final String SCALE_NBT = "scale";
+    protected static final String EMPTY_MAPS_NBT = "empty";
+    protected static final String LOCKED_NBT = "locked";
+    protected static final String SLICE_NBT = "selected_slice";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
+    }
+
+    @Nullable
+    @Override
+    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+        return new Provider(LazyOptional.of(MapCollectionCap::new));
+    }
+
+    private record Provider(LazyOptional<MapCollectionCap> capInstance) implements ICapabilitySerializable<CompoundTag> {
+        @Override
+        public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+            return MapCollectionCap.ATLAS_CAP_TOKEN.orEmpty(cap, capInstance);
+        }
+
+        @Override
+        public CompoundTag serializeNBT() {
+            return capInstance.resolve().get().serializeNBT();
+        }
+
+        @Override
+        public void deserializeNBT(CompoundTag nbt) {
+            capInstance.resolve().get().deserializeNBT(nbt);
+        }
+    }
+
+    public static MapCollectionCap getMaps(ItemStack stack){
+        return stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
     }
 
     public static int getMaxMapCount() {
         return MapAtlasesConfig.maxMapCount.get();
     }
 
-    public static byte getScale(ItemStack stack) {
-        var tag = stack.getTag();
-        if (tag != null && tag.contains(SCALE_NBT)) {
-            return tag.getByte(SLICE_NBT);
-        }
-        return 0;
+    public static int getEmptyMaps(ItemStack atlas) {
+        CompoundTag tag = atlas.getTag();
+        return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT) : 0;
+    }
+
+    public static void setEmptyMaps(ItemStack stack, int count){
+        stack.getOrCreateTag().putInt(EMPTY_MAPS_NBT, count);
+    }
+
+    public static void increaseEmptyMaps(ItemStack stack, int count){
+        setEmptyMaps(stack, getEmptyMaps(stack) + count);
     }
 
     public static boolean isLocked(ItemStack stack) {
-        var tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
         return tag != null && tag.getBoolean(LOCKED_NBT);
     }
 
     @Nullable
     public static Integer getSelectedSlice(ItemStack stack) {
-        var tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
         if (tag != null && tag.contains(SLICE_NBT)) {
             return tag.getInt(SLICE_NBT);
         }
@@ -80,8 +115,9 @@ public class MapAtlasItem extends Item {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
         if (level != null) {
-            int mapSize = MapAtlasesAccessUtilsOld.getMapCountFromItemStack(stack);
-            int empties = MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(stack);
+            MapCollectionCap maps = getMaps(stack);
+            int mapSize = maps.getCount();
+            int empties = getEmptyMaps(stack);
             if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
                         .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
@@ -90,27 +126,23 @@ public class MapAtlasItem extends Item {
                     .withStyle(ChatFormatting.GRAY));
             if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
                     MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
-                // If there's no maps & no empty maps, the atlas is "inactive", so display how many empty maps
+                // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
                 // they *would* receive if they activated the atlas
                 if (mapSize + empties == 0) {
                     empties = MapAtlasesConfig.pityActivationMapCount.get();
                 }
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties)
-                        .withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
             MapItemSavedData mapState = level.getMapData(MapAtlasesClient.getActiveMap());
             if (mapState == null) return;
-            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << mapState.scale)
-                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << mapState.scale).withStyle(ChatFormatting.GRAY));
 
             if (isLocked(stack)) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked")
-                        .withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
             }
             Integer slice = getSelectedSlice(stack);
             if (slice != null) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice)
-                        .withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
             }
         }
     }
@@ -144,7 +176,9 @@ public class MapAtlasItem extends Item {
         if (atlas.isEmpty()) {
             atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
         }
-        Minecraft.getInstance().setScreen(new MapAtlasesAtlasOverviewScreen(Component.translatable(getDescriptionId()), atlas));
+        if (MapAtlasItem.getMaps(atlas).getActive() != null) {
+            Minecraft.getInstance().setScreen(new MapAtlasesAtlasOverviewScreen(Component.translatable(getDescriptionId()), atlas));
+        }
     }
 
     public ItemStack getAtlasFromLookingLectern(Player player) {
@@ -163,11 +197,12 @@ public class MapAtlasItem extends Item {
 
     private void sendPlayerLecternAtlasData(ServerPlayer serverPlayer, ItemStack atlas) {
         // Send player all MapItemSavedDatas
+        /*
         var states = MapAtlasesAccessUtilsOld.getAllMapInfoFromAtlas(serverPlayer.level(), atlas);
         for (var state : states.entrySet()) {
             state.getValue().getHoldingPlayer(serverPlayer);
             MapAtlasesServerEvents.relayMapItemSavedDataSyncToPlayerClient(state, serverPlayer);
-        }
+        }*/
     }
 
     @Override
@@ -203,13 +238,11 @@ public class MapAtlasItem extends Item {
         }
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
-                Map<String, MapItemSavedData> currentDimMapInfos = MapAtlasesAccessUtilsOld.getCurrentDimMapInfoFromAtlas(
-                        level, stack);
-                MapItemSavedData mapState = MapAtlasesAccessUtilsOld.getActiveAtlasMapStateServer(
-                        currentDimMapInfos, (ServerPlayer) player).getValue();
+
+                var mapState = getMaps(stack).getActive();
                 if (mapState == null)
                     return InteractionResult.FAIL;
-                boolean didAdd = mapState.toggleBanner(level, blockPos);
+                boolean didAdd = mapState.getSecond().toggleBanner(level, blockPos);
                 if (!didAdd)
                     return InteractionResult.FAIL;
             }

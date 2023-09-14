@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -13,7 +12,10 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.common.util.RecipeMatcher;
@@ -87,18 +89,19 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         if (mapItemStack == null || level == null || mapItemStack.getTag() == null) {
             return ItemStack.EMPTY; //this should never happen
         }
-        MapItemSavedData mapState = MapItem.getSavedData(mapItemStack.getTag().getInt("map"), level);
-        if (mapState == null) return ItemStack.EMPTY;
-        CompoundTag compoundTag = new CompoundTag();
         Integer mapId = MapItem.getMapId(mapItemStack);
         if (mapId == null) {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
-            compoundTag.putIntArray(MapAtlasItem.MAP_LIST_NBT, new int[]{});
-        } else
-            compoundTag.putIntArray(MapAtlasItem.MAP_LIST_NBT, new int[]{mapId});
-        ItemStack atlasItemStack = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
-        atlasItemStack.setTag(compoundTag);
-        return atlasItemStack;
+            return ItemStack.EMPTY;
+        }
+        MapItemSavedData mapState = MapItem.getSavedData(mapId, level);
+        if (mapState == null) return ItemStack.EMPTY;
+
+        ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
+
+        MapAtlasItem.getMaps(atlas).add(mapId, level);
+
+        return atlas;
     }
 
     @Override

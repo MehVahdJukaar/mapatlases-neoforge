@@ -22,73 +22,6 @@ import java.util.stream.Collectors;
 
 public class MapAtlasesAccessUtils {
 
-    public static int[] getMapIdsFromItemStack(ItemStack atlas) {
-        CompoundTag tag = atlas.getTag();
-        return tag != null ? tag.getIntArray(MapAtlasItem.MAP_LIST_NBT) : new int[]{};
-    }
-
-    // map identifier & map data grouped together
-    public static Collection<Pair<String, MapItemSavedData>> getAllMapData(Level level, ItemStack atlas) {
-        int[] mapIds = getMapIdsFromItemStack(atlas);
-        if (mapIds.length == 0) return List.of();
-        List<Pair<String, MapItemSavedData>> mapStates = new ArrayList<>();
-        for (int mapId : mapIds) {
-            String mapName = MapItem.makeKey(mapId);
-            MapItemSavedData state = level.getMapData(mapName);
-            if (state == null) {
-                ItemStack map = createMapItemStackFromId(mapId);
-                state = MapItem.getSavedData(map, level);
-            }
-            if (state != null) {
-                mapStates.add(Pair.of(mapName, state));
-            }
-        }
-        return mapStates;
-    }
-
-    public static Map<ResourceKey<Level>, List<Pair<String, MapItemSavedData>>> getAllMapDataByDimension(Level level, ItemStack atlas) {
-        return getAllMapData(level, atlas).stream()
-                .collect(Collectors.groupingBy(
-                        dataObject -> dataObject.getSecond().dimension,
-                        LinkedHashMap::new,
-                        Collectors.mapping(
-                                Function.identity(),
-                                Collectors.toList()
-                        )
-                ));
-    }
-
-    public static Collection<Pair<String, MapItemSavedData>> getAllMapDataForDimension(Level level, ItemStack atlas) {
-        return getAllMapDataByDimension(level, atlas).getOrDefault(level.dimension(), List.of());
-    }
-
-    public static Pair<String, MapItemSavedData> getClosestMapDataFromAtlas(ServerPlayer player, ItemStack atlas) {
-        return getClosestMapData(getAllMapDataForDimension(player.level(), atlas), player);
-    }
-
-
-    @Deprecated(forRemoval = true)
-    public static Pair<String, MapItemSavedData> getClosestMapData(
-            Collection<Pair<String, MapItemSavedData>> currentDimMapInfos,
-            Player player) {
-        Pair<String, MapItemSavedData> minDistState = null;
-        for (var state : currentDimMapInfos) {
-            if (minDistState == null) {
-                minDistState = state;
-                continue;
-            }
-            if (distSquare(minDistState.getSecond(), player) > distSquare(state.getSecond(), player)) {
-                minDistState = state;
-            }
-        }
-        return minDistState;
-    }
-
-    // no square root faster
-    public static double distSquare(MapItemSavedData mapState, Player player) {
-        return Mth.square(mapState.centerX - player.getX()) + Mth.square(mapState.centerZ - player.getZ());
-    }
-
 
     public static ItemStack createMapItemStackFromId(int id) {
         ItemStack map = new ItemStack(Items.FILLED_MAP);
@@ -109,7 +42,7 @@ public class MapAtlasesAccessUtils {
     @Deprecated(forRemoval = true)
     public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level level, ItemStack atlas) {
         if (atlas.getTag() == null) return new HashMap<>();
-        int[] mapIds = Arrays.stream(atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT)).toArray();
+        int[] mapIds = Arrays.stream(atlas.getTag().getIntArray("a")).toArray();
         Map<String, MapItemSavedData> mapStates = new HashMap<>();
         for (int mapId : mapIds) {
             String mapName = MapItem.makeKey(mapId);
@@ -130,10 +63,7 @@ public class MapAtlasesAccessUtils {
     public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(
             Map<String, MapItemSavedData> currentDimMapInfos,
             ServerPlayer player) {
-        var p = getClosestMapData(currentDimMapInfos.entrySet().stream()
-                .map(entry -> new Pair<>(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList()), player);
-        return new AbstractMap.SimpleEntry<>(p.getFirst(), p.getSecond());
+        return null;
     }
 
 }

@@ -1,6 +1,7 @@
 package pepjebs.mapatlases;
 
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -9,10 +10,13 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -21,8 +25,10 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -65,7 +71,10 @@ public class MapAtlasesMod {
 
     static {
 //sound
+        //spyglass zoom
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        bus.addListener(MapCollectionCap::register);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             MapAtlasesClient.init();
@@ -117,5 +126,16 @@ public class MapAtlasesMod {
 
     public static ResourceLocation res(String name) {
         return new ResourceLocation(MOD_ID, name);
+    }
+
+    //hack
+    public static Level giveMeALevelPls() {
+        for(var l : ServerLifecycleHooks.getCurrentServer().getAllLevels()){
+            return l;
+        }
+        if(FMLEnvironment.dist == Dist.CLIENT){
+            return Minecraft.getInstance().level;
+        }
+        throw new IllegalStateException("Failed to find a Level. How?");
     }
 }

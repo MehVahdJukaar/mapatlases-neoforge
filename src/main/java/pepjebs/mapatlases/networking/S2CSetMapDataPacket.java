@@ -67,6 +67,7 @@ public class S2CSetMapDataPacket {
             ((ClientLevel)level).overrideMapData(mapId, mapData);
 
         });
+        context.get().setPacketHandled(true);
     }
 
 }

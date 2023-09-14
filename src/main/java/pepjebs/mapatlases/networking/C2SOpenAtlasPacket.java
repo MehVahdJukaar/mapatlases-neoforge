@@ -30,5 +30,6 @@ public class C2SOpenAtlasPacket {
                 ma.openHandledAtlasScreen(player);
             }
         });
+        context.get().setPacketHandled(true);
     }
 }

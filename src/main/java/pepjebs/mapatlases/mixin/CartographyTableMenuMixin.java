@@ -26,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +44,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
     protected CartographyTableMenuMixin(@Nullable MenuType<?> arg, int i) {
         super(arg, i);
     }
-
+//TODO:
+    /*
     @Inject(method = "setupResultSlot", at = @At("HEAD"), cancellable = true)
     void mapAtlasUpdateResult(ItemStack atlas, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
         if (atlas.is(MapAtlasesMod.MAP_ATLAS.get()) && bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
@@ -60,7 +60,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
                 CompoundTag mergedNbt = new CompoundTag();
                 int halfEmptyCount = (int) Math.ceil((MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas)
                         + MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(bottomItem)) / 2.0);
-                mergedNbt.putInt(MapAtlasItem.EMPTY_MAP_NBT, halfEmptyCount);
+                mergedNbt.putInt(MapAtlasItem.EMPTY_MAPS_NBT, halfEmptyCount);
                 mergedNbt.putIntArray(MapAtlasItem.MAP_LIST_NBT, filteredMapIds);
                 result.setTag(mergedNbt);
                 result.grow(1);
@@ -75,7 +75,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
             ItemStack result = atlas.copy();
             CompoundTag nbt = result.getTag() != null ? result.getTag() : new CompoundTag();
             int amountToAdd = MapAtlasesAccessUtilsOld.getMapCountToAdd(atlas, bottomItem);
-            nbt.putInt(MapAtlasItem.EMPTY_MAP_NBT, nbt.getInt(MapAtlasItem.EMPTY_MAP_NBT) + amountToAdd);
+            nbt.putInt(MapAtlasItem.EMPTY_MAPS_NBT, nbt.getInt(MapAtlasItem.EMPTY_MAPS_NBT) + amountToAdd);
             result.setTag(nbt);
             this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
 
@@ -116,7 +116,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
             CompoundTag compound = new CompoundTag();
             compound.putIntArray(MapAtlasItem.MAP_LIST_NBT, new int[]{mapId});
             if (MapAtlasesConfig.pityActivationMapCount.get() > 0) {
-                compound.putInt(MapAtlasItem.EMPTY_MAP_NBT, MapAtlasesConfig.pityActivationMapCount.get());
+                compound.putInt(MapAtlasItem.EMPTY_MAPS_NBT, MapAtlasesConfig.pityActivationMapCount.get());
             }
             result.setTag(compound);
             this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -125,7 +125,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
 
             info.cancel();
         }
-    }
+    }*/
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
     void mapAtlasTransferSlot(Player player, int index, CallbackInfoReturnable<ItemStack> info) {

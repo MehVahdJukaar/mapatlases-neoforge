@@ -33,5 +33,6 @@ public class C2SRequestMapCenterPacket {
                         new S2CSyncMapCenterPacket(mapId, data.centerX, data.centerZ));
             }
         });
+        context.get().setPacketHandled(true);
     }
 }

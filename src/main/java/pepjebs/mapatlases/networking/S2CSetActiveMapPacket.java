@@ -26,6 +26,7 @@ public class S2CSetActiveMapPacket {
         context.get().enqueueWork(() -> {
             MapAtlasesClient.setActiveMap(mapId.equals("null") ? null : mapId);
         });
+        context.get().setPacketHandled(true);
     }
 
 }

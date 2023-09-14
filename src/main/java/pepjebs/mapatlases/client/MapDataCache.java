@@ -14,6 +14,7 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
 
+@Deprecated(forRemoval = true)
 public class MapDataCache {
 
     //Hmm we could make this an itemstack capability. later after fabric version i guess
@@ -51,7 +52,6 @@ public class MapDataCache {
 
     //called when item changes. New maps will be added by packet sent when they are created
     public static void acceptAtlasItem(Level level, ItemStack atlas) {
-        populateMapCache(MapAtlasesAccessUtils.getAllMapData(level, atlas));
         activeAtlas = atlas;
     }
 

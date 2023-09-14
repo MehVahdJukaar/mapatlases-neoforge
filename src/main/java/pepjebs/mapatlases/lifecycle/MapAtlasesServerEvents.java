@@ -1,21 +1,24 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.LogicalSide;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -52,10 +55,10 @@ public class MapAtlasesServerEvents {
         ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        Map<String, MapItemSavedData> mapInfos = MapAtlasesAccessUtilsOld.getAllMapInfoFromAtlas(player.level(), atlas);
-        for (Map.Entry<String, MapItemSavedData> info : mapInfos.entrySet()) {
-            String mapId = info.getKey();
-            MapItemSavedData state = info.getValue();
+        var mapInfos = MapAtlasItem.getMaps(atlas).getAll();
+        for (var info : mapInfos) {
+            String mapId = info.getFirst();
+            MapItemSavedData state = info.getSecond();
             state.tickCarriedBy(player, atlas);
             state.getHoldingPlayer(player);
 
@@ -65,7 +68,18 @@ public class MapAtlasesServerEvents {
     }
 
     @SubscribeEvent
+    public static void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event){
+        if(event.side == LogicalSide.SERVER){
+            Player player = event.player;
+            ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
+            if (atlas.isEmpty()) return;
+
+        }
+    }
+
+    @SubscribeEvent
     public static void mapAtlasServerTick(TickEvent.ServerTickEvent event) {
+        if(true)return;
         ArrayList<String> seenPlayers = new ArrayList<>();
         MinecraftServer server = event.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -75,13 +89,10 @@ public class MapAtlasesServerEvents {
             if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
             ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) continue;
-            //gets all data from atas
-            Map<String, MapItemSavedData> currentMapInfos =
-                    MapAtlasesAccessUtilsOld.getCurrentDimMapInfoFromAtlas(player.level(), atlas);
-            //gets closest data
-            Map.Entry<String, MapItemSavedData> activeInfo =
-                    MapAtlasesAccessUtilsOld.getActiveAtlasMapStateServer(currentMapInfos, player);
 
+            //gets closest data
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+            Pair<String, MapItemSavedData> activeInfo = getMapAtPositionOrClosest(player, maps);
 
             // changedMapItemSavedData has non-null value if player has a new active Map ID
             String changedMapItemSavedData = relayActiveMapIdToPlayerClient(activeInfo, player);
@@ -90,7 +101,7 @@ public class MapAtlasesServerEvents {
                         Mth.floor(player.getZ()));
                 continue;
             }
-            MapItemSavedData activeState = activeInfo.getValue();
+            MapItemSavedData activeState = activeInfo.getSecond();
 
             int playX = player.blockPosition().getX();
             int playZ = player.blockPosition().getZ();
@@ -107,12 +118,12 @@ public class MapAtlasesServerEvents {
             // Update Map states & colors
             // updateColors is *easily* the most expensive function in the entire server tick
             // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
-            Map<String, MapItemSavedData> nearbyExistentMaps = currentMapInfos.entrySet().stream()
+            Map<String, MapItemSavedData> nearbyExistentMaps = maps.getAll().stream()
                     .filter(e -> discoveringEdges.stream()
-                            .anyMatch(edge -> edge.getFirst() == e.getValue().centerX
-                                    && edge.getSecond() == e.getValue().centerZ))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            for (var mapInfo : currentMapInfos.entrySet()) {
+                            .anyMatch(edge -> edge.getFirst() == e.getSecond().centerX
+                                    && edge.getSecond() == e.getSecond().centerZ))
+                    .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+            for (var mapInfo : maps.getAll()) {
                 updateMapDataForPlayer(mapInfo, player, atlas);
             }
             updateMapColorsForPlayer(activeState, player);
@@ -142,12 +153,17 @@ public class MapAtlasesServerEvents {
         playerToActiveMapId.keySet().removeIf(playerName -> !seenPlayers.contains(playerName));
     }
 
+    private static Pair<String, MapItemSavedData> getMapAtPositionOrClosest(ServerPlayer player, MapCollectionCap maps) {
+        byte scale = maps.getScale();
+        MapItem
+    }
+
     private static void updateMapDataForPlayer(
-            Map.Entry<String, MapItemSavedData> mapInfo,
+            Pair<String, MapItemSavedData> mapInfo,
             ServerPlayer player,
             ItemStack atlas
     ) {
-        mapInfo.getValue().tickCarriedBy(player, atlas);
+        mapInfo.getSecond().tickCarriedBy(player, atlas);
         relayMapItemSavedDataSyncToPlayerClient(mapInfo, player);
     }
 
@@ -158,17 +174,17 @@ public class MapAtlasesServerEvents {
     }
 
     public static void relayMapItemSavedDataSyncToPlayerClient(
-            Map.Entry<String, MapItemSavedData> mapInfo,
+            Pair<String, MapItemSavedData> mapInfo,
             ServerPlayer player
     ) {
-        int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getKey());
+        int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getFirst());
         //TODO make better
 
         Packet<?> p = null;
         int tries = 0;
         while (p == null && tries < 10) {
             //WHY??
-            p = mapInfo.getValue().getUpdatePacket(mapId, player);
+            p = mapInfo.getSecond().getUpdatePacket(mapId, player);
             tries++;
         }
         if (p != null) {
@@ -178,7 +194,7 @@ public class MapAtlasesServerEvents {
     }
 
     private static String relayActiveMapIdToPlayerClient(
-            Map.Entry<String, MapItemSavedData> activeInfo,
+            Pair<String, MapItemSavedData> activeInfo,
             ServerPlayer player
     ) {
         String playerName = player.getName().getString();
@@ -190,7 +206,7 @@ public class MapAtlasesServerEvents {
             if (addingPlayer) {
                 mapAtlasPlayerJoinImpl(player);
             }
-            String currentMapId = activeInfo.getKey();
+            String currentMapId = activeInfo.getFirst();
             if (addingPlayer || !currentMapId.equals(cachedMapId)) {
                 changedMapItemSavedData = cachedMapId;
                 playerToActiveMapId.put(playerName, currentMapId);
@@ -211,29 +227,22 @@ public class MapAtlasesServerEvents {
             int destX,
             int destZ
     ) {
-        List<Integer> mapIds = new ArrayList<>();
-        if (atlas.getTag() != null) {
-            mapIds = Arrays.stream(
-                    atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT)).boxed().collect(Collectors.toList());
-        } else {
+if(true)return;
+        Level level = player.level();
+        if (atlas.getTag() == null){
             // If the Atlas is "inactive", give it a pity Empty Map count
-            CompoundTag defaultAtlasNbt = new CompoundTag();
-            defaultAtlasNbt.putInt(MapAtlasItem.EMPTY_MAP_NBT,
-                    MapAtlasesConfig.pityActivationMapCount.get());
-            atlas.setTag(defaultAtlasNbt);
+            MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }
-        int emptyCount = MapAtlasesAccessUtilsOld.getEmptyMapCountFromItemStack(atlas);
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+
+        int emptyCount = MapAtlasItem.getEmptyMaps(atlas);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
-        if (!mutex.isLocked()
-                && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
+        if (!mutex.isLocked() && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
             mutex.lock();
 
             // Make the new map
             if (!player.isCreative() && !bypassEmptyMaps) {
-                atlas.getTag().putInt(
-                        MapAtlasItem.EMPTY_MAP_NBT,
-                        atlas.getTag().getInt(MapAtlasItem.EMPTY_MAP_NBT) - 1
-                );
+                MapAtlasItem.increaseEmptyMaps(atlas,-1);
             }
             ItemStack newMap = MapItem.create(
                     player.level(),
@@ -242,13 +251,16 @@ public class MapAtlasesServerEvents {
                     (byte) scale,
                     true,
                     false);
-            mapIds.add(MapItem.getMapId(newMap));
-            atlas.getTag().putIntArray(MapAtlasItem.MAP_LIST_NBT, mapIds);
 
-            // Play the sound
-            player.level().playSound(null, player.blockPosition(),
-                    MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
-                    SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+            Integer mapId = MapItem.getMapId(newMap);
+            if(mapId != null) {
+                maps.add(mapId, level);
+
+                // Play the sound
+                player.level().playSound(null, player.blockPosition(),
+                        MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
+                        SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+            }
             mutex.unlock();
         }
     }

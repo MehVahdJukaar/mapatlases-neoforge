@@ -27,6 +27,7 @@ public class MapAtlasesNetowrking {
         CHANNEL.registerMessage(index++, S2CSyncMapCenterPacket.class,
                 S2CSyncMapCenterPacket::write, S2CSyncMapCenterPacket::new, S2CSyncMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
         CHANNEL.registerMessage(index++, C2SOpenAtlasPacket.class,
                 C2SOpenAtlasPacket::write, C2SOpenAtlasPacket::new, C2SOpenAtlasPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));

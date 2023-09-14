@@ -32,8 +32,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
-    private float targetZoomLevel = 3;
-    private float zoomLevel = 3;
+    private float targetZoomLevel = 2;
+    private float zoomLevel = 2;
     protected int targetXCenter;
     protected int targetZCenter;
 
@@ -53,6 +53,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.targetXCenter = originalCenterMap.centerX;
         this.targetZCenter = originalCenterMap.centerZ;
+
+        int aa = 1;
     }
 
     @Override
@@ -213,6 +215,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             test = false;
         }
 
+        //TODO:: better player snap
         //follow player
         if (followingPlayer) {
 
