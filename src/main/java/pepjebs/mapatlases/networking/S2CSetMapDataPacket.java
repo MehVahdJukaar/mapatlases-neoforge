@@ -64,7 +64,7 @@ public class S2CSetMapDataPacket {
                 mapData.tickCarriedBy(player, atlas);
                 mapData.getHoldingPlayer(player);
             }
-            ((ClientLevel)level).overrideMapData(mapId, mapData);
+          //  ((ClientLevel)level).overrideMapData(mapId, mapData);
 
         });
         context.get().setPacketHandled(true);

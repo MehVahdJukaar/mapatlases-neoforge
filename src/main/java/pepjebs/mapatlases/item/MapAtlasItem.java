@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.item;
 
-import net.mehvahdjukaar.supplementaries.common.items.forge.QuiverItemImpl;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -32,7 +31,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.IMapCollection;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.MapAtlasesAtlasOverviewScreen;
@@ -58,7 +56,8 @@ public class MapAtlasItem extends Item {
         return new Provider(LazyOptional.of(MapCollectionCap::new));
     }
 
-    private record Provider(LazyOptional<MapCollectionCap> capInstance) implements ICapabilitySerializable<CompoundTag> {
+    private record Provider(
+            LazyOptional<MapCollectionCap> capInstance) implements ICapabilitySerializable<CompoundTag> {
         @Override
         public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
             return MapCollectionCap.ATLAS_CAP_TOKEN.orEmpty(cap, capInstance);
@@ -75,8 +74,10 @@ public class MapAtlasItem extends Item {
         }
     }
 
-    public static MapCollectionCap getMaps(ItemStack stack){
-        return stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
+    public static MapCollectionCap getMaps(ItemStack stack, Level level) {
+        MapCollectionCap cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
+        if (!cap.isInitialized()) cap.initialize(level);
+        return cap;
     }
 
     public static int getMaxMapCount() {
@@ -88,11 +89,11 @@ public class MapAtlasItem extends Item {
         return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT) : 0;
     }
 
-    public static void setEmptyMaps(ItemStack stack, int count){
+    public static void setEmptyMaps(ItemStack stack, int count) {
         stack.getOrCreateTag().putInt(EMPTY_MAPS_NBT, count);
     }
 
-    public static void increaseEmptyMaps(ItemStack stack, int count){
+    public static void increaseEmptyMaps(ItemStack stack, int count) {
         setEmptyMaps(stack, getEmptyMaps(stack) + count);
     }
 
@@ -115,7 +116,7 @@ public class MapAtlasItem extends Item {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
         if (level != null) {
-            MapCollectionCap maps = getMaps(stack);
+            MapCollectionCap maps = getMaps(stack, level);
             int mapSize = maps.getCount();
             int empties = getEmptyMaps(stack);
             if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
@@ -176,7 +177,7 @@ public class MapAtlasItem extends Item {
         if (atlas.isEmpty()) {
             atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
         }
-        if (MapAtlasItem.getMaps(atlas).getActive() != null) {
+        if (MapAtlasItem.getMaps(atlas, player.level()).getActive() != null) {
             Minecraft.getInstance().setScreen(new MapAtlasesAtlasOverviewScreen(Component.translatable(getDescriptionId()), atlas));
         }
     }
@@ -239,7 +240,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                var mapState = getMaps(stack).getActive();
+                var mapState = getMaps(stack, level).getActive();
                 if (mapState == null)
                     return InteractionResult.FAIL;
                 boolean didAdd = mapState.getSecond().toggleBanner(level, blockPos);

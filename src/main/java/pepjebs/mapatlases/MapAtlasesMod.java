@@ -12,11 +12,9 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -128,14 +126,4 @@ public class MapAtlasesMod {
         return new ResourceLocation(MOD_ID, name);
     }
 
-    //hack
-    public static Level giveMeALevelPls() {
-        for(var l : ServerLifecycleHooks.getCurrentServer().getAllLevels()){
-            return l;
-        }
-        if(FMLEnvironment.dist == Dist.CLIENT){
-            return Minecraft.getInstance().level;
-        }
-        throw new IllegalStateException("Failed to find a Level. How?");
-    }
 }

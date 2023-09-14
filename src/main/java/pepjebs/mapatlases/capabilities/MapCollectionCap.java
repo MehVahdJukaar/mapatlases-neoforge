@@ -33,54 +33,77 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     public static final String MAP_LIST_NBT = "maps";
+    public static final String ACTIVE_MAP_NBT = "active_map";
 
     private final Map<MapKey, Pair<String, MapItemSavedData>> maps = new HashMap<>();
-    private final Map<String, Pair<MapKey, Integer>> keysMap = new HashMap<>();
-    private final Set<ResourceKey<Level>> availableDimensions = new HashSet<>();
+    private final Map<String, MapKey> keysMap = new HashMap<>();
+    private final Map<String, Integer> idMap = new HashMap<>();
+    private final Set<ResourceKey<Level>> availableDimensions = new TreeSet<>();
     @Nullable
     private Pair<String, MapItemSavedData> centerMap = null;
     private byte scale = 0;
+    private CompoundTag lazyNbt = null;
 
     public MapCollectionCap() {
         int aa = 1;
     }
 
+    public boolean isInitialized() {
+        return lazyNbt == null;
+    }
+
+    private void assertInitialized(){
+        assert this.lazyNbt == null;
+    }
+
+
+    // we need leven context
+    public void initialize(Level level) {
+        if (lazyNbt != null) {
+            int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
+            for (int i : array) {
+                add(i, level);
+            }
+            String center = lazyNbt.getString(ACTIVE_MAP_NBT);
+            if (!center.isEmpty()) {
+                var data = level.getMapData(center);
+                if (data != null) centerMap = Pair.of(center, data);
+            }
+            lazyNbt = null;
+        }
+    }
 
     @Override
     public CompoundTag serializeNBT() {
+        if (!isInitialized()) return lazyNbt;
         CompoundTag c = new CompoundTag();
-        c.putIntArray(MAP_LIST_NBT, getIds());
-
+        c.putIntArray(MAP_LIST_NBT, idMap.values().stream().toList());
+        if (centerMap != null) {
+            c.putString(ACTIVE_MAP_NBT, centerMap.getFirst());
+        }
         return c;
     }
 
     @Override
     public void deserializeNBT(CompoundTag c) {
-        int[] array = c.getIntArray(MAP_LIST_NBT);
-        Level level = MapAtlasesMod.giveMeALevelPls();
-        for (int i : array) {
-            add(i, level);
-        }
-    }
-
-    //TODO: improve
-    @Override
-    @Deprecated(forRemoval = true)
-    public List<Integer> getIds() {
-        return keysMap.values().stream().map(Pair::getSecond).toList();
+        lazyNbt = c.copy();
     }
 
     @Override
     public int getCount() {
+        assertInitialized();
         return maps.size();
     }
 
     public boolean isEmpty() {
+        assertInitialized();
         return maps.isEmpty();
     }
 
+
     @Override
     public boolean add(int mapId, Level level) {
+        assertInitialized();
         String mapKey = MapItem.makeKey(mapId);
         MapItemSavedData d = level.getMapData(mapKey);
         if (this.isEmpty() && d != null) {
@@ -96,13 +119,16 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             Integer slice = MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(d) : null;
             MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
             //remove duplicates
-            if(maps.containsKey(key)){
-                keysMap.remove(maps.get(key).getFirst());
+            if (maps.containsKey(key)) {
+                String first = maps.get(key).getFirst();
+                keysMap.remove(first);
+                idMap.remove(first);
             }
-            keysMap.put(mapKey, Pair.of(key, mapId));
+            keysMap.put(mapKey, key);
+            idMap.put(mapKey, mapId);
             maps.put(key, Pair.of(mapKey, d));
             availableDimensions.add(d.dimension);
-            if(maps.size() != keysMap.size()){
+            if (maps.size() != keysMap.size()) {
                 int aa = 1;
             }
             return true;
@@ -113,50 +139,59 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Nullable
     @Override
     public Pair<String, MapItemSavedData> remove(String mapKey) {
+        assertInitialized();
         var k = keysMap.remove(mapKey);
+        idMap.remove(mapKey);
         if (k != null) {
             availableDimensions.clear();
             for (var j : keysMap.values()) {
-                availableDimensions.add(j.getFirst().dimension);
+                availableDimensions.add(j.dimension);
             }
-            return maps.remove(k.getFirst());
+            return maps.remove(k);
         }
         return null;
     }
 
     @Override
     public Pair<String, MapItemSavedData> getActive() {
+        assertInitialized();
         return centerMap;
     }
 
     @Override
     public byte getScale() {
+        assertInitialized();
         return scale;
     }
 
     @Override
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
+        assertInitialized();
         return availableDimensions;
     }
 
     @Override
     public Collection<Pair<String, MapItemSavedData>> getAll() {
+        assertInitialized();
         return maps.values();
     }
 
     @Override
     public Collection<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
+        assertInitialized();
         return maps.entrySet().stream().filter(e -> e.getKey().dimension.equals(dimension) && Objects.equals(e.getKey().slice, slice))
                 .map(Map.Entry::getValue).toList();
     }
 
     @Override
     public Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+        assertInitialized();
         return maps.get(new MapKey(dimension, x, z, slice));
     }
 
     @Override
     public Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+        assertInitialized();
         Pair<String, MapItemSavedData> minDistState = null;
         for (var e : maps.entrySet()) {
             var key = e.getKey();
@@ -175,6 +210,12 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     public static double distSquare(MapItemSavedData mapState, double x, double z) {
         return Mth.square(mapState.centerX - x) + Mth.square(mapState.centerZ - z);
+    }
+
+    @Override
+    public void setActive(@Nullable Pair<String, MapItemSavedData> activeMap) {
+        assertInitialized();
+        this.centerMap = activeMap;
     }
 
     private record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, @Nullable Integer slice) {

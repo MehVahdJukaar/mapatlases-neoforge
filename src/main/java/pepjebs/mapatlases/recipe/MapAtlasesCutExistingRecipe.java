@@ -17,20 +17,24 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
+import java.lang.ref.WeakReference;
+
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
+
+    private WeakReference<Level> levelRef = new WeakReference<>(null);
 
     public MapAtlasesCutExistingRecipe(ResourceLocation id, CraftingBookCategory category) {
         super(id, category);
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level world) {
+    public boolean matches(CraftingContainer inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         ItemStack shears = ItemStack.EMPTY;
         for (ItemStack i : inv.getItems()) {
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
-                        (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps(i).getCount() > 0)) {
+                        (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
                     if (!atlas.isEmpty()) return false;
                     atlas = i;
                 } else if (i.is(Items.SHEARS) && i.getDamageValue() < i.getMaxDamage() - 1) {
@@ -39,7 +43,11 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 } else return false;
             }
         }
-        return !shears.isEmpty() && !atlas.isEmpty();
+        boolean b = !shears.isEmpty() && !atlas.isEmpty();
+        if(b){
+            levelRef = new WeakReference<>(level);
+        }
+        return b;
     }
 
     @Override
@@ -51,7 +59,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         if (maps.getCount() > 1) {
             String stringId = maps.getActive().getFirst();
             int mapId = MapAtlasesAccessUtils.getMapIntFromString(stringId);
@@ -74,7 +82,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 stack.hurt(1, RandomSource.create(), null);
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
-                MapCollectionCap maps = MapAtlasItem.getMaps(stack);
+                MapCollectionCap maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
                     maps.remove(maps.getActive().getFirst());
                     didRemoveFilled = true;

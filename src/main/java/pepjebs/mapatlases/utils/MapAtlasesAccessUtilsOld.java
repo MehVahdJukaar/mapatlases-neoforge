@@ -122,9 +122,9 @@ public class MapAtlasesAccessUtilsOld {
 
 
 
-    public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem) {
+    public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
         int amountToAdd = bottomItem.getCount();
-        int existingMapCount = MapAtlasItem.getMaps(atlas).getCount() + MapAtlasItem.getEmptyMaps(atlas);
+        int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas);
         amountToAdd *= MapAtlasesConfig.mapEntryValueMultiplier.get();
         if (MapAtlasItem.getMaxMapCount() != -1
                 && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {

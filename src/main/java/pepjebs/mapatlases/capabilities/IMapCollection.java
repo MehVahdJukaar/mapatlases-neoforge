@@ -43,5 +43,7 @@ public interface IMapCollection {
 
     Collection<Pair<String, MapItemSavedData>> getAll();
 
-    List<Integer> getIds();
+    void setActive(@Nullable Pair<String, MapItemSavedData> activeMap);
+
+
 }

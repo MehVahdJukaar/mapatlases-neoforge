@@ -6,15 +6,16 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -56,8 +57,8 @@ public abstract class AbstractAtlasWidget {
         int intXCenter = (int) (currentXCenter);
         int intZCenter = (int) (currentZCenter);
 
-        int centerMapX = round( intXCenter, mapAtlasScale);
-        int centerMapZ = round( intZCenter, mapAtlasScale);
+        int centerMapX = round(intXCenter, mapAtlasScale);
+        int centerMapZ = round(intZCenter, mapAtlasScale);
 
 
         poseStack.translate(x + width / 2f, y + height / 2f, 0);
@@ -70,7 +71,6 @@ public abstract class AbstractAtlasWidget {
 
         float offsetX = currentXCenter - centerMapX;
         float offsetZ = currentZCenter - centerMapZ;
-
 
 
         poseStack.translate(-offsetX, -offsetZ, 0);
@@ -118,25 +118,26 @@ public abstract class AbstractAtlasWidget {
             boolean drawPlayerIcons
     ) {
         // Draw the map
-        double curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION/2f;
-        double curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION/2f;
+        double curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2f;
+        double curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2f;
         matrices.pushPose();
         matrices.translate(curMapComponentX, curMapComponentY, 0.0);
 
         // Remove the off-map player icons temporarily during render
         MapItemSavedData data = state.getSecond();
-        Iterator<Map.Entry<String, MapDecoration>> it = data.decorations.entrySet().iterator();
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
-        while (it.hasNext()) {
-            Map.Entry<String, MapDecoration> e = it.next();
+        for (var e : data.decorations.entrySet()) {
             MapDecoration decoration = e.getValue();
             MapDecoration.Type type = decoration.getType();
-            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS
+            if (true || type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS
                     || (type == MapDecoration.Type.PLAYER && !drawPlayerIcons)) {
-                it.remove();
                 removed.add(e);
             }
+        }
+        removed.forEach(d -> data.decorations.remove(d.getKey()));
+        if (data.decorations.size() != 0) {
+            int aa = 1;
         }
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()

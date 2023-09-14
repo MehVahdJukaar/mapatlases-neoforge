@@ -99,7 +99,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
 
-        MapAtlasItem.getMaps(atlas).add(mapId, level);
+        MapAtlasItem.getMaps(atlas, level).add(mapId, level);
 
         return atlas;
     }

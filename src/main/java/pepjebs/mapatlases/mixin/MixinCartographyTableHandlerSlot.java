@@ -56,7 +56,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps  {
         if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())
                 && (slotOne.getItem().is( Items.MAP)
                 || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOne.getItem().is(Items.PAPER)))) {
-            int amountToTake = MapAtlasesAccessUtilsOld.getMapCountToAdd(atlas, slotOne.getItem());
+            int amountToTake = MapAtlasesAccessUtilsOld.getMapCountToAdd(atlas, slotOne.getItem(), player.level());
             // onTakeItem already calls takeStack(1) so we subtract that out
             slotOne.remove(amountToTake - 1);
         } else if (this$0.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())

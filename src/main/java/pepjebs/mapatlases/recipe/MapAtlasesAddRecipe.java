@@ -50,7 +50,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = emptyMaps + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
-            MapCollectionCap atlasData = MapAtlasItem.getMaps(atlas);
+            MapCollectionCap atlasData = MapAtlasItem.getMaps(atlas, level);
             int mapCount = atlasData.getCount() + MapAtlasItem.getEmptyMaps(atlas);
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
@@ -101,7 +101,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        for (var i : mapIds) MapAtlasItem.getMaps(atlas).add(i, level);
+        for (var i : mapIds) MapAtlasItem.getMaps(atlas, level).add(i, level);
 
         MapAtlasItem.increaseEmptyMaps(atlas, emptyMapCount);
         return atlas;

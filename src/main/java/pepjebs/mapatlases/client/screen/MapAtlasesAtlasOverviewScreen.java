@@ -41,6 +41,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
     public static final int IMAGE_HEIGHT = 167;//231;
     private static final int H_IMAGE_WIDTH = IMAGE_WIDTH / 2;
     private static final int H_IMAGE_HEIGHT = IMAGE_HEIGHT / 2;
+    private static final int MAP_WIDGET_SIZE = 128;
 
     private final ItemStack atlas;
     private final Player player;
@@ -64,10 +65,10 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         this.level = Minecraft.getInstance().level;
         this.player = Minecraft.getInstance().player;
 
-        this.initialWorldSelected = player.level().dimension();
+        this.initialWorldSelected = level.dimension();
         this.currentWorldSelected = initialWorldSelected;
 
-        this.initialMapSelected = MapAtlasItem.getMaps(atlas).getActive().getSecond();
+        this.initialMapSelected = MapAtlasItem.getMaps(atlas, level).getActive().getSecond();
 
         // Play open sound
         this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
@@ -79,7 +80,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         super.init();
 
         int i = 0;
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         for (var d : maps.getAvailableDimensions()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
                     (width + IMAGE_WIDTH) / 2 - 10,
@@ -89,10 +90,9 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             i++;
         }
 
-        int mapSize = 128;
         MapItemSavedData originalCenterMap = maps.getActive().getSecond();
-        this.mapWidget = this.addRenderableWidget(new MapWidget((width - mapSize) / 2,
-                (height - mapSize) / 2 + 5, mapSize, mapSize, 3,
+        this.mapWidget = this.addRenderableWidget(new MapWidget((width - MAP_WIDGET_SIZE) / 2,
+                (height - MAP_WIDGET_SIZE) / 2 + 5, MAP_WIDGET_SIZE, MAP_WIDGET_SIZE, 3,
                 this, originalCenterMap));
 
         this.setFocused(mapWidget);
@@ -225,7 +225,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
         if (currentWorldSelected.equals(initialWorldSelected)) {
             return initialMapSelected;
         } else {
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas);
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
             return maps.getAll()
                     .stream().filter(state -> !state.getSecond().decorations.entrySet().stream()
                             .filter(e -> e.getValue().getType().isRenderedOnFrame())
@@ -240,7 +240,7 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
     @Nullable
     protected Pair<String, MapItemSavedData> findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-        return MapAtlasItem.getMaps(atlas).select(reqXCenter, reqZCenter, currentWorldSelected, selectedSlice);
+        return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, currentWorldSelected, selectedSlice);
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -263,13 +263,13 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
     private List<Pair<MapItemSavedData, MapDecoration>> getMapDecorationList() {
         List<Pair<MapItemSavedData, MapDecoration>> mapIcons = new ArrayList<>();
-        for (var p : MapAtlasItem.getMaps(atlas).selectSection(currentWorldSelected, selectedSlice)) {
+        for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentWorldSelected, selectedSlice)) {
             MapItemSavedData data = p.getSecond();
-                for (var e : data.decorations.entrySet()) {
-                    if (e.getValue().renderOnFrame()) {
-                        mapIcons.add(Pair.of(data, e.getValue()));
-                    }
+            for (var e : data.decorations.entrySet()) {
+                if (e.getValue().renderOnFrame()) {
+                    mapIcons.add(Pair.of(data, e.getValue()));
                 }
+            }
         }
         return mapIcons;
     }
