@@ -12,7 +12,9 @@ public class MapAtlasesClientConfig {
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-
+        compactSliceIndicator = builder
+                .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
+                .define("compactSlicesIndicator", false);
 
         forceMiniMapScaling = builder
                 .comment("Scale the mini-map to a given % of the height of your screen.")
@@ -88,6 +90,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapDecorationScale;
     public static final Supplier<Double> worldMapDecorationScale;
     public static final Supplier<Double> soundScalar;
+    public static final Supplier<Boolean> compactSliceIndicator;
 
     public static final ForgeConfigSpec spec;
 

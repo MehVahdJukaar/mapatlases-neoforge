@@ -6,13 +6,10 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -103,6 +100,9 @@ public abstract class AbstractAtlasWidget {
         vcp.endBatch();
         poseStack.popPose();
         graphics.disableScissor();
+
+        MapAtlasesClient.setWorldMapZoomLevel(1);
+
     }
 
     public abstract Pair<String, MapItemSavedData> getMapAtCenter(int centerX, int centerZ);

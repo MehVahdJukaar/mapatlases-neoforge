@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class SliceBookmarkButton extends BookmarkButton {
 
@@ -13,6 +14,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     private static final int BUTTON_W = 27;
 
     private final AtlasOverviewScreen parentScreen;
+    protected final boolean compact =  MapAtlasesClientConfig.compactSliceIndicator.get();
 
     private Integer slice;
 
@@ -36,7 +38,7 @@ public class SliceBookmarkButton extends BookmarkButton {
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        if(!active || !visible)return;
+        if (!active || !visible) return;
         PoseStack pose = pGuiGraphics.pose();
         pose.pushPose();
 
@@ -49,7 +51,7 @@ public class SliceBookmarkButton extends BookmarkButton {
         Component text = slice != null ? Component.literal(String.valueOf(slice)) :
                 Component.translatable("message.map_atlases.atlas.slice_default");
         pGuiGraphics.drawCenteredString(parentScreen.getMinecraft().font,
-                text, this.getX() + 39, this.getY() + 7, -1);
+                text, this.getX() + (compact ? 15: 39), this.getY() + 7, -1);
 
 
         pose.popPose();
@@ -61,5 +63,10 @@ public class SliceBookmarkButton extends BookmarkButton {
 
     public void setSlice(Integer slice) {
         this.slice = slice;
+    }
+
+    @Override
+    protected boolean isValidClickButton(int pButton) {
+        return false; //cant be clicked
     }
 }

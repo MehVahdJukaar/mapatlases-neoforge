@@ -20,6 +20,7 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     }
 
+
     public void setSelected(boolean selected) {
         this.selected = selected;
     }

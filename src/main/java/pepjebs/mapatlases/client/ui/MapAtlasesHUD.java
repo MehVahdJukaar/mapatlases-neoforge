@@ -21,34 +21,25 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
-import java.util.Arrays;
-
-public class MapAtlasesHUD   implements IGuiOverlay {
+public class MapAtlasesHUD implements IGuiOverlay {
 
     public static final ResourceLocation MAP_BACKGROUND = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
-    @Nullable
-    private static String localPlayerCurrentMapId = null;
-
-    private static Minecraft mc;
-    private static MapRenderer mapRenderer;
+    private Minecraft mc;
+    private MapRenderer mapRenderer;
 
     public MapAtlasesHUD() {
-        mc = Minecraft.getInstance();
-        mapRenderer = mc.gameRenderer.getMapRenderer();
+        this.mc = Minecraft.getInstance();
+        this.mapRenderer = mc.gameRenderer.getMapRenderer();
     }
 
     private boolean shouldDraw() {
@@ -169,6 +160,7 @@ public class MapAtlasesHUD   implements IGuiOverlay {
     }
 
     private static void playSoundIfMapChanged(String curMapId, ClientLevel level, LocalPlayer player) {
+        /*
         if (!curMapId.equals(localPlayerCurrentMapId)) {
             if (localPlayerCurrentMapId != null) {
                 level.playLocalSound(player.getX(), player.getY(), player.getZ(),
@@ -176,7 +168,7 @@ public class MapAtlasesHUD   implements IGuiOverlay {
                         (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F, false);
             }
             localPlayerCurrentMapId = curMapId;
-        }
+        }*/
     }
 
     private static int towardsZero(double d) {
@@ -224,6 +216,7 @@ public class MapAtlasesHUD   implements IGuiOverlay {
             int originOffsetWidth,
             int originOffsetHeight
     ) {
+        Minecraft mc = Minecraft.getInstance();
         PoseStack pose = context.pose();
         float textWidth = mc.font.width(text) * textScaling;
         float textX = (float) (x + (originOffsetWidth / 2.0) - (textWidth / 2.0));

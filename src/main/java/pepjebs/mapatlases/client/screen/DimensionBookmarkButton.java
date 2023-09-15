@@ -3,10 +3,14 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.DIMENSION_TEXTURE_ORDER;
 
@@ -61,5 +65,12 @@ public class DimensionBookmarkButton extends BookmarkButton {
     public void onClick(double mouseX, double mouseY, int button) {
         this.setSelected(true);
         parentScreen.selectDimension(dimension);
+    }
+
+    @Override
+    public void playDownSound(SoundManager pHandler) {
+      //  super.playDownSound(pHandler);
+        pHandler.play(SimpleSoundInstance.forUI( MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
+                (float)(double)   MapAtlasesClientConfig.soundScalar.get()));
     }
 }

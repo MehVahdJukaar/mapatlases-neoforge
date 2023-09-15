@@ -336,8 +336,7 @@ public class AtlasOverviewScreen extends Screen {
         this.currentWorldSelected = dimension;
         //TODO: edge case with just slices
         //we dont change slice when calling this from init as we want to use the atlas initial slice
-        updateSlice(!initialized ? selectedSlice :
-                MapAtlasItem.getMaps(atlas, level).getAvailableSlices(dimension).last());
+        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
 
@@ -438,8 +437,12 @@ public class AtlasOverviewScreen extends Screen {
         if (!Objects.equals(selectedSlice, newSlice)) {
             selectedSlice = newSlice;
             sliceButton.setSlice(selectedSlice);
+            //notify server
             MapAtlasesNetowrking.sendToServer(new C2SSelectSlicePacket(selectedSlice,
                     lectern == null ? null : lectern.getBlockPos(), currentWorldSelected));
+            //update client immediately
+            MapAtlasItem.setSelectedSlice(atlas, selectedSlice, currentWorldSelected);
+
             changed = true;
         }
         //update button regardless
