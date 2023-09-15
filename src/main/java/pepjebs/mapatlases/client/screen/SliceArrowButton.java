@@ -11,14 +11,14 @@ public class SliceArrowButton extends BookmarkButton {
     private static final int BUTTON_W = 12;
 
     private final boolean down;
-    private final SliceBookmarkButton parent;
+    private final AtlasOverviewScreen parent;
 
-    protected SliceArrowButton(boolean down, SliceBookmarkButton button) {
+    protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
         super(button.getX() + button.getWidth()+6, button.getY() -1 + (down ? button.getHeight() - BUTTON_H + 2 : 0),
 
-                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), MapAtlasesAtlasOverviewScreen.IMAGE_HEIGHT + 64);
+                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), AtlasOverviewScreen.IMAGE_HEIGHT + 64);
         this.down = down;
-        this.parent = button;
+        this.parent = screen;
         this.setSelected(false);
     }
 
@@ -36,15 +36,11 @@ public class SliceArrowButton extends BookmarkButton {
         pose.popPose();
     }
 
-    @Nullable
-    @Override
-    public Tooltip getTooltip() {
-        return super.getTooltip();
-    }
-
 
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
+        if(down) this.parent.decreaseSlice();
+        else this.parent.increaseSlice();
     }
 
 }

@@ -2,8 +2,10 @@ package pepjebs.mapatlases.client.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class BookmarkButton extends AbstractWidget {
 
@@ -28,16 +30,34 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        pGuiGraphics.blit(MapAtlasesAtlasOverviewScreen.ATLAS_TEXTURE,
+        if (!visible || !active) return;
+        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
                 this.getX(), this.getY(), xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
 
     }
 
+    @Nullable
+    @Override
+    public Tooltip getTooltip() {
+        if (!visible || !active) return null;
+        return super.getTooltip();
+    }
+
+
     @Override
     protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
 
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+        this.visible = active;
+        this.setTooltip(active ? createTooltip() : null);
+    }
+
+    public Tooltip createTooltip() {
+        return getTooltip();
+    }
 }

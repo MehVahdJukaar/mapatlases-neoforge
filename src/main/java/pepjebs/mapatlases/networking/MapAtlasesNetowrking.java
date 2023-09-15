@@ -34,6 +34,9 @@ public class MapAtlasesNetowrking {
         CHANNEL.registerMessage(index++, C2SRequestMapCenterPacket.class,
                 C2SRequestMapCenterPacket::write, C2SRequestMapCenterPacket::new, C2SRequestMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, C2SSelectSlicePacket.class,
+                C2SSelectSlicePacket::write, C2SSelectSlicePacket::new, C2SSelectSlicePacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
 

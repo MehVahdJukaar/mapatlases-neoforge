@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
@@ -19,24 +20,20 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LecternBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.screen.MapAtlasesAtlasOverviewScreen;
+import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.utils.AtlasHolder;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
 import java.util.List;
 
@@ -57,6 +54,7 @@ public class MapAtlasItem extends Item {
         return new Provider(LazyOptional.of(MapCollectionCap::new));
     }
 
+    // maybe not needed, could be in cap itself
     private record Provider(
             LazyOptional<MapCollectionCap> capInstance) implements ICapabilitySerializable<CompoundTag> {
         @Override
@@ -104,13 +102,27 @@ public class MapAtlasItem extends Item {
     }
 
     @Nullable
-    public static Integer getSelectedSlice(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains(SLICE_NBT)) {
-            return tag.getInt(SLICE_NBT);
+    public static Integer getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
+        CompoundTag tag = stack.getTagElement(SLICE_NBT);
+        if (tag != null) {
+            String string = dimension.location().toString();
+            if (tag.contains(string)) return tag.getInt(string);
         }
         return null;
     }
+
+    public static void setSelectedSlice(ItemStack stack, @Nullable Integer slice, ResourceKey<Level> dimension) {
+        if (slice != null) {
+            CompoundTag tag = stack.getOrCreateTagElement(SLICE_NBT);
+            tag.putInt(dimension.location().toString(), slice);
+        } else {
+            CompoundTag tag = stack.getTagElement(SLICE_NBT);
+            if (tag != null) {
+                tag.remove(dimension.location().toString());
+            }
+        }
+    }
+
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
@@ -142,7 +154,7 @@ public class MapAtlasItem extends Item {
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
             }
-            Integer slice = getSelectedSlice(stack);
+            Integer slice = getSelectedSlice(stack, level.dimension());
             if (slice != null) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
             }
@@ -164,7 +176,8 @@ public class MapAtlasItem extends Item {
         if (player instanceof ServerPlayer serverPlayer) {
             openHandledAtlasScreen(serverPlayer);
         } else {
-            openScreen(player);
+            ItemStack stack = player.getItemInHand(hand);
+            openScreen(stack);
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
     }
@@ -173,28 +186,12 @@ public class MapAtlasItem extends Item {
         //TODO: sent packet
     }
 
-    public void openScreen(Player player) {
-        ItemStack atlas = getAtlasFromLookingLectern(player);
-        if (atlas.isEmpty()) {
-            atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
-        }
-        if (MapAtlasItem.getMaps(atlas, player.level()).getActive() != null) {
-            Minecraft.getInstance().setScreen(new MapAtlasesAtlasOverviewScreen(Component.translatable(getDescriptionId()), atlas));
-        }
+    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
+        Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
     }
 
-    public ItemStack getAtlasFromLookingLectern(Player player) {
-        HitResult h = player.pick(10, 1, false);
-        if (h.getType() == HitResult.Type.BLOCK) {
-            BlockEntity e = player.level().getBlockEntity(BlockPos.containing(h.getLocation()));
-            if (e instanceof LecternBlockEntity be) {
-                ItemStack book = be.getBook();
-                if (book.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                    return book;
-                }
-            }
-        }
-        return ItemStack.EMPTY;
+    public static void openScreen(ItemStack atlas) {
+        openScreen(atlas, null);
     }
 
     private void sendPlayerLecternAtlasData(ServerPlayer serverPlayer, ItemStack atlas) {
@@ -230,6 +227,7 @@ public class MapAtlasItem extends Item {
         stack.setTag(tag);
     }
 
+    // convert lectern
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();

@@ -22,28 +22,27 @@ public class DecorationBookmarkButton extends BookmarkButton {
     private static final int BUTTON_W = 24;
 
     private final MapDecoration mapIcon;
-    private final MapAtlasesAtlasOverviewScreen parentScreen;
+    private final AtlasOverviewScreen parentScreen;
 
-    protected DecorationBookmarkButton(int pX, int pY, MapDecoration mapIcon, MapAtlasesAtlasOverviewScreen parentScreen) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, MapAtlasesAtlasOverviewScreen.IMAGE_HEIGHT + 36);
+    protected DecorationBookmarkButton(int pX, int pY, MapDecoration mapIcon, AtlasOverviewScreen parentScreen) {
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36);
         this.mapIcon = mapIcon;
         this.parentScreen = parentScreen;
+        this.setTooltip(createTooltip());
+    }
 
+    @Override
+    public Tooltip createTooltip() {
         Component mapIconComponent = mapIcon.getName() == null
                 ? Component.literal(
-                MapAtlasesAtlasOverviewScreen.getReadableName(mapIcon.getType().name().toLowerCase(Locale.ROOT)))
+                AtlasOverviewScreen.getReadableName(mapIcon.getType().name().toLowerCase(Locale.ROOT)))
                 : mapIcon.getName();
 
         // draw text
         MutableComponent coordsComponent = Component.literal("X: " + mapIcon.getX() + ", Z: " + mapIcon.getY());
         MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
         this.setTooltip(Tooltip.create(mapIconComponent));
-    }
-
-    @Nullable
-    @Override
-    public Tooltip getTooltip() {
-        return super.getTooltip();
+        return Tooltip.create(mapIconComponent);
     }
 
     @Override

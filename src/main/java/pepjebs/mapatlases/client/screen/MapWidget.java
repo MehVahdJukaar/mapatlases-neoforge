@@ -21,7 +21,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private static final int PAN_BUCKET = 25;
     private static final int ZOOM_BUCKET = 2;
 
-    private final MapAtlasesAtlasOverviewScreen mapScreen;
+    private final AtlasOverviewScreen mapScreen;
 
     protected final int x;
     protected final int y;
@@ -41,7 +41,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private float animationProgress = 0; //from zero to 1
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
-                     MapAtlasesAtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
+                     AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
         super(atlasesCount, originalCenterMap);
 
         this.x = x;

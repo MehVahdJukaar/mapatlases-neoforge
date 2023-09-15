@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasHolder;
 
 @Mixin(LecternBlock.class)
@@ -34,27 +33,35 @@ public abstract class LecternBlockMixin extends Block {
             cancellable = true
     )
     public void injectAtlasScreen(Level level, BlockPos pos, Player player, CallbackInfo ci) {
-        if (level.getBlockEntity(pos) instanceof AtlasHolder al && al.mapatlases$hasAtlas()) {
-            MapAtlasesMod.MAP_ATLAS.get().openHandledAtlasScreen((ServerPlayer) player);
-            ci.cancel();
-        }
+
     }
 
+    //use click events?
     @Inject(
             method = "use",
             at = @At(value = "HEAD"),
             cancellable = true
     )
     public void injectAtlasRemoval(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
-        if (player.isSecondaryUseActive() && level.getBlockEntity(pos) instanceof AtlasHolder al && al.mapatlases$hasAtlas()) {
-            LecternBlockEntity lbe = (LecternBlockEntity) al;
-            ItemStack atlas = lbe.getBook();
-            if (!player.getInventory().add(atlas)) {
-                player.drop(atlas, false);
+        if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasHolder al
+                && al.mapatlases$hasAtlas()) {
+            if (player.isSecondaryUseActive()) {
+                LecternBlockEntity lbe = (LecternBlockEntity) al;
+                ItemStack atlas = lbe.getBook();
+                if (!player.getInventory().add(atlas)) {
+                    player.drop(atlas, false);
+                }
+                al.mapatlases$setAtlas(false);
+                LecternBlock.resetBookState(player, level, pos, state, false);
+                cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
+            } else {
+                if(level.isClientSide) {
+                    LecternBlockEntity lbe = (LecternBlockEntity) al;
+                    ItemStack atlas = lbe.getBook();
+                    MapAtlasItem.openScreen(atlas, lbe);
+                }
+                cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }
-            al.mapatlases$setAtlas(false);
-            LecternBlock.resetBookState(player, level, pos, state, false);
-            cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
         }
     }
 }

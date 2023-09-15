@@ -8,7 +8,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SOpenAtlasPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 public class MapAtlasesClientEvents {
 
@@ -17,10 +17,10 @@ public class MapAtlasesClientEvents {
         if (event.getKey() == MapAtlasesClient.OPEN_ATLAS_KEYBIND.getKey().getValue() && Minecraft.getInstance().screen == null) {
             Minecraft client = Minecraft.getInstance();
             if (client.level == null || client.player == null) return;
-            ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(client.player);
+            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
                 MapAtlasesNetowrking.sendToServer(new C2SOpenAtlasPacket());
-                ((MapAtlasItem)atlas.getItem()).openScreen(client.player);
+                MapAtlasItem.openScreen(atlas);
             }
         }
     }

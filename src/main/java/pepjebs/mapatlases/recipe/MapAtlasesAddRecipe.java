@@ -101,7 +101,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        for (var i : mapIds) MapAtlasItem.getMaps(atlas, level).add(i, level);
+        for (var i : mapIds) MapAtlasItem.getMaps(atlas, level).add(i, level, Integer.MIN_VALUE);
 
         MapAtlasItem.increaseEmptyMaps(atlas, emptyMapCount);
         return atlas;

@@ -1,8 +1,7 @@
 package pepjebs.mapatlases.capabilities;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -21,6 +20,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static pepjebs.mapatlases.utils.MapAtlasesAccessUtils.createMapItemStackFromId;
 
@@ -40,7 +40,8 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<MapKey, Pair<String, MapItemSavedData>> maps = new HashMap<>();
     private final Map<String, MapKey> keysMap = new HashMap<>();
     private final Map<String, Integer> idMap = new HashMap<>();
-    private final Set<ResourceKey<Level>> availableDimensions = new HashSet<>();
+    //available dimensions and slices
+    private final Map<ResourceKey<Level>, TreeSet<Integer>> dimensionSlices = new HashMap<>();
     @Nullable
     private Pair<String, MapItemSavedData> centerMap = null;
     private byte scale = 0;
@@ -54,20 +55,20 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         return lazyNbt == null;
     }
 
-    private void assertInitialized(){
+    private void assertInitialized() {
         assert this.lazyNbt == null;
     }
 
 
     // we need leven context
     public void initialize(Level level) {
-        if(level.isClientSide){
+        if (level.isClientSide) {
             int aa = 1;
         }
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
             for (int i : array) {
-                add(i, level);
+                add(i, level, Integer.MIN_VALUE);
             }
             String center = lazyNbt.getString(ACTIVE_MAP_NBT);
             if (!center.isEmpty()) {
@@ -106,7 +107,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public boolean add(int mapId, Level level) {
+    public boolean add(int mapId, Level level, @Nullable Integer debug) {
         assertInitialized();
         String mapKey = MapItem.makeKey(mapId);
         MapItemSavedData d = level.getMapData(mapKey);
@@ -121,6 +122,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         }
         if (d != null && d.scale == scale) {
             Integer slice = getSlice(d);
+            if(!Objects.equals(Integer.MIN_VALUE, debug) && !Objects.equals(slice, debug)){
+                int aa = 1;
+            }
             MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
             //remove duplicates
             if (maps.containsKey(key)) {
@@ -131,7 +135,8 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             keysMap.put(mapKey, key);
             idMap.put(mapKey, mapId);
             maps.put(key, Pair.of(mapKey, d));
-            availableDimensions.add(d.dimension);
+            dimensionSlices.computeIfAbsent(key.dimension, a -> new TreeSet<>())
+                    .add(key.slice == null ? Integer.MAX_VALUE : key.slice);
             if (maps.size() != keysMap.size()) {
                 int aa = 1;
             }
@@ -141,7 +146,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Nullable
-    public static Integer getSlice(MapItemSavedData data){
+    public static Integer getSlice(MapItemSavedData data) {
         return MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
     }
 
@@ -152,9 +157,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         var k = keysMap.remove(mapKey);
         idMap.remove(mapKey);
         if (k != null) {
-            availableDimensions.clear();
+            dimensionSlices.clear();
             for (var j : keysMap.values()) {
-                availableDimensions.add(j.dimension);
+                dimensionSlices.computeIfAbsent(j.dimension, a -> new TreeSet<>())
+                        .add(j.slice == null ? Integer.MAX_VALUE : j.slice);
             }
             return maps.remove(k);
         }
@@ -176,7 +182,19 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
         assertInitialized();
-        return availableDimensions;
+        return dimensionSlices.keySet();
+    }
+
+    private static final TreeSet<Integer> TOP = Util.make(() -> {
+        var t = new TreeSet<Integer>();
+        t.add(Integer.MAX_VALUE);
+        return t;
+    });
+
+    @Override
+    public TreeSet<Integer> getAvailableSlices(ResourceKey<Level> dimension) {
+        assertInitialized();
+        return dimensionSlices.getOrDefault(dimension, TOP);
     }
 
     @Override
@@ -186,9 +204,18 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public Collection<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
         assertInitialized();
         return maps.entrySet().stream().filter(e -> e.getKey().dimension.equals(dimension) && Objects.equals(e.getKey().slice, slice))
+                .map(Map.Entry::getValue).toList();
+    }
+
+    @Override
+    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice,
+                                                              Predicate<MapItemSavedData> predicate) {
+        assertInitialized();
+        return maps.entrySet().stream().filter(e -> e.getKey().dimension.equals(dimension) && Objects.equals(e.getKey().slice, slice)
+                        && predicate.test(e.getValue().getSecond()))
                 .map(Map.Entry::getValue).toList();
     }
 

@@ -2,7 +2,6 @@ package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -21,16 +20,17 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetActiveMapPacket;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class MapAtlasesServerEvents {
 
@@ -41,7 +41,6 @@ public class MapAtlasesServerEvents {
     //maybe use weakhasmap with plauer
     private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
 
-
     @SubscribeEvent
     public static void mapAtlasPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
@@ -50,7 +49,7 @@ public class MapAtlasesServerEvents {
     }
 
     public static void mapAtlasPlayerJoinImpl(ServerPlayer player) {
-        ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         var mapInfos = MapAtlasItem.getMaps(atlas, player.level()).getAll();
@@ -73,10 +72,11 @@ public class MapAtlasesServerEvents {
             //if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
 
             var server = player.server;
-            ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
+            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) return;
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, player.level());
-            Integer slice = MapAtlasItem.getSelectedSlice(atlas);
+            Level level = player.level();
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
 
             // sets new center map
             Pair<String, MapItemSavedData> activeInfo = getMapAtPositionOrClosest(player, maps, slice);
@@ -95,7 +95,7 @@ public class MapAtlasesServerEvents {
             int playZ = player.blockPosition().getZ();
             byte scale = activeState.scale;
             int scaleWidth = (1 << scale) * 128;
-            ArrayList<Pair<Integer, Integer>> discoveringEdges = getPlayerDiscoveringMapEdges(
+            List<int[]> discoveringEdges = getPlayerDiscoveringMapEdges(
                     activeState.centerX,
                     activeState.centerZ,
                     scaleWidth,
@@ -105,11 +105,11 @@ public class MapAtlasesServerEvents {
 
             // Update Map states & colors
 
-            List<Pair<String, MapItemSavedData>> nearbyExistentMaps = maps.getAll().stream()
-                    .filter(e -> discoveringEdges.stream()
-                            .anyMatch(edge -> edge.getFirst() == e.getSecond().centerX
-                                    && edge.getSecond() == e.getSecond().centerZ))
-                    .toList();
+            List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
+                    maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
+                            .anyMatch(edge -> edge[0] == e.centerX
+                                    && edge[1] == e.centerZ));
+
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
@@ -127,7 +127,8 @@ public class MapAtlasesServerEvents {
 
 
             // Create new Map entries
-            if (!MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) return;
+            if (!MapAtlasesConfig.enableEmptyMapEntryAndFill.get() ||
+                    MapAtlasItem.isLocked(atlas)) return;
 
             //TODO : this isnt accurate and can be improved
             if (isPlayerTooFarAway(activeState, player, scaleWidth)) {
@@ -136,9 +137,9 @@ public class MapAtlasesServerEvents {
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                    d -> d.getSecond().centerX == e.getFirst() && d.getSecond().centerZ == e.getSecond()));
+                    d -> d.getSecond().centerX == e[0] && d.getSecond().centerZ == e[1]));
             for (var edge : discoveringEdges) {
-                maybeCreateNewMapEntry(player, atlas, scale, edge.getFirst(), edge.getSecond());
+                maybeCreateNewMapEntry(player, atlas, scale, edge[0], edge[1]);
             }
 
         }
@@ -164,8 +165,9 @@ public class MapAtlasesServerEvents {
         int mapCenterX = j * i + i / 2 - 64;
         int mapCenterZ = k * i + i / 2 - 64;
         var mapAt = maps.select(mapCenterX, mapCenterZ, player.level().dimension(), slice);
-        if (mapAt != null) return mapAt;
-        else return maps.getClosest(player, slice);
+        return mapAt;
+        //if (mapAt != null) return mapAt;
+        // else return maps.getClosest(player, slice);
     }
 
     private static void updateMapDataForPlayer(
@@ -229,6 +231,7 @@ public class MapAtlasesServerEvents {
         return changedMapItemSavedData;
     }
 
+    //TODO: optimize
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
@@ -241,6 +244,7 @@ public class MapAtlasesServerEvents {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }
+        Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
 
         int emptyCount = MapAtlasItem.getEmptyMaps(atlas);
@@ -254,24 +258,39 @@ public class MapAtlasesServerEvents {
                 //remove 1 map
                 MapAtlasItem.increaseEmptyMaps(atlas, -1);
             }
-            ItemStack newMap = MapItem.create(
-                    player.level(),
-                    destX,
-                    destZ,
-                    scale,
-                    true,
-                    false);
+            ItemStack newMap;
+            //validate slice
+            if(slice != null && !maps.getAvailableSlices(player.level().dimension()).contains(slice)){
+                int error = 1;
+            }
 
+            if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
+                newMap = SupplementariesCompat.createSliced(
+                        player.level(),
+                        destX,
+                        destZ,
+                        scale,
+                        true,
+                        false, slice);
+            } else {
+                newMap = MapItem.create(
+                        player.level(),
+                        destX,
+                        destZ,
+                        scale,
+                        true,
+                        false);
+            }
             Integer mapId = MapItem.getMapId(newMap);
             if (mapId != null) {
-                maps.add(mapId, level);
+                maps.add(mapId, level, slice);
                 addedMap = true;
 
             }
             mutex.unlock();
         }
 
-        if(addedMap){
+        if (addedMap) {
             // Play the sound
             player.level().playSound(null, player.blockPosition(),
                     MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
@@ -279,14 +298,14 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static ArrayList<Pair<Integer, Integer>> getPlayerDiscoveringMapEdges(
+    private static List<int[]> getPlayerDiscoveringMapEdges(
             int xCenter,
             int zCenter,
             int width,
             int xPlayer,
             int zPlayer) {
         int halfWidth = width / 2;
-        ArrayList<Pair<Integer, Integer>> results = new ArrayList<>();
+        List<int[]> results = new ArrayList<>();
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 if (i != 0 || j != 0) {
@@ -305,12 +324,12 @@ public class MapAtlasesServerEvents {
                     // Some lambda bullshit
                     int finalQI = qI;
                     int finalQJ = qJ;
-                    if ((qI != xCenter || qJ != zCenter) && results.stream()
-                            .noneMatch(p -> p.getFirst() == finalQI && p.getSecond() == finalQJ)) {
-                        results.add(new Pair<>(qI, qJ));
-                    }
+                    results.add(new int[]{qI, qJ});
                 }
             }
+        }
+        if (results.size() != 8) {
+            int error = 1;
         }
         return results;
     }

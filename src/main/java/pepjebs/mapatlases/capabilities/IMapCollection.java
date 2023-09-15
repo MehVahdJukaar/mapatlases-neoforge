@@ -9,10 +9,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 public interface IMapCollection {
 
-    boolean add(int mapKey, Level level);
+    boolean add(int mapId, Level level, @Nullable Integer debug);
+
 
     @Nullable
     Pair<String, MapItemSavedData> remove(String mapName);
@@ -25,10 +27,15 @@ public interface IMapCollection {
 
     Collection<ResourceKey<Level>> getAvailableDimensions();
 
+    Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension);
+
     @Nullable
     Pair<String, MapItemSavedData> getActive();
 
-    Collection<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice);
+    List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice);
+
+    List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice,
+                                                       Predicate<MapItemSavedData> predicate);
 
     @Nullable
     Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, @Nullable Integer slice);

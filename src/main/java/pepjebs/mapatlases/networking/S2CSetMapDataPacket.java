@@ -12,9 +12,8 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
-import org.apache.commons.compress.archivers.sevenz.CLI;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtilsOld;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.function.Supplier;
 
@@ -60,7 +59,7 @@ public class S2CSetMapDataPacket {
 
             //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
             if (isOnJoin) {
-                ItemStack atlas = MapAtlasesAccessUtilsOld.getAtlasFromPlayerByConfig(player);
+                ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
                 mapData.tickCarriedBy(player, atlas);
                 mapData.getHoldingPlayer(player);
             }

@@ -20,5 +20,6 @@
   "subtitles.map_atlases.atlas_create_map": "Atlas map drawn",
   "message.map_atlases.locked": "Locked atlas",
   "message.map_atlases.unlocked": "Unlocked atlas",
+  "message.map_atlases.atlas.slice_default": "Top",
   "trinkets.slot.hand.atlas": "Atlas"
 }
