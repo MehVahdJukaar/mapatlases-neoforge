@@ -17,8 +17,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
@@ -29,7 +31,8 @@ public class MapAtlasesClient {
 
     private static final ThreadLocal<Float> worldMapZoomLevel = new ThreadLocal<>();
 
-    private static String currentMapItemSavedDataId = null;
+    @Nullable
+    private static MapKey currentActiveMapKey = null;
 
     public static final Material OVERWORLD_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas"));
@@ -53,12 +56,12 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
-    public static String getActiveMap() {
-        return currentMapItemSavedDataId;
+    public static MapKey getActiveMapKey() {
+        return currentActiveMapKey;
     }
 
-    public static void setActiveMap(String mapId) {
-        MapAtlasesClient.currentMapItemSavedDataId = mapId;
+    public static void setActiveMap(MapKey mapId) {
+        MapAtlasesClient.currentActiveMapKey = mapId;
     }
 
     public static void init() {

@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.client.ui;
 
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,7 +16,6 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -25,8 +24,10 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 public class MapAtlasesHUD implements IGuiOverlay {
@@ -34,67 +35,58 @@ public class MapAtlasesHUD implements IGuiOverlay {
     public static final ResourceLocation MAP_BACKGROUND = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
-    private Minecraft mc;
-    private MapRenderer mapRenderer;
+    private final Minecraft mc;
+    private final MapRenderer mapRenderer;
 
     public MapAtlasesHUD() {
         this.mc = Minecraft.getInstance();
         this.mapRenderer = mc.gameRenderer.getMapRenderer();
     }
 
-    private boolean shouldDraw() {
-        // Handle early returns
-        if (mc.level == null || mc.player == null) {
-            return false;
-        }
-        // Check config disable
-        if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return false;
-        // Check F3 menu displayed
-        if (mc.options.renderDebug) return false;
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(mc.player);
-        // Check the player for an Atlas
-        if (atlas.isEmpty()) return false;
-        // Check the client has an active map id
-        if (MapAtlasesClient.getActiveMap() == null) return false;
-        // Check the active map id is in the active atlas
-        //TODO: remove tag access in render thread
-        return true;
-        /*
-        return atlas.getTag() != null && atlas.getTag().contains(MapAtlasItem.MAP_LIST_NBT) &&
-                Arrays.stream(atlas.getTag().getIntArray(MapAtlasItem.MAP_LIST_NBT))
-                        .anyMatch(i ->
-                                i == MapAtlasesAccessUtils.getMapIntFromString(MapAtlasesClient.getActiveMap()));
-
-         */
-    }
-
     @Override
     public void render(ForgeGui forgeGui, GuiGraphics graphics, float partialTick,
                        int screenWidth, int screenHeight) {
-        if (!shouldDraw()) return;
-        String curMapId = MapAtlasesClient.getActiveMap();
-        ClientLevel level = mc.level;
-        MapItemSavedData state = level.getMapData(curMapId);
-        if (state == null) return;
+        // Handle early returns
+        if (mc.level == null || mc.player == null) {
+            return;
+        }
+        // Check config disable
+        // Check F3 menu displayed
+        if (mc.options.renderDebug) return;
+        if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
 
-        PoseStack matrices = graphics.pose();
+
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(mc.player);
+        // Check the player for an Atlas
+        if (atlas.isEmpty()) return;
+
+        ClientLevel level = mc.level;
+        LocalPlayer player = mc.player;
+
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+
+        Pair<String, MapItemSavedData> activeMap = maps.getActive();
+        if (activeMap == null) return;
+
+        MapItemSavedData state = activeMap.getSecond();
+        String curMapId = activeMap.getFirst();
+
+        PoseStack poseStack = graphics.pose();
 
         // Update client current map id
-        LocalPlayer player = mc.player;
         // TODO: dont like this sound here. should be in tick instead
-        playSoundIfMapChanged(curMapId, level, player);
+        // playSoundIfMapChanged(curMapId, level, player);
         // Set zoom-level for map icons
         MapAtlasesClient.setWorldMapZoomLevel((float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
         // Draw map background
-        Window window = mc.getWindow();
         int mapBgScaledSize = (int) Math.floor(
-                MapAtlasesClientConfig.forceMiniMapScaling.get() / 100.0 * window.getGuiScaledHeight());
+                MapAtlasesClientConfig.forceMiniMapScaling.get() / 100.0 * screenHeight);
         double drawnMapBufferSize = mapBgScaledSize / 20.0;
         int mapDataScaledSize = (int) (mapBgScaledSize - (2 * drawnMapBufferSize));
         float mapDataScale = mapDataScaledSize / 128.0f;
         var anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
-        int x = anchorLocation.isLeft ? 0 : window.getGuiScaledWidth() - mapBgScaledSize;
-        int y = !anchorLocation.isUp ? window.getGuiScaledHeight() - mapBgScaledSize : 0;
+        int x = anchorLocation.isLeft ? 0 : screenWidth - mapBgScaledSize;
+        int y = !anchorLocation.isUp ? screenHeight - mapBgScaledSize : 0;
         x += MapAtlasesClientConfig.miniMapHorizontalOffset.get();
         y += MapAtlasesClientConfig.miniMapVerticalOffset.get();
 
@@ -121,11 +113,11 @@ public class MapAtlasesHUD implements IGuiOverlay {
         // Draw map data
         MultiBufferSource.BufferSource vcp;
         vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-        matrices.pushPose();
-        matrices.translate(x + drawnMapBufferSize, y + drawnMapBufferSize, 0.0);
-        matrices.scale(mapDataScale, mapDataScale, -1);
+        poseStack.pushPose();
+        poseStack.translate(x + drawnMapBufferSize, y + drawnMapBufferSize, 0.0);
+        poseStack.scale(mapDataScale, mapDataScale, -1);
         mapRenderer.render(
-                matrices,
+                poseStack,
                 vcp,
                 MapAtlasesAccessUtils.getMapIntFromString(curMapId),
                 state,
@@ -133,7 +125,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
                 LightTexture.FULL_BRIGHT
         );
         vcp.endBatch();
-        matrices.popPose();
+        poseStack.popPose();
         graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
 
         // Draw text data

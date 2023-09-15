@@ -42,8 +42,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<String, Integer> idMap = new HashMap<>();
     //available dimensions and slices
     private final Map<ResourceKey<Level>, TreeSet<Integer>> dimensionSlices = new HashMap<>();
-    @Nullable
-    private Pair<String, MapItemSavedData> centerMap = null;
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
 
@@ -73,7 +71,14 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             String center = lazyNbt.getString(ACTIVE_MAP_NBT);
             if (!center.isEmpty()) {
                 var data = level.getMapData(center);
-                if (data != null) centerMap = Pair.of(center, data);
+                boolean error = false;
+                if(maps.values().stream().map(Pair::getFirst).anyMatch(v->v.equals(center))){
+                      error = true;
+                }
+                if(maps.values().stream().map(Pair::getSecond).anyMatch(v->v == data)){
+                      error = true;
+                }
+                if (!error && data != null) centerMap = Pair.of(center, data);
             }
             lazyNbt = null;
         }
@@ -123,7 +128,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         if (d != null && d.scale == scale) {
             Integer slice = getSlice(d);
             if(!Objects.equals(Integer.MIN_VALUE, debug) && !Objects.equals(slice, debug)){
-                int aa = 1;
+                int error = 1;
             }
             MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
             //remove duplicates
@@ -131,6 +136,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                 String first = maps.get(key).getFirst();
                 keysMap.remove(first);
                 idMap.remove(first);
+                //error
             }
             keysMap.put(mapKey, key);
             idMap.put(mapKey, mapId);
@@ -138,7 +144,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             dimensionSlices.computeIfAbsent(key.dimension, a -> new TreeSet<>())
                     .add(key.slice == null ? Integer.MAX_VALUE : key.slice);
             if (maps.size() != keysMap.size()) {
-                int aa = 1;
+                int error = 1;
             }
             return true;
         }
@@ -254,7 +260,5 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         this.centerMap = activeMap;
     }
 
-    private record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, @Nullable Integer slice) {
-    }
 
 }

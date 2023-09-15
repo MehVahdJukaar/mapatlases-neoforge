@@ -88,7 +88,7 @@ public abstract class AbstractAtlasWidget {
             for (int j = maxJ; j >= minJ; j--) {
                 int reqXCenter = centerMapX + (j * mapAtlasScale);
                 int reqZCenter = centerMapZ + (i * mapAtlasScale);
-                Pair<String, MapItemSavedData> state = getMapAtCenter(reqXCenter, reqZCenter);
+                Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
                 if (state == null) continue;
                 MapItemSavedData data = state.getSecond();
                 boolean drawPlayerIcons = data.dimension.equals(player.level().dimension());
@@ -105,7 +105,7 @@ public abstract class AbstractAtlasWidget {
 
     }
 
-    public abstract Pair<String, MapItemSavedData> getMapAtCenter(int centerX, int centerZ);
+    public abstract Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
 
     public void setFollowingPlayer(boolean followingPlayer) {
         this.followingPlayer = followingPlayer;

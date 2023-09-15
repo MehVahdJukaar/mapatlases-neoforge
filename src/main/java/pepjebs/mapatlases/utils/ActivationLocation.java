@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.client;
+package pepjebs.mapatlases.utils;
 
 
 public enum ActivationLocation {

@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import pepjebs.mapatlases.client.ActivationLocation;
 import pepjebs.mapatlases.client.Anchoring;
 
 import java.util.function.Supplier;

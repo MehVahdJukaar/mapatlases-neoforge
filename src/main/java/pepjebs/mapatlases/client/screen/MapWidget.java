@@ -77,7 +77,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     @Override
-    public Pair<String, MapItemSavedData> getMapAtCenter(int centerX, int centerZ) {
+    public Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 
