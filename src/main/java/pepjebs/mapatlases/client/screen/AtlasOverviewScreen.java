@@ -82,8 +82,9 @@ public class AtlasOverviewScreen extends Screen {
         this.initialWorldSelected = level.dimension();
         this.currentWorldSelected = initialWorldSelected;
 
-        this.initialMapSelected = MapAtlasItem.getMaps(atlas, level).getActive().getSecond();
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, initialWorldSelected);
+        this.initialMapSelected = maps.getClosest(player, selectedSlice).getSecond();
         // Play open sound
         this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
@@ -116,16 +117,16 @@ public class AtlasOverviewScreen extends Screen {
             i++;
         }
 
-        MapItemSavedData originalCenterMap = maps.getActive().getSecond();
         this.mapWidget = this.addRenderableWidget(new MapWidget((width - MAP_WIDGET_SIZE) / 2,
                 (height - MAP_WIDGET_SIZE) / 2 + 5, MAP_WIDGET_SIZE, MAP_WIDGET_SIZE, 3,
-                this, originalCenterMap));
+                this, initialMapSelected));
 
         this.setFocused(mapWidget);
 
         this.selectDimension(initialWorldSelected);
-        if (originalCenterMap != null) {
-            this.updateVisibleDecoration(originalCenterMap.centerX, originalCenterMap.centerZ, 3 / 2f * MAP_DIMENSION,
+        if (initialMapSelected != null) {
+            //TODO: what is this for?
+            this.updateVisibleDecoration(initialMapSelected.centerX, initialMapSelected.centerZ, 3 / 2f * MAP_DIMENSION,
                     true);
         }
 

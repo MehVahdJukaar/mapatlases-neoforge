@@ -29,16 +29,18 @@ public interface IMapCollection {
 
     Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension);
 
-    @Nullable
-    Pair<String, MapItemSavedData> getActive();
-
     List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice);
 
     List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice,
                                                        Predicate<MapItemSavedData> predicate);
 
     @Nullable
-    Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, @Nullable Integer slice);
+    default Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+        return select(new MapKey(dimension, x, z, slice));
+    }
+
+    Pair<String, MapItemSavedData> select(MapKey key);
+
 
     @Nullable
     Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice);
@@ -49,8 +51,6 @@ public interface IMapCollection {
     }
 
     Collection<Pair<String, MapItemSavedData>> getAll();
-
-    void setActive(@Nullable Pair<String, MapItemSavedData> activeMap);
 
 
 }

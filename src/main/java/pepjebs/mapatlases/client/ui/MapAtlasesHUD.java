@@ -25,6 +25,7 @@ import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -56,7 +57,7 @@ public class MapAtlasesHUD implements IGuiOverlay {
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
 
 
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(mc.player);
+        ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         // Check the player for an Atlas
         if (atlas.isEmpty()) return;
 
@@ -64,8 +65,9 @@ public class MapAtlasesHUD implements IGuiOverlay {
         LocalPlayer player = mc.player;
 
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-
-        Pair<String, MapItemSavedData> activeMap = maps.getActive();
+        MapKey key = MapAtlasesClient.getActiveMapKey();
+        if (key == null) return;
+        Pair<String, MapItemSavedData> activeMap = maps.select(key);
         if (activeMap == null) return;
 
         MapItemSavedData state = activeMap.getSecond();

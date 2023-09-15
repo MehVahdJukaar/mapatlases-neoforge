@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -24,6 +25,7 @@ import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class MapAtlasesClient {
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
+    private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
 
     public static final Material OVERWORLD_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas"));
@@ -56,13 +59,27 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
+    public static void cachePlayerState(Player player) {
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        currentActiveAtlas = atlas;
+        if (!atlas.isEmpty()) {
+            var maps = MapAtlasItem.getMaps(atlas, player.level());
+            Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+            // I hate this
+            maps.fixClientDuplicates(player.level(), slice);
+
+            currentActiveMapKey = MapKey.closest(maps.getScale(), player, slice);
+        } else currentActiveMapKey = null;
+    }
+
+    public static ItemStack getCurrentActiveAtlas() {
+        return currentActiveAtlas;
+    }
+
     public static MapKey getActiveMapKey() {
         return currentActiveMapKey;
     }
 
-    public static void setActiveMap(MapKey mapId) {
-        MapAtlasesClient.currentActiveMapKey = mapId;
-    }
 
     public static void init() {
 
@@ -112,4 +129,6 @@ public class MapAtlasesClient {
         if (i == -1) return unlocked ? 0.96f : 1;
         return i / 10f + (unlocked ? 0 : 0.05f);
     }
+
+
 }

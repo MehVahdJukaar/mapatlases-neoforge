@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.core.mixins.MapDataMixin;
+import net.mehvahdjukaar.moonlight.core.network.ClientBoundSyncCustomMapDecorationMessage;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -15,9 +17,11 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.compress.archivers.sevenz.CLI;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
@@ -39,6 +43,7 @@ public class MapAtlasesServerEvents {
 
     // Holds the current MapItemSavedData ID for each player
     //maybe use weakhasmap with plauer
+    @Deprecated(forRemoval = true)
     private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
 
     @SubscribeEvent
@@ -66,7 +71,11 @@ public class MapAtlasesServerEvents {
 
     @SubscribeEvent
     public static void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.side == LogicalSide.SERVER) {
+        if(event.side == LogicalSide.CLIENT){
+            //caches client stuff
+            MapAtlasesClient.cachePlayerState(event.player);
+        }
+        else  {
             ServerPlayer player = ((ServerPlayer) event.player);
             //not needed?
             //if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
@@ -79,8 +88,8 @@ public class MapAtlasesServerEvents {
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
 
             // sets new center map
-            Pair<String, MapItemSavedData> activeInfo = getMapAtPositionOrClosest(player, maps, slice);
-            maps.setActive(activeInfo);
+
+            Pair<String, MapItemSavedData> activeInfo = maps.select(MapKey.closest(maps.getScale(), player, slice));
             //TODO: improve
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
@@ -152,24 +161,6 @@ public class MapAtlasesServerEvents {
         return Mth.square(mapState.centerX - player.getX()) + Mth.square(mapState.centerZ - player.getZ()) > width * width;
     }
 
-    @Nullable
-    private static Pair<String, MapItemSavedData> getMapAtPositionOrClosest(
-            ServerPlayer player, MapCollectionCap maps, @Nullable Integer slice) {
-        byte scale = maps.getScale();
-        double px = player.getX();
-        double pz = player.getZ();
-        //map code
-        int i = 128 * (1 << scale);
-        int j = Mth.floor((px + 64.0D) / i);
-        int k = Mth.floor((pz + 64.0D) / i);
-        int mapCenterX = j * i + i / 2 - 64;
-        int mapCenterZ = k * i + i / 2 - 64;
-        var mapAt = maps.select(mapCenterX, mapCenterZ, player.level().dimension(), slice);
-        return mapAt;
-        //if (mapAt != null) return mapAt;
-        // else return maps.getClosest(player, slice);
-    }
-
     private static void updateMapDataForPlayer(
             Pair<String, MapItemSavedData> mapInfo,
             ServerPlayer player,
@@ -221,12 +212,12 @@ public class MapAtlasesServerEvents {
             if (addingPlayer || !currentMapId.equals(cachedMapId)) {
                 changedMapItemSavedData = cachedMapId;
                 playerToActiveMapId.put(player, currentMapId);
-                MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
+             //   MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
             }
         } else if (cachedMapId != null) {
             playerToActiveMapId.put(player, null);
 
-            MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
+           // MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
         }
         return changedMapItemSavedData;
     }
@@ -260,7 +251,7 @@ public class MapAtlasesServerEvents {
             }
             ItemStack newMap;
             //validate slice
-            if(slice != null && !maps.getAvailableSlices(player.level().dimension()).contains(slice)){
+            if (slice != null && !maps.getAvailableSlices(player.level().dimension()).contains(slice)) {
                 int error = 1;
             }
 
@@ -281,11 +272,16 @@ public class MapAtlasesServerEvents {
                         true,
                         false);
             }
+
             Integer mapId = MapItem.getMapId(newMap);
             if (mapId != null) {
                 maps.add(mapId, level, slice);
+                MapItemSavedData newData = MapItem.getSavedData(mapId, level);
+                // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
+                if(newData != null) {
+                    newData.tickCarriedBy(player, newMap);
+                }
                 addedMap = true;
-
             }
             mutex.unlock();
         }

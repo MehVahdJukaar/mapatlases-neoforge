@@ -61,7 +61,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         }
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         if (maps.getCount() > 1) {
-            String stringId = maps.getActive().getFirst();
+            //TODO: fix
+            String stringId = "";// maps.getActive().getFirst();
             int mapId = MapAtlasesAccessUtils.getMapIntFromString(stringId);
             return MapAtlasesAccessUtils.createMapItemStackFromId(mapId);
         }
@@ -84,7 +85,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 boolean didRemoveFilled = false;
                 MapCollectionCap maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
-                    maps.remove(maps.getActive().getFirst());
+                    //TODO: fix
+                    //maps.remove(maps.getActive().getFirst());
                     didRemoveFilled = true;
                 }
                 int emptyMaps = MapAtlasItem.getEmptyMaps(stack);

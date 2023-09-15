@@ -30,6 +30,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -147,9 +148,10 @@ public class MapAtlasItem extends Item {
                 }
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
-            MapItemSavedData mapState = level.getMapData(MapAtlasesClient.getActiveMap());
-            if (mapState == null) return;
-            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << mapState.scale).withStyle(ChatFormatting.GRAY));
+
+            MapItemSavedData activeState = maps.select(MapAtlasesClient.getActiveMapKey()).getSecond();
+            if (activeState == null) return;
+            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << activeState.scale).withStyle(ChatFormatting.GRAY));
 
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
@@ -262,9 +264,9 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                var mapState = getMaps(stack, level).getActive();
-                if (mapState == null)
-                    return InteractionResult.FAIL;
+                MapCollectionCap maps = getMaps(stack, level);
+                var mapState = maps.select(MapKey.closest(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.getSecond().toggleBanner(level, blockPos);
                 if (!didAdd)
                     return InteractionResult.FAIL;
