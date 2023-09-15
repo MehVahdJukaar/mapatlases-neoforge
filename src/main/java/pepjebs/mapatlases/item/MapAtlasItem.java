@@ -45,6 +45,7 @@ public class MapAtlasItem extends Item {
     protected static final String EMPTY_MAPS_NBT = "empty";
     protected static final String LOCKED_NBT = "locked";
     protected static final String SLICE_NBT = "selected_slice";
+    private static final String SHARE_TAG = "map_cap";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
@@ -204,6 +205,29 @@ public class MapAtlasItem extends Item {
             state.getValue().getHoldingPlayer(serverPlayer);
             MapAtlasesServerEvents.relayMapItemSavedDataSyncToPlayerClient(state, serverPlayer);
         }*/
+    }
+
+    // I hate this
+    @Nullable
+    @Override
+    public CompoundTag getShareTag(ItemStack stack) {
+        CompoundTag baseTag = stack.getTag();
+        var cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
+        if (baseTag == null) baseTag = new CompoundTag();
+        baseTag = baseTag.copy();
+        baseTag.put(SHARE_TAG, cap.serializeNBT());
+        return baseTag;
+    }
+
+    @Override
+    public void readShareTag(ItemStack stack, @Nullable CompoundTag tag) {
+        if (tag != null && tag.contains(SHARE_TAG)) {
+            CompoundTag capTag = tag.getCompound(SHARE_TAG);
+            tag.remove(SHARE_TAG);
+            var cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
+            cap.deserializeNBT(capTag);
+        }
+        stack.setTag(tag);
     }
 
     @Override

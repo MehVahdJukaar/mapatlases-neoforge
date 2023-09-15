@@ -1,0 +1,8 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "map_atlases:item/atlas_nether",
+    "layer1": "map_atlases:item/atlas_lock"
+
+  }
+}

@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -130,11 +131,12 @@ public abstract class AbstractAtlasWidget {
         for (var e : data.decorations.entrySet()) {
             MapDecoration decoration = e.getValue();
             MapDecoration.Type type = decoration.getType();
-            if (true || type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS
+            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS
                     || (type == MapDecoration.Type.PLAYER && !drawPlayerIcons)) {
                 removed.add(e);
             }
         }
+
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         if (data.decorations.size() != 0) {
             int aa = 1;

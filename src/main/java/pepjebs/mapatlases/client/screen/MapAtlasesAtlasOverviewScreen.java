@@ -19,11 +19,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 
@@ -81,7 +81,8 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
 
         int i = 0;
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        for (var d : maps.getAvailableDimensions()) {
+        for (var d : maps.getAvailableDimensions().stream().sorted(Comparator.comparingInt(e ->
+                MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(e.location().toString()))).toList()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
                     (width + IMAGE_WIDTH) / 2 - 10,
                     (height - IMAGE_HEIGHT) / 2 + 15 + i * 22, d, this);
@@ -226,14 +227,31 @@ public class MapAtlasesAtlasOverviewScreen extends Screen {
             return initialMapSelected;
         } else {
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-            return maps.getAll()
-                    .stream().filter(state -> !state.getSecond().decorations.entrySet().stream()
-                            .filter(e -> e.getValue().getType().isRenderedOnFrame())
-                            .collect(Collectors.toSet())
-                            .isEmpty())
-                    .findAny().orElseGet(() -> maps.getClosest(0, 0,
-                            currentWorldSelected,
-                            MapAtlasItem.getSelectedSlice(atlas))).getSecond();
+            MapItemSavedData best = null;
+            float averageX = 0;
+            float averageZ = 0;
+            int count = 0;
+            var slice = MapAtlasItem.getSelectedSlice(atlas);
+            for (var m : maps.getAll()) {
+                MapItemSavedData d = m.getSecond();
+                if (d.dimension.equals(currentWorldSelected) && Objects.equals(MapCollectionCap.getSlice(d), slice)) {
+                    averageX += d.centerX;
+                    averageZ += d.centerZ;
+                    count++;
+                    if (d.decorations.values().stream().anyMatch(e -> e.getType().isRenderedOnFrame())) {
+                        if (best != null) {
+                            if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
+                                best = d;
+                            }
+                        } else best = d;
+                    }
+                }
+            }
+            if (best != null) return best;
+            averageX /= count;
+            averageZ /= count;
+            Pair<String, MapItemSavedData> closest = maps.getClosest(averageX, averageZ, currentWorldSelected, slice);
+            return closest == null ? null : closest.getSecond();
             //centers to any map that has decoration
         }
     }

@@ -4,12 +4,27 @@
     "layer0": "map_atlases:item/atlas"
   },
   "overrides": [
-    { "predicate": { "map_atlases:atlas": 0.0 }, "model": "map_atlases:item/atlas" },
-    { "predicate": { "map_atlases:atlas": 0.1 }, "model": "map_atlases:item/overworld_atlas" },
-    { "predicate": { "map_atlases:atlas": 0.2 }, "model": "map_atlases:item/nether_atlas" },
-    { "predicate": { "map_atlases:atlas": 0.3 }, "model": "map_atlases:item/end_atlas_locked" },
-    { "predicate": { "map_atlases:atlas": 0.4 }, "model": "map_atlases:item/overworld_atlas_locked" },
-    { "predicate": { "map_atlases:atlas": 0.5 }, "model": "map_atlases:item/nether_atlas_locked" },
-    { "predicate": { "map_atlases:atlas": 0.6 }, "model": "map_atlases:item/end_atlas_locked" }
+    { "predicate": { "map_atlases:atlas": 0.0 }, "model": "map_atlases:item/atlas_overworld" },
+    { "predicate": { "map_atlases:atlas": 0.05}, "model": "map_atlases:item/atlas_overworld_locked" },
+    { "predicate": { "map_atlases:atlas": 0.1 }, "model": "map_atlases:item/atlas_nether" },
+    { "predicate": { "map_atlases:atlas": 0.15}, "model": "map_atlases:item/atlas_nether_locked" },
+    { "predicate": { "map_atlases:atlas": 0.2 }, "model": "map_atlases:item/atlas_end" },
+    { "predicate": { "map_atlases:atlas": 0.25}, "model": "map_atlases:item/atlas_end_locked" },
+    { "predicate": { "map_atlases:atlas": 0.3 }, "model": "map_atlases:item/atlas_aether" },
+    { "predicate": { "map_atlases:atlas": 0.35}, "model": "map_atlases:item/atlas_aether_locked" },
+    { "predicate": { "map_atlases:atlas": 0.4 }, "model": "map_atlases:item/atlas_twilight_forest" },
+    { "predicate": { "map_atlases:atlas": 0.45}, "model": "map_atlases:item/atlas_twilight_forest_locked" },
+    { "predicate": { "map_atlases:atlas": 0.5 }, "model": "map_atlases:item/atlas_undergarden" },
+    { "predicate": { "map_atlases:atlas": 0.55}, "model": "map_atlases:item/atlas_undergarden_locked" },
+    { "predicate": { "map_atlases:atlas": 0.6 }, "model": "map_atlases:item/atlas_tropics" },
+    { "predicate": { "map_atlases:atlas": 0.65}, "model": "map_atlases:item/atlas_tropics_locked" },
+    { "predicate": { "map_atlases:atlas": 0.7 }, "model": "map_atlases:item/atlas_betweenlands" },
+    { "predicate": { "map_atlases:atlas": 0.75}, "model": "map_atlases:item/atlas_betweenlands_locked" },
+    { "predicate": { "map_atlases:atlas": 0.8 }, "model": "map_atlases:item/atlas_blue_skies" },
+    { "predicate": { "map_atlases:atlas": 0.85}, "model": "map_atlases:item/atlas_blue_skies_locked" },
+    { "predicate": { "map_atlases:atlas": 0.9 }, "model": "map_atlases:item/atlas_the_bumblezone" },
+    { "predicate": { "map_atlases:atlas": 0.95}, "model": "map_atlases:item/atlas_the_bumblezone_locked" },
+    { "predicate": { "map_atlases:atlas": 0.96 }, "model": "map_atlases:item/atlas_generic" },
+    { "predicate": { "map_atlases:atlas": 1}, "model": "map_atlases:item/atlas_generic_locked" }
   ]
 }

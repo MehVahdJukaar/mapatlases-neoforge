@@ -41,7 +41,6 @@ public class S2CSyncMapCenterPacket {
             Level level = Minecraft.getInstance().level;
             if (level == null) return;
 
-            //TODO: only do thison request
             var data = level.getMapData(mapId);
             if (data != null) {
                 setCenter(data, centerX, centerZ);

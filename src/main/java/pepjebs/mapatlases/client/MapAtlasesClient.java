@@ -23,6 +23,8 @@ import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 
+import java.util.List;
+
 public class MapAtlasesClient {
 
     private static final ThreadLocal<Float> worldMapZoomLevel = new ThreadLocal<>();
@@ -30,14 +32,19 @@ public class MapAtlasesClient {
     private static String currentMapItemSavedDataId = null;
 
     public static final Material OVERWORLD_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS,  MapAtlasesMod.res("entity/lectern_atlas"));
+            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas"));
     public static final Material NETHER_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS,MapAtlasesMod.res("entity/lectern_atlas_nether"));
+            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_nether"));
     public static final Material END_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS,MapAtlasesMod.res("entity/lectern_atlas_end"));
+            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_end"));
     public static final Material OTHER_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS,  MapAtlasesMod.res("entity/lectern_atlas_unknown"));
+            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
+    public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(Level.OVERWORLD.location().toString(),
+            Level.NETHER.location().toString(), Level.END.location().toString(),
+            "aether:the_aether", "twilightforest:twilight_forest", "undergarden:undergarden",
+            "tropicraft:tropics", "thebetweenlands:betweenlands", "blue_skies:blue_skies",
+            "the_bumblezone:the_bumblezone");
 
     public static final KeyMapping OPEN_ATLAS_KEYBIND = new KeyMapping(
             "key.map_atlases.open_minimap",
@@ -62,9 +69,9 @@ public class MapAtlasesClient {
     }
 
     @SubscribeEvent
-    public static void clientSetup(FMLClientSetupEvent event){
+    public static void clientSetup(FMLClientSetupEvent event) {
         // Register ModelPredicate
-        ItemProperties.register( MapAtlasesMod.MAP_ATLAS.get(),MapAtlasesMod.res("atlas"),
+        ItemProperties.register(MapAtlasesMod.MAP_ATLAS.get(), MapAtlasesMod.res("atlas"),
                 MapAtlasesClient::getPredicateForAtlas);
 
         //MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
@@ -72,7 +79,7 @@ public class MapAtlasesClient {
     }
 
     @SubscribeEvent
-    public static void clientSetup(RegisterGuiOverlaysEvent event){
+    public static void clientSetup(RegisterGuiOverlaysEvent event) {
         event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", new MapAtlasesHUD());
     }
 
@@ -90,7 +97,7 @@ public class MapAtlasesClient {
         worldMapZoomLevel.set(i);
     }
 
-    public  static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {
+    public static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {
         // Using ClientLevel will render default Atlas in inventories
         if (world == null && entity != null)
             world = (ClientLevel) entity.level();
@@ -98,9 +105,8 @@ public class MapAtlasesClient {
         boolean unlocked = !MapAtlasItem.isLocked(stack);
 
         ResourceKey<Level> dimension = world.dimension();
-        if (dimension == Level.OVERWORLD) return unlocked ? 0.1f : 0.4f;
-        if (dimension == Level.NETHER) return unlocked ? 0.2f : 0.5f;
-        if (dimension == Level.END) return unlocked ? 0.3f : 0.6f;
-        return 0.0f;
+        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        if (i == -1) return unlocked ? 0.96f : 1;
+        return i / 10f + (unlocked ? 0 : 0.05f);
     }
 }

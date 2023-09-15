@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.capabilities;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.client.gui.screens.inventory.EnchantmentScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -38,7 +40,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<MapKey, Pair<String, MapItemSavedData>> maps = new HashMap<>();
     private final Map<String, MapKey> keysMap = new HashMap<>();
     private final Map<String, Integer> idMap = new HashMap<>();
-    private final Set<ResourceKey<Level>> availableDimensions = new TreeSet<>();
+    private final Set<ResourceKey<Level>> availableDimensions = new HashSet<>();
     @Nullable
     private Pair<String, MapItemSavedData> centerMap = null;
     private byte scale = 0;
@@ -59,6 +61,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     // we need leven context
     public void initialize(Level level) {
+        if(level.isClientSide){
+            int aa = 1;
+        }
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
             for (int i : array) {
@@ -100,7 +105,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         return maps.isEmpty();
     }
 
-
     @Override
     public boolean add(int mapId, Level level) {
         assertInitialized();
@@ -116,7 +120,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             d = MapItem.getSavedData(map, level);
         }
         if (d != null && d.scale == scale) {
-            Integer slice = MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(d) : null;
+            Integer slice = getSlice(d);
             MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
             //remove duplicates
             if (maps.containsKey(key)) {
@@ -134,6 +138,11 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             return true;
         }
         return false;
+    }
+
+    @Nullable
+    public static Integer getSlice(MapItemSavedData data){
+        return MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
     }
 
     @Nullable

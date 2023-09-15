@@ -7,8 +7,8 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
+// vanilla doesn't send this automatically so we have to do it
 public class C2SRequestMapCenterPacket {
-
 
     private final String mapId;
     public C2SRequestMapCenterPacket(FriendlyByteBuf buf) {
