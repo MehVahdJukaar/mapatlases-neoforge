@@ -2,16 +2,21 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.joml.Matrix4f;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -20,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractAtlasWidget {
+
+    public static final ResourceLocation MAP_BORDER =
+            MapAtlasesMod.res("textures/gui/screen/map_border.png");
+
 
     public static final int MAP_DIMENSION = 128;
 
@@ -48,7 +57,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim) {
+                          Player player, float zoomLevelDim, boolean showBorders) {
         // Handle zooming markers hack
         MapAtlasesClient.setWorldMapZoomLevel(zoomLevelDim * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
@@ -73,6 +82,9 @@ public abstract class AbstractAtlasWidget {
         // Draw maps, putting active map in middle of grid
 
         MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+
+        List<Matrix4f> outlineHack = new ArrayList<>();
+
         graphics.enableScissor(x, y, (x + width), (y + height));
 
         float offsetX = currentXCenter - centerMapX;
@@ -80,7 +92,9 @@ public abstract class AbstractAtlasWidget {
 
 
         int hz = Mth.ceil(zoomLevelDim / 2f);
-        if (zoomLevelDim == 1 && !followingPlayer) hz -= 1;
+        if (zoomLevelDim == 1 && !followingPlayer && atlasesCount == 1){
+            hz -= 1;
+        }
 
         if (rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
@@ -107,11 +121,25 @@ public abstract class AbstractAtlasWidget {
                 MapItemSavedData data = state.getSecond();
                 boolean drawPlayerIcons = data.dimension.equals(player.level().dimension());
                 // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-                this.drawMap(poseStack, vcp, i, j, state, drawPlayerIcons);
+                this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
             }
         }
 
         vcp.endBatch();
+
+        if(showBorders) {
+            VertexConsumer outlineVC = vcp.getBuffer(RenderType.text(MAP_BORDER));
+            int a = 50;
+            for (var matrix4f : outlineHack) {
+                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 1.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
+                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 1.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
+                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 0.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
+                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 0.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
+
+            }
+            vcp.endBatch();
+        }
+
         poseStack.popPose();
         graphics.disableScissor();
 
@@ -128,6 +156,7 @@ public abstract class AbstractAtlasWidget {
     private void drawMap(
             PoseStack matrices,
             MultiBufferSource.BufferSource vcp,
+            List<Matrix4f> outlineHack,
             int ix, int iy,
             Pair<String, MapItemSavedData> state,
             boolean drawPlayerIcons
@@ -153,6 +182,7 @@ public abstract class AbstractAtlasWidget {
 
         removed.forEach(d -> data.decorations.remove(d.getKey()));
 
+
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
                         matrices,
@@ -162,6 +192,9 @@ public abstract class AbstractAtlasWidget {
                         false,
                         LightTexture.FULL_BRIGHT //  (1+ix+iy)*50
                 );
+
+        outlineHack.add(new Matrix4f(matrices.last().pose()));
+
         matrices.popPose();
         // Re-add the off-map player icons after render
         for (Map.Entry<String, MapDecoration> e : removed) {

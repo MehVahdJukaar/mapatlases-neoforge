@@ -66,7 +66,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
-        this.drawAtlas(graphics, x, y, width, height, player, zoomLevel);
+        this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
+                MapAtlasesClientConfig.worldMapBorder.get());
 
         if (this.isHovered) {
             this.renderPositionText(graphics, mc.font,  pMouseX, pMouseY, zoomLevel);
@@ -98,7 +99,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         //idk why
         String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
         MapAtlasesHUD.drawScaledComponent(
-                graphics, font, x+height + 16, y, coordsToDisplay, textScaling, width);
+                graphics, font, x, y+ height +8, coordsToDisplay, textScaling, width);
 
 
     }

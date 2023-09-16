@@ -43,7 +43,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 emptyMaps++;
             } else if (itemstack.is(Items.FILLED_MAP)) {
                 filledMaps.add(MapItem.getSavedData(itemstack, level));
-            }
+            }else if(!itemstack.isEmpty()) return false;
         }
         if (!atlas.isEmpty() && (emptyMaps != 0 || !filledMaps.isEmpty())) {
 

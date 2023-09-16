@@ -12,8 +12,6 @@ public class MapAtlasesClientConfig {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
 
-
-
         builder.push("minimap");
 
         drawMiniMapHUD = builder
@@ -53,22 +51,31 @@ public class MapAtlasesClientConfig {
 
         minimapCoordsAndBiomeScale = builder
                 .comment("Sets the scale of the text rendered for Coords and Biome mini-map data")
-                .defineInRange("minimapCoordsAndBiomeScale", 1, 0, 10d);
+                .defineInRange("coords_and_biome_scale", 1, 0, 10d);
 
         miniMapDecorationScale = builder
                 .comment("Sets the scale of the map icons rendered in the mini-map")
                 .defineInRange("decoration_scale", 1, 0, 10d);
 
         miniMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
-                        .define("follow_player", true);
+                .define("follow_player", true);
 
         miniMapRotate = builder.comment("When enabled the map will align itself with the player")
-                        .define("rotate_with_player", true);
-
+                .define("rotate_with_player", true);
+        drawMinimapCardinals = builder.comment("Draw cardinal directions on minimap")
+                .define("cardinal_directions", true);
+        miniMapCardinalsScale = builder.comment("Scale of cardinal directions on minimap")
+                        .defineInRange("cardinal_scale", 1f, 0, 2);
+        miniMapOnlyNorth = builder.comment("Only shows north cardinal direction")
+                        .define("only_show_north_cardinal", false);
+        miniMapBorder = builder.comment("Shows map separation borders")
+                        .define("map_borders", true);
         builder.pop();
 
         builder.push("world_map");
 
+        worldMapBorder = builder.comment("Shows map separation borders")
+                .define("map_borders", true);
         drawWorldMapCoords = builder
                 .comment("When enabled, the Atlas world map coordinates will be displayed")
                 .define("draw_coordinates", true);
@@ -107,6 +114,11 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> drawMinimapCoords;
     public static final Supplier<Boolean> drawMinimapBiome;
     public static final Supplier<Boolean> drawWorldMapCoords;
+    public static final Supplier<Boolean> drawMinimapCardinals;
+    public static final Supplier<Boolean> miniMapOnlyNorth;
+    public static final Supplier<Boolean> miniMapBorder;
+    public static final Supplier<Boolean> worldMapBorder;
+    public static final Supplier<Double> miniMapCardinalsScale;
     public static final Supplier<Double> minimapCoordsAndBiomeScale;
     public static final Supplier<Double> worldMapCoordsScale;
     public static final Supplier<Double> miniMapDecorationScale;

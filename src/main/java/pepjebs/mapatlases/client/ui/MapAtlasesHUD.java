@@ -13,6 +13,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -62,8 +63,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     protected void initialize(MapItemSavedData originalCenterMap) {
         super.initialize(originalCenterMap);
 
-        this.followingPlayer = false;//MapAtlasesClientConfig.miniMapFollowPlayer.get();
-        this.rotatesWithPlayer = false;// MapAtlasesClientConfig.miniMapRotate.get();
+        this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
+        this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
     }
 
     @Override
@@ -156,7 +157,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         drawAtlas(graphics, x + (bgSize - mapWidgetSize) / 2, y + (bgSize - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
-                1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get());
+                1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
+                MapAtlasesClientConfig.miniMapBorder.get());
 
         if (rotatesWithPlayer) {
             graphics.blit(MAP_ICON_TEXTURE, x + mapWidgetSize / 2 - 1,
@@ -172,9 +174,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (!anchorLocation.isUp) {
             textHeightOffset = (int) (-24 * textScaling);
         }
+        Font font = mc.font;
         if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
             drawMapComponentCoords(
-                    graphics, mc.font, x, y + textHeightOffset, bgSize,
+                    graphics, font, x, y + textHeightOffset, bgSize,
                     textScaling, new BlockPos(new Vec3i(
                             towardsZero(player.position().x),
                             towardsZero(player.position().y),
@@ -183,9 +186,35 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    graphics, mc.font, x, y + textHeightOffset, bgSize,
+                    graphics, font, x, y + textHeightOffset, bgSize,
                     textScaling, player.blockPosition(), level);
         }
+
+        poseStack.pushPose();
+        poseStack.translate(x + bgSize / 2f, y + bgSize / 2f, 5);
+
+        var p = getDirectionPos(bgSize / 2f - 3, player.getYRot());
+        float a = p.getFirst();
+        float b = p.getSecond();
+        drawLetter(graphics, font, a, b, "N");
+        if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
+            drawLetter(graphics, font, -a, -b, "S");
+            drawLetter(graphics, font, -b, a, "E");
+            drawLetter(graphics, font, b, -a, "W");
+        }
+
+        poseStack.popPose();
+    }
+
+    private static void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get();
+        pose.scale(scale, scale, 1);
+        graphics.drawString(font, letter, a / scale - font.width(letter) / 2f,
+                b / scale - font.lineHeight / 2f, -1, true);
+
+        pose.popPose();
     }
 
     private static void playSoundIfMapChanged(String curMapId, ClientLevel level, LocalPlayer player) {
@@ -263,5 +292,29 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         pose.popPose();
     }
 
+    private static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {
 
+        angleDegrees = Mth.wrapDegrees(90 - angleDegrees);
+
+        // Convert angle from degrees to radians
+        float angleRadians = (float) Math.toRadians(angleDegrees);
+
+        // Calculate the coordinates of the point on the square
+        float x, y;
+
+        if (angleDegrees >= -45 && angleDegrees < 45) {
+            x = radius;
+            y = radius * (float) Math.tan(angleRadians);
+        } else if (angleDegrees >= 45 && angleDegrees < 135) {
+            x = radius / (float) Math.tan(angleRadians);
+            y = radius;
+        } else if (angleDegrees >= 135 || angleDegrees < -135) {
+            x = -radius;
+            y = -radius * (float) Math.tan(angleRadians);
+        } else {
+            x = -radius / (float) Math.tan(angleRadians);
+            y = -radius;
+        }
+        return Pair.of(x, y);
+    }
 }

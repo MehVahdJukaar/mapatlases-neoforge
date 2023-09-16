@@ -79,12 +79,23 @@ public class AtlasOverviewScreen extends Screen {
         this.level = Minecraft.getInstance().level;
         this.player = Minecraft.getInstance().player;
 
-        this.initialWorldSelected = level.dimension();
-        this.currentWorldSelected = initialWorldSelected;
+
+        ResourceKey<Level> dim = level.dimension();
 
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, initialWorldSelected);
-        this.initialMapSelected = maps.getClosest(player, selectedSlice).getSecond();
+        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
+        Pair<String, MapItemSavedData> closest = maps.getClosest(player, selectedSlice);
+        if (closest != null) {
+            this.initialMapSelected = closest.getSecond();
+        } else {
+            //if has no maps here grab a random one
+            this.initialMapSelected = maps.getAll().stream().findFirst().get().getSecond();
+            dim = initialMapSelected.dimension;
+        }
+        //improve for wrong dimension atlas
+        this.initialWorldSelected = dim;
+        this.currentWorldSelected = dim;
+
         // Play open sound
         this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
