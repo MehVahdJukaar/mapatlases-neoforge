@@ -39,7 +39,7 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void tempInitialize(MapItemSavedData originalCenterMap) {
+    protected void initialize(MapItemSavedData originalCenterMap) {
         this.originalCenterMap = originalCenterMap;
         this.mapAtlasScale = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
@@ -80,22 +80,24 @@ public abstract class AbstractAtlasWidget {
 
 
         int hz = Mth.ceil(zoomLevelDim / 2f);
+        if (zoomLevelDim == 1 && !followingPlayer) hz -= 1;
 
         if (rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
         }
         poseStack.translate(-offsetX, -offsetZ, 0);
 
-
         int minI = -hz;
         int maxI = hz;
         int minJ = -hz;
         int maxJ = hz;
         //adds more maps to draw if needed
-        if (offsetX < 0) minJ--;
-        else if (offsetX > 0) maxJ++;
-        if (offsetZ < 0) minI--;
-        else if (offsetZ > 0) maxI++;
+        if (followingPlayer) {
+            if (offsetX < 0) minJ--;
+            else if (offsetX > 0) maxJ++;
+            if (offsetZ < 0) minI--;
+            else if (offsetZ > 0) maxI++;
+        }
         for (int i = maxI; i >= minI; i--) {
             for (int j = maxJ; j >= minJ; j--) {
                 int reqXCenter = centerMapX + (j * mapAtlasScale);
@@ -158,7 +160,7 @@ public abstract class AbstractAtlasWidget {
                         MapAtlasesAccessUtils.getMapIntFromString(state.getFirst()),
                         data,
                         false,
-                        LightTexture.FULL_BRIGHT
+                        LightTexture.FULL_BRIGHT //  (1+ix+iy)*50
                 );
         matrices.popPose();
         // Re-add the off-map player icons after render

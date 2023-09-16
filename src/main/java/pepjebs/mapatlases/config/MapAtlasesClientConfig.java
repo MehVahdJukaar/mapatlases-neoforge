@@ -11,62 +11,84 @@ public class MapAtlasesClientConfig {
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        compactSliceIndicator = builder
-                .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
-                .define("compactSlicesIndicator", false);
 
-        forceMiniMapScaling = builder
-                .comment("Scale the mini-map to a given % of the height of your screen.")
-                .defineInRange("forceMiniMapScaling", 30, 0, 100);
+
+
+        builder.push("minimap");
 
         drawMiniMapHUD = builder
                 .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
-                .define("drawMiniMapHUD", true);
+                .define("enabled", true);
 
+        miniMapZoomMultiplier = builder.comment("How many maps to display in a single minimap. Essentially zoom. Can be a fraction")
+                .defineInRange("zoom_multiplier", 1, 0.001, 100);
+
+        forceMiniMapScaling = builder
+                .comment("Scale the mini-map to a given % of the height of your screen.")
+                .defineInRange("force_scaling", 30, 0, 100);
 
         miniMapAnchoring = builder
                 .comment("Controls anchor position of mini-map")
-                .defineEnum("miniMapAnchoring", Anchoring.UPPER_LEFT);
+                .defineEnum("anchoring", Anchoring.UPPER_LEFT);
 
         miniMapHorizontalOffset = builder
                 .comment("An integer which will offset the mini-map horizontally")
-                .defineInRange("miniMapHorizontalOffset", 5, 0, 4000);
+                .defineInRange("horizontal_offset", 5, 0, 4000);
 
         miniMapVerticalOffset = builder
                 .comment("An integer which will offset the mini-map vertically")
-                .defineInRange("miniMapVerticalOffset", 5, 0, 4000);
+                .defineInRange("vertical_offset", 5, 0, 4000);
 
         activePotionVerticalOffset = builder
                 .comment("The number of pixels to shift vertically when there's an active effect")
-                .defineInRange("activePotionVerticalOffset", 26, 0, 4000);
+                .defineInRange("active_potion_effects_vertical_offset", 26, 0, 4000);
 
         drawMinimapCoords = builder
                 .comment("When enabled, the player's current Coords will be displayed")
-                .define("drawMinimapCoords", true);
+                .define("coordinate_text", true);
 
         drawMinimapBiome = builder
                 .comment("When enabled, the player's current Biome will be displayed")
-                .define("drawMinimapBiome", true);
-
-        drawWorldMapCoords = builder
-                .comment("When enabled, the Atlas world map coordinates will be displayed")
-                .define("drawWorldMapCoords", true);
+                .define("biome_text", true);
 
         minimapCoordsAndBiomeScale = builder
                 .comment("Sets the scale of the text rendered for Coords and Biome mini-map data")
                 .defineInRange("minimapCoordsAndBiomeScale", 1, 0, 10d);
 
-        worldMapCoordsScale = builder
-                .comment("Sets the scale of the text rendered for Coords world-map data")
-                .defineInRange("worldMapCoordsScale", 1, 0, 10d);
-
         miniMapDecorationScale = builder
                 .comment("Sets the scale of the map icons rendered in the mini-map")
-                .defineInRange("miniMapDecorationScale", 1, 0, 10d);
+                .defineInRange("decoration_scale", 1, 0, 10d);
+
+        miniMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
+                        .define("follow_player", true);
+
+        miniMapRotate = builder.comment("When enabled the map will align itself with the player")
+                        .define("rotate_with_player", true);
+
+        builder.pop();
+
+        builder.push("world_map");
+
+        drawWorldMapCoords = builder
+                .comment("When enabled, the Atlas world map coordinates will be displayed")
+                .define("draw_coordinates", true);
+
+        worldMapCoordsScale = builder
+                .comment("Sets the scale of the text rendered for Coords world-map data")
+                .defineInRange("coordinates_scale", 1, 0, 10d);
 
         worldMapDecorationScale = builder
                 .comment("Sets the scale of the map icons rendered in the world-map")
-                .defineInRange("worldMapDecorationScale", 1, 0, 10d);
+                .defineInRange("decoration_scale", 1, 0, 10d);
+
+        worldMapCompactSliceIndicator = builder
+                .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
+                .define("compact_slices_indicator", false);
+
+        worldMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
+                .define("follow_player", true);
+
+        builder.pop();
 
         soundScalar = builder
                 .comment("Multiplier for all the Atlases sound float")
@@ -76,6 +98,7 @@ public class MapAtlasesClientConfig {
     }
 
     public static final Supplier<Boolean> drawMiniMapHUD;
+    public static final Supplier<Double> miniMapZoomMultiplier;
     public static final Supplier<Integer> forceMiniMapScaling;
     public static final Supplier<Anchoring> miniMapAnchoring;
     public static final Supplier<Integer> miniMapHorizontalOffset;
@@ -89,7 +112,10 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapDecorationScale;
     public static final Supplier<Double> worldMapDecorationScale;
     public static final Supplier<Double> soundScalar;
-    public static final Supplier<Boolean> compactSliceIndicator;
+    public static final Supplier<Boolean> worldMapCompactSliceIndicator;
+    public static final Supplier<Boolean> miniMapRotate;
+    public static final Supplier<Boolean> miniMapFollowPlayer;
+    public static final Supplier<Boolean> worldMapFollowPlayer;
 
     public static final ForgeConfigSpec spec;
 

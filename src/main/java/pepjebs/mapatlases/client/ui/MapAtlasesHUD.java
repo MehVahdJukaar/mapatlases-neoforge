@@ -1,17 +1,13 @@
 package pepjebs.mapatlases.client.ui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -44,8 +40,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
     private final Minecraft mc;
 
-    private ItemStack currentAtlas;
+    //cached stuff
     private boolean needsInit = true;
+    private ItemStack currentAtlas;
+    private MapKey currentMapKey = null;
 
     public MapAtlasesHUD() {
         super(1);
@@ -57,7 +55,15 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         return MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ,
-                mc.level.dimension(), MapAtlasItem.getSelectedSlice(currentAtlas, mc.level.dimension()));
+                currentMapKey.dimension(), currentMapKey.slice());
+    }
+
+    @Override
+    protected void initialize(MapItemSavedData originalCenterMap) {
+        super.initialize(originalCenterMap);
+
+        this.followingPlayer = false;//MapAtlasesClientConfig.miniMapFollowPlayer.get();
+        this.rotatesWithPlayer = false;// MapAtlasesClientConfig.miniMapRotate.get();
     }
 
     @Override
@@ -86,17 +92,16 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         LocalPlayer player = mc.player;
 
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        MapKey key = MapAtlasesClient.getActiveMapKey();
-        if (key == null) return;
-        Pair<String, MapItemSavedData> activeMap = maps.select(key);
+        currentMapKey = MapAtlasesClient.getActiveMapKey();
+        if (currentMapKey == null) return;
+        Pair<String, MapItemSavedData> activeMap = maps.select(currentMapKey);
         if (activeMap == null) return;
 
         MapItemSavedData state = activeMap.getSecond();
-        String curMapId = activeMap.getFirst();
 
-        if(needsInit){
+        if (needsInit) {
             needsInit = false;
-            tempInitialize(state);
+            initialize(state);
         }
 
         PoseStack poseStack = graphics.pose();
@@ -107,13 +112,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         // Set zoom-level for map icons
         MapAtlasesClient.setWorldMapZoomLevel((float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
 
-
-        float mapSize = (64 * 116/128f);
+        int bgSize = 64;
+        int mapWidgetSize = (int) (64 * 116 / 128f);
 
         // Draw map background
         Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
-        float x = anchorLocation.isLeft ? 0 : screenWidth - mapSize;
-        float y = !anchorLocation.isUp ? screenHeight - mapSize : 0;
+        int x = anchorLocation.isLeft ? 0 : screenWidth - mapWidgetSize;
+        int y = !anchorLocation.isUp ? screenHeight - mapWidgetSize : 0;
         x += MapAtlasesClientConfig.miniMapHorizontalOffset.get();
         y += MapAtlasesClientConfig.miniMapVerticalOffset.get();
 
@@ -137,47 +142,50 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         //idk why its sacled up 2x
-        graphics.blit(MAP_BACKGROUND, 0, 0, 64,64, 0, 0,
+        graphics.blit(MAP_BACKGROUND, x, y, bgSize, bgSize, 0, 0,
                 BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE);
 
         // Draw map data
 
         poseStack.pushPose();
 
-        currentXCenter = (float) player.getX();
-        currentZCenter = (float) player.getZ();
+        if (followingPlayer) {
+            currentXCenter = (float) player.getX();
+            currentZCenter = (float) player.getZ();
+        }
 
-        drawAtlas(graphics, (int) x-2, (int) y-2, (int) mapSize, (int) mapSize, player, 2);
+        drawAtlas(graphics, x + (bgSize - mapWidgetSize) / 2, y + (bgSize - mapWidgetSize) / 2,
+                mapWidgetSize, mapWidgetSize, player,
+                1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get());
 
-        graphics.blit(MAP_ICON_TEXTURE, (int) (-4+ x -2+mapSize/2f),
-                (int) (-4+ y -2+mapSize/2f),
-                0, 0, 8, 8, 128, 128);
-
+        if (rotatesWithPlayer) {
+            graphics.blit(MAP_ICON_TEXTURE, x + mapWidgetSize / 2 - 1,
+                    y + mapWidgetSize / 2 - 1,
+                    0, 0, 8, 8, 128, 128);
+        }
 
         poseStack.popPose();
-      //  graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
-/*
+        //  graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
         // Draw text data
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
-        int textHeightOffset = mapBgScaledSize + 4;
-        int textWidthOffset = mapBgScaledSize;
+        int textHeightOffset = bgSize + 4;
         if (!anchorLocation.isUp) {
             textHeightOffset = (int) (-24 * textScaling);
         }
         if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
             drawMapComponentCoords(
-                    graphics, x, y, textWidthOffset, textHeightOffset,
+                    graphics, mc.font, x, y + textHeightOffset, bgSize,
                     textScaling, new BlockPos(new Vec3i(
                             towardsZero(player.position().x),
                             towardsZero(player.position().y),
                             towardsZero(player.position().z))));
-            textHeightOffset += (12 * textScaling);
+            textHeightOffset += (10 * textScaling);
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    graphics, x, y, textWidthOffset, textHeightOffset,
+                    graphics, mc.font, x, y + textHeightOffset, bgSize,
                     textScaling, player.blockPosition(), level);
-        }*/
+        }
     }
 
     private static void playSoundIfMapChanged(String curMapId, ClientLevel level, LocalPlayer player) {
@@ -201,21 +209,21 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
     public static void drawMapComponentCoords(
             GuiGraphics context,
+            Font font,
             int x, int y,
-            int originOffsetWidth,
-            int originOffsetHeight,
+            int targetWidth,
             float textScaling,
             BlockPos blockPos
     ) {
         String coordsToDisplay = blockPos.toShortString();
-        drawScaledComponent(context, x, y, coordsToDisplay, textScaling, originOffsetWidth, originOffsetHeight);
+        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling, targetWidth);
     }
 
     public static void drawMapComponentBiome(
             GuiGraphics context,
+            Font font,
             int x, int y,
-            int originOffsetWidth,
-            int originOffsetHeight,
+            int targetWidth,
             float textScaling,
             BlockPos blockPos,
             Level level
@@ -226,31 +234,32 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, x, y, biomeToDisplay, textScaling, originOffsetWidth, originOffsetHeight);
+        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling, targetWidth);
     }
 
     public static void drawScaledComponent(
             GuiGraphics context,
+            Font font,
             int x, int y,
             String text,
             float textScaling,
-            int originOffsetWidth,
-            int originOffsetHeight
+            int targetWidth
     ) {
-        Minecraft mc = Minecraft.getInstance();
         PoseStack pose = context.pose();
-        float textWidth = mc.font.width(text) * textScaling;
-        float textX = (float) (x + (originOffsetWidth / 2.0) - (textWidth / 2.0));
-        float textY = y + originOffsetHeight;
-        if (textX + textWidth >= mc.getWindow().getGuiScaledWidth()) {
-            textX = mc.getWindow().getGuiScaledWidth() - textWidth;
-        }
+        float textWidth = font.width(text);
+
+        float scale = Math.min(1, targetWidth * textScaling / textWidth);
+        scale *= textScaling;
+
+        float centerX = x + targetWidth / 2f;
+
         pose.pushPose();
-        pose.translate(textX, textY, 5);
-        pose.scale(textScaling, textScaling, 1);
+        pose.translate(centerX, y + 4, 5);
+        pose.scale(scale, scale, 1);
+        pose.translate(-(textWidth) / 2f, -4, 0);
         // uses slightly lighter drop shadow
-        context.drawString(mc.font, text, 1, 1, 0x595959, false);
-        context.drawString(mc.font, text, 0, 0, 0xE0E0E0, false);
+        context.drawString(font, text, 1, 1, 0x595959, false);
+        context.drawString(font, text, 0, 0, 0xE0E0E0, false);
         pose.popPose();
     }
 

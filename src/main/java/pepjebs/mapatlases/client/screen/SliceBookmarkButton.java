@@ -14,7 +14,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     private static final int BUTTON_W = 27;
 
     private final AtlasOverviewScreen parentScreen;
-    protected final boolean compact =  MapAtlasesClientConfig.compactSliceIndicator.get();
+    protected final boolean compact =  MapAtlasesClientConfig.worldMapCompactSliceIndicator.get();
 
     private Integer slice;
 

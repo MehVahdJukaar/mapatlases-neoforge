@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -43,7 +44,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
                      AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
         super(atlasesCount);
-        tempInitialize(originalCenterMap);
+        initialize(originalCenterMap);
 
         this.x = x;
         this.y = y;
@@ -59,17 +60,16 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     @Override
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
 
-        Player player = Minecraft.getInstance().player;
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
         if (player == null) return;
 
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
-
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel);
 
-
         if (this.isHovered) {
-            this.renderPositionText(graphics, pMouseX, pMouseY, zoomLevel);
+            this.renderPositionText(graphics, mc.font,  pMouseX, pMouseY, zoomLevel);
         }
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter, zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
@@ -80,7 +80,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 
-    private void renderPositionText(GuiGraphics graphics, int mouseX, int mouseY, float zoomLevelDim) {
+    private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY, float zoomLevelDim) {
         // Draw world map coords
 
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
@@ -98,7 +98,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         //idk why
         String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
         MapAtlasesHUD.drawScaledComponent(
-                graphics, x, y, coordsToDisplay, textScaling, width, height + 16);
+                graphics, font, x+height + 16, y, coordsToDisplay, textScaling, width);
 
 
     }

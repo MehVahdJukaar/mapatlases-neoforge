@@ -129,9 +129,7 @@ public class AtlasOverviewScreen extends Screen {
             this.updateVisibleDecoration(initialMapSelected.centerX, initialMapSelected.centerZ, 3 / 2f * MAP_DIMENSION,
                     true);
         }
-
         this.initialized = true;
-
     }
 
 
