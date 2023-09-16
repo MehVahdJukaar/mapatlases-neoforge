@@ -3,8 +3,10 @@ package pepjebs.mapatlases.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -24,16 +26,20 @@ public abstract class AbstractAtlasWidget {
 
     //internally controls how many maps are displayed
     protected final int atlasesCount;
-    protected final int mapAtlasScale;
-    private final MapItemSavedData originalCenterMap;
+    protected int mapAtlasScale;
+    private MapItemSavedData originalCenterMap;
 
     protected boolean followingPlayer = true;
     protected float currentXCenter;
     protected float currentZCenter;
 
-    protected AbstractAtlasWidget(int atlasesCount, MapItemSavedData originalCenterMap) {
+    protected boolean rotatesWithPlayer = false;
 
+    protected AbstractAtlasWidget(int atlasesCount) {
         this.atlasesCount = atlasesCount;
+    }
+
+    protected void tempInitialize(MapItemSavedData originalCenterMap) {
         this.originalCenterMap = originalCenterMap;
         this.mapAtlasScale = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
@@ -41,7 +47,8 @@ public abstract class AbstractAtlasWidget {
         this.currentZCenter = originalCenterMap.centerZ;
     }
 
-    public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height, Player player, float zoomLevelDim) {
+    public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
+                          Player player, float zoomLevelDim) {
         // Handle zooming markers hack
         MapAtlasesClient.setWorldMapZoomLevel(zoomLevelDim * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
@@ -60,6 +67,7 @@ public abstract class AbstractAtlasWidget {
 
 
         poseStack.translate(x + width / 2f, y + height / 2f, 0);
+
         poseStack.scale(mapScalingFactor * zoomScale, mapScalingFactor * zoomScale, -1);
 
         // Draw maps, putting active map in middle of grid
@@ -71,9 +79,13 @@ public abstract class AbstractAtlasWidget {
         float offsetZ = currentZCenter - centerMapZ;
 
 
+        int hz = Mth.ceil(zoomLevelDim / 2f);
+
+        if (rotatesWithPlayer) {
+            poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
+        }
         poseStack.translate(-offsetX, -offsetZ, 0);
 
-        int hz = Mth.ceil(zoomLevelDim / 2f);
 
         int minI = -hz;
         int maxI = hz;
@@ -92,7 +104,7 @@ public abstract class AbstractAtlasWidget {
                 if (state == null) continue;
                 MapItemSavedData data = state.getSecond();
                 boolean drawPlayerIcons = data.dimension.equals(player.level().dimension());
-                drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
+                // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
                 this.drawMap(poseStack, vcp, i, j, state, drawPlayerIcons);
             }
         }
@@ -138,9 +150,6 @@ public abstract class AbstractAtlasWidget {
         }
 
         removed.forEach(d -> data.decorations.remove(d.getKey()));
-        if (data.decorations.size() != 0) {
-            int aa = 1;
-        }
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
@@ -149,7 +158,7 @@ public abstract class AbstractAtlasWidget {
                         MapAtlasesAccessUtils.getMapIntFromString(state.getFirst()),
                         data,
                         false,
-                        0xF000F0
+                        LightTexture.FULL_BRIGHT
                 );
         matrices.popPose();
         // Re-add the off-map player icons after render

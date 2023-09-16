@@ -1,8 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.moonlight.core.mixins.MapDataMixin;
-import net.mehvahdjukaar.moonlight.core.network.ClientBoundSyncCustomMapDecorationMessage;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -32,6 +30,7 @@ import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -275,7 +274,7 @@ public class MapAtlasesServerEvents {
 
             Integer mapId = MapItem.getMapId(newMap);
             if (mapId != null) {
-                maps.add(mapId, level, slice);
+                maps.add(mapId, level);
                 MapItemSavedData newData = MapItem.getSavedData(mapId, level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if(newData != null) {
@@ -307,14 +306,14 @@ public class MapAtlasesServerEvents {
                 if (i != 0 || j != 0) {
                     int qI = xCenter;
                     int qJ = zCenter;
-                    if (i == -1 && xPlayer - 128 < xCenter - halfWidth) {
+                    if (i == -1 && xPlayer - 128 <= xCenter - halfWidth) {
                         qI -= width;
-                    } else if (i == 1 && xPlayer + 128 > xCenter + halfWidth) {
+                    } else if (i == 1 && xPlayer + 128 >= xCenter + halfWidth) {
                         qI += width;
                     }
-                    if (j == -1 && zPlayer - 128 < zCenter - halfWidth) {
+                    if (j == -1 && zPlayer - 128 <= zCenter - halfWidth) {
                         qJ -= width;
-                    } else if (j == 1 && zPlayer + 128 > zCenter + halfWidth) {
+                    } else if (j == 1 && zPlayer + 128 >= zCenter + halfWidth) {
                         qJ += width;
                     }
                     // Some lambda bullshit
@@ -324,7 +323,8 @@ public class MapAtlasesServerEvents {
                 }
             }
         }
-        if (results.size() != 8) {
+        //TODO: remove
+        if (results.size() != 8 || new HashSet<>(results).size() != 8) {
             int error = 1;
         }
         return results;

@@ -24,7 +24,6 @@ public class DimensionBookmarkButton extends BookmarkButton {
     private final AtlasOverviewScreen parentScreen;
 
 
-
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, AtlasOverviewScreen screen) {
         super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT);
         this.dimension = dimension;

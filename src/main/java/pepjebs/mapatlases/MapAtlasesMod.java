@@ -69,6 +69,7 @@ public class MapAtlasesMod {
 
     static {
 //sound
+        //ml deco
         //lectern gui handler
         //spyglass zoom
         var bus = FMLJavaModLoadingContext.get().getModEventBus();

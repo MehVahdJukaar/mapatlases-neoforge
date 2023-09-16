@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.item;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -129,7 +130,7 @@ public class MapAtlasItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
-        if (level != null) {
+        if (level != null && stack.hasTag()) {
             MapCollectionCap maps = getMaps(stack, level);
             int mapSize = maps.getCount();
             int empties = getEmptyMaps(stack);
@@ -149,8 +150,9 @@ public class MapAtlasItem extends Item {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
 
-            MapItemSavedData activeState = maps.select(MapAtlasesClient.getActiveMapKey()).getSecond();
-            if (activeState == null) return;
+            Pair<String, MapItemSavedData> select = maps.select(MapAtlasesClient.getActiveMapKey());
+            if (select == null) return;
+            MapItemSavedData activeState = select.getSecond();
             tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_scale", 1 << activeState.scale).withStyle(ChatFormatting.GRAY));
 
             if (isLocked(stack)) {

@@ -42,7 +42,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
                      AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
-        super(atlasesCount, originalCenterMap);
+        super(atlasesCount);
+        tempInitialize(originalCenterMap);
 
         this.x = x;
         this.y = y;
@@ -53,8 +54,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.targetXCenter = originalCenterMap.centerX;
         this.targetZCenter = originalCenterMap.centerZ;
-
-        int aa = 1;
     }
 
     @Override

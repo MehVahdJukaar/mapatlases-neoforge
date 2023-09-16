@@ -4,13 +4,17 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -18,6 +22,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
@@ -44,7 +49,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             }
         }
         boolean b = !shears.isEmpty() && !atlas.isEmpty();
-        if(b){
+        if (b) {
             levelRef = new WeakReference<>(level);
         }
         return b;
@@ -61,8 +66,9 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         }
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         if (maps.getCount() > 1) {
-            //TODO: fix
-            String stringId = "";// maps.getActive().getFirst();
+            var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
+            //TODO: very ugly and wont work in many cases
+            String stringId = getMapToRemove(inv, maps, slice);
             int mapId = MapAtlasesAccessUtils.getMapIntFromString(stringId);
             return MapAtlasesAccessUtils.createMapItemStackFromId(mapId);
         }
@@ -73,10 +79,35 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
+    private static String getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Integer slice) {
+        String stringId = "";// maps.getActive().getFirst();
+        if (inv instanceof TransientCraftingContainer tc) {
+            try {
+                if (MENU.get(tc) instanceof CraftingMenu cm) {
+                    Player player = (Player) PLAYER.get(cm);
+                    var c = maps.getClosest(player, slice);
+                    if (c != null) {
+                        stringId = c.getFirst();
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (stringId.isEmpty()) {
+            stringId = maps.getAll().stream().findAny().get().getFirst();
+        }
+        return stringId;
+    }
+
+    private static final Field MENU = ObfuscationReflectionHelper.findField(TransientCraftingContainer.class,
+            "menu");
+    private static final Field PLAYER = ObfuscationReflectionHelper.findField(CraftingMenu.class,
+            "player");
+
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer container) {
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
         NonNullList<ItemStack> list = NonNullList.create();
-        for (ItemStack i : container.getItems()) {
+        for (ItemStack i : inv.getItems()) {
             ItemStack stack = i.copy();
 
             if (stack.getItem() == Items.SHEARS) {
@@ -85,8 +116,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 boolean didRemoveFilled = false;
                 MapCollectionCap maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
-                    //TODO: fix
-                    //maps.remove(maps.getActive().getFirst());
+                    var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
+                    maps.remove(getMapToRemove(inv, maps, slice));
                     didRemoveFilled = true;
                 }
                 int emptyMaps = MapAtlasItem.getEmptyMaps(stack);

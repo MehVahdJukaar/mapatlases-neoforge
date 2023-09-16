@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 public interface IMapCollection {
 
-    boolean add(int mapId, Level level, @Nullable Integer debug);
+    boolean add(int mapId, Level level );
 
 
     @Nullable

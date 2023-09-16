@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.capabilities;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.core.misc.IMapDataPacketExtension;
+import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
@@ -60,11 +62,11 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
 
     private ThreadLocal<Boolean> lock = ThreadLocal.withInitial(() -> true);
-
-    public void fixClientDuplicates(Level level, @Nullable Integer slice) {
+//Todo remove
+    public void fixClientDuplicates(Level level ) {
         duplicates.removeIf(d -> {
             lock.set(false);
-            var r = add(d, level, slice);
+            var r = add(d, level);
             lock.set(true);
             return r;
         });
@@ -79,7 +81,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
             for (int i : array) {
-                add(i, level, Integer.MIN_VALUE);
+                add(i, level);
             }
             lazyNbt = null;
         }
@@ -110,7 +112,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public boolean add(int intId, Level level, @Nullable Integer debug) {
+    public boolean add(int intId, Level level) {
         assertInitialized();
         String mapKey = MapItem.makeKey(intId);
         MapItemSavedData d = level.getMapData(mapKey);
@@ -124,9 +126,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         }
         if (d != null && d.scale == scale) {
             Integer slice = getSlice(d);
-            if (!Objects.equals(Integer.MIN_VALUE, debug) && !Objects.equals(slice, debug)) {
-                int error = 1;
-            }
+
             MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
             //remove duplicates
             if (maps.containsKey(key)) {

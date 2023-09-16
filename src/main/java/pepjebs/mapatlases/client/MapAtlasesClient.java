@@ -66,7 +66,7 @@ public class MapAtlasesClient {
             var maps = MapAtlasItem.getMaps(atlas, player.level());
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
-            maps.fixClientDuplicates(player.level(), slice);
+            maps.fixClientDuplicates(player.level());
 
             currentActiveMapKey = MapKey.closest(maps.getScale(), player, slice);
         } else currentActiveMapKey = null;
