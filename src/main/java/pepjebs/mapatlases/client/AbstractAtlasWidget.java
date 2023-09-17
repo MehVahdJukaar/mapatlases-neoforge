@@ -83,7 +83,7 @@ public abstract class AbstractAtlasWidget {
 
         List<Matrix4f> outlineHack = new ArrayList<>();
 
-      //  graphics.enableScissor(x, y, (x + width), (y + height));
+        applyScissors(graphics, x, y, (x + width), (y + height));
 
         float offsetX = currentXCenter - centerMapX;
         float offsetZ = currentZCenter - centerMapZ;
@@ -140,9 +140,11 @@ public abstract class AbstractAtlasWidget {
         }
 
         poseStack.popPose();
-        //graphics.disableScissor();
+        graphics.disableScissor();
+    }
 
-
+    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+        graphics.enableScissor(x, y, x1, y1);
     }
 
     public abstract Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);

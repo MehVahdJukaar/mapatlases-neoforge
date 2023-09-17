@@ -1,8 +1,6 @@
 package pepjebs.mapatlases.capabilities;
 
 import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.moonlight.core.misc.IMapDataPacketExtension;
-import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
@@ -23,7 +21,6 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static pepjebs.mapatlases.utils.MapAtlasesAccessUtils.createMapItemStackFromId;
 
@@ -46,7 +43,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<ResourceKey<Level>, TreeSet<Integer>> dimensionSlices = new HashMap<>();
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
-    private final Set<Integer> duplicates = new HashSet<>();
 
     public MapCollectionCap() {
     }
@@ -118,7 +114,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             //remove duplicates
             if (maps.containsKey(key)) {
                 idMap.put(mapKey, intId);
-                 duplicates.add(intId);
                 return false;
                 //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
                 //we just store the map id without actually adding it as its map key is incorrect
@@ -238,4 +233,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
 
+    public boolean hasOneSlice() {
+        return maps.keySet().stream().anyMatch(k -> k.slice() != null);
+    }
 }
