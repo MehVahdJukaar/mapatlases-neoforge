@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -31,7 +33,8 @@ import java.util.List;
 
 public class MapAtlasesClient {
 
-    private static final ThreadLocal<Float> worldMapZoomLevel = new ThreadLocal<>();
+    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(()->1f);
+    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(()->0f);;
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
@@ -66,9 +69,7 @@ public class MapAtlasesClient {
             var maps = MapAtlasItem.getMaps(atlas, player.level());
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
-            maps.fixClientDuplicates(player.level());
-
-            currentActiveMapKey = MapKey.closest(maps.getScale(), player, slice);
+            currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
         } else currentActiveMapKey = null;
     }
 
@@ -108,13 +109,26 @@ public class MapAtlasesClient {
         event.register(OPEN_ATLAS_KEYBIND);
     }
 
-    public static float getWorldMapZoomLevel() {
-        if (worldMapZoomLevel.get() == null) return 1.0f;
-        return worldMapZoomLevel.get();
+    public static void modifyDecorationTransform(PoseStack poseStack) {
+        Float scale = globalDecorationScale.get();
+        if (scale != null) poseStack.scale(scale, scale, 1);
+        Float rot = globalDecorationRotation.get();
+        if (rot != null) {
+            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+        }
     }
 
-    public static void setWorldMapZoomLevel(float i) {
-        worldMapZoomLevel.set(i);
+    @Deprecated(forRemoval = true)
+    public static float getWorldMapZoomLevel() {
+        return globalDecorationScale.get();
+    }
+
+    public static void setDecorationsScale(float i) {
+        globalDecorationScale.set(i);
+    }
+
+    public static void setDecorationRotation(float i) {
+        globalDecorationRotation.set(i);
     }
 
     public static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {

@@ -267,7 +267,7 @@ public class MapAtlasItem extends Item {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
-                var mapState = maps.select(MapKey.closest(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                var mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.getSecond().toggleBanner(level, blockPos);
                 if (!didAdd)

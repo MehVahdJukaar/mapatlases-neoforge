@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.supplementaries.common.items.AltimeterItem;
+import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -15,7 +17,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
-import org.apache.commons.compress.archivers.sevenz.CLI;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -25,7 +26,6 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
-import pepjebs.mapatlases.networking.S2CSetActiveMapPacket;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -88,7 +88,7 @@ public class MapAtlasesServerEvents {
 
             // sets new center map
 
-            Pair<String, MapItemSavedData> activeInfo = maps.select(MapKey.closest(maps.getScale(), player, slice));
+            Pair<String, MapItemSavedData> activeInfo = maps.select(MapKey.at(maps.getScale(), player, slice));
             //TODO: improve
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
@@ -112,7 +112,6 @@ public class MapAtlasesServerEvents {
             );
 
             // Update Map states & colors
-
             List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
                     maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
                             .anyMatch(edge -> edge[0] == e.centerX
@@ -317,8 +316,6 @@ public class MapAtlasesServerEvents {
                         qJ += width;
                     }
                     // Some lambda bullshit
-                    int finalQI = qI;
-                    int finalQJ = qJ;
                     results.add(new int[]{qI, qJ});
                 }
             }

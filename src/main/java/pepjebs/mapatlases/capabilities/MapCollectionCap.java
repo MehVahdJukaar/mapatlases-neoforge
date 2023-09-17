@@ -49,7 +49,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Set<Integer> duplicates = new HashSet<>();
 
     public MapCollectionCap() {
-        int aa = 1;
     }
 
     public boolean isInitialized() {
@@ -60,18 +59,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         assert this.lazyNbt == null;
     }
 
-
-    private ThreadLocal<Boolean> lock = ThreadLocal.withInitial(() -> true);
-//Todo remove
-    public void fixClientDuplicates(Level level ) {
-        duplicates.removeIf(d -> {
-            lock.set(false);
-            var r = add(d, level);
-            lock.set(true);
-            return r;
-        });
-        int aa = 1;
-    }
 
     // we need leven context
     public void initialize(Level level) {
@@ -131,7 +118,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             //remove duplicates
             if (maps.containsKey(key)) {
                 idMap.put(mapKey, intId);
-                if(lock.get()) duplicates.add(intId);
+                 duplicates.add(intId);
                 return false;
                 //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
                 //we just store the map id without actually adding it as its map key is incorrect

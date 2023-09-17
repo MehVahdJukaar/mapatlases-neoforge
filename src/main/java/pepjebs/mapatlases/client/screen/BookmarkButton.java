@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
@@ -31,6 +32,7 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        RenderSystem.enableDepthTest();
         if (!visible || !active) return;
         pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
                 this.getX(), this.getY(), xOff,

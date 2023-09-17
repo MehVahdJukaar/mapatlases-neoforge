@@ -13,6 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
@@ -66,14 +67,20 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
+        // Handle zooming markers hack
+        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
+
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
                 MapAtlasesClientConfig.worldMapBorder.get());
+
+        MapAtlasesClient.setDecorationsScale(1);
 
         if (this.isHovered) {
             this.renderPositionText(graphics, mc.font,  pMouseX, pMouseY, zoomLevel);
         }
 
-        mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter, zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
+        mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
+                zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
     }
 
     @Override
@@ -190,10 +197,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         this.cumulativeZoomValue = ZOOM_BUCKET;
         this.targetZoomLevel = 2;
         this.followingPlayer = followPlayer;
-    }
-
-    public int getMapAtlasScale() {
-        return mapAtlasScale;
     }
 
     public void tick() {

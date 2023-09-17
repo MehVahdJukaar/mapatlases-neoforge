@@ -14,7 +14,7 @@ public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, @Nullable
         return this.dimension.equals(dimension) && Objects.equals(slice, this.slice);
     }
 
-    public static MapKey closest(byte scale, Player player, @Nullable Integer slice) {
+    public static MapKey at(byte scale, Player player, @Nullable Integer slice) {
         double px = player.getX();
         double pz = player.getZ();
         //map code

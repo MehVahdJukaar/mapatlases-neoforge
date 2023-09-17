@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.ui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
@@ -110,8 +111,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         // Update client current map id
         // TODO: dont like this sound here. should be in tick instead
         // playSoundIfMapChanged(curMapId, level, player);
-        // Set zoom-level for map icons
-        MapAtlasesClient.setWorldMapZoomLevel((float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
 
         int bgSize = 64;
         int mapWidgetSize = (int) (64 * 116 / 128f);
@@ -142,7 +141,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             }
         }
 
-        //idk why its sacled up 2x
         graphics.blit(MAP_BACKGROUND, x, y, bgSize, bgSize, 0, 0,
                 BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE);
 
@@ -155,10 +153,21 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             currentZCenter = (float) player.getZ();
         }
 
+        // Set zoom-level for map icons
+        MapAtlasesClient.setDecorationsScale((float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
+        if(rotatesWithPlayer){
+            MapAtlasesClient.setDecorationRotation(player.getYRot()-180);
+        }
+
         drawAtlas(graphics, x + (bgSize - mapWidgetSize) / 2, y + (bgSize - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get());
+
+        MapAtlasesClient.setDecorationsScale(1);
+        if(rotatesWithPlayer){
+            MapAtlasesClient.setDecorationRotation(0);
+        }
 
         if (rotatesWithPlayer) {
             graphics.blit(MAP_ICON_TEXTURE, x + mapWidgetSize / 2 - 1,

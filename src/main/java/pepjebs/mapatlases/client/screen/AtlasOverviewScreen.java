@@ -22,6 +22,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
@@ -135,11 +136,6 @@ public class AtlasOverviewScreen extends Screen {
         this.setFocused(mapWidget);
 
         this.selectDimension(initialWorldSelected);
-        if (initialMapSelected != null) {
-            //TODO: what is this for?
-            this.updateVisibleDecoration(initialMapSelected.centerX, initialMapSelected.centerZ, 3 / 2f * MAP_DIMENSION,
-                    true);
-        }
         this.initialized = true;
     }
 
@@ -329,19 +325,6 @@ public class AtlasOverviewScreen extends Screen {
         return new String(array);
     }
 
-    private List<Pair<MapItemSavedData, MapDecoration>> getMapDecorationList() {
-        List<Pair<MapItemSavedData, MapDecoration>> mapIcons = new ArrayList<>();
-        for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentWorldSelected, selectedSlice)) {
-            MapItemSavedData data = p.getSecond();
-            for (var e : data.decorations.entrySet()) {
-                if (e.getValue().renderOnFrame()) {
-                    mapIcons.add(Pair.of(data, e.getValue()));
-                }
-            }
-        }
-        return mapIcons;
-    }
-
     public void selectDimension(ResourceKey<Level> dimension) {
         this.currentWorldSelected = dimension;
         //TODO: edge case with just slices
@@ -368,62 +351,77 @@ public class AtlasOverviewScreen extends Screen {
         float maxX = currentXCenter + r;
         float minZ = currentZCenter - r;
         float maxZ = currentZCenter + r;
-        float mapScale = mapWidget.getMapAtlasScale();
         // Create a list to store selected decorations
         // Create a TreeMap to store selected decorations sorted by distance
-        TreeMap<Double, DecorationBookmarkButton> byDistance = new TreeMap<>();
+        List<Pair<Double, DecorationBookmarkButton>> byDistance = new ArrayList<>();
         for (var e : decorationBookmarks.entrySet()) {
             DecorationBookmarkButton bookmark = e.getKey();
-            MapDecoration deco = bookmark.getDecoration();
             MapItemSavedData data = e.getValue();
-            double x = getDecorationX(deco, data, mapScale);
-            double z = getDecorationZ(deco, data, mapScale);
+            double x = bookmark.getWorldX( data);
+            double z = bookmark.getWorldZ( data);
             // Check if the decoration is within the specified range
             bookmark.setSelected(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
             if (followingPlayer) {
                 double distance = Mth.square(x - currentXCenter) + Mth.square(z - currentZCenter);
                 // Store the decoration in the TreeMap with distance as the key
-                byDistance.put(distance, bookmark);
+                byDistance.add(Pair.of(distance, bookmark));
             }
         }
         //TODO: maybe this isnt needed
         if (followingPlayer) {
-            int inxed = 0;
-            //TODO: make it into a list
-            for (var d : byDistance.values()) {
-                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + inxed * 17);
-                inxed++;
+            int index = 0;
+            int separation = Math.min(17,(int) (143f / byDistance.size()));
+
+            byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
+            for (var e : byDistance) {
+                var d = e.getSecond();
+                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.setIndex(index);
+                index++;
             }
         }
 
     }
 
-    private static double getDecorationZ(MapDecoration deco, MapItemSavedData data, float mapScale) {
-        return data.centerZ - (mapScale / 2.0d) + ((mapScale / 2.0d) * ((deco.getY() + MAP_DIMENSION) / (float) MAP_DIMENSION));
-    }
-
-    private static double getDecorationX(MapDecoration deco, MapItemSavedData data, float mapScale) {
-        return data.centerX - (mapScale / 2.0d) + ((mapScale / 2.0d) * ((deco.getX() + MAP_DIMENSION) / (float) MAP_DIMENSION));
-    }
-
     private void addDecorationWidgets() {
+        List<Pair<Object, MapItemSavedData>> mapIcons = new ArrayList<>();
+
+        boolean ml = MapAtlasesMod.MOONLIGHT;
+        for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentWorldSelected, selectedSlice)) {
+            MapItemSavedData data = p.getSecond();
+            for (var d : data.decorations.entrySet()) {
+                MapDecoration deco = d.getValue();
+                if (deco.renderOnFrame()) {
+                    mapIcons.add(Pair.of(deco, data));
+                }
+            }
+            if (ml) {
+                mapIcons.addAll(MoonlightCompat.getCustomDecorations(data));
+            }
+        }
         int i = 0;
-        for (var d : getMapDecorationList()) {
-            DecorationBookmarkButton pWidget = new DecorationBookmarkButton(
+
+        int separation = Math.min(17,(int) (143f / mapIcons.size()));
+        List<DecorationBookmarkButton> widgets = new ArrayList<>();
+        for (var e : mapIcons) {
+            DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
                     (width - IMAGE_WIDTH) / 2 + 10,
-                    (height - IMAGE_HEIGHT) / 2 + 15 + i * 17, d.getSecond(), this);
-            this.addRenderableWidget(pWidget);
-            this.decorationBookmarks.put(pWidget, d.getFirst());
+                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), this);
+            pWidget.setIndex(i);
+            widgets.add(pWidget);
+            this.decorationBookmarks.put(pWidget, e.getSecond());
             i++;
         }
+        //add widget in order so they render optimized without unneded texture swaps
+        widgets.sort(Comparator.comparingInt(DecorationBookmarkButton::getBatchGroup));
+        widgets.forEach(this::addRenderableWidget);
+
     }
 
     public void focusDecoration(DecorationBookmarkButton button) {
         MapItemSavedData targetData = decorationBookmarks.get(button);
-        MapDecoration decoration = button.getDecoration();
-        float scale = mapWidget.getMapAtlasScale();
-        int x = (int) getDecorationX(decoration, targetData, scale);
-        int z = (int) getDecorationZ(decoration, targetData, scale);
+        int x = (int) button.getWorldX(targetData);
+        int z = (int) button.getWorldZ(targetData);
         this.mapWidget.resetAndCenter(x, z, false);
     }
 

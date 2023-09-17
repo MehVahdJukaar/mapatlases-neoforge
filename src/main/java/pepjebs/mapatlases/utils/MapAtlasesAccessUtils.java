@@ -1,28 +1,25 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MapAtlasesAccessUtils {
@@ -100,25 +97,10 @@ public class MapAtlasesAccessUtils {
     }
 
 
-
     // KEEP NAME
     @Deprecated(forRemoval = true)
     public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level level, ItemStack atlas) {
-        if (atlas.getTag() == null) return new HashMap<>();
-        int[] mapIds = Arrays.stream(atlas.getTag().getIntArray("a")).toArray();
-        Map<String, MapItemSavedData> mapStates = new HashMap<>();
-        for (int mapId : mapIds) {
-            String mapName = MapItem.makeKey(mapId);
-            MapItemSavedData state = level.getMapData(mapName);
-            if (state == null && level instanceof ServerLevel) {
-                ItemStack map = createMapItemStackFromId(mapId);
-                state = MapItem.getSavedData(map, level);
-            }
-            if (state != null) {
-                mapStates.put(mapName, state);
-            }
-        }
-        return mapStates;
+        return MapAtlasItem.getMaps(atlas, level).getAll().stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
     }
 
     // KEEP NAME
@@ -126,7 +108,15 @@ public class MapAtlasesAccessUtils {
     public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(
             Map<String, MapItemSavedData> currentDimMapInfos,
             ServerPlayer player) {
-        return null;
+        ItemStack atlas = getAtlasFromPlayerByConfig(player);
+        var a = getActiveStateServer(atlas, player);
+        return new AbstractMap.SimpleEntry<>(a.getFirst(), a.getSecond());
+    }
+
+    public static Pair<String, MapItemSavedData> getActiveStateServer(ItemStack stack, Player player) {
+        var slice = MapAtlasItem.getSelectedSlice(stack, player.level().dimension());
+        MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level());
+        return maps.select(MapKey.at(maps.getScale(), player, slice));
     }
 
 }

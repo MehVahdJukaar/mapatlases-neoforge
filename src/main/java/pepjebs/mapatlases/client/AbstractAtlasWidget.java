@@ -58,8 +58,6 @@ public abstract class AbstractAtlasWidget {
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
                           Player player, float zoomLevelDim, boolean showBorders) {
-        // Handle zooming markers hack
-        MapAtlasesClient.setWorldMapZoomLevel(zoomLevelDim * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
 
         PoseStack poseStack = graphics.pose();
@@ -143,7 +141,6 @@ public abstract class AbstractAtlasWidget {
         poseStack.popPose();
         graphics.disableScissor();
 
-        MapAtlasesClient.setWorldMapZoomLevel(1);
 
     }
 

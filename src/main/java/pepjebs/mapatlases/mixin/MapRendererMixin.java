@@ -16,8 +16,7 @@ public class MapRendererMixin {
                     ordinal = 0),
             require = 1)
     private void scaleProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci) {
-        float multiplier = MapAtlasesClient.getWorldMapZoomLevel();
-        poseStack.scale(multiplier, multiplier, 1);
+        MapAtlasesClient.modifyDecorationTransform(poseStack);
     }
 
 }

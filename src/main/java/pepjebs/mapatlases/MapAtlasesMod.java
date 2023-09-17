@@ -66,6 +66,7 @@ public class MapAtlasesMod {
     public static final boolean CURIOS = ModList.get().isLoaded("curios");
     public static final boolean TRINKETS = ModList.get().isLoaded("trinkets");
     public static final boolean SUPPLEMENTARIES = ModList.get().isLoaded("supplementaries");
+    public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
 
     static {
 //sound
