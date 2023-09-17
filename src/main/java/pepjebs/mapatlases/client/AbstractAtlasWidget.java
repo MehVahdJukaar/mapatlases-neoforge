@@ -1,15 +1,11 @@
 package pepjebs.mapatlases.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.screens.advancements.AdvancementTab;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -18,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -25,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractAtlasWidget  extends GuiComponent {
+public abstract class AbstractAtlasWidget {
 
     public static final ResourceLocation MAP_BORDER =
             MapAtlasesMod.res("textures/gui/screen/map_border.png");
@@ -53,14 +50,15 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
         this.originalCenterMap = originalCenterMap;
         this.mapAtlasScale = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
-        this.currentXCenter = originalCenterMap.x;
-        this.currentZCenter = originalCenterMap.z;
+        this.currentXCenter = originalCenterMap.centerX;
+        this.currentZCenter = originalCenterMap.centerZ;
     }
 
-    public void drawAtlas(PoseStack poseStack, int x, int y, int width, int height,
+    public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
                           Player player, float zoomLevelDim, boolean showBorders) {
 
 
+        PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
 
         float mapScalingFactor = width / (float) (atlasesCount * MAP_DIMENSION);
@@ -79,24 +77,26 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
 
         // Draw maps, putting active map in middle of grid
 
-        MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-//var vcp = Minecraft.getInstance().renderBuffers().bufferSource();
+        //MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        MultiBufferSource.BufferSource vcp = graphics.bufferSource();
+
+
         List<Matrix4f> outlineHack = new ArrayList<>();
 
-
-        GuiComponent.enableScissor(x, y, (x + width), (y + height));
+      //  graphics.enableScissor(x, y, (x + width), (y + height));
 
         float offsetX = currentXCenter - centerMapX;
         float offsetZ = currentZCenter - centerMapZ;
 
 
         int hz = Mth.ceil(zoomLevelDim / 2f);
-        if (zoomLevelDim == 1 && !followingPlayer && atlasesCount == 1){
-            hz -= 1;
-        }
+        boolean small = false;
+        if (zoomLevelDim == 1 && followingPlayer && atlasesCount == 1) {
+            small = true;
+        }else hz -=1;
 
         if (rotatesWithPlayer) {
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees(180 - player.getYRot()));
+            poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
         }
         poseStack.translate(-offsetX, -offsetZ, 0);
 
@@ -105,7 +105,7 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
         int minJ = -hz;
         int maxJ = hz;
         //adds more maps to draw if needed
-        if (followingPlayer) {
+        if(!small) {
             if (offsetX < 0) minJ--;
             else if (offsetX > 0) maxJ++;
             if (offsetZ < 0) minI--;
@@ -118,7 +118,7 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
                 Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
                 if (state == null) continue;
                 MapItemSavedData data = state.getSecond();
-                boolean drawPlayerIcons = data.dimension.equals(player.level.dimension());
+                boolean drawPlayerIcons = data.dimension.equals(player.level().dimension());
                 // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
                 this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
             }
@@ -126,7 +126,7 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
 
         vcp.endBatch();
 
-        if(showBorders) {
+        if (showBorders) {
             VertexConsumer outlineVC = vcp.getBuffer(RenderType.text(MAP_BORDER));
             int a = 50;
             for (var matrix4f : outlineHack) {
@@ -140,7 +140,7 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
         }
 
         poseStack.popPose();
-        GuiComponent.disableScissor();
+        //graphics.disableScissor();
 
 
     }
@@ -187,8 +187,8 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
                         vcp,
                         MapAtlasesAccessUtils.getMapIntFromString(state.getFirst()),
                         data,
-                        false,
-                        LightTexture.FULL_BRIGHT //  (1+ix+iy)*50
+                        false,//(1+ix+iy)*50
+                        LightTexture.FULL_BRIGHT //
                 );
 
         outlineHack.add(new Matrix4f(matrices.last().pose()));

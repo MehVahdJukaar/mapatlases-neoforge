@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
 
 @Mixin(FriendlyByteBuf.class)
-public abstract class FriendlyByteBufMixin {
+public abstract  class FriendlyByteBufMixin {
 
 
     @Shadow public abstract FriendlyByteBuf writeItemStack(ItemStack par1, boolean par2);
