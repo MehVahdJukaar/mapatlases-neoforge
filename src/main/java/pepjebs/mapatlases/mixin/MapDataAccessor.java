@@ -1,15 +1,23 @@
 package pepjebs.mapatlases.mixin;
 
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(MapItemSavedData.class)
 public interface MapDataAccessor {
 
+
+
+    @Mutable
     @Accessor("x")
-    void setCenterX(int center);
+    void setX(int center);
+
+    @Mutable
     @Accessor("z")
-    void setCenterZ(int center);
+    void setZ(int center);
 
 }

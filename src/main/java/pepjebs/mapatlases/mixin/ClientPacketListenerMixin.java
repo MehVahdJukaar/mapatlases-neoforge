@@ -17,7 +17,7 @@ public class ClientPacketListenerMixin {
 
     @Inject(method = "handleMapItemData", at = @At(value = "INVOKE",
     shift = At.Shift.BEFORE,
-    target = "Lnet/minecraft/client/multiplayer/ClientLevel;overrideMapData(Ljava/lang/String;Lnet/minecraft/world/level/saveddata/maps/MapItemSavedData;)V"),
+    target = "Lnet/minecraft/client/multiplayer/ClientLevel;setMapData(Ljava/lang/String;Lnet/minecraft/world/level/saveddata/maps/MapItemSavedData;)V"),
     locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     public void keepCenter(ClientboundMapItemDataPacket pPacket, CallbackInfo ci,
                            MapRenderer maprenderer, int i, String s, MapItemSavedData mapitemsaveddata){

@@ -9,6 +9,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -30,6 +31,7 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
@@ -294,8 +296,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         pose.scale(scale, scale, 1);
         pose.translate(-(textWidth) / 2f, -4, 0);
         // uses slightly lighter drop shadow
-        GuiComponent.drawString(pose, font, text, 1, 1, 0x595959);
-        GuiComponent.drawString(pose, font, text, 0, 0, 0xE0E0E0);
+        font.draw(pose, text, 1, 1, 0x595959);
+        font.draw(pose, text, 0, 0, 0xE0E0E0);
         pose.popPose();
     }
 

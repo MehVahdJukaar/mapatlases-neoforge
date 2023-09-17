@@ -23,7 +23,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -164,7 +163,7 @@ public class MapAtlasesClient {
             packet.mapData.tickCarriedBy(player, atlas);
             packet.mapData.getHoldingPlayer(player);
         }
-        ((ClientLevel) level).setMapData(packet.mapId, packet.mapData);
+        level.setMapData(packet.mapId, packet.mapData);
     }
 
     public static void setMapCenter(S2CSyncMapCenterPacket packet) {
@@ -178,12 +177,8 @@ public class MapAtlasesClient {
     }
 
     public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
-        try {
-            ((MapDataAccessor)data).setCenterX( centerX);
-            ((MapDataAccessor)data).setCenterX( centerZ);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ((MapDataAccessor) data).setX(centerX);
+        ((MapDataAccessor) data).setZ(centerZ);
     }
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {

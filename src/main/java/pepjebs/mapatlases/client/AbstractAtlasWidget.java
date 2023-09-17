@@ -9,6 +9,7 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.screens.advancements.AdvancementTab;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -79,11 +80,11 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
         // Draw maps, putting active map in middle of grid
 
         MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-
+//var vcp = Minecraft.getInstance().renderBuffers().bufferSource();
         List<Matrix4f> outlineHack = new ArrayList<>();
 
 
-        RenderSystem.enableScissor(x, y, (x + width), (y + height));
+        GuiComponent.enableScissor(x, y, (x + width), (y + height));
 
         float offsetX = currentXCenter - centerMapX;
         float offsetZ = currentZCenter - centerMapZ;
@@ -139,7 +140,7 @@ public abstract class AbstractAtlasWidget  extends GuiComponent {
         }
 
         poseStack.popPose();
-        RenderSystem.disableScissor();
+        GuiComponent.disableScissor();
 
 
     }
