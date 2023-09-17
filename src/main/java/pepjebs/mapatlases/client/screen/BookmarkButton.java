@@ -12,12 +12,17 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     private final int xOff;
     private final int yOff;
+    protected final AtlasOverviewScreen parentScreen;
     protected boolean selected = true;
 
-    protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff) {
-        super(pX, pY, width, height, Component.empty());
+    protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff, AtlasOverviewScreen screen) {
+        super(pX, pY,
+                (int) (width * screen.globalScale),
+                (int) (height * screen.globalScale),
+                Component.empty());
         this.xOff = xOff;
         this.yOff = yOff;
+        this.parentScreen = screen;
 
     }
 

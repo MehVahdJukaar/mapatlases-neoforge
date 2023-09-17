@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
@@ -17,7 +16,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.ArrayList;
@@ -79,20 +77,23 @@ public abstract class AbstractAtlasWidget {
 
         // Draw maps, putting active map in middle of grid
 
-        MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        //MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
+        MultiBufferSource.BufferSource vcp = graphics.bufferSource();
+
 
         List<Matrix4f> outlineHack = new ArrayList<>();
 
-        graphics.enableScissor(x, y, (x + width), (y + height));
+      //  graphics.enableScissor(x, y, (x + width), (y + height));
 
         float offsetX = currentXCenter - centerMapX;
         float offsetZ = currentZCenter - centerMapZ;
 
 
         int hz = Mth.ceil(zoomLevelDim / 2f);
-        if (zoomLevelDim == 1 && !followingPlayer && atlasesCount == 1){
-            hz -= 1;
-        }
+        boolean small = false;
+        if (zoomLevelDim == 1 && followingPlayer && atlasesCount == 1) {
+            small = true;
+        }else hz -=1;
 
         if (rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
@@ -104,7 +105,7 @@ public abstract class AbstractAtlasWidget {
         int minJ = -hz;
         int maxJ = hz;
         //adds more maps to draw if needed
-        if (followingPlayer) {
+        if(!small) {
             if (offsetX < 0) minJ--;
             else if (offsetX > 0) maxJ++;
             if (offsetZ < 0) minI--;
@@ -125,7 +126,7 @@ public abstract class AbstractAtlasWidget {
 
         vcp.endBatch();
 
-        if(showBorders) {
+        if (showBorders) {
             VertexConsumer outlineVC = vcp.getBuffer(RenderType.text(MAP_BORDER));
             int a = 50;
             for (var matrix4f : outlineHack) {
@@ -139,7 +140,7 @@ public abstract class AbstractAtlasWidget {
         }
 
         poseStack.popPose();
-        graphics.disableScissor();
+        //graphics.disableScissor();
 
 
     }
@@ -186,8 +187,8 @@ public abstract class AbstractAtlasWidget {
                         vcp,
                         MapAtlasesAccessUtils.getMapIntFromString(state.getFirst()),
                         data,
-                        false,
-                        LightTexture.FULL_BRIGHT //  (1+ix+iy)*50
+                        false,//(1+ix+iy)*50
+                        LightTexture.FULL_BRIGHT //
                 );
 
         outlineHack.add(new Matrix4f(matrices.last().pose()));

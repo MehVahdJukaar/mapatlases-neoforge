@@ -13,15 +13,13 @@ public class SliceBookmarkButton extends BookmarkButton {
     private static final int BUTTON_H = 21;
     private static final int BUTTON_W = 27;
 
-    private final AtlasOverviewScreen parentScreen;
     protected final boolean compact =  MapAtlasesClientConfig.worldMapCompactSliceIndicator.get();
 
     private Integer slice;
 
     protected SliceBookmarkButton(int pX, int pY, @Nullable Integer slice, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 64);
+        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 64, screen);
         this.slice = slice;
-        this.parentScreen = screen;
         this.selected = false;
         this.setTooltip(createTooltip());
     }

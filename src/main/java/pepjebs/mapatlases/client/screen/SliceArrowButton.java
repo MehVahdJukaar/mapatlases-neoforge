@@ -2,10 +2,8 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
@@ -15,13 +13,12 @@ public class SliceArrowButton extends BookmarkButton {
     private static final int BUTTON_W = 12;
 
     private final boolean down;
-    private final AtlasOverviewScreen parent;
 
     protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
         super(getpX(button), getpY(down, button),
-                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), AtlasOverviewScreen.IMAGE_HEIGHT + 64);
+                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), AtlasOverviewScreen.IMAGE_HEIGHT + 64,
+                screen);
         this.down = down;
-        this.parent = screen;
         this.setSelected(false);
     }
 
@@ -54,8 +51,8 @@ public class SliceArrowButton extends BookmarkButton {
 
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
-        if(down) this.parent.decreaseSlice();
-        else this.parent.increaseSlice();
+        if(down) this.parentScreen.decreaseSlice();
+        else this.parentScreen.increaseSlice();
     }
 
     @Override

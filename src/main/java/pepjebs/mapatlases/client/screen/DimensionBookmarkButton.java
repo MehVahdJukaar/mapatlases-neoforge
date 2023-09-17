@@ -21,13 +21,11 @@ public class DimensionBookmarkButton extends BookmarkButton {
 
     private final int dimY;
     private final ResourceKey<Level> dimension;
-    private final AtlasOverviewScreen parentScreen;
 
 
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT);
+        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT, screen);
         this.dimension = dimension;
-        this.parentScreen = screen;
         this.setTooltip(createTooltip());
         int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
         if (i == -1) i = 10;

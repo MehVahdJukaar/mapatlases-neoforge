@@ -60,7 +60,7 @@ public class MapAtlasesClient {
     public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(Level.OVERWORLD.location().toString(),
             Level.NETHER.location().toString(), Level.END.location().toString(),
             "aether:the_aether", "twilightforest:twilight_forest", "undergarden:undergarden",
-            "tropicraft:tropics", "thebetweenlands:betweenlands", "blue_skies:blue_skies",
+            "tropicraft:tropics", "thebetweenlands:betweenlands", "blue_skies:everbright",
             "the_bumblezone:the_bumblezone");
 
     public static final KeyMapping OPEN_ATLAS_KEYBIND = new KeyMapping(

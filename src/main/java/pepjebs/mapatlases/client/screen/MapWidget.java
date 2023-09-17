@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -34,8 +35,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
-    private float targetZoomLevel = 2;
-    private float zoomLevel = 2;
+    private float targetZoomLevel = 3;
+    private float zoomLevel = 3;
     protected int targetXCenter;
     protected int targetZCenter;
 
@@ -65,6 +66,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         Player player = mc.player;
         if (player == null) return;
 
+
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
         // Handle zooming markers hack
@@ -81,6 +83,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
+
     }
 
     @Override
@@ -195,7 +198,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         this.cumulativeMouseX = 0;
         this.cumulativeMouseY = 0;
         this.cumulativeZoomValue = ZOOM_BUCKET;
-        this.targetZoomLevel = 2;
+        this.targetZoomLevel = 3;
         this.followingPlayer = followPlayer;
     }
 

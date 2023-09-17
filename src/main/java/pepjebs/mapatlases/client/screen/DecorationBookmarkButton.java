@@ -24,12 +24,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
 
-    private final AtlasOverviewScreen parentScreen;
     protected int index = 0;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36);
-        this.parentScreen = parentScreen;
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36, parentScreen);
 
     }
 

@@ -18,6 +18,8 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4d;
+import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -28,8 +30,6 @@ import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 
 import java.util.*;
-
-import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 
 public class AtlasOverviewScreen extends Screen {
 
@@ -69,6 +69,8 @@ public class AtlasOverviewScreen extends Screen {
     private int mapIconSelectorScroll = 0;
     private int dimSelectorScroll = 0;
 
+
+    float globalScale = 1.4f;
 
     public AtlasOverviewScreen(ItemStack atlas) {
         this(atlas, null);
@@ -119,11 +121,19 @@ public class AtlasOverviewScreen extends Screen {
 
         int i = 0;
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        for (var d : maps.getAvailableDimensions().stream().sorted(Comparator.comparingInt(e ->
-                MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(e.location().toString()))).toList()) {
+        Collection<ResourceKey<Level>> dimensions = maps.getAvailableDimensions();
+        int separation = Math.min(22, 112 / dimensions.size());
+        for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
+                    var s = e.location().toString();
+                    if (MapAtlasesClient.DIMENSION_TEXTURE_ORDER.contains(s)) {
+                        return MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(s);
+                    }
+                    return 999;
+                }
+        )).toList()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
                     (width + IMAGE_WIDTH) / 2 - 10,
-                    (height - IMAGE_HEIGHT) / 2 + 15 + i * 22, d, this);
+                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, d, this);
             this.addRenderableWidget(pWidget);
             this.dimensionBookmarks.add(pWidget);
             i++;
@@ -172,13 +182,15 @@ public class AtlasOverviewScreen extends Screen {
         renderBackground(graphics);
 
         PoseStack poseStack = graphics.pose();
+
         poseStack.pushPose();
 
-        //center view so we can easily scale up
         poseStack.translate(width / 2f, height / 2f, 0);
+        poseStack.scale(globalScale, globalScale, 1);
+
+
 
         //background
-
         graphics.blit(
                 ATLAS_TEXTURE,
                 -H_IMAGE_WIDTH,
@@ -188,44 +200,41 @@ public class AtlasOverviewScreen extends Screen {
                 IMAGE_WIDTH,
                 IMAGE_HEIGHT
         );
-
-        poseStack.popPose();
-
         // Draw foreground
         graphics.blit(
                 ATLAS_OVERLAY,
                 -H_IMAGE_WIDTH,
-                -H_IMAGE_WIDTH,
+                -H_IMAGE_HEIGHT,
                 0,
                 0,
                 IMAGE_WIDTH,
                 IMAGE_HEIGHT
         );
 
+        poseStack.translate(-width / 2f, -height / 2f, 0);
+
+
         //render widgets
         poseStack.pushPose();
-        super.render(graphics, mouseX, mouseY, delta);
+        var v = transformMousePos(mouseX, mouseY);
+        super.render(graphics, (int) v.x, (int) v.y, delta);
         poseStack.popPose();
 
         RenderSystem.enableDepthTest();
 
-        poseStack.pushPose();
-        poseStack.translate(width / 2f, height / 2f, 1);
-
         graphics.blit(
                 ATLAS_TEXTURE,
-                H_IMAGE_WIDTH - 10,
-                -H_IMAGE_HEIGHT,
+                +10,
+                0,
                 189,
                 0,
                 5,
                 IMAGE_HEIGHT
         );
-
         graphics.blit(
                 ATLAS_TEXTURE,
-                -H_IMAGE_WIDTH + 5,
-                -H_IMAGE_HEIGHT,
+                +5,
+                0,
                 194,
                 0,
                 5,
@@ -233,7 +242,6 @@ public class AtlasOverviewScreen extends Screen {
         );
 
         poseStack.popPose();
-
     }
 
     // ================== Mouse Functions ==================
@@ -260,6 +268,35 @@ public class AtlasOverviewScreen extends Screen {
 
         */
         return super.mouseScrolled(mouseX, mouseY, amount);
+    }
+
+    @Override
+    public void mouseMoved(double pMouseX, double pMouseY) {
+        var v = transformMousePos(pMouseX, pMouseY);
+        super.mouseMoved(v.x, v.z);
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        var v = transformMousePos(pMouseX, pMouseY);
+        return super.mouseClicked(v.x, v.z, pButton);
+    }
+
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        var v = transformMousePos(pMouseX, pMouseY);
+        return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
+    }
+
+    private Vector4d transformMousePos(double mouseX, double mouseZ) {
+        Matrix4d matrix4d = new Matrix4d();
+        matrix4d.translate(width / 2.0, height / 2.0, 0)
+                .scaling(globalScale)
+                .translate(-width / 2.0, -height / 2.0, 0); // Move back to the center
+        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
+        matrix4d.transform(v);
+        v.add(width/2f, height/2f,0,0);
+        return v;
     }
 
     // ================== Other Util Fns ==================
@@ -308,8 +345,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public static String getReadableName(ResourceLocation id) {
-        String s = id.toShortLanguageKey();
-        return getReadableName(s);
+        return getReadableName(id.getPath());
     }
 
     @NotNull
@@ -357,8 +393,8 @@ public class AtlasOverviewScreen extends Screen {
         for (var e : decorationBookmarks.entrySet()) {
             DecorationBookmarkButton bookmark = e.getKey();
             MapItemSavedData data = e.getValue();
-            double x = bookmark.getWorldX( data);
-            double z = bookmark.getWorldZ( data);
+            double x = bookmark.getWorldX(data);
+            double z = bookmark.getWorldZ(data);
             // Check if the decoration is within the specified range
             bookmark.setSelected(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
             if (followingPlayer) {
@@ -370,7 +406,7 @@ public class AtlasOverviewScreen extends Screen {
         //TODO: maybe this isnt needed
         if (followingPlayer) {
             int index = 0;
-            int separation = Math.min(17,(int) (143f / byDistance.size()));
+            int separation = Math.min(17, (int) (143f / byDistance.size()));
 
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
@@ -401,7 +437,7 @@ public class AtlasOverviewScreen extends Screen {
         }
         int i = 0;
 
-        int separation = Math.min(17,(int) (143f / mapIcons.size()));
+        int separation = Math.min(17, (int) (143f / mapIcons.size()));
         List<DecorationBookmarkButton> widgets = new ArrayList<>();
         for (var e : mapIcons) {
             DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
