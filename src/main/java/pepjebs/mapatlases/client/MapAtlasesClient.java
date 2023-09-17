@@ -32,6 +32,7 @@ import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -179,18 +180,13 @@ public class MapAtlasesClient {
     }
 
     public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
-        CENTERX.setAccessible(true);
-        CENTERZ.setAccessible(true);
         try {
-            CENTERX.set(data, centerX);
-            CENTERZ.set(data, centerZ);
-        } catch (IllegalAccessException e) {
+            ((MapItemSavedDataAccessor)data).setCenterX( centerX);
+            ((MapItemSavedDataAccessor)data).setCenterZ( centerZ);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
-    private static final Field CENTERX = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerX");
-    private static final Field CENTERZ = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerZ");
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
         Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
