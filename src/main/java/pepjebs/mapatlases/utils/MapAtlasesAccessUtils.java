@@ -114,8 +114,8 @@ public class MapAtlasesAccessUtils {
     }
 
     public static Pair<String, MapItemSavedData> getActiveStateServer(ItemStack stack, Player player) {
-        var slice = MapAtlasItem.getSelectedSlice(stack, player.level().dimension());
-        MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level());
+        var slice = MapAtlasItem.getSelectedSlice(stack, player.level.dimension());
+        MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level);
         return maps.select(MapKey.at(maps.getScale(), player, slice));
     }
 

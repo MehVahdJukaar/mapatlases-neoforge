@@ -9,12 +9,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.MutableHashedLinkedMap;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -65,7 +63,7 @@ public class MapAtlasesMod {
 
     public static final boolean CURIOS = ModList.get().isLoaded("curios");
     public static final boolean TRINKETS = ModList.get().isLoaded("trinkets");
-    public static final boolean SUPPLEMENTARIES = ModList.get().isLoaded("supplementaries");
+    public static final boolean SUPPLEMENTARIES = false;//ModList.get().isLoaded("supplementaries");
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
 
     static {
@@ -93,36 +91,23 @@ public class MapAtlasesMod {
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RECIPES.register("crafting_atlas", MapAtlasCreateRecipe.Serializer::new);
         MAP_ATLAS_ADD_RECIPE = RECIPES.register("adding_atlas",
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
+                () -> new SimpleRecipeSerializer<>(MapAtlasesAddRecipe::new));
         MAP_ATLAS_CUT_RECIPE = RECIPES.register("cutting_atlas",
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
+                () -> new SimpleRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
 
         // Register items
-        MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
+        MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties()
+                .tab(CreativeModeTab.TAB_TOOLS).stacksTo(16)));
 
         // Register messages
         MapAtlasesNetowrking.register();
 
         MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
-        bus.addListener(MapAtlasesMod::addItemsToTabs);
     }
 
-    public static void addItemsToTabs(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES)) {
-            MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = event.getEntries();
-            for (var v : entries) {
-                var i = v.getKey();
-                if (i.getItem() instanceof EmptyMapItem) {
-                    entries.putAfter(i, MAP_ATLAS.get().getDefaultInstance(),
-                            CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-                    return;
-                }
-            }
-        }
-    }
 
     private static Supplier<SoundEvent> regSound(String name) {
-        return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(res(name)));
+        return SOUND_EVENTS.register(name, () -> new SoundEvent(res(name)));
     }
 
     public static ResourceLocation res(String name) {

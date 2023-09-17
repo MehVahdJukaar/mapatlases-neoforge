@@ -27,10 +27,10 @@ public class C2SRequestMapCenterPacket {
         context.get().enqueueWork(() -> {
             ServerPlayer player = context.get().getSender();
             if (player == null) return;
-            MapItemSavedData data = player.level().getMapData(mapId);
+            MapItemSavedData data = player.level.getMapData(mapId);
             if(data != null) {
                 MapAtlasesNetowrking.sendToClientPlayer(player,
-                        new S2CSyncMapCenterPacket(mapId, data.centerX, data.centerZ));
+                        new S2CSyncMapCenterPacket(mapId, data.x, data.z));
             }
         });
         context.get().setPacketHandled(true);

@@ -53,7 +53,7 @@ public abstract class LecternBlockMixin extends Block {
                     player.drop(atlas, false);
                 }
                 al.mapatlases$setAtlas(false);
-                LecternBlock.resetBookState(player, level, pos, state, false);
+                LecternBlock.resetBookState( level, pos, state, false);
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             } else {
                 if(level.isClientSide) {

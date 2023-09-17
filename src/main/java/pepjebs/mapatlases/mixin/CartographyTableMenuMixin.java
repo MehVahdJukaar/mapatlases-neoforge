@@ -154,7 +154,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
                         .mapToObj(mId -> new Pair<>(mId, world.getMapData("map_" + mId)))
                         .filter(m -> m.getSecond() != null)
                         .collect(Collectors.toMap(
-                                m -> m.getSecond().centerX + ":" + m.getSecond().centerZ
+                                m -> m.getSecond().x + ":" + m.getSecond().z
                                         + ":"  + m.getSecond().dimension,
                                 m -> m,
                                 (m1, m2) -> m1));

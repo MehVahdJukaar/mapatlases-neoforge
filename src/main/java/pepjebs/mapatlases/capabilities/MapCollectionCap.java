@@ -114,7 +114,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         if (d != null && d.scale == scale) {
             Integer slice = getSlice(d);
 
-            MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
+            MapKey key = new MapKey(d.dimension, d.x, d.z, slice);
             //remove duplicates
             if (maps.containsKey(key)) {
                 idMap.put(mapKey, intId);
@@ -234,7 +234,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     public static double distSquare(MapItemSavedData mapState, double x, double z) {
-        return Mth.square(mapState.centerX - x) + Mth.square(mapState.centerZ - z);
+        return Mth.square(mapState.x - x) + Mth.square(mapState.z - z);
     }
 
 

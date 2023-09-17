@@ -169,7 +169,7 @@ public class MapAtlasItem extends Item {
             CompoundTag tag = stack.getOrCreateTag();
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
-            if (player.level().isClientSide) {
+            if (player.level.isClientSide) {
                 player.displayClientMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -245,7 +245,7 @@ public class MapAtlasItem extends Item {
             }
             blockState = level.getBlockState(blockPos);
             LecternBlock.resetBookState(
-                    player, level, blockPos, blockState, true);
+                     level, blockPos, blockState, true);
             if (level.getBlockEntity(blockPos) instanceof AtlasHolder ah) {
                 ah.mapatlases$setAtlas(true);
                 //level.sendBlockUpdated(blockPos, blockState, blockState, 3);

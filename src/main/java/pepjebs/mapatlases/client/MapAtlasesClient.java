@@ -2,7 +2,7 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -32,18 +32,17 @@ import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import pepjebs.mapatlases.mixin.MapDataAccessor;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 public class MapAtlasesClient {
 
     private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
     private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
-    ;
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
@@ -75,8 +74,8 @@ public class MapAtlasesClient {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
         if (!atlas.isEmpty()) {
-            var maps = MapAtlasItem.getMaps(atlas, player.level());
-            Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+            var maps = MapAtlasItem.getMaps(atlas, player.level);
+            Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
         } else currentActiveMapKey = null;
@@ -123,7 +122,7 @@ public class MapAtlasesClient {
         if (scale != null) poseStack.scale(scale, scale, 1);
         Float rot = globalDecorationRotation.get();
         if (rot != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
         }
     }
 
@@ -143,7 +142,7 @@ public class MapAtlasesClient {
     public static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {
         // Using ClientLevel will render default Atlas in inventories
         if (world == null && entity != null)
-            world = (ClientLevel) entity.level();
+            world = (ClientLevel) entity.level;
         if (world == null) return 0.0f;
         boolean unlocked = !MapAtlasItem.isLocked(stack);
 
@@ -157,7 +156,7 @@ public class MapAtlasesClient {
     public static void setClientMapData(S2CSetMapDataPacket packet) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
-        Level level = player.level();
+        Level level = player.level;
 
         //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
         if (packet.isOnJoin) {
@@ -165,7 +164,7 @@ public class MapAtlasesClient {
             packet.mapData.tickCarriedBy(player, atlas);
             packet.mapData.getHoldingPlayer(player);
         }
-        ((ClientLevel) level).overrideMapData(packet.mapId, packet.mapData);
+        ((ClientLevel) level).setMapData(packet.mapId, packet.mapData);
     }
 
     public static void setMapCenter(S2CSyncMapCenterPacket packet) {
@@ -179,18 +178,13 @@ public class MapAtlasesClient {
     }
 
     public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
-        CENTERX.setAccessible(true);
-        CENTERZ.setAccessible(true);
         try {
-            CENTERX.set(data, centerX);
-            CENTERZ.set(data, centerZ);
-        } catch (IllegalAccessException e) {
+            ((MapDataAccessor)data).setCenterX( centerX);
+            ((MapDataAccessor)data).setCenterX( centerZ);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
-    private static final Field CENTERX = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerX");
-    private static final Field CENTERZ = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerZ");
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
         Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));

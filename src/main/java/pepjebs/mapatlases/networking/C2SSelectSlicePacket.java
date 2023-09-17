@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.networking;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +24,7 @@ public class C2SSelectSlicePacket {
     private final ResourceKey<Level> dimension;
 
     public C2SSelectSlicePacket(FriendlyByteBuf buf) {
-        dimension = buf.readResourceKey(Registries.DIMENSION);
+        dimension = buf.readResourceKey(Registry.DIMENSION_REGISTRY);
         if (buf.readBoolean()) {
             slice = null;
         } else slice = buf.readVarInt();

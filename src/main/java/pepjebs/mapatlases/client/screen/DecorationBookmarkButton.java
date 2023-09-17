@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
+import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -13,6 +13,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 
+import java.util.List;
 import java.util.Locale;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
@@ -24,12 +25,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
 
-    private final AtlasOverviewScreen parentScreen;
     protected int index = 0;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36);
-        this.parentScreen = parentScreen;
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36, parentScreen);
 
     }
 
@@ -42,7 +41,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
         parentScreen.focusDecoration(this);
     }
@@ -73,21 +72,21 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDecoration mapDecoration) {
             super(px, py, screen);
             this.decoration = mapDecoration;
-            this.setTooltip(createTooltip());
+            this.tooltip =(createTooltip());
         }
 
         @Override
         public double getWorldX(MapItemSavedData data) {
-            return data.centerX - getDecorationPos(decoration.getX(), data);
+            return data.x - getDecorationPos(decoration.getX(), data);
         }
 
         @Override
         public double getWorldZ(MapItemSavedData data) {
-            return data.centerZ - getDecorationPos(decoration.getY(), data);
+            return data.z - getDecorationPos(decoration.getY(), data);
         }
 
         @Override
-        public Tooltip createTooltip() {
+        public List<Component> createTooltip() {
             Component name = decoration.getName();
             Component mapIconComponent = name == null
                     ? Component.literal(
@@ -97,27 +96,26 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             // draw text
             MutableComponent coordsComponent = Component.literal("X: " + decoration.getX() + ", Z: " + decoration.getY());
             MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
-            this.setTooltip(Tooltip.create(mapIconComponent));
-            return Tooltip.create(mapIconComponent);
+            return List.of(mapIconComponent, formattedCoords);
         }
 
         @Override
-        protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-            PoseStack matrices = pGuiGraphics.pose();
+        public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
             matrices.pushPose();
             matrices.translate(0,0,0.01*this.index);
-            super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+            super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
 
             byte b = decoration.getImage();
 
             int u = (b % 16) * 8;
             int v = (b / 16) * 8;
 
-            matrices.translate(getX() + width / 2f, getY() + height / 2f, 1.0D);
-            matrices.mulPose(Axis.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
+            matrices.translate(x + width / 2f, y + height / 2f, 1.0D);
+            matrices.mulPose(Vector3f.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
 
-            pGuiGraphics.blit(MAP_ICON_TEXTURE, -4, -4, u, v, 8, 8, 128, 128);
+            RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
+            this.blit(matrices, -4, -4, u, v, 8, 8, 128, 128);
 
             matrices.popPose();
 

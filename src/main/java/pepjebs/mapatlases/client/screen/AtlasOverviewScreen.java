@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -168,10 +167,9 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics);
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        renderBackground(poseStack);
 
-        PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
 
         //center view so we can easily scale up
@@ -179,9 +177,9 @@ public class AtlasOverviewScreen extends Screen {
 
         //background
 
-        graphics.blit(
-                ATLAS_TEXTURE,
-                -H_IMAGE_WIDTH,
+        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
+        this.blit(poseStack,
+               -H_IMAGE_WIDTH,
                 -H_IMAGE_HEIGHT,
                 0,
                 0,
@@ -192,8 +190,8 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.popPose();
 
         // Draw foreground
-        graphics.blit(
-                ATLAS_OVERLAY,
+        RenderSystem.setShaderTexture(0,ATLAS_OVERLAY);
+        this.blit(poseStack,
                 -H_IMAGE_WIDTH,
                 -H_IMAGE_WIDTH,
                 0,
@@ -204,7 +202,7 @@ public class AtlasOverviewScreen extends Screen {
 
         //render widgets
         poseStack.pushPose();
-        super.render(graphics, mouseX, mouseY, delta);
+        super.render(poseStack, mouseX, mouseY, delta);
         poseStack.popPose();
 
         RenderSystem.enableDepthTest();
@@ -212,8 +210,9 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
         poseStack.translate(width / 2f, height / 2f, 1);
 
-        graphics.blit(
-                ATLAS_TEXTURE,
+        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
+
+        this.blit(poseStack,
                 H_IMAGE_WIDTH - 10,
                 -H_IMAGE_HEIGHT,
                 189,
@@ -222,8 +221,7 @@ public class AtlasOverviewScreen extends Screen {
                 IMAGE_HEIGHT
         );
 
-        graphics.blit(
-                ATLAS_TEXTURE,
+        this.blit(poseStack,
                 -H_IMAGE_WIDTH + 5,
                 -H_IMAGE_HEIGHT,
                 194,
@@ -276,12 +274,12 @@ public class AtlasOverviewScreen extends Screen {
             var slice = selectedSlice;
             for (var m : maps.selectSection(currentWorldSelected, slice)) {
                 MapItemSavedData d = m.getSecond();
-                averageX += d.centerX;
-                averageZ += d.centerZ;
+                averageX += d.x;
+                averageZ += d.z;
                 count++;
                 if (d.decorations.values().stream().anyMatch(e -> e.getType().isRenderedOnFrame())) {
                     if (best != null) {
-                        if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
+                        if (Mth.lengthSquared(best.x, best.z) > Mth.lengthSquared(d.x, d.z)) {
                             best = d;
                         }
                     } else best = d;
@@ -333,7 +331,7 @@ public class AtlasOverviewScreen extends Screen {
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
 
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, true);
+        this.mapWidget.resetAndCenter(center.x, center.z, true);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
         }
@@ -375,7 +373,7 @@ public class AtlasOverviewScreen extends Screen {
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
                 var d = e.getSecond();
-                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.y =((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
                 d.setIndex(index);
                 index++;
             }

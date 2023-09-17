@@ -56,7 +56,7 @@ public class MapAtlasesServerEvents {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        var mapInfos = MapAtlasItem.getMaps(atlas, player.level()).getAll();
+        var mapInfos = MapAtlasItem.getMaps(atlas, player.level).getAll();
         for (var info : mapInfos) {
             String mapId = info.getFirst();
             MapItemSavedData state = info.getSecond();
@@ -82,7 +82,7 @@ public class MapAtlasesServerEvents {
             var server = player.server;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) return;
-            Level level = player.level();
+            Level level = player.level;
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
 
@@ -104,8 +104,8 @@ public class MapAtlasesServerEvents {
             byte scale = activeState.scale;
             int scaleWidth = (1 << scale) * 128;
             List<int[]> discoveringEdges = getPlayerDiscoveringMapEdges(
-                    activeState.centerX,
-                    activeState.centerZ,
+                    activeState.x,
+                    activeState.z,
                     scaleWidth,
                     playX,
                     playZ
@@ -114,8 +114,8 @@ public class MapAtlasesServerEvents {
             // Update Map states & colors
             List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
                     maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
-                            .anyMatch(edge -> edge[0] == e.centerX
-                                    && edge[1] == e.centerZ));
+                            .anyMatch(edge -> edge[0] == e.x
+                                    && edge[1] == e.z));
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
@@ -144,7 +144,7 @@ public class MapAtlasesServerEvents {
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                    d -> d.getSecond().centerX == e[0] && d.getSecond().centerZ == e[1]));
+                    d -> d.getSecond().x == e[0] && d.getSecond().z == e[1]));
             for (var edge : discoveringEdges) {
                 maybeCreateNewMapEntry(player, atlas, scale, edge[0], edge[1]);
             }
@@ -156,7 +156,7 @@ public class MapAtlasesServerEvents {
             MapItemSavedData mapState,
             Player player, int width
     ) {
-        return Mth.square(mapState.centerX - player.getX()) + Mth.square(mapState.centerZ - player.getZ()) > width * width;
+        return Mth.square(mapState.x - player.getX()) + Mth.square(mapState.z - player.getZ()) > width * width;
     }
 
     private static void updateMapDataForPlayer(
@@ -171,7 +171,7 @@ public class MapAtlasesServerEvents {
     private static void updateMapColorsForPlayer(
             MapItemSavedData state,
             ServerPlayer player) {
-        ((MapItem) Items.FILLED_MAP).update(player.level(), player, state);
+        ((MapItem) Items.FILLED_MAP).update(player.level, player, state);
     }
 
     public static void relayMapItemSavedDataSyncToPlayerClient(
@@ -228,7 +228,7 @@ public class MapAtlasesServerEvents {
             int destX,
             int destZ
     ) {
-        Level level = player.level();
+        Level level = player.level;
         if (atlas.getTag() == null) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
@@ -249,13 +249,13 @@ public class MapAtlasesServerEvents {
             }
             ItemStack newMap;
             //validate slice
-            if (slice != null && !maps.getAvailableSlices(player.level().dimension()).contains(slice)) {
+            if (slice != null && !maps.getAvailableSlices(player.level.dimension()).contains(slice)) {
                 int error = 1;
             }
 
             if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
                 newMap = SupplementariesCompat.createSliced(
-                        player.level(),
+                        player.level,
                         destX,
                         destZ,
                         scale,
@@ -263,7 +263,7 @@ public class MapAtlasesServerEvents {
                         false, slice);
             } else {
                 newMap = MapItem.create(
-                        player.level(),
+                        player.level,
                         destX,
                         destZ,
                         scale,
@@ -286,7 +286,7 @@ public class MapAtlasesServerEvents {
 
         if (addedMap) {
             // Play the sound
-            player.level().playSound(null, player.blockPosition(),
+            player.level.playSound(null, player.blockPosition(),
                     MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
                     SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
         }

@@ -23,6 +23,6 @@ public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, @Nullable
         int k = Mth.floor((pz + 64.0D) / i);
         int mapCenterX = j * i + i / 2 - 64;
         int mapCenterZ = k * i + i / 2 - 64;
-        return new MapKey(player.level().dimension(), mapCenterX, mapCenterZ, slice);
+        return new MapKey(player.level.dimension(), mapCenterX, mapCenterZ, slice);
     }
 }

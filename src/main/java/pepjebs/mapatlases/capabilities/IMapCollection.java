@@ -47,7 +47,7 @@ public interface IMapCollection {
 
     @Nullable
     default Pair<String, MapItemSavedData> getClosest(Player player, @Nullable Integer slice) {
-        return getClosest(player.getX(), player.getZ(), player.level().dimension(), slice);
+        return getClosest(player.getX(), player.getZ(), player.level.dimension(), slice);
     }
 
     Collection<Pair<String, MapItemSavedData>> getAll();
