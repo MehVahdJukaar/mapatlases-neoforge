@@ -75,6 +75,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (mc.level == null || mc.player == null) {
             return;
         }
+
         // Check config disable
         // Check F3 menu displayed
         if (mc.options.renderDebug) return;
@@ -158,7 +159,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if(rotatesWithPlayer){
             MapAtlasesClient.setDecorationRotation(player.getYRot()-180);
         }
-
         drawAtlas(graphics, x + (bgSize - mapWidgetSize) / 2, y + (bgSize - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),

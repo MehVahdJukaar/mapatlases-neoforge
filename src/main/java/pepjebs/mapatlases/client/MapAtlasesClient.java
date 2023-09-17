@@ -23,7 +23,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -37,7 +36,6 @@ import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 public class MapAtlasesClient {
@@ -73,6 +71,7 @@ public class MapAtlasesClient {
     );
 
     public static void cachePlayerState(Player player) {
+        if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
         if (!atlas.isEmpty()) {
@@ -181,8 +180,8 @@ public class MapAtlasesClient {
 
     public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
         try {
-            ((MapItemSavedDataAccessor)data).setCenterX( centerX);
-            ((MapItemSavedDataAccessor)data).setCenterZ( centerZ);
+            ((MapItemSavedDataAccessor) data).setCenterX(centerX);
+            ((MapItemSavedDataAccessor) data).setCenterZ(centerZ);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

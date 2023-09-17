@@ -12,7 +12,7 @@ public class MapAtlasesMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.equals("ClientPacketListenerMixin") && ModList.get().isLoaded("moonlight")) {
+        if (mixinClassName.contains("ClientPacketListenerMixin") && ModList.get().isLoaded("moonlight")) {
             return false;
         }
         return !mixinClassName.contains("Curios") || ModList.get().isLoaded("curios");

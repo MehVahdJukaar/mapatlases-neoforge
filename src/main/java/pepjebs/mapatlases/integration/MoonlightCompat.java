@@ -103,6 +103,7 @@ public class MoonlightCompat {
 
             setSelected(false);
 
+            buffer.endBatch();
         }
     }
 }
