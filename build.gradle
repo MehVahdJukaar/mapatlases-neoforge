@@ -175,19 +175,21 @@ dependencies {
     // The "userdev" classifier will be requested and setup by NeoGradle.
     // If the group id is "net.minecraft" and the artifact id is one of ["client", "server", "joined"],
     // then special handling is done to allow a setup of a vanilla dependency without the use of an external repository.
-    minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
+    // minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
+    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+
 
     annotationProcessor 'net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5'
 
 
-    implementation fg.deobf("curse.maven:jei-238222:4712868")
-    implementation fg.deobf("curse.maven:curios-309927:4583413")
+    compileOnly fg.deobf("curse.maven:jei-238222:4712868")
+    compileOnly fg.deobf("curse.maven:curios-309927:4583413")
     //implementation fg.deobf("curse.maven:supplementaries-412082:4707417")
     //implementation fg.deobf("curse.maven:selene-499980:4748073")
-    implementation fg.deobf("curse.maven:supplementaries-412082:4753107")
+    compileOnly fg.deobf("curse.maven:supplementaries-412082:4753107")
     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
 
-    implementation fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
+    compileOnly fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
 
     // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")
