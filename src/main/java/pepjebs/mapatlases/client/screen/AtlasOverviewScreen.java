@@ -18,7 +18,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -30,6 +29,8 @@ import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 
 import java.util.*;
+
+import static pepjebs.mapatlases.client.ui.MapAtlasesHUD.scaleVector;
 
 public class AtlasOverviewScreen extends Screen {
 
@@ -70,7 +71,7 @@ public class AtlasOverviewScreen extends Screen {
     private int dimSelectorScroll = 0;
 
 
-    float globalScale = 1.4f;
+    private float globalScale = (float) (double) MapAtlasesClientConfig.worldMapScale.get();
 
     public AtlasOverviewScreen(ItemStack atlas) {
         this(atlas, null);
@@ -189,7 +190,6 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.scale(globalScale, globalScale, 1);
 
 
-
         //background
         graphics.blit(
                 ATLAS_TEXTURE,
@@ -273,13 +273,13 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
         var v = transformMousePos(pMouseX, pMouseY);
-        super.mouseMoved(v.x, v.z);
+        super.mouseMoved(v.x, v.y);
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         var v = transformMousePos(pMouseX, pMouseY);
-        return super.mouseClicked(v.x, v.z, pButton);
+        return super.mouseClicked(v.x, v.y, pButton);
     }
 
     @Override
@@ -288,15 +288,12 @@ public class AtlasOverviewScreen extends Screen {
         return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
     }
 
-    private Vector4d transformMousePos(double mouseX, double mouseZ) {
-        Matrix4d matrix4d = new Matrix4d();
-        matrix4d.translate(width / 2.0, height / 2.0, 0)
-                .scaling(globalScale)
-                .translate(-width / 2.0, -height / 2.0, 0); // Move back to the center
-        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
-        matrix4d.transform(v);
-        v.add(width/2f, height/2f,0,0);
-        return v;
+    public Vector4d transformMousePos(double mouseX, double mouseZ) {
+        return scaleVector(mouseX, mouseZ, 1 / globalScale, width, height);
+    }
+
+    public Vector4d transformPos(double mouseX, double mouseZ) {
+        return scaleVector(mouseX, mouseZ, globalScale, width, height);
     }
 
     // ================== Other Util Fns ==================

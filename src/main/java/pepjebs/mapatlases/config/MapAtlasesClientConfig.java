@@ -14,6 +14,12 @@ public class MapAtlasesClientConfig {
 
         builder.push("minimap");
 
+        yOnlyWithSlice = builder.comment("Only display y coordinates if atlas holds some slice maps")
+                .define("only_show_y_when_has_slices", true);
+
+        miniMapScale = builder
+                .comment("Global scale of entire minimap HUD. Keep at 1 for pixel perfect consistency")
+                .defineInRange("scale", 1f, 0, 20);
         drawMiniMapHUD = builder
                 .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
                 .define("enabled", true);
@@ -74,6 +80,10 @@ public class MapAtlasesClientConfig {
 
         builder.push("world_map");
 
+        worldMapScale = builder
+                .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
+                .defineInRange("scale", 1.25f, 0, 20);
+
         worldMapBorder = builder.comment("Shows map separation borders")
                 .define("map_borders", true);
         drawWorldMapCoords = builder
@@ -128,6 +138,9 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> miniMapRotate;
     public static final Supplier<Boolean> miniMapFollowPlayer;
     public static final Supplier<Boolean> worldMapFollowPlayer;
+    public static final Supplier<Boolean> yOnlyWithSlice;
+    public static final Supplier<Double> miniMapScale;
+    public static final Supplier<Double> worldMapScale;
 
     public static final ForgeConfigSpec spec;
 

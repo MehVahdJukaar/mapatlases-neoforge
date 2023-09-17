@@ -17,8 +17,7 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff, AtlasOverviewScreen screen) {
         super(pX, pY,
-                (int) (width * screen.globalScale),
-                (int) (height * screen.globalScale),
+                width, height,
                 Component.empty());
         this.xOff = xOff;
         this.yOff = yOff;

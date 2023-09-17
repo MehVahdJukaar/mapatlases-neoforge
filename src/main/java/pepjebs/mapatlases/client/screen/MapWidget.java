@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -60,6 +59,13 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     @Override
+    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+        var v = mapScreen.transformPos(x, y);
+        var v2 = mapScreen.transformPos(x1, y1);
+        super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
 
         Minecraft mc = Minecraft.getInstance();
@@ -78,7 +84,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapAtlasesClient.setDecorationsScale(1);
 
         if (this.isHovered) {
-            this.renderPositionText(graphics, mc.font,  pMouseX, pMouseY, zoomLevel);
+            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY, zoomLevel);
         }
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
@@ -109,7 +115,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         //idk why
         String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
         MapAtlasesHUD.drawScaledComponent(
-                graphics, font, x, y+ height +8, coordsToDisplay, textScaling, width);
+                graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
 
 
     }
