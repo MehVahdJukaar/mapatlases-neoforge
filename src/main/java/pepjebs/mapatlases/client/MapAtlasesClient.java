@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
@@ -13,6 +14,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -20,21 +23,27 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapKey;
+import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
+import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class MapAtlasesClient {
 
-    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(()->1f);
-    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(()->0f);;
+    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
+    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
+    ;
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
@@ -145,4 +154,49 @@ public class MapAtlasesClient {
     }
 
 
+    public static void setClientMapData(S2CSetMapDataPacket packet) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        Level level = player.level();
+
+        //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
+        if (packet.isOnJoin) {
+            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+            packet.mapData.tickCarriedBy(player, atlas);
+            packet.mapData.getHoldingPlayer(player);
+        }
+        ((ClientLevel) level).overrideMapData(packet.mapId, packet.mapData);
+    }
+
+    public static void setMapCenter(S2CSyncMapCenterPacket packet) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) return;
+
+        var data = level.getMapData(packet.mapId);
+        if (data != null) {
+            setCenter(data, packet.centerX, packet.centerZ);
+        }
+    }
+
+    public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
+        CENTERX.setAccessible(true);
+        CENTERZ.setAccessible(true);
+        try {
+            CENTERX.set(data, centerX);
+            CENTERZ.set(data, centerZ);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static final Field CENTERX = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerX");
+    private static final Field CENTERZ = ObfuscationReflectionHelper.findField(MapItemSavedData.class, "centerZ");
+
+    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
+        Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
+    }
+
+    public static void openScreen(ItemStack atlas) {
+        openScreen(atlas, null);
+    }
 }

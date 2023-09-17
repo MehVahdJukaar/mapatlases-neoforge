@@ -181,21 +181,13 @@ public class MapAtlasItem extends Item {
             openHandledAtlasScreen(serverPlayer);
         } else {
             ItemStack stack = player.getItemInHand(hand);
-            openScreen(stack);
+           MapAtlasesClient. openScreen(stack);
         }
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
     }
 
     public void openHandledAtlasScreen(ServerPlayer player) {
         //TODO: sent packet
-    }
-
-    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
-        Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
-    }
-
-    public static void openScreen(ItemStack atlas) {
-        openScreen(atlas, null);
     }
 
     private void sendPlayerLecternAtlasData(ServerPlayer serverPlayer, ItemStack atlas) {

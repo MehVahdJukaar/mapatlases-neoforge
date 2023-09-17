@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasHolder;
 
@@ -58,7 +59,7 @@ public abstract class LecternBlockMixin extends Block {
                 if(level.isClientSide) {
                     LecternBlockEntity lbe = (LecternBlockEntity) al;
                     ItemStack atlas = lbe.getBook();
-                    MapAtlasItem.openScreen(atlas, lbe);
+                    MapAtlasesClient.openScreen(atlas, lbe);
                 }
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }

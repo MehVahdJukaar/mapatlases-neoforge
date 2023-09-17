@@ -21,7 +21,7 @@ public class MapAtlasesClientEvents {
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
                 MapAtlasesNetowrking.sendToServer(new C2SOpenAtlasPacket());
-                MapAtlasItem.openScreen(atlas);
+                MapAtlasesClient.openScreen(atlas);
             }
         }
     }

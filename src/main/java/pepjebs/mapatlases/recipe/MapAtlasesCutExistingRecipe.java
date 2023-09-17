@@ -83,9 +83,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         String stringId = "";// maps.getActive().getFirst();
         if (inv instanceof TransientCraftingContainer tc) {
             try {
-                if (MENU.get(tc) instanceof CraftingMenu cm) {
-                    Player player = (Player) PLAYER.get(cm);
-                    var c = maps.getClosest(player, slice);
+                if (tc.menu instanceof CraftingMenu cm) {
+                    var c = maps.getClosest(cm.player, slice);
                     if (c != null) {
                         stringId = c.getFirst();
                     }
@@ -99,10 +98,6 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return stringId;
     }
 
-    private static final Field MENU = ObfuscationReflectionHelper.findField(TransientCraftingContainer.class,
-            "menu");
-    private static final Field PLAYER = ObfuscationReflectionHelper.findField(CraftingMenu.class,
-            "player");
 
     @Override
     public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
