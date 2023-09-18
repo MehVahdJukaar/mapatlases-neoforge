@@ -50,8 +50,9 @@ public abstract class BookmarkButton extends AbstractWidget {
 
     @Override
     public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+        if(this.isHovered){
         parentScreen.renderTooltip(pPoseStack, tooltip, Optional.empty(), pMouseX, pMouseY);
-    }
+    }}
 
     @Override
     public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
@@ -61,7 +62,7 @@ public abstract class BookmarkButton extends AbstractWidget {
     public void setActive(boolean active) {
         this.active = active;
         this.visible = active;
-        this.tooltip = (active ? createTooltip() : null);
+        this.tooltip = (active ? createTooltip() : List.of());
     }
 
     public List<Component> createTooltip() {

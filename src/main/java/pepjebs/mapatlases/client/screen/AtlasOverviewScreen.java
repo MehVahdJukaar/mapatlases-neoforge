@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.MoonlightCompat;
@@ -247,7 +249,12 @@ public class AtlasOverviewScreen extends Screen {
         );
         poseStack.popPose();
 
-        poseStack.popPose();
+
+        for(var r :this.renderables){
+           if(r instanceof AbstractWidget aw){
+               aw.renderToolTip(poseStack, (int) v.x(), (int) v.y());
+           }
+        }
     }
 
     // ================== Mouse Functions ==================
