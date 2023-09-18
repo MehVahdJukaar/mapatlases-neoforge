@@ -79,6 +79,12 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
+    public int[] getAllIds() {
+        if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT);
+        return new HashSet<>(idMap.values()).stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    @Override
     public void deserializeNBT(CompoundTag c) {
         lazyNbt = c.copy();
     }
@@ -203,12 +209,14 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                 .map(Map.Entry::getValue).toList();
     }
 
+    @Nullable
     @Override
     public Pair<String, MapItemSavedData> select(MapKey key) {
         assertInitialized();
         return maps.get(key);
     }
 
+    @Nullable
     @Override
     public Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice) {
         assertInitialized();
