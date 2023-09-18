@@ -34,10 +34,9 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
-    private float targetZoomLevel = 3;
-    private float zoomLevel = 3;
     protected int targetXCenter;
     protected int targetZCenter;
+    protected float targetZoomLevel = 3;
 
     private boolean isHovered;
     private float animationProgress = 0; //from zero to 1
@@ -135,7 +134,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             cumulativeMouseY += deltaY * hack;
             int newXCenter;
             int newZCenter;
-            boolean discrete = false;
+            boolean discrete = !MapAtlasesClientConfig.worldMapSmoothPanning.get();
             if (discrete) {
                 //discrete mode
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale));
@@ -162,6 +161,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        if (targetZoomLevel > 20 && pDelta < 0) return false;
+
         cumulativeZoomValue -= pDelta;
         cumulativeZoomValue = Math.max(cumulativeZoomValue, -1 * ZOOM_BUCKET);
 

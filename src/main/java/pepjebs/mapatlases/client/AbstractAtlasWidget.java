@@ -39,6 +39,7 @@ public abstract class AbstractAtlasWidget {
     protected boolean followingPlayer = true;
     protected float currentXCenter;
     protected float currentZCenter;
+    protected float zoomLevel = 3;
 
     protected boolean rotatesWithPlayer = false;
 
@@ -89,11 +90,14 @@ public abstract class AbstractAtlasWidget {
         float offsetZ = currentZCenter - centerMapZ;
 
 
-        int hz = Mth.ceil(zoomLevelDim / 2f);
+        //zoom leve is essentially maps on screen
+        //dont ask me why all this stuff is like that
+        int hz = (int) (Mth.ceil((zoomLevelDim)) / 2f);
         boolean small = false;
-        if (zoomLevelDim == 1 && followingPlayer && atlasesCount == 1) {
+        if ( (followingPlayer && atlasesCount == 1) || rotatesWithPlayer) {
+            hz+=1;
             small = true;
-        }else hz -=1;
+        }
 
         if (rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));

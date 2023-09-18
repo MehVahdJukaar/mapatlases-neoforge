@@ -62,16 +62,16 @@ public class AtlasOverviewScreen extends Screen {
     private SliceArrowButton sliceDown;
     private final Map<DecorationBookmarkButton, MapItemSavedData> decorationBookmarks = new HashMap<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
+    private final float globalScale = (float) (double) MapAtlasesClientConfig.worldMapScale.get();
 
     private ResourceKey<Level> currentWorldSelected;
-    private Integer selectedSlice = null;
+    private Integer selectedSlice;
     private boolean initialized = false;
 
     private int mapIconSelectorScroll = 0;
     private int dimSelectorScroll = 0;
 
 
-    private float globalScale = (float) (double) MapAtlasesClientConfig.worldMapScale.get();
 
     public AtlasOverviewScreen(ItemStack atlas) {
         this(atlas, null);
@@ -222,10 +222,14 @@ public class AtlasOverviewScreen extends Screen {
 
         RenderSystem.enableDepthTest();
 
+        poseStack.pushPose();
+
+        poseStack.translate(width / 2f, height / 2f, 20);
+
         graphics.blit(
                 ATLAS_TEXTURE,
-                +10,
-                0,
+                H_IMAGE_WIDTH-10,
+                -H_IMAGE_HEIGHT,
                 189,
                 0,
                 5,
@@ -233,13 +237,14 @@ public class AtlasOverviewScreen extends Screen {
         );
         graphics.blit(
                 ATLAS_TEXTURE,
-                +5,
-                0,
+                -H_IMAGE_WIDTH+5,
+                -H_IMAGE_HEIGHT,
                 194,
                 0,
                 5,
                 IMAGE_HEIGHT
         );
+        poseStack.popPose();
 
         poseStack.popPose();
     }

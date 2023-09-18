@@ -164,9 +164,16 @@ public class MapAtlasItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        CompoundTag tag = stack.getOrCreateTag();
+        if (tag.contains("maps")) {
+            MapCollectionCap maps = getMaps(stack, level);
+            for (var i : tag.getIntArray("maps")) {
+                maps.add(i, level);
+            }
+            tag.remove("maps");
+        }
         if (player.isSecondaryUseActive()) {
-            ItemStack stack = player.getItemInHand(hand);
-            CompoundTag tag = stack.getOrCreateTag();
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
             if (player.level().isClientSide) {
@@ -177,10 +184,9 @@ public class MapAtlasItem extends Item {
         if (player instanceof ServerPlayer serverPlayer) {
             openHandledAtlasScreen(serverPlayer);
         } else {
-            ItemStack stack = player.getItemInHand(hand);
-           MapAtlasesClient. openScreen(stack);
+            MapAtlasesClient.openScreen(stack);
         }
-        return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     public void openHandledAtlasScreen(ServerPlayer player) {
