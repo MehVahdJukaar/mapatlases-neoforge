@@ -6,7 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
-import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -64,7 +64,7 @@ public class MoonlightCompat {
             Component displayName = decoration.getDisplayName();
             Component mapIconComponent = displayName == null
                     ? Component.literal(
-                    AtlasOverviewScreen.getReadableName(MapDecorationRegistry.hackyGetRegistry().getKey(decoration.getType()).getPath()
+                    AtlasOverviewScreen.getReadableName(Utils.getID(decoration.getType()).getPath()
                             .toLowerCase(Locale.ROOT)))
                     : displayName;
 
@@ -87,11 +87,11 @@ public class MoonlightCompat {
                     -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
             var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
 
-            MapDecorationClientManager.render(decoration, matrices,
-                    vertexBuilder, buffer, null, false, LightTexture.FULL_BRIGHT, 0);
+            MapDecorationClientHandler.render(decoration, matrices,
+                    buffer, null, false, LightTexture.FULL_BRIGHT, 0);
 
+            buffer.endBatch();
             matrices.popPose();
 
             setSelected(false);

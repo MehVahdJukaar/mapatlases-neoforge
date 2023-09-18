@@ -5,9 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -40,24 +37,24 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, MapItemSavedData data, AtlasOverviewScreen screen) {
         if (mapDecoration instanceof MapDecoration md) return new Vanilla(px, py, screen, data, md);
         else {
-            return MoonlightCompat.makeCustomButton(px, py,  screen, data, mapDecoration);
+            return MoonlightCompat.makeCustomButton(px, py, screen, data, mapDecoration);
         }
     }
 
     @Override
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-       if (parentScreen.getMinecraft().options.keyShift.matches(pKeyCode, pScanCode)) {
-           shfting = false;
-           this.setTooltip(this.createTooltip());
-       }
-       return false;
+        if (parentScreen.getMinecraft().options.keyShift.matches(pKeyCode, pScanCode)) {
+            shfting = false;
+            this.tooltip = (this.createTooltip());
+        }
+        return false;
     }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (parentScreen.getMinecraft().options.keyShift.matches(pKeyCode, pScanCode)) {
             shfting = true;
-            this.setTooltip(Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker")));
+            this.tooltip = (List.of(Component.translatable("tooltip.map_atlases.delete_marker")));
         }
         return false;
     }
@@ -76,17 +73,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected abstract void deleteMarker();
 
 
-    public abstract double getWorldX() ;
+    public abstract double getWorldX();
 
     public abstract double getWorldZ();
 
 
     protected static double getDecorationPos(int decoX, MapItemSavedData data) {
         float s = (1 << data.scale) * (float) MAP_DIMENSION;
-        return  (s / 2.0d) - ((s / 2.0d) * ((decoX + MAP_DIMENSION) / (float) MAP_DIMENSION));
+        return (s / 2.0d) - ((s / 2.0d) * ((decoX + MAP_DIMENSION) / (float) MAP_DIMENSION));
     }
 
-    public  int getBatchGroup() {
+    public int getBatchGroup() {
         return 0;
     }
 
@@ -95,10 +92,11 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        super.renderWidget(pGuiGraphics,pMouseX, pMouseY, pPartialTick);
-        if(this.shfting) {
-            pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
+    public void renderButton(PoseStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+        super.renderButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        if (this.shfting) {
+            RenderSystem.setShaderTexture(0, AtlasOverviewScreen.ATLAS_TEXTURE);
+            this.blit(pGuiGraphics, x, y,
                     24, 167, 5, 5);
 
         }
@@ -111,14 +109,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapItemSavedData data, MapDecoration mapDecoration) {
             super(px, py, screen, data);
             this.decoration = mapDecoration;
-            this.tooltip =(createTooltip());
+            this.tooltip = (createTooltip());
         }
 
         @Override
-        public double getWorldX(MapItemSavedData data) {
-            return data.x - getDecorationPos(decoration.getX(), data);
         public double getWorldX() {
-            return data.centerX - getDecorationPos(decoration.getX(), data);
+            return data.x - getDecorationPos(decoration.getX(), data);
         }
 
         @Override
@@ -143,7 +139,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         @Override
         public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
             matrices.pushPose();
-            matrices.translate(0,0,0.01*this.index);
+            matrices.translate(0, 0, 0.01 * this.index);
             super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
 
             byte b = decoration.getImage();
@@ -155,7 +151,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             matrices.mulPose(Vector3f.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
 
-            RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
+            RenderSystem.setShaderTexture(0, MAP_ICON_TEXTURE);
             this.blit(matrices, -4, -4, u, v, 8, 8, 128, 128);
 
             matrices.popPose();
@@ -167,7 +163,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         protected void deleteMarker() {
-            data.decorations.entrySet().removeIf(e->e.getValue() == decoration);
+            data.decorations.entrySet().removeIf(e -> e.getValue() == decoration);
         }
     }
 

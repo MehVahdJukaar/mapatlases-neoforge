@@ -3,7 +3,6 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
@@ -233,10 +232,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.pushPose();
         poseStack.translate(x + mapWidgetSize / 2f +3f, y + mapWidgetSize / 2f + 3, 0);
         if (!rotatesWithPlayer) {
-            poseStack.mulPose(Axis.ZN.rotationDegrees(180-yRot));
+            poseStack.mulPose(Vector3f.ZN.rotationDegrees(180-yRot));
             poseStack.translate(-4.5f,-4f,  0);
         }
-        graphics.blit(MAP_ICON_TEXTURE, 0,
+        RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
+        this.blit(poseStack, 0,
                 0,
                 0, 0, 8, 8, 128, 128);
 

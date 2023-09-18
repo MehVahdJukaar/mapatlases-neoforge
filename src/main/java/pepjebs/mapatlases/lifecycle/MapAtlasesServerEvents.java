@@ -1,8 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.supplementaries.common.items.AltimeterItem;
-import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
