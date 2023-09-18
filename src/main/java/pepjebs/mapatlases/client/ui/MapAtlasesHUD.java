@@ -84,29 +84,28 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public static Vector4f scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
-        Matrix4f matrix4d = new Matrix4f();
-
+        Matrix4f matrix4f = new Matrix4f();
+    matrix4f.setIdentity();
         // Calculate the translation and scaling factors
-        float translateX = w / 2.0f;
-        float translateY = h / 2.0f;
-        float scaleFactor = scale - 1.0f;
-
+        float translateX = w / 2.0F;
+        float translateY = h / 2.0F;
         // Apply translation to the matrix (combined)
-        matrix4d.translate(new Vector3f(translateX, translateY, 0));
+        matrix4f.multiplyWithTranslation(translateX, translateY, 0);
 
         // Apply scaling to the matrix
-        matrix4d.multiply(1.0f + scaleFactor);
+        matrix4f.multiply(Matrix4f.createScaleMatrix(scale, scale, scale));
 
         // Apply translation back to the original position (combined)
-        matrix4d.translate(new Vector3f(-translateX, -translateY, 0));
+        matrix4f.multiplyWithTranslation(-translateX, -translateY, 0);
 
         // Create a vector with the input coordinates
-        Vector4f v = new Vector4f((float) mouseX, (float) mouseZ, 0, 1.0F);
+        Vector4f v = new Vector4f((float) mouseX,(float) mouseZ, 0, 1.0F);
 
         // Apply the transformation matrix to the vector
-        v.transform(matrix4d);
+        v.transform(matrix4f);
         return v;
     }
+
 
     @Override
     protected void applyScissors(PoseStack poseStack, int x, int y, int x1, int y1) {
@@ -223,7 +222,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         if (rotatesWithPlayer) {
-            RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
+            RenderSystem.setShaderTexture(0, MAP_ICON_TEXTURE);
             GuiComponent.blit(poseStack, x + mapWidgetSize / 2 - 1,
                     y + mapWidgetSize / 2 - 1,
                     0, 0, 8, 8, 128, 128);

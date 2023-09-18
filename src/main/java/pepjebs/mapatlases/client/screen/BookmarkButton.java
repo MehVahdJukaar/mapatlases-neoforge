@@ -7,6 +7,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class BookmarkButton extends AbstractWidget {
 
@@ -45,6 +46,11 @@ public abstract class BookmarkButton extends AbstractWidget {
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
 
+    }
+
+    @Override
+    public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+        parentScreen.renderTooltip(pPoseStack, tooltip, Optional.empty(), pMouseX, pMouseY);
     }
 
     @Override

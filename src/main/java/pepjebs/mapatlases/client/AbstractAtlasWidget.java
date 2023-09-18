@@ -144,11 +144,11 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         }
 
         poseStack.popPose();
-        GuiComponent.disableScissor();
+         GuiComponent.disableScissor();
     }
 
     protected void applyScissors(PoseStack graphics, int x, int y, int x1, int y1) {
-        GuiComponent.enableScissor(x, y, x1, y1);
+         GuiComponent.enableScissor(x, y, x1, y1);
     }
 
     public abstract Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
