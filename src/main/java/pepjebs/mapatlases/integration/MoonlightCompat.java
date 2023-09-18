@@ -25,8 +25,8 @@ import java.util.Locale;
 public class MoonlightCompat {
 
 
-    public static DecorationBookmarkButton makeCustomButton(int px, int py, Object mapDecoration, AtlasOverviewScreen screen) {
-        return new CustomDecorationButton(px, py, (CustomMapDecoration) mapDecoration, screen);
+    public static DecorationBookmarkButton makeCustomButton(int px, int py, AtlasOverviewScreen screen, MapItemSavedData data,  Object mapDecoration) {
+        return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration);
     }
 
     public static Collection<Pair<Object, MapItemSavedData>> getCustomDecorations(MapItemSavedData data) {
@@ -38,19 +38,19 @@ public class MoonlightCompat {
 
         private final CustomMapDecoration decoration;
 
-        public CustomDecorationButton(int px, int py, CustomMapDecoration mapDecoration, AtlasOverviewScreen screen) {
-            super(px, py, screen);
+        public CustomDecorationButton(int px, int py,  AtlasOverviewScreen screen, MapItemSavedData data, CustomMapDecoration mapDecoration) {
+            super(px, py, screen, data);
             this.decoration = mapDecoration;
             this.tooltip = (createTooltip());
         }
 
         @Override
-        public double getWorldX(MapItemSavedData data) {
+        public double getWorldX() {
             return data.x - getDecorationPos(decoration.getX(), data);
         }
 
         @Override
-        public double getWorldZ(MapItemSavedData data) {
+        public double getWorldZ() {
             return data.z - getDecorationPos(decoration.getY(), data);
         }
 
@@ -96,6 +96,11 @@ public class MoonlightCompat {
 
             setSelected(false);
 
+        }
+
+        @Override
+        protected void deleteMarker() {
+            ((ExpandedMapData)data).getCustomDecorations().entrySet().removeIf(e->e.getValue() == decoration);
         }
     }
 }

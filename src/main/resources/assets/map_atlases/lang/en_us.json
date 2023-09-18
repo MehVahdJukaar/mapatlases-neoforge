@@ -23,5 +23,6 @@
   "message.map_atlases.locked": "Locked atlas",
   "message.map_atlases.unlocked": "Unlocked atlas",
   "message.map_atlases.atlas.slice_default": "Top",
+  "tooltip.map_atlases.delete_marker": "Delete Marker",
   "trinkets.slot.hand.atlas": "Atlas"
 }

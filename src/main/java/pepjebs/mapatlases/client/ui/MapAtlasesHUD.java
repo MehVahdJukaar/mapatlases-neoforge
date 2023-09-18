@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Axis;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
@@ -207,9 +208,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         // Set zoom-level for map icons
-        MapAtlasesClient.setDecorationsScale((float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
+        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
+        float yRot = player.getYRot();
         if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(player.getYRot() - 180);
+            MapAtlasesClient.setDecorationRotation(yRot - 180);
         }
         drawAtlas(poseStack, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
@@ -227,6 +229,18 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
                     y + mapWidgetSize / 2 - 1,
                     0, 0, 8, 8, 128, 128);
         }
+        //always render as its better
+        poseStack.pushPose();
+        poseStack.translate(x + mapWidgetSize / 2f +3f, y + mapWidgetSize / 2f + 3, 0);
+        if (!rotatesWithPlayer) {
+            poseStack.mulPose(Axis.ZN.rotationDegrees(180-yRot));
+            poseStack.translate(-4.5f,-4f,  0);
+        }
+        graphics.blit(MAP_ICON_TEXTURE, 0,
+                0,
+                0, 0, 8, 8, 128, 128);
+
+        poseStack.popPose();
 
         poseStack.popPose();
         //  graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
@@ -255,7 +269,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.pushPose();
         poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
 
-        var p = getDirectionPos(BG_SIZE / 2f - 3, player.getYRot());
+        rotatesWithPlayer = false;
+        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
         drawLetter(poseStack, font, a, b, "N");
@@ -327,7 +342,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale, targetWidth);
+        drawScaledComponent(context, font, (int) (x), y, biomeToDisplay, textScaling / globalScale,  targetWidth);
     }
 
     public static void drawScaledComponent(

@@ -181,6 +181,10 @@ dependencies {
 
     annotationProcessor 'net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5'
 
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.0-rc.3"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.2.0-rc.3")) {
+        jarJar.ranged(it, "[0.2.0-rc.3,)")
+    }
 
     compileOnly fg.deobf("curse.maven:jei-238222:4712868")
     compileOnly fg.deobf("curse.maven:curios-309927:4583413")
@@ -188,7 +192,7 @@ dependencies {
     //implementation fg.deobf("curse.maven:selene-499980:4748073")
     compileOnly fg.deobf("curse.maven:supplementaries-412082:4753107")
     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
-    compileOnly fg.deobf("curse.maven:selene-499980:4757231")
+    implementation fg.deobf("curse.maven:selene-499980:4758015")
 
   //  compileOnly fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
 

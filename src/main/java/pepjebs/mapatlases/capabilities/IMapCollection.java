@@ -25,6 +25,8 @@ public interface IMapCollection {
 
     byte getScale();
 
+    int[] getAllIds();
+
     Collection<ResourceKey<Level>> getAvailableDimensions();
 
     Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension);

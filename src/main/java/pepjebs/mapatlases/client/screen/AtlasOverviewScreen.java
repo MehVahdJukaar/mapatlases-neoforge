@@ -61,17 +61,15 @@ public class AtlasOverviewScreen extends Screen {
     private SliceBookmarkButton sliceButton;
     private SliceArrowButton sliceUp;
     private SliceArrowButton sliceDown;
-    private final Map<DecorationBookmarkButton, MapItemSavedData> decorationBookmarks = new HashMap<>();
+    private final List<DecorationBookmarkButton> decorationBookmarks = new ArrayList<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
     private final float globalScale = (float) (double) MapAtlasesClientConfig.worldMapScale.get();
-
     private ResourceKey<Level> currentWorldSelected;
     private Integer selectedSlice;
     private boolean initialized = false;
 
     private int mapIconSelectorScroll = 0;
     private int dimSelectorScroll = 0;
-
 
 
     public AtlasOverviewScreen(ItemStack atlas) {
@@ -106,6 +104,11 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
 
         this.lectern = lectern;
+    }
+
+    public void removeBookmark(DecorationBookmarkButton pListener) {
+        this.removeWidget(pListener);
+        decorationBookmarks.remove(pListener);
     }
 
     @Override
@@ -180,6 +183,26 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+            this.onClose();
+            return true;
+        }
+        for (var v : decorationBookmarks) {
+            if (v.keyPressed(pKeyCode, pScanCode, pModifiers)) return true;
+        }
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        for (var v : decorationBookmarks) {
+            v.keyReleased(pKeyCode, pScanCode, pModifiers);
+        }
+        return super.keyReleased(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
         renderBackground(poseStack);
 
@@ -226,12 +249,12 @@ public class AtlasOverviewScreen extends Screen {
 
         poseStack.pushPose();
 
-        poseStack.translate(width / 2f, height / 2f, 20);
+        poseStack.translate(width / 2f, height / 2f, 1);
         RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
 
         this.blit(
                 poseStack,
-                H_IMAGE_WIDTH-10,
+                H_IMAGE_WIDTH - 10,
                 -H_IMAGE_HEIGHT,
                 189,
                 0,
@@ -240,7 +263,7 @@ public class AtlasOverviewScreen extends Screen {
         );
         this.blit(
                 poseStack,
-                -H_IMAGE_WIDTH+5,
+                -H_IMAGE_WIDTH + 5,
                 -H_IMAGE_HEIGHT,
                 194,
                 0,
@@ -384,7 +407,7 @@ public class AtlasOverviewScreen extends Screen {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
         }
         mapWidget.setFollowingPlayer(currentWorldSelected.equals(initialWorldSelected));
-        for (var v : decorationBookmarks.keySet()) {
+        for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
         decorationBookmarks.clear();
@@ -400,11 +423,9 @@ public class AtlasOverviewScreen extends Screen {
         // Create a list to store selected decorations
         // Create a TreeMap to store selected decorations sorted by distance
         List<Pair<Double, DecorationBookmarkButton>> byDistance = new ArrayList<>();
-        for (var e : decorationBookmarks.entrySet()) {
-            DecorationBookmarkButton bookmark = e.getKey();
-            MapItemSavedData data = e.getValue();
-            double x = bookmark.getWorldX(data);
-            double z = bookmark.getWorldZ(data);
+        for (var bookmark : decorationBookmarks) {
+            double x = bookmark.getWorldX();
+            double z = bookmark.getWorldZ();
             // Check if the decoration is within the specified range
             bookmark.setSelected(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
             if (followingPlayer) {
@@ -452,10 +473,10 @@ public class AtlasOverviewScreen extends Screen {
         for (var e : mapIcons) {
             DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
                     (width - IMAGE_WIDTH) / 2 + 10,
-                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), this);
+                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), e.getSecond(), this);
             pWidget.setIndex(i);
             widgets.add(pWidget);
-            this.decorationBookmarks.put(pWidget, e.getSecond());
+            this.decorationBookmarks.add(pWidget);
             i++;
         }
         //add widget in order so they render optimized without unneded texture swaps
@@ -465,9 +486,8 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void focusDecoration(DecorationBookmarkButton button) {
-        MapItemSavedData targetData = decorationBookmarks.get(button);
-        int x = (int) button.getWorldX(targetData);
-        int z = (int) button.getWorldZ(targetData);
+        int x = (int) button.getWorldX();
+        int z = (int) button.getWorldZ();
         this.mapWidget.resetAndCenter(x, z, false);
     }
 
