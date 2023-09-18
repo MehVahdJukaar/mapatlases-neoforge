@@ -3,8 +3,8 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -18,7 +18,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -179,10 +178,8 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        renderBackground(graphics);
-
-        PoseStack poseStack = graphics.pose();
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
+        renderBackground(poseStack);
 
         poseStack.pushPose();
 
@@ -191,8 +188,9 @@ public class AtlasOverviewScreen extends Screen {
 
 
         //background
-        graphics.blit(
-                ATLAS_TEXTURE,
+        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
+        this.blit(
+                poseStack,
                 -H_IMAGE_WIDTH,
                 -H_IMAGE_HEIGHT,
                 0,
@@ -200,9 +198,11 @@ public class AtlasOverviewScreen extends Screen {
                 IMAGE_WIDTH,
                 IMAGE_HEIGHT
         );
+        RenderSystem.setShaderTexture(0,ATLAS_OVERLAY);
+
         // Draw foreground
-        graphics.blit(
-                ATLAS_OVERLAY,
+        this.blit(
+                poseStack,
                 -H_IMAGE_WIDTH,
                 -H_IMAGE_HEIGHT,
                 0,
@@ -217,7 +217,7 @@ public class AtlasOverviewScreen extends Screen {
         //render widgets
         poseStack.pushPose();
         var v = transformMousePos(mouseX, mouseY);
-        super.render(graphics, (int) v.x, (int) v.y, delta);
+        super.render(poseStack, (int) v.x(), (int) v.y(), delta);
         poseStack.popPose();
 
         RenderSystem.enableDepthTest();
@@ -225,9 +225,10 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
 
         poseStack.translate(width / 2f, height / 2f, 20);
+        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
 
-        graphics.blit(
-                ATLAS_TEXTURE,
+        this.blit(
+                poseStack,
                 H_IMAGE_WIDTH-10,
                 -H_IMAGE_HEIGHT,
                 189,
@@ -235,8 +236,8 @@ public class AtlasOverviewScreen extends Screen {
                 5,
                 IMAGE_HEIGHT
         );
-        graphics.blit(
-                ATLAS_TEXTURE,
+        this.blit(
+                poseStack,
                 -H_IMAGE_WIDTH+5,
                 -H_IMAGE_HEIGHT,
                 194,
@@ -278,26 +279,26 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
         var v = transformMousePos(pMouseX, pMouseY);
-        super.mouseMoved(v.x, v.y);
+        super.mouseMoved(v.x(), v.y());
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         var v = transformMousePos(pMouseX, pMouseY);
-        return super.mouseClicked(v.x, v.y, pButton);
+        return super.mouseClicked(v.x(), v.y(), pButton);
     }
 
     @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
         var v = transformMousePos(pMouseX, pMouseY);
-        return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
+        return super.mouseDragged(v.x(), v.y(), pButton, pDragX, pDragY);
     }
 
-    public Vector4d transformMousePos(double mouseX, double mouseZ) {
+    public Vector4f transformMousePos(double mouseX, double mouseZ) {
         return scaleVector(mouseX, mouseZ, 1 / globalScale, width, height);
     }
 
-    public Vector4d transformPos(double mouseX, double mouseZ) {
+    public Vector4f transformPos(double mouseX, double mouseZ) {
         return scaleVector(mouseX, mouseZ, globalScale, width, height);
     }
 
@@ -315,12 +316,12 @@ public class AtlasOverviewScreen extends Screen {
             var slice = selectedSlice;
             for (var m : maps.selectSection(currentWorldSelected, slice)) {
                 MapItemSavedData d = m.getSecond();
-                averageX += d.centerX;
-                averageZ += d.centerZ;
+                averageX += d.x;
+                averageZ += d.z;
                 count++;
                 if (d.decorations.values().stream().anyMatch(e -> e.getType().isRenderedOnFrame())) {
                     if (best != null) {
-                        if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
+                        if (Mth.lengthSquared(best.x, best.z) > Mth.lengthSquared(d.x, d.z)) {
                             best = d;
                         }
                     } else best = d;
@@ -371,7 +372,7 @@ public class AtlasOverviewScreen extends Screen {
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
 
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, true);
+        this.mapWidget.resetAndCenter(center.x, center.z, true);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
         }
@@ -413,7 +414,7 @@ public class AtlasOverviewScreen extends Screen {
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
                 var d = e.getSecond();
-                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.y =((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
                 d.setIndex(index);
                 index++;
             }

@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -17,7 +17,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
-public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
+public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, NarratableEntry, Widget {
 
 
     private static final int PAN_BUCKET = 25;
@@ -53,19 +53,19 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.mapScreen = hack;
 
-        this.targetXCenter = originalCenterMap.centerX;
-        this.targetZCenter = originalCenterMap.centerZ;
+        this.targetXCenter = originalCenterMap.x;
+        this.targetZCenter = originalCenterMap.z;
     }
 
     @Override
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+    protected void applyScissors(PoseStack graphics, int x, int y, int x1, int y1) {
         var v = mapScreen.transformPos(x, y);
         var v2 = mapScreen.transformPos(x1, y1);
-        super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
+        super.applyScissors(graphics, (int) v.x(), (int) v.y(), (int) v2.x(), (int) v2.y());
     }
 
     @Override
-    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void render(PoseStack poseStack, int pMouseX, int pMouseY, float pPartialTick) {
 
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
@@ -77,13 +77,13 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         // Handle zooming markers hack
         MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
-        this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
+        this.drawAtlas(poseStack, x, y, width, height, player, zoomLevel,
                 MapAtlasesClientConfig.worldMapBorder.get());
 
         MapAtlasesClient.setDecorationsScale(1);
 
         if (this.isHovered) {
-            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY, zoomLevel);
+            this.renderPositionText(poseStack, mc.font, pMouseX, pMouseY, zoomLevel);
         }
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
@@ -96,7 +96,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 
-    private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY, float zoomLevelDim) {
+    private void renderPositionText(PoseStack graphics, Font font, int mouseX, int mouseY, float zoomLevelDim) {
         // Draw world map coords
 
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
@@ -176,16 +176,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         return isHovered;
-    }
-
-    @Override
-    public void setFocused(boolean pFocused) {
-
-    }
-
-    @Override
-    public boolean isFocused() {
-        return true;
     }
 
     @Override

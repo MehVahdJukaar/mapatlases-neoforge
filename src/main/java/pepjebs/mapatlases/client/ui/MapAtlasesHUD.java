@@ -1,11 +1,15 @@
 package pepjebs.mapatlases.client.ui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -21,8 +25,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import org.joml.Matrix4d;
-import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -77,44 +79,44 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps(currentAtlas, mc.level).hasOneSlice();
     }
 
-    public Vector4d transformPos(double mouseX, double mouseZ) {
+    public Vector4f transformPos(double mouseX, double mouseZ) {
         return scaleVector(mouseX, mouseZ, globalScale, BG_SIZE, BG_SIZE);
     }
 
-    public static Vector4d scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
-        Matrix4d matrix4d = new Matrix4d();
+    public static Vector4f scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
+        Matrix4f matrix4d = new Matrix4f();
 
         // Calculate the translation and scaling factors
-        double translateX = w / 2.0;
-        double translateY = h / 2.0;
-        double scaleFactor = scale - 1.0;
+        float translateX = w / 2.0f;
+        float translateY = h / 2.0f;
+        float scaleFactor = scale - 1.0f;
 
         // Apply translation to the matrix (combined)
-        matrix4d.translate(translateX, translateY, 0);
+        matrix4d.translate(new Vector3f(translateX, translateY, 0));
 
         // Apply scaling to the matrix
-        matrix4d.scale(1.0 + scaleFactor);
+        matrix4d.multiply(1.0f + scaleFactor);
 
         // Apply translation back to the original position (combined)
-        matrix4d.translate(-translateX, -translateY, 0);
+        matrix4d.translate(new Vector3f(-translateX, -translateY, 0));
 
         // Create a vector with the input coordinates
-        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
+        Vector4f v = new Vector4f((float) mouseX, (float) mouseZ, 0, 1.0F);
 
         // Apply the transformation matrix to the vector
-        matrix4d.transform(v);
+        v.transform(matrix4d);
         return v;
     }
 
     @Override
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+    protected void applyScissors(PoseStack poseStack, int x, int y, int x1, int y1) {
         var v = transformPos(x, y);
         var v2 = transformPos(x1, y1);
-        super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
+        super.applyScissors(poseStack, (int) v.x(), (int) v.y(), (int) v2.x(), (int) v2.y());
     }
 
     @Override
-    public void render(ForgeGui forgeGui, GuiGraphics graphics, float partialTick,
+    public void render(ForgeGui forgeGui, PoseStack poseStack, float partialTick,
                        int screenWidth, int screenHeight) {
         // Handle early returns
         if (mc.level == null || mc.player == null) {
@@ -152,8 +154,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             needsInit = false;
             initialize(state);
         }
-
-        PoseStack poseStack = graphics.pose();
 
         poseStack.pushPose();
 
@@ -194,7 +194,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             }
         }
 
-        graphics.blit(MAP_BACKGROUND, x, y, BG_SIZE, BG_SIZE, 0, 0,
+        RenderSystem.setShaderTexture(0, MAP_BACKGROUND);
+        GuiComponent.blit(poseStack, x, y, BG_SIZE, BG_SIZE, 0, 0,
                 BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE);
 
         // Draw map data
@@ -211,7 +212,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (rotatesWithPlayer) {
             MapAtlasesClient.setDecorationRotation(player.getYRot() - 180);
         }
-        drawAtlas(graphics, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
+        drawAtlas(poseStack, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get());
@@ -222,7 +223,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         if (rotatesWithPlayer) {
-            graphics.blit(MAP_ICON_TEXTURE, x + mapWidgetSize / 2 - 1,
+            RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
+            GuiComponent.blit(poseStack, x + mapWidgetSize / 2 - 1,
                     y + mapWidgetSize / 2 - 1,
                     0, 0, 8, 8, 128, 128);
         }
@@ -238,7 +240,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         Font font = mc.font;
         if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
             drawMapComponentCoords(
-                    graphics, font, x, y + textHeightOffset, BG_SIZE,
+                    poseStack, font, x, y + textHeightOffset, BG_SIZE,
                     textScaling, new BlockPos(new Vec3i(
                             towardsZero(player.position().x),
                             towardsZero(player.position().y),
@@ -247,7 +249,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    graphics, font, x, y + textHeightOffset, BG_SIZE,
+                    poseStack, font, x, y + textHeightOffset, BG_SIZE,
                     textScaling, player.blockPosition(), level);
         }
 
@@ -257,11 +259,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         var p = getDirectionPos(BG_SIZE / 2f - 3, player.getYRot());
         float a = p.getFirst();
         float b = p.getSecond();
-        drawLetter(graphics, font, a, b, "N");
+        drawLetter(poseStack, font, a, b, "N");
         if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
-            drawLetter(graphics, font, -a, -b, "S");
-            drawLetter(graphics, font, -b, a, "E");
-            drawLetter(graphics, font, b, -a, "W");
+            drawLetter(poseStack, font, -a, -b, "S");
+            drawLetter(poseStack, font, -b, a, "E");
+            drawLetter(poseStack, font, b, -a, "W");
         }
 
         poseStack.popPose();
@@ -270,13 +272,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.popPose();
     }
 
-    private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
-        PoseStack pose = graphics.pose();
+    private void drawLetter(PoseStack pose, Font font, float a, float b, String letter) {
         pose.pushPose();
-        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get()/globalScale;
+        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale, 1);
-        graphics.drawString(font, letter, a / scale - font.width(letter) / 2f,
-                b / scale - font.lineHeight / 2f, -1, true);
+        font.drawShadow(pose, letter, a / scale - font.width(letter) / 2f,
+                b / scale - font.lineHeight / 2f, -1);
 
         pose.popPose();
     }
@@ -301,7 +302,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public void drawMapComponentCoords(
-            GuiGraphics context,
+            PoseStack context,
             Font font,
             int x, int y,
             int targetWidth,
@@ -313,7 +314,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public void drawMapComponentBiome(
-            GuiGraphics context,
+            PoseStack context,
             Font font,
             int x, int y,
             int targetWidth,
@@ -331,14 +332,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public static void drawScaledComponent(
-            GuiGraphics context,
+            PoseStack pose,
             Font font,
             int x, int y,
             String text,
             float textScaling,
             int targetWidth
     ) {
-        PoseStack pose = context.pose();
         float textWidth = font.width(text);
 
         float scale = Math.min(1, targetWidth * textScaling / textWidth);
@@ -351,8 +351,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         pose.scale(scale, scale, 1);
         pose.translate(-(textWidth) / 2f, -4, 0);
         // uses slightly lighter drop shadow
-        context.drawString(font, text, 1, 1, 0x595959, false);
-        context.drawString(font, text, 0, 0, 0xE0E0E0, false);
+        font.draw(pose, text, 1, 1, 0x595959);
+        font.draw(pose, text, 0, 0, 0xE0E0E0);
         pose.popPose();
     }
 
@@ -383,11 +383,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public void decreaseZoom() {
-        zoomLevel = Math.max(1, zoomLevel-0.5f);
+        zoomLevel = Math.max(1, zoomLevel - 0.5f);
     }
 
     public void increaseZoom() {
-        zoomLevel = Math.min(5, zoomLevel+0.5f);
+        zoomLevel = Math.min(5, zoomLevel + 0.5f);
 
     }
 }
