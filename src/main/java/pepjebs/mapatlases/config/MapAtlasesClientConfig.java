@@ -80,6 +80,8 @@ public class MapAtlasesClientConfig {
 
         builder.push("world_map");
 
+        worldMapSmoothPanning = builder.comment("Pan smoothly. When off it will pan in map increments instead")
+                .define("smooth_panning", true);
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
                 .defineInRange("scale", 1.25f, 0, 20);
@@ -139,6 +141,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> miniMapFollowPlayer;
     public static final Supplier<Boolean> worldMapFollowPlayer;
     public static final Supplier<Boolean> yOnlyWithSlice;
+    public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
 

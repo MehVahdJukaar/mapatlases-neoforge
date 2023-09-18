@@ -49,6 +49,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     private ItemStack currentAtlas;
     private MapKey currentMapKey = null;
 
+
     private float globalScale = 1;
     private boolean displaysY = true;
 
@@ -212,7 +213,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
         drawAtlas(graphics, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
-                1 * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
+                zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get());
 
         MapAtlasesClient.setDecorationsScale(1);
@@ -269,10 +270,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.popPose();
     }
 
-    private static void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
+    private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
         PoseStack pose = graphics.pose();
         pose.pushPose();
-        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get();
+        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get()/globalScale;
         pose.scale(scale, scale, 1);
         graphics.drawString(font, letter, a / scale - font.width(letter) / 2f,
                 b / scale - font.lineHeight / 2f, -1, true);
@@ -308,10 +309,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             BlockPos pos
     ) {
         String coordsToDisplay = displaysY ? pos.toShortString() : pos.getX() + ", " + pos.getZ();
-        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling, targetWidth);
+        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling / globalScale, targetWidth);
     }
 
-    public static void drawMapComponentBiome(
+    public void drawMapComponentBiome(
             GuiGraphics context,
             Font font,
             int x, int y,
@@ -326,7 +327,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling, targetWidth);
+        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale, targetWidth);
     }
 
     public static void drawScaledComponent(
@@ -379,5 +380,14 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             y = -radius;
         }
         return Pair.of(x, y);
+    }
+
+    public void decreaseZoom() {
+        zoomLevel = Math.max(1, zoomLevel-0.5f);
+    }
+
+    public void increaseZoom() {
+        zoomLevel = Math.min(5, zoomLevel+0.5f);
+
     }
 }

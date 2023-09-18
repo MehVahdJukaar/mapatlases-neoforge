@@ -69,6 +69,21 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
+
+    public static final KeyMapping INCREASE_MINIMAP_ZOOM = new KeyMapping(
+            "key.map_atlases.zoom_in_minimap",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_KP_ADD,
+            "category.map_atlases.minimap"
+    );
+
+    public static final KeyMapping DECREASE_MINIMAP_ZOOM = new KeyMapping(
+            "key.map_atlases.zoom_out_minimap",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_KP_SUBTRACT,
+            "category.map_atlases.minimap"
+    );
+
     public static void cachePlayerState(Player player) {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
@@ -106,14 +121,19 @@ public class MapAtlasesClient {
 
     }
 
+    public static MapAtlasesHUD HUD;
+
     @SubscribeEvent
     public static void clientSetup(RegisterGuiOverlaysEvent event) {
-        event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", new MapAtlasesHUD());
+        HUD = new MapAtlasesHUD();
+        event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", HUD);
     }
 
     @SubscribeEvent
     public static void registerKeyBinding(RegisterKeyMappingsEvent event) {
         event.register(OPEN_ATLAS_KEYBIND);
+        event.register(DECREASE_MINIMAP_ZOOM);
+        event.register(INCREASE_MINIMAP_ZOOM);
     }
 
     public static void modifyDecorationTransform(PoseStack poseStack) {
@@ -182,7 +202,9 @@ public class MapAtlasesClient {
     }
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
-        Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
+        if (!MapAtlasItem.getMaps(atlas, Minecraft.getInstance().level).isEmpty()) {
+            Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
+        }
     }
 
     public static void openScreen(ItemStack atlas) {
