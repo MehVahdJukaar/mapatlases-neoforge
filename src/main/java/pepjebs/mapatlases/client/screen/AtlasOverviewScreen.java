@@ -7,6 +7,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,6 +25,7 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
@@ -71,6 +73,7 @@ public class AtlasOverviewScreen extends Screen {
     private int mapIconSelectorScroll = 0;
     private int dimSelectorScroll = 0;
 
+    boolean placingPin = false;
 
     public AtlasOverviewScreen(ItemStack atlas) {
         this(atlas, null);
@@ -104,6 +107,14 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
 
         this.lectern = lectern;
+    }
+
+    public Integer getSelectedSlice() {
+        return selectedSlice;
+    }
+
+    public ResourceKey<Level> getSelectedDimension() {
+        return currentWorldSelected;
     }
 
     public void removeBookmark(DecorationBookmarkButton pListener) {
@@ -150,6 +161,10 @@ public class AtlasOverviewScreen extends Screen {
 
         this.setFocused(mapWidget);
 
+        if(!MapAtlasesConfig.pinMarkerId.get().isEmpty()) {
+            this.addRenderableWidget(new PinButton((width + IMAGE_WIDTH) / 2 + 20,
+                    (height - IMAGE_HEIGHT) / 2 + 16, this));
+        }
         this.selectDimension(initialWorldSelected);
         this.initialized = true;
     }
@@ -451,7 +466,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private void addDecorationWidgets() {
-        List<Pair<Object, MapItemSavedData>> mapIcons = new ArrayList<>();
+        List<Pair<Object, Pair<String,MapItemSavedData>>> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
         for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentWorldSelected, selectedSlice)) {
@@ -459,11 +474,11 @@ public class AtlasOverviewScreen extends Screen {
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame()) {
-                    mapIcons.add(Pair.of(deco, data));
+                    mapIcons.add(Pair.of(deco, p));
                 }
             }
             if (ml) {
-                mapIcons.addAll(MoonlightCompat.getCustomDecorations(data));
+                mapIcons.addAll(MoonlightCompat.getCustomDecorations(p));
             }
         }
         int i = 0;

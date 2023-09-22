@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector3f;
 import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
 import net.minecraft.ChatFormatting;
@@ -12,9 +13,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.MoonlightCompat;
+import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
+import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 
@@ -24,17 +28,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
-    protected final MapItemSavedData data;
+    protected final Pair<String, MapItemSavedData> data;
 
     protected int index = 0;
     protected boolean shfting = false;
 
-    protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapItemSavedData data) {
+    protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, Pair<String, MapItemSavedData> data) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36, parentScreen);
         this.data = data;
     }
 
-    public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, MapItemSavedData data, AtlasOverviewScreen screen) {
+    public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, Pair<String, MapItemSavedData> data, AtlasOverviewScreen screen) {
         if (mapDecoration instanceof MapDecoration md) return new Vanilla(px, py, screen, data, md);
         else {
             return MoonlightCompat.makeCustomButton(px, py, screen, data, mapDecoration);
@@ -106,7 +110,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         private final MapDecoration decoration;
 
-        public Vanilla(int px, int py, AtlasOverviewScreen screen, MapItemSavedData data, MapDecoration mapDecoration) {
+        public Vanilla(int px, int py, AtlasOverviewScreen screen, Pair<String, MapItemSavedData> data, MapDecoration mapDecoration) {
             super(px, py, screen, data);
             this.decoration = mapDecoration;
             this.tooltip = (createTooltip());
@@ -114,12 +118,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         public double getWorldX() {
-            return data.x - getDecorationPos(decoration.getX(), data);
+            return data.getSecond().x - getDecorationPos(decoration.getX(), data.getSecond());
         }
 
         @Override
         public double getWorldZ() {
-            return data.z - getDecorationPos(decoration.getY(), data);
+            return data.getSecond().z - getDecorationPos(decoration.getY(), data.getSecond());
         }
 
         @Override
@@ -163,7 +167,16 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         protected void deleteMarker() {
-            data.decorations.entrySet().removeIf(e -> e.getValue() == decoration);
+            Map<String, MapDecoration> decorations = data.getSecond().decorations;
+            for(var d : decorations.entrySet()){
+               var deco = d.getValue();
+               if(deco == decoration){
+                   //we cant use string id because server has them diferent...
+                   MapAtlasesNetowrking.sendToServer(new C2SRemoveMarkerPacket(data.getFirst(), deco.hashCode()));
+                   decorations.remove(d.getKey());
+                   return;
+               }
+           }
         }
     }
 

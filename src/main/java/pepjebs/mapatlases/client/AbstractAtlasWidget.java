@@ -34,7 +34,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     //internally controls how many maps are displayed
     protected final int atlasesCount;
-    protected int mapAtlasScale;
+    protected int mapPixelSize;
     private MapItemSavedData originalCenterMap;
 
     protected boolean followingPlayer = true;
@@ -50,7 +50,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     protected void initialize(MapItemSavedData originalCenterMap) {
         this.originalCenterMap = originalCenterMap;
-        this.mapAtlasScale = (1 << originalCenterMap.scale) * MAP_DIMENSION;
+        this.mapPixelSize = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
         this.currentXCenter = originalCenterMap.x;
         this.currentZCenter = originalCenterMap.z;
@@ -62,19 +62,36 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
         poseStack.pushPose();
 
-        float mapScalingFactor = width / (float) (atlasesCount * MAP_DIMENSION);
+        float widgetScale = width / (float) (atlasesCount * MAP_DIMENSION);
         float zoomScale = atlasesCount / zoomLevelDim;
 
         int intXCenter = (int) (currentXCenter);
         int intZCenter = (int) (currentZCenter);
+        int scaleIndex = mapPixelSize / MAP_DIMENSION;
 
-        int centerMapX = round(intXCenter, mapAtlasScale);
-        int centerMapZ = round(intZCenter, mapAtlasScale);
+        int scaleMagicNumber = 0;
+        int scaleMagicNumber2 = 0;
+        if (scaleIndex == 1) {
+            scaleMagicNumber = 64;
+            scaleMagicNumber2 = 0;
+        }
+        if (scaleIndex == 2) {
+            scaleMagicNumber = 64;
+            scaleMagicNumber2 = 64;
+        } else if (scaleIndex == 4) {
+            scaleMagicNumber = 64;
+            scaleMagicNumber2 = 192;
+        }
+
+        int centerMapX = scaleMagicNumber2 + roundBelow(intXCenter + scaleMagicNumber, mapPixelSize);
+        int centerMapZ = scaleMagicNumber2 + roundBelow(intZCenter + scaleMagicNumber, mapPixelSize);
 
 
+        //translate to center
         poseStack.translate(x + width / 2f, y + height / 2f, 0);
+        //widget scale + zoom
 
-        poseStack.scale(mapScalingFactor * zoomScale, mapScalingFactor * zoomScale, -1);
+        poseStack.scale(widgetScale * zoomScale, widgetScale * zoomScale, -1);
 
         // Draw maps, putting active map in middle of grid
 
@@ -86,48 +103,51 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
         applyScissors(poseStack, x, y, (x + width), (y + height));
 
-        float offsetX = currentXCenter - centerMapX;
-        float offsetZ = currentZCenter - centerMapZ;
-
+        float mapCenterOffsetX = currentXCenter - centerMapX;
+        float mapCenterOffsetZ = currentZCenter - centerMapZ;
 
         //zoom leve is essentially maps on screen
         //dont ask me why all this stuff is like that
-        int hz = (int) (Mth.ceil((zoomLevelDim)) / 2f);
-        boolean small = false;
-        if ( (followingPlayer && atlasesCount == 1) || rotatesWithPlayer) {
-            hz+=1;
-            small = true;
-        }
 
         if (rotatesWithPlayer) {
             poseStack.mulPose(Vector3f.ZP.rotationDegrees(180 - player.getYRot()));
         }
-        poseStack.translate(-offsetX, -offsetZ, 0);
+        //divide by 2 on scale 2
+        poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
 
-        int minI = -hz;
-        int maxI = hz;
-        int minJ = -hz;
-        int maxJ = hz;
-        //adds more maps to draw if needed
-        if(!small) {
-            if (offsetX < 0) minJ--;
-            else if (offsetX > 0) maxJ++;
-            if (offsetZ < 0) minI--;
-            else if (offsetZ > 0) maxI++;
-        }
-        for (int i = maxI; i >= minI; i--) {
-            for (int j = maxJ; j >= minJ; j--) {
-                int reqXCenter = centerMapX + (j * mapAtlasScale);
-                int reqZCenter = centerMapZ + (i * mapAtlasScale);
-                Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
-                if (state == null) continue;
-                MapItemSavedData data = state.getSecond();
-                boolean drawPlayerIcons = data.dimension.equals(player.level.dimension());
-                // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-                this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
+        //grid side len
+        float sideLength = mapPixelSize * zoomScale;
+        //radius of widget
+        int radius = (int) (mapPixelSize * atlasesCount * 0.71f); // radius using hyp
+
+        // Calculate the distance from the circle's center to the center of each grid square
+        int o = Mth.ceil(zoomLevelDim);
+        double maxDist = rotatesWithPlayer ?
+                Mth.square(radius + (sideLength * 0.71)) :
+                (o + 1) * sideLength * 0.5;
+        for (int i = o; i >= -o; i--) {
+            for (int j = o; j >= -o; j--) {
+                double gridCenterI = i * sideLength;
+                double gridCenterJ = j * sideLength;
+
+                boolean shouldDraw;
+                // Calculate the distance between the grid square center and the circle's center
+                if (rotatesWithPlayer) {
+                    double distance = Mth.lengthSquared(
+                            gridCenterI - mapCenterOffsetZ * zoomScale,
+                            gridCenterJ - mapCenterOffsetX * zoomScale);
+                    //circle dist
+                    shouldDraw = (distance <= maxDist);
+                } else {
+                    //square dist
+                    shouldDraw = Math.abs(gridCenterI - mapCenterOffsetZ * zoomScale) < maxDist &&
+                            Math.abs(gridCenterJ - mapCenterOffsetX * zoomScale) < maxDist;
+                }
+                if (shouldDraw) {
+                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j);
+                }
             }
         }
-
         vcp.endBatch();
 
         if (showBorders) {
@@ -149,6 +169,19 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     protected void applyScissors(PoseStack graphics, int x, int y, int x1, int y1) {
          GuiComponent.enableScissor(x, y, x1, y1);
+    }
+
+    private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ, MultiBufferSource.BufferSource vcp,
+                               List<Matrix4f> outlineHack, int i, int j) {
+        int reqXCenter = centerMapX + (j * mapPixelSize);
+        int reqZCenter = centerMapZ + (i * mapPixelSize);
+        Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
+        if (state != null) {
+            MapItemSavedData data = state.getSecond();
+            boolean drawPlayerIcons = data.dimension.equals(player.level.dimension());
+            // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
+            this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
+        }
     }
 
     public abstract Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
@@ -206,6 +239,12 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         }
     }
 
+    /**
+     * @return biggest int multiple of factor that is less than value
+     */
+    public static int roundBelow(int value, int factor) {
+        return Mth.roundToward(value, factor) - factor;
+    }
 
     public static int round(int num, int mod) {
         //return Math.round((float) num / mod) * mod

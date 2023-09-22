@@ -10,6 +10,7 @@
     "LecternBlockEntityMixin",
     "LecternBlockMixin",
     "MapDataAccessor",
+    "MapItemSavedDataAccessor",
     "MapStateCuriosMixin",
     "MixinCartographyTableAbstractContainerMenuSecondSlot",
     "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",

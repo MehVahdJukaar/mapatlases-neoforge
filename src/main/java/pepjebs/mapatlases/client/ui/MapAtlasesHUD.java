@@ -59,6 +59,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         super(1);
         this.mc = Minecraft.getInstance();
         this.rotatesWithPlayer = true;
+        this.zoomLevel = 1;
     }
 
     @Override
@@ -233,8 +234,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.translate(x + mapWidgetSize / 2f +3f, y + mapWidgetSize / 2f + 3, 0);
         if (!rotatesWithPlayer) {
             poseStack.mulPose(Vector3f.ZN.rotationDegrees(180-yRot));
-            poseStack.translate(-4.5f,-4f,  0);
         }
+        poseStack.translate(-4.5f,-4f,  0);
         RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
         this.blit(poseStack, 0,
                 0,
@@ -269,7 +270,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.pushPose();
         poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
 
-        rotatesWithPlayer = false;
+
         var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
@@ -290,8 +291,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         pose.pushPose();
         float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale, 1);
-        font.drawShadow(pose, letter, a / scale - font.width(letter) / 2f,
-                b / scale - font.lineHeight / 2f, -1);
+        drawStringWithLighterShadow(pose, font, letter, a / scale - font.width(letter) / 2f,
+                b / scale - font.lineHeight / 2f);
 
         pose.popPose();
     }
@@ -342,7 +343,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, (int) (x), y, biomeToDisplay, textScaling / globalScale,  targetWidth);
+        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale,  targetWidth);
     }
 
     public static void drawScaledComponent(
@@ -365,9 +366,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         pose.scale(scale, scale, 1);
         pose.translate(-(textWidth) / 2f, -4, 0);
         // uses slightly lighter drop shadow
-        font.draw(pose, text, 1, 1, 0x595959);
-        font.draw(pose, text, 0, 0, 0xE0E0E0);
+        drawStringWithLighterShadow(pose, font, text, 0, 0);
         pose.popPose();
+    }
+
+    private static void drawStringWithLighterShadow(PoseStack pose, Font font, String text, float x, float y) {
+        font.draw(pose,text, x+1, y+1, 0x595959);
+        font.draw(pose, text, x, y, 0xE0E0E0);
     }
 
     private static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {
@@ -401,7 +406,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public void increaseZoom() {
-        zoomLevel = Math.min(5, zoomLevel + 0.5f);
+        zoomLevel = Math.min(10, zoomLevel + 0.5f);
 
     }
 }

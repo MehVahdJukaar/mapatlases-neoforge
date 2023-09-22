@@ -49,13 +49,13 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = emptyMaps + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
-            MapCollectionCap atlasData = MapAtlasItem.getMaps(atlas, level);
-            int mapCount = atlasData.getCount() + MapAtlasItem.getEmptyMaps(atlas);
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
             }
 
-            int atlasScale = atlasData.getScale();
+            int atlasScale = maps.getScale();
 
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
