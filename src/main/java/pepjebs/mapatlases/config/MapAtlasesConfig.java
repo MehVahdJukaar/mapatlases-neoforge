@@ -41,6 +41,12 @@ public class MapAtlasesConfig {
                 .comment("Locations of where an atlas will be scanned for. By default only hotbar will be scanned")
                 .defineEnum("activationLocations", ActivationLocation.HOTBAR_AND_HANDS);
 
+        creativeTeleport = builder
+                .comment("Allows players in creative to teleport using the atlas. Hold shift and press anywhere")
+                .define("creative_teleport", true);
+
+        pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
+                .define("pin_marked_id", "minecraft:target_point");
 
         spec = builder.build();
     }
@@ -51,6 +57,8 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> requireEmptyMapsToExpand;
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
+    public static final Supplier<Boolean> creativeTeleport;
+    public static final Supplier<String> pinMarkerId;
     public static final Supplier<ActivationLocation> activationLocation;
     public static final ForgeConfigSpec spec;
 

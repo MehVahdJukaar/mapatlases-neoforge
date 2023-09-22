@@ -37,6 +37,16 @@ public class MapAtlasesNetowrking {
         CHANNEL.registerMessage(index++, C2SSelectSlicePacket.class,
                 C2SSelectSlicePacket::write, C2SSelectSlicePacket::new, C2SSelectSlicePacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, C2STeleportPacket.class,
+                C2STeleportPacket::write, C2STeleportPacket::new, C2STeleportPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
+        CHANNEL.registerMessage(index++, C2SMarkerPacket.class,
+                C2SMarkerPacket::write, C2SMarkerPacket::new, C2SMarkerPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, C2SRemoveMarkerPacket.class,
+                C2SRemoveMarkerPacket::write, C2SRemoveMarkerPacket::new, C2SRemoveMarkerPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
 

@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -8,14 +10,28 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
+import pepjebs.mapatlases.networking.C2SMarkerPacket;
+import pepjebs.mapatlases.networking.C2STeleportPacket;
+import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+
+import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
 public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
 
@@ -40,6 +56,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     private boolean isHovered;
     private float animationProgress = 0; //from zero to 1
+
+
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
                      AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
@@ -83,12 +101,29 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapAtlasesClient.setDecorationsScale(1);
 
         if (this.isHovered) {
-            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY, zoomLevel);
+            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
         }
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
 
+        if(isHovered && mapScreen.placingPin){
+            PoseStack poseStack = graphics.pose();
+            poseStack.pushPose();
+            poseStack.translate( pMouseX-2.5f,pMouseY-2.5f,  10);
+            graphics.blit(MAP_ICON_TEXTURE, 0,
+                    0,
+                    40, 0, 8, 8, 128, 128);
+            poseStack.popPose();
+
+        }
+
+        if (isHovered && Screen.hasShiftDown() && mapScreen.getMinecraft().gameMode.getPlayerMode().isCreative()) {
+            graphics.renderTooltip(mapScreen.getMinecraft().font,
+                    Component.translatable("chat.coordinates.tooltip")
+                            .withStyle(ChatFormatting.GREEN),
+                    pMouseX, pMouseY);
+        }
     }
 
     @Override
@@ -96,23 +131,15 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 
-    private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY, float zoomLevelDim) {
+    private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
         // Draw world map coords
 
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
-        double atlasMapsRelativeMouseX = Mth.map(
-                mouseX, x, x + width, -1.0, 1.0);
-        double atlasMapsRelativeMouseZ = Mth.map(
-                mouseY, y, y + height, -1.0, 1.0);
-        BlockPos pos = new BlockPos(
-                (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevelDim * (mapAtlasScale / 2.0)) + currentXCenter),
-                0,
-                (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevelDim * (mapAtlasScale / 2.0)) + currentZCenter));
+        BlockPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
-        int hackOffset = +3;
         //TODO: fix coordinate being slightly offset
         //idk why
-        String coordsToDisplay = "X: " + (pos.getX() + hackOffset) + ", Z: " + (pos.getZ() + hackOffset);
+        String coordsToDisplay = "X: " + pos.getX() + ", Z: " + pos.getZ();
         MapAtlasesHUD.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
 
@@ -137,11 +164,11 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             boolean discrete = !MapAtlasesClientConfig.worldMapSmoothPanning.get();
             if (discrete) {
                 //discrete mode
-                newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale));
-                newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapAtlasScale));
+                newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
+                newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
             } else {
-                newXCenter = (int) (currentXCenter - cumulativeMouseX * mapAtlasScale / PAN_BUCKET);
-                newZCenter = (int) (currentZCenter - cumulativeMouseY * mapAtlasScale / PAN_BUCKET);
+                newXCenter = (int) (currentXCenter - cumulativeMouseX * mapPixelSize / PAN_BUCKET);
+                newZCenter = (int) (currentZCenter - cumulativeMouseY * mapPixelSize / PAN_BUCKET);
             }
             if (newXCenter != currentXCenter || newZCenter != currentZCenter) {
                 if (!discrete) {
@@ -174,8 +201,39 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+    public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
+        if (isHovered && Screen.hasShiftDown() && Minecraft.getInstance().gameMode.getPlayerMode().isCreative()) {
+            BlockPos pos = getHoveredPos(mouseX, mouseY);
+            MapAtlasesNetowrking.sendToServer(new C2STeleportPacket(pos.getX(), pos.getZ(),
+                    mapScreen.getSelectedSlice(), mapScreen.getSelectedDimension()));
+        }
+
+
+        if (mapScreen.placingPin) {
+            BlockPos pos = getHoveredPos(mouseX, mouseY);
+            var m = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mapScreen.getMinecraft().level).getClosest(pos.getX(), pos.getZ(),
+                    mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
+            if (m != null) {
+                MapAtlasesNetowrking.sendToServer(new C2SMarkerPacket(pos, m.getFirst()));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                mapScreen.placingPin = false;
+            }
+        }
+
         return isHovered;
+    }
+
+    @NotNull
+    private BlockPos getHoveredPos(double mouseX, double mouseY) {
+        double atlasMapsRelativeMouseX = Mth.map(
+                mouseX, x, x + width, -1.0, 1.0);
+        double atlasMapsRelativeMouseZ = Mth.map(
+                mouseY, y, y + height, -1.0, 1.0);
+        int hackOffset = +3;
+        return new BlockPos(
+                (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevel * (mapPixelSize / 2.0)) + currentXCenter) + hackOffset,
+                0,
+                (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevel * (mapPixelSize / 2.0)) + currentZCenter) + hackOffset);
     }
 
     @Override

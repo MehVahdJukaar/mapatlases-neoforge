@@ -17,6 +17,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
+import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -29,10 +30,7 @@ import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MapAtlasesServerEvents {
@@ -92,7 +90,7 @@ public class MapAtlasesServerEvents {
             //TODO: improve
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
-                maybeCreateNewMapEntry(player, atlas, (byte) 0, Mth.floor(player.getX()),
+                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
                 return;
             }
@@ -103,7 +101,7 @@ public class MapAtlasesServerEvents {
             int playZ = player.blockPosition().getZ();
             byte scale = activeState.scale;
             int scaleWidth = (1 << scale) * 128;
-            List<int[]> discoveringEdges = getPlayerDiscoveringMapEdges(
+            Set<Vector2i> discoveringEdges = getPlayerDiscoveringMapEdges(
                     activeState.centerX,
                     activeState.centerZ,
                     scaleWidth,
@@ -114,8 +112,8 @@ public class MapAtlasesServerEvents {
             // Update Map states & colors
             List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
                     maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
-                            .anyMatch(edge -> edge[0] == e.centerX
-                                    && edge[1] == e.centerZ));
+                            .anyMatch(edge -> edge.x == e.centerX
+                                    && edge.y == e.centerZ));
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
@@ -139,14 +137,14 @@ public class MapAtlasesServerEvents {
 
             //TODO : this isnt accurate and can be improved
             if (isPlayerTooFarAway(activeState, player, scaleWidth)) {
-                maybeCreateNewMapEntry(player, atlas, scale, Mth.floor(player.getX()),
+                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                    d -> d.getSecond().centerX == e[0] && d.getSecond().centerZ == e[1]));
+                    d -> d.getSecond().centerX == e.x && d.getSecond().centerZ == e.y));
             for (var edge : discoveringEdges) {
-                maybeCreateNewMapEntry(player, atlas, scale, edge[0], edge[1]);
+                maybeCreateNewMapEntry(player, atlas, edge.x, edge.y);
             }
 
         }
@@ -224,7 +222,6 @@ public class MapAtlasesServerEvents {
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
-            byte scale,
             int destX,
             int destZ
     ) {
@@ -253,6 +250,7 @@ public class MapAtlasesServerEvents {
                 int error = 1;
             }
 
+            byte scale = maps.getScale();
             if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
                 newMap = SupplementariesCompat.createSliced(
                         player.level(),
@@ -272,14 +270,16 @@ public class MapAtlasesServerEvents {
             }
 
             Integer mapId = MapItem.getMapId(newMap);
-            if (mapId != null) {
-                maps.add(mapId, level);
+            if (mapId != null && maps.add(mapId, level)) {
+
                 MapItemSavedData newData = MapItem.getSavedData(mapId, level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if(newData != null) {
                     newData.tickCarriedBy(player, newMap);
                 }
                 addedMap = true;
+            }else{
+                MapAtlasesMod.LOGGER.error("Failed to add map with id {}", mapId);
             }
             mutex.unlock();
         }
@@ -292,14 +292,14 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static List<int[]> getPlayerDiscoveringMapEdges(
+    private static Set<Vector2i> getPlayerDiscoveringMapEdges(
             int xCenter,
             int zCenter,
             int width,
             int xPlayer,
             int zPlayer) {
         int halfWidth = width / 2;
-        List<int[]> results = new ArrayList<>();
+        Set<Vector2i> results = new HashSet<>();
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 if (i != 0 || j != 0) {
@@ -315,14 +315,10 @@ public class MapAtlasesServerEvents {
                     } else if (j == 1 && zPlayer + 128 >= zCenter + halfWidth) {
                         qJ += width;
                     }
-                    // Some lambda bullshit
-                    results.add(new int[]{qI, qJ});
+                    // does not add duplicates this way
+                    results.add(new Vector2i(qI, qJ));
                 }
             }
-        }
-        //TODO: remove
-        if (results.size() != 8 || new HashSet<>(results).size() != 8) {
-            int error = 1;
         }
         return results;
     }
