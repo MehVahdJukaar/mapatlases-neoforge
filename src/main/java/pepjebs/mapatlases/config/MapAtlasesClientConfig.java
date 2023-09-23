@@ -85,6 +85,9 @@ public class MapAtlasesClientConfig {
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
                 .defineInRange("scale", 1.25f, 0, 20);
+        lecternWorldMapScale = builder
+                .comment("Global scale of the entire world map GUI when opening from lectern. Keep at 1 for pixel perfect consistency")
+                .defineInRange("lectern_scale", 1f, 0, 20);
 
         worldMapBorder = builder.comment("Shows map separation borders")
                 .define("map_borders", true);
@@ -144,6 +147,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
+    public static final Supplier<Double> lecternWorldMapScale;
 
     public static final ForgeConfigSpec spec;
 

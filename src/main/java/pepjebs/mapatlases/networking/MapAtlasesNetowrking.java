@@ -47,6 +47,9 @@ public class MapAtlasesNetowrking {
         CHANNEL.registerMessage(index++, C2SRemoveMarkerPacket.class,
                 C2SRemoveMarkerPacket::write, C2SRemoveMarkerPacket::new, C2SRemoveMarkerPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, TakeAtlasPacket.class,
+                TakeAtlasPacket::write, TakeAtlasPacket::new, TakeAtlasPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
 

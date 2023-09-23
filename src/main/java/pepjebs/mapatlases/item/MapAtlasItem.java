@@ -32,9 +32,10 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.utils.AtlasHolder;
+import pepjebs.mapatlases.utils.AtlasLectern;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MapAtlasItem extends Item {
 
@@ -73,7 +74,11 @@ public class MapAtlasItem extends Item {
     }
 
     public static MapCollectionCap getMaps(ItemStack stack, Level level) {
-        MapCollectionCap cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
+        Optional<MapCollectionCap> resolve = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve();
+        if (resolve.isEmpty()) {
+            throw new AssertionError("Map Atlas capability was empty. How is this possible? Culprit itemstack " + stack);
+        }
+        MapCollectionCap cap = resolve.get();
         if (!cap.isInitialized()) cap.initialize(level);
         return cap;
     }
@@ -239,21 +244,8 @@ public class MapAtlasItem extends Item {
         BlockState blockState = level.getBlockState(blockPos);
         ItemStack stack = context.getItemInHand();
         if (blockState.is(Blocks.LECTERN)) {
-            boolean didPut = LecternBlock.tryPlaceBook(
-                    player,
-                    level,
-                    blockPos,
-                    blockState,
-                    stack
-            );
-            if (!didPut) {
-                return InteractionResult.PASS;
-            }
-            blockState = level.getBlockState(blockPos);
-            LecternBlock.resetBookState(
-                     level, blockPos, blockState, true);
-            if (level.getBlockEntity(blockPos) instanceof AtlasHolder ah) {
-                ah.mapatlases$setAtlas(true);
+            if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah) {
+                ah.mapatlases$setAtlas(player, stack);
                 //level.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
