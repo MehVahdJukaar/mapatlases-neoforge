@@ -99,7 +99,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu {
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
 
-            if (stack.getItem() != MapAtlasesMod.MAP_ATLAS) return;
+            if (stack.getItem() != MapAtlasesMod.MAP_ATLAS.get()) return;
 
             boolean result = this.moveItemStackTo(stack, 0, 2, false);
 

@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -123,6 +124,16 @@ public class MapAtlasesClient {
 
     }
 
+    @SubscribeEvent
+    public static void onTextureStitch(TextureStitchEvent.Pre event){
+        if(event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)){
+            event.addSprite(NETHER_TEXTURE.texture());
+            event.addSprite(OTHER_TEXTURE.texture());
+            event.addSprite(OVERWORLD_TEXTURE.texture());
+            event.addSprite(END_TEXTURE.texture());
+        }
+    }
+
     public static MapAtlasesHUD HUD;
 
     @SubscribeEvent
@@ -181,9 +192,9 @@ public class MapAtlasesClient {
 
         //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
         if (packet.isOnJoin) {
-            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-            packet.mapData.tickCarriedBy(player, atlas);
-            packet.mapData.getHoldingPlayer(player);
+           // ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+           // packet.mapData.tickCarriedBy(player, atlas);
+           // packet.mapData.getHoldingPlayer(player);
         }
         ((ClientLevel) level).overrideMapData(packet.mapId, packet.mapData);
     }

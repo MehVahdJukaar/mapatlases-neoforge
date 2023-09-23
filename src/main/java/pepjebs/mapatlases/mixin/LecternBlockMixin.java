@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.AtlasHolder;
+import pepjebs.mapatlases.utils.AtlasLectern;
 
 @Mixin(LecternBlock.class)
 public abstract class LecternBlockMixin extends Block {
@@ -44,7 +44,7 @@ public abstract class LecternBlockMixin extends Block {
             cancellable = true
     )
     public void injectAtlasRemoval(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
-        if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasHolder al
+        if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasLectern al
                 && al.mapatlases$hasAtlas()) {
             if (player.isSecondaryUseActive()) {
                 LecternBlockEntity lbe = (LecternBlockEntity) al;
@@ -52,14 +52,15 @@ public abstract class LecternBlockMixin extends Block {
                 if (!player.getInventory().add(atlas)) {
                     player.drop(atlas, false);
                 }
-                al.mapatlases$setAtlas(false);
-                LecternBlock.resetBookState(player, level, pos, state, false);
+                al.mapatlases$removeAtlas();
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             } else {
                 if(level.isClientSide) {
                     LecternBlockEntity lbe = (LecternBlockEntity) al;
                     ItemStack atlas = lbe.getBook();
-                    MapAtlasesClient.openScreen(atlas, lbe);
+                    if(atlas.getItem() instanceof MapAtlasItem) {
+                        MapAtlasesClient.openScreen(atlas, lbe);
+                    }
                 }
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }

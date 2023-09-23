@@ -5,8 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.gui.screens.inventory.BookEditScreen;
+import net.minecraft.client.gui.screens.inventory.BookViewScreen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -29,6 +32,7 @@ import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.TakeAtlasPacket;
 
 import java.util.*;
 
@@ -64,7 +68,7 @@ public class AtlasOverviewScreen extends Screen {
     private SliceArrowButton sliceDown;
     private final List<DecorationBookmarkButton> decorationBookmarks = new ArrayList<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
-    private final float globalScale = (float) (double) MapAtlasesClientConfig.worldMapScale.get();
+    private final float globalScale;
     private ResourceKey<Level> currentWorldSelected;
     private Integer selectedSlice;
     private boolean initialized = false;
@@ -78,7 +82,7 @@ public class AtlasOverviewScreen extends Screen {
         this(atlas, null);
     }
 
-    public AtlasOverviewScreen(ItemStack atlas, LecternBlockEntity lectern) {
+    public AtlasOverviewScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
         super(Component.translatable(MapAtlasesMod.MAP_ATLAS.get().getDescriptionId()));
         this.atlas = atlas;
         this.level = Minecraft.getInstance().level;
@@ -106,6 +110,11 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
 
         this.lectern = lectern;
+
+        this.globalScale = lectern == null ?
+                (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
+                (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
+
     }
 
     public Integer getSelectedSlice() {
@@ -160,11 +169,32 @@ public class AtlasOverviewScreen extends Screen {
 
         this.setFocused(mapWidget);
 
-        if(!MapAtlasesConfig.pinMarkerId.get().isEmpty()) {
+        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty()) {
             this.addRenderableWidget(new PinButton((width + IMAGE_WIDTH) / 2 + 20,
                     (height - IMAGE_HEIGHT) / 2 + 16, this));
         }
         this.selectDimension(initialWorldSelected);
+
+
+        if(lectern != null){
+
+
+            if (player.mayBuild()) {
+                this.addRenderableWidget(new Button(this.width / 2 - 100, 210, 98, 20, CommonComponents.GUI_DONE, (p_99033_) -> {
+                    this.onClose();
+                }));
+                this.addRenderableWidget(new Button(this.width / 2 + 2, 210, 98, 20, Component.translatable("lectern.take_book"), (button) -> {
+                    MapAtlasesNetowrking.sendToServer(new TakeAtlasPacket(lectern.getBlockPos()));
+                    this.onClose();
+                }));
+            } else {
+                this.addRenderableWidget(new Button(this.width / 2 - 100, 210, 200, 20, CommonComponents.GUI_DONE, (p_98299_) -> {
+                    this.minecraft.setScreen(null);
+                }));
+            }
+        }
+
+
         this.initialized = true;
     }
 
@@ -263,6 +293,7 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
 
         poseStack.translate(width / 2f, height / 2f, 1);
+        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
 
         graphics.blit(
                 ATLAS_TEXTURE,
@@ -449,7 +480,7 @@ public class AtlasOverviewScreen extends Screen {
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
                 var d = e.getSecond();
-                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.setY ((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
                 d.setIndex(index);
                 index++;
             }
@@ -458,7 +489,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private void addDecorationWidgets() {
-        List<Pair<Object, Pair<String,MapItemSavedData>>> mapIcons = new ArrayList<>();
+        List<Pair<Object, Pair<String, MapItemSavedData>>> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
         for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentWorldSelected, selectedSlice)) {

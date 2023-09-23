@@ -15,12 +15,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import pepjebs.mapatlases.utils.AtlasHolder;
+import pepjebs.mapatlases.utils.AtlasLectern;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.*;
 
 @Mixin(LecternRenderer.class)
-public abstract class MapAtlasesLecternBlockEntityRenderer {
+public abstract class LecternRendererMixin {
 
     @Unique
     @Nullable
@@ -34,7 +34,7 @@ public abstract class MapAtlasesLecternBlockEntityRenderer {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/BookModel;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V")
     )
     private VertexConsumer renderMapAtlasInLectern(VertexConsumer original) {
-        if (mapatlases$capturedBe instanceof AtlasHolder ah && ah.mapatlases$hasAtlas()
+        if (mapatlases$capturedBe instanceof AtlasLectern ah && ah.mapatlases$hasAtlas()
                 && mapatlases$capturedBuffer != null) {
             Level level = mapatlases$capturedBe.getLevel();
             if (level == null) {
