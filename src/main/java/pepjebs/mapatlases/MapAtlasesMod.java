@@ -67,6 +67,7 @@ public class MapAtlasesMod {
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
 
     static {
+        //lectern marker
 //sound
         //ml deco
         //lectern gui handler

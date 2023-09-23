@@ -16,6 +16,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
+import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -104,7 +105,8 @@ public class MapAtlasesServerEvents {
                     activeState.z,
                     scaleWidth,
                     playX,
-                    playZ
+                    playZ,
+                    slice!=null
             );
 
             // Update Map states & colors
@@ -295,7 +297,12 @@ public class MapAtlasesServerEvents {
             int zCenter,
             int width,
             int xPlayer,
-            int zPlayer) {
+            int zPlayer,
+            boolean isSlice) {
+
+
+        int reach = isSlice && MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSliceReach() : 128;
+
         int halfWidth = width / 2;
         Set<Vec2> results = new HashSet<>();
         for (int i = -1; i < 2; i++) {
@@ -303,14 +310,14 @@ public class MapAtlasesServerEvents {
                 if (i != 0 || j != 0) {
                     int qI = xCenter;
                     int qJ = zCenter;
-                    if (i == -1 && xPlayer - 128 <= xCenter - halfWidth) {
+                    if (i == -1 && xPlayer - reach <= xCenter - halfWidth) {
                         qI -= width;
-                    } else if (i == 1 && xPlayer + 128 >= xCenter + halfWidth) {
+                    } else if (i == 1 && xPlayer + reach >= xCenter + halfWidth) {
                         qI += width;
                     }
-                    if (j == -1 && zPlayer - 128 <= zCenter - halfWidth) {
+                    if (j == -1 && zPlayer - reach <= zCenter - halfWidth) {
                         qJ -= width;
-                    } else if (j == 1 && zPlayer + 128 >= zCenter + halfWidth) {
+                    } else if (j == 1 && zPlayer + reach >= zCenter + halfWidth) {
                         qJ += width;
                     }
                     // does not add duplicates this way

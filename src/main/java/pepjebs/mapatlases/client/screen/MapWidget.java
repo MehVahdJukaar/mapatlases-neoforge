@@ -211,7 +211,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
         if (mapScreen.placingPin) {
             BlockPos pos = getHoveredPos(mouseX, mouseY);
-            var m = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mapScreen.getMinecraft().level).getClosest(pos.getX(), pos.getZ(),
+            var m = MapAtlasItem.getMaps( mapScreen.getAtlas(), mapScreen.getMinecraft().level).getClosest(pos.getX(), pos.getZ(),
                     mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
             if (m != null) {
                 MapAtlasesNetowrking.sendToServer(new C2SMarkerPacket(pos, m.getFirst()));

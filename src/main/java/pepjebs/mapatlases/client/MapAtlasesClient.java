@@ -8,9 +8,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -38,6 +40,8 @@ import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 public class MapAtlasesClient {
 
@@ -120,16 +124,6 @@ public class MapAtlasesClient {
 
         //MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
 
-    }
-
-    @SubscribeEvent
-    public static void onTextureStitch(TextureStitchEvent.Pre event){
-        if(event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)){
-            event.addSprite(NETHER_TEXTURE.texture());
-            event.addSprite(OTHER_TEXTURE.texture());
-            event.addSprite(OVERWORLD_TEXTURE.texture());
-            event.addSprite(END_TEXTURE.texture());
-        }
     }
 
     public static MapAtlasesHUD HUD;
@@ -221,4 +215,11 @@ public class MapAtlasesClient {
     public static void openScreen(ItemStack atlas) {
         openScreen(atlas, null);
     }
+
+    //hack
+    public static ContainerLevelAccess getClientAccess() {
+        return ContainerLevelAccess.create(Minecraft.getInstance().level, BlockPos.ZERO);
+    }
+
+
 }

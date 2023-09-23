@@ -16,4 +16,8 @@ public class SupplementariesCompat {
        // return SliceMapItem.createSliced(level, destX, destZ, scale, b, b1, slice);
 return null;
     }
+
+    public static int getSliceReach() {
+        return (int) (SliceMapItem.getRangeMultiplier() * 128);
+    }
 }

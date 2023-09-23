@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.networking;
 
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -8,7 +9,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.network.NetworkEvent;
+import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 
 import java.util.Arrays;
@@ -59,10 +63,13 @@ public class C2SMarkerPacket {
                         opt.ifPresent(type -> d.invokeAddDecoration(
                                 type
                                 , level,
-                                "marker_" + level.random.nextInt(256),
+                                "pin_" + pos,
                                 d0, d1, 180.0D, null));
+                    }else{
+                        if(MapAtlasesMod.MOONLIGHT){
+                            MoonlightCompat.addDecoration(data, pos, id);
+                        }
                     }
-
                 }
             }
 
