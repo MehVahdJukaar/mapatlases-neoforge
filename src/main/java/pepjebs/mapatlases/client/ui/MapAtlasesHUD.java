@@ -174,8 +174,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
         int x = anchorLocation.isLeft ? 0 : screenWidth - mapWidgetSize;
         int y = !anchorLocation.isUp ? screenHeight - mapWidgetSize : 0;
-        x +=  70 + MapAtlasesClientConfig.miniMapHorizontalOffset.get() * globalScale * 2;
-        y += 70 +MapAtlasesClientConfig.miniMapVerticalOffset.get() * globalScale * 2;
+        x += MapAtlasesClientConfig.miniMapHorizontalOffset.get() * globalScale * 2;
+        y += MapAtlasesClientConfig.miniMapVerticalOffset.get() * globalScale * 2;
 
         if (anchorLocation.isUp && !anchorLocation.isLeft) {
             boolean hasBeneficial = false;

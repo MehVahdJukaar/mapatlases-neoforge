@@ -9,6 +9,7 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 // vanilla doesn't send this automatically so we have to do it
+//note: moonlight also does this so we dont need to send this with that on
 public class C2SRequestMapCenterPacket {
 
     private final String mapId;
