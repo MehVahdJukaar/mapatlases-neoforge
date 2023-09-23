@@ -36,7 +36,7 @@ public class TakeAtlasPacket {
         context.get().enqueueWork(() -> {
             ServerPlayer player = context.get().getSender();
             if (player == null) return;
-            if(player.level.getBlockEntity(pos) instanceof AtlasLectern lectern){
+            if(player.level().getBlockEntity(pos) instanceof AtlasLectern lectern){
                 if (!player.mayBuild()) {
                     return;
                 }

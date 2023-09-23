@@ -9,13 +9,16 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.BookEditScreen;
 import net.minecraft.client.gui.screens.inventory.BookViewScreen;
+import net.minecraft.client.gui.screens.inventory.LecternScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
@@ -44,8 +47,6 @@ public class AtlasOverviewScreen extends Screen {
             MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final ResourceLocation ATLAS_TEXTURE =
             MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
-    public static final ResourceLocation ATLAS_TEXTURE_1 =
-            MapAtlasesMod.res("textures/gui/screen/atlas_background1.png");
 
 
     public static final int IMAGE_WIDTH = 162;//226;
@@ -117,6 +118,10 @@ public class AtlasOverviewScreen extends Screen {
 
     }
 
+    public ItemStack getAtlas() {
+        return atlas;
+    }
+
     public Integer getSelectedSlice() {
         return selectedSlice;
     }
@@ -178,19 +183,19 @@ public class AtlasOverviewScreen extends Screen {
 
         if(lectern != null){
 
-
+            int pY = 210;
             if (player.mayBuild()) {
-                this.addRenderableWidget(new Button(this.width / 2 - 100, 210, 98, 20, CommonComponents.GUI_DONE, (p_99033_) -> {
+                this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
                     this.onClose();
-                }));
-                this.addRenderableWidget(new Button(this.width / 2 + 2, 210, 98, 20, Component.translatable("lectern.take_book"), (button) -> {
+                }).bounds(this.width / 2 - 100, pY, 98, 20).build());
+                this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), (button) -> {
                     MapAtlasesNetowrking.sendToServer(new TakeAtlasPacket(lectern.getBlockPos()));
                     this.onClose();
-                }));
+                }).bounds(this.width / 2 + 2, pY, 98, 20).build());
             } else {
-                this.addRenderableWidget(new Button(this.width / 2 - 100, 210, 200, 20, CommonComponents.GUI_DONE, (p_98299_) -> {
-                    this.minecraft.setScreen(null);
-                }));
+                this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (p_289629_) -> {
+                    this.onClose();
+                }).bounds(this.width / 2 - 100, pY, 200, 20).build());
             }
         }
 
@@ -223,6 +228,13 @@ public class AtlasOverviewScreen extends Screen {
         //recalculate parameters
         if (!isValid()) {
             this.minecraft.setScreen(null);
+        }
+        if(false && lectern != null && currentWorldSelected.equals(lectern.getLevel().dimension())){
+            var data = MapAtlasItem.getMaps(atlas, level).getClosest(
+                    lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
+                    currentWorldSelected,selectedSlice).getSecond();
+
+
         }
     }
 

@@ -185,9 +185,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public Collection<Pair<String, MapItemSavedData>> getAll() {
+    public List<Pair<String, MapItemSavedData>> getAll() {
         assertInitialized();
-        return maps.values();
+        return new ArrayList<>(maps.values());
     }
 
     @Override

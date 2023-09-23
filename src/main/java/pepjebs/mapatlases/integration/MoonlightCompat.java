@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
+import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.ChatFormatting;
@@ -40,7 +41,10 @@ public class MoonlightCompat {
     }
 
     public static void addDecoration(MapItemSavedData second, BlockPos pos, ResourceLocation name) {
-        //MapHelper.addDecorationToMap();
+        var type = MapDecorationRegistry.get(name);
+        if(type != null){
+            ((ExpandedMapData)second).addCustomDecoration(type.getDefaultMarker(pos));
+        }
     }
 
     public static void removeCustomDecoration(MapItemSavedData data, int hash) {

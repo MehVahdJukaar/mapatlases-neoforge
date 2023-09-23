@@ -19,7 +19,7 @@ public abstract  class FriendlyByteBufMixin {
     @Inject(method = "writeItemStack", at = @At(value = "HEAD"), remap = false, cancellable = true)
     public void sendCapsFromCreative(ItemStack stack, boolean useShareTag, CallbackInfoReturnable<FriendlyByteBuf> cir) {
         if (!useShareTag && stack.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
-            cir.setReturnValue(this.writeItemStack(stack, true)); //thanks forge. needed for caps syncing
+            cir.setReturnValue(this.writeItemStack(stack, true)); // needed for caps syncing in creative inv
         }
     }
 }

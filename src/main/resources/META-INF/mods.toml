@@ -11,7 +11,7 @@ version="${mod_version}" #mandatory
 displayName="${mod_name}" #mandatory
 #displayURL="${mod_homepage}"
 
-logoFile="assets/map_atlases/icon.png"
+logoFile= "icon.png"
 #credits="${mod_credits}"
 authors="${mod_authors}" #optional
 description='''${mod_description}'''
@@ -37,6 +37,9 @@ mandatory=true
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
+
+[modproperties.${mod_id}]
+    catalogueItemIcon = "${mod_id}:map_atlas" #catalogue icon
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
