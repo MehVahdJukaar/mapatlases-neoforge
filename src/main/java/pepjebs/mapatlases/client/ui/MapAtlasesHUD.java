@@ -60,6 +60,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.mc = Minecraft.getInstance();
         this.rotatesWithPlayer = true;
         this.zoomLevel = 1;
+        this.drawPlayerIcon = false;
     }
 
     @Override

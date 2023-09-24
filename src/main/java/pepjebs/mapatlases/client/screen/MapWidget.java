@@ -23,6 +23,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
@@ -247,8 +249,9 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
         if (mapScreen.placingPin) {
             BlockPos pos = getHoveredPos(mouseX, mouseY);
-            var m = MapAtlasItem.getMaps( mapScreen.getAtlas(), mapScreen.getMinecraft().level).getClosest(pos.getX(), pos.getZ(),
-                    mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
+            MapCollectionCap maps = MapAtlasItem.getMaps(mapScreen.getAtlas(), mapScreen.getMinecraft().level);
+            MapKey key = MapKey.at(maps.getScale(), pos.getX(),pos.getZ(), mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
+            var m = maps.select(key);
             if (m != null) {
                 MapAtlasesNetowrking.sendToServer(new C2SMarkerPacket(pos, m.getFirst()));
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));

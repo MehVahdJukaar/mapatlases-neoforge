@@ -43,6 +43,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
     protected float zoomLevel = 3;
 
     protected boolean rotatesWithPlayer = false;
+    protected boolean drawPlayerIcon = true;
 
     protected AbstractAtlasWidget(int atlasesCount) {
         this.atlasesCount = atlasesCount;
@@ -71,16 +72,13 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
         int scaleMagicNumber = 0;
         int scaleMagicNumber2 = 0;
-        if (scaleIndex == 1) {
+
+        if (scaleIndex >= 1) {
             scaleMagicNumber = 64;
-            scaleMagicNumber2 = 0;
-        }
-        if (scaleIndex == 2) {
-            scaleMagicNumber = 64;
-            scaleMagicNumber2 = 64;
-        } else if (scaleIndex == 4) {
-            scaleMagicNumber = 64;
-            scaleMagicNumber2 = 192;
+
+            if (scaleIndex >= 2) {
+                scaleMagicNumber2 = 64 * (scaleIndex - 1);
+            }
         }
 
         int centerMapX = scaleMagicNumber2 + roundBelow(intXCenter + scaleMagicNumber, mapPixelSize);
@@ -178,7 +176,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.getSecond();
-            boolean drawPlayerIcons = data.dimension.equals(player.level.dimension());
+            boolean drawPlayerIcons = data.dimension.equals(player.level.dimension()) && this.drawPlayerIcon;
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
             this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
         }
