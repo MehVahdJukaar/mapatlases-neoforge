@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -11,6 +11,8 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -111,10 +113,44 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
             poseStack.pushPose();
             poseStack.translate( pMouseX-2.5f,pMouseY-2.5f,  10);
             RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
-            blit(poseStack, 0,
-                    0,
-                    40, 0, 8, 8, 128, 128);
+           // blit(poseStack, 20, 0,
+           //         40, 0, 8, 8, 128, 128);
+
+            int textureW = 128;
+            int textureH = 128;
+            int width = 8;
+            int height = 8;
+            int x = 0;
+            int y = 0;
+            int x1 = x+width;
+            int y1 = y+height;
+
+            float u0 = 40f/textureW;
+            float u1 = u0 + (float)(width) / (float)textureW;
+            float centerU = (u0 + u1) / 2.0F;
+            float v0 = 0f/textureH;
+            float v1 =v0 + (float)(height) / (float)textureH;
+            float centerV = (v0 + v1) / 2.0F;
+            float shrink = 4f/textureW;
+            float nu0 = Mth.lerp(shrink, u0, centerU);
+            float nu1 = Mth.lerp(shrink, u1, centerU);
+            float nv0 = Mth.lerp(shrink, v0, centerV);
+            float nv1 = Mth.lerp(shrink, v1, centerV);
+
+           var pMatrix = poseStack.last().pose();
+            float pBlitOffset = 0;
+
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            bufferbuilder.vertex(pMatrix, (float)x, (float)y1, (float)pBlitOffset).uv(nu0, nv1).endVertex();
+            bufferbuilder.vertex(pMatrix, (float)x1, (float)y1, (float)pBlitOffset).uv(nu1, nv1).endVertex();
+            bufferbuilder.vertex(pMatrix, (float)x1, (float)y, (float)pBlitOffset).uv(nu1, nv0).endVertex();
+            bufferbuilder.vertex(pMatrix, (float)x, (float)y, (float)pBlitOffset).uv(nu0, nv0).endVertex();
+            BufferUploader.drawWithShader(bufferbuilder.end());
+
             poseStack.popPose();
+
 
         }
 

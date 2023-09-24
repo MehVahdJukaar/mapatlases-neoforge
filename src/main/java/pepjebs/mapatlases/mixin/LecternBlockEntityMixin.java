@@ -47,6 +47,7 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
     @Inject(method = "load", at = @At("TAIL"))
     public void onLoad(CompoundTag pTag, CallbackInfo ci) {
         if (pTag.contains("has_atlas")) mapatlases$hasAtlas = pTag.getBoolean("has_atlas");
+        else mapatlases$hasAtlas = false;
     }
 
     @Override

@@ -41,6 +41,8 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
 
+    private final List<Integer> duplicates = new ArrayList<>();
+
     public MapCollectionCap() {
     }
 
@@ -50,6 +52,19 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     private void assertInitialized() {
         assert this.lazyNbt == null;
+    }
+
+    // if a duplicate exists its likely that its data was somehow not synced yet
+    public void fixDuplicates(Level level){
+      var it =  duplicates.iterator();
+       while(it.hasNext()){
+           var i = it.next();
+           if(add(i, level)){
+               it.remove();
+           }else{
+               int aa = 1;
+           }
+       }
     }
 
 
@@ -117,6 +132,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             //remove duplicates
             if (maps.containsKey(key)) {
                 idMap.put(mapKey, intId);
+                if(!duplicates.contains(intId)) duplicates.add(intId);
                 return false;
                 //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
                 //we just store the map id without actually adding it as its map key is incorrect

@@ -94,6 +94,7 @@ public class MapAtlasesClient {
         currentActiveAtlas = atlas;
         if (!atlas.isEmpty()) {
             var maps = MapAtlasItem.getMaps(atlas, player.level);
+            maps.fixDuplicates(player.level);
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
@@ -124,6 +125,16 @@ public class MapAtlasesClient {
 
         //MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
 
+    }
+
+    @SubscribeEvent
+    public static void textures(TextureStitchEvent.Pre event){
+        if(event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)){
+            event.addSprite(END_TEXTURE.texture());
+            event.addSprite(OVERWORLD_TEXTURE.texture());
+            event.addSprite(NETHER_TEXTURE.texture());
+            event.addSprite(OTHER_TEXTURE.texture());
+        }
     }
 
     public static MapAtlasesHUD HUD;
