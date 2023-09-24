@@ -1,9 +1,8 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.supplementaries.common.items.AltimeterItem;
-import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -272,14 +271,16 @@ public class MapAtlasesServerEvents {
             }
 
             Integer mapId = MapItem.getMapId(newMap);
-            if (mapId != null && maps.add(mapId, level)) {
-
+            if (mapId != null) {
                 MapItemSavedData newData = MapItem.getSavedData(mapId, level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if(newData != null) {
                     newData.tickCarriedBy(player, newMap);
+                    //sync map immediately
+                    var p =  new ClientboundMapItemDataPacket(mapId, newData.scale, newData.locked, null, null);
+                    player.connection.send(p);
                 }
-                addedMap = true;
+                addedMap = maps.add(mapId, level);
             }else{
                 MapAtlasesMod.LOGGER.error("Failed to add map with id {}", mapId);
             }

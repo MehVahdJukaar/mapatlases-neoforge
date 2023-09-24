@@ -96,6 +96,7 @@ public class MapAtlasesClient {
         currentActiveAtlas = atlas;
         if (!atlas.isEmpty()) {
             var maps = MapAtlasItem.getMaps(atlas, player.level());
+            maps.fixDuplicates(player.level());
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);

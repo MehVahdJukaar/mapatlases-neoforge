@@ -13,8 +13,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -40,6 +39,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<ResourceKey<Level>, TreeSet<Integer>> dimensionSlices = new HashMap<>();
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
+    private final List<Integer> duplicates = new ArrayList<>();
 
     public MapCollectionCap() {
     }
@@ -52,6 +52,18 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         assert this.lazyNbt == null;
     }
 
+    // if a duplicate exists its likely that its data was somehow not synced yet
+    public void fixDuplicates(Level level){
+        var it =  duplicates.iterator();
+        while(it.hasNext()){
+            var i = it.next();
+            if(add(i, level)){
+                it.remove();
+            }else{
+                int aa = 1;
+            }
+        }
+    }
 
     // we need leven context
     public void initialize(Level level) {
@@ -111,19 +123,23 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             d = MapItem.getSavedData(map, level);
         }
         if (d != null && d.scale == scale) {
-            Integer slice = getSlice(d);
-
-            MapKey key = new MapKey(d.dimension, d.centerX, d.centerZ, slice);
+            MapKey key = MapKey.of(d);
             //remove duplicates
             if (maps.containsKey(key)) {
-                idMap.put(mapKey, intId);
-                return false;
-                //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
-                //we just store the map id without actually adding it as its map key is incorrect
-                // String first = maps.get(key).getFirst();
-                // keysMap.remove(first);
-                // idMap.remove(first);
-                //error
+                var old = maps.get(key);
+                if(!MapKey.of(old.getSecond()).equals(key)){
+                    // key was incorrect?? let's remove it and recalculate
+                    remove(old.getFirst());
+                    // Add it back. No recursion pls
+                    add(MapAtlasesAccessUtils.getMapIntFromString(old.getFirst()), level);
+                }else {
+                    idMap.put(mapKey, intId);
+                    duplicates.add(intId);
+                    return false;
+                    //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
+                    //we just store the map id without actually adding it as its map key is incorrect
+                    //error
+                }
             }
             keysMap.put(mapKey, key);
             idMap.put(mapKey, intId);
@@ -136,11 +152,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             return true;
         }
         return false;
-    }
-
-    @Nullable
-    public static Integer getSlice(MapItemSavedData data) {
-        return MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
     }
 
     @Nullable

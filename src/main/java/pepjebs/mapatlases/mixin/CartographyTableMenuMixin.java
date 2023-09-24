@@ -114,9 +114,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
 
                 ItemStack result = topItem.copy();
-                Integer mapId = MapItem.getMapId(result);
+                Integer mapId = MapItem.getMapId(bottomItem);
                 MapCollectionCap maps = MapAtlasItem.getMaps(topItem, world);
-                if (maps.add(mapId, world)) {
+                if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
                     info.cancel();
@@ -134,7 +134,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
 
-            if (stack.is(Tags.Items.SHEARS) || stack.is(Items.FILLED_MAP)) {
+            if (stack.is(Tags.Items.SHEARS)) {
                 if (!this.moveItemStackTo(stack, 1, 1, false)) {
                     info.setReturnValue(ItemStack.EMPTY);
                     return;

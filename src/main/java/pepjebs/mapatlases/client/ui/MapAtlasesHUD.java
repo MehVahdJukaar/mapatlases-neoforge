@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -59,6 +60,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.mc = Minecraft.getInstance();
         this.rotatesWithPlayer = true;
         this.zoomLevel = 1;
+        this.drawPlayerIcon = false;
     }
 
     @Override
