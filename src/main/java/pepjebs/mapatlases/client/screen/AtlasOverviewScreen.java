@@ -182,21 +182,23 @@ public class AtlasOverviewScreen extends Screen {
 
 
         if(lectern != null){
-
             int pY = 210;
-            if (player.mayBuild()) {
-                this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
+
+            if (this.minecraft.player.mayBuild()) {
+                this.addRenderableWidget(new Button(this.width / 2 - 100, pY, 98, 20, CommonComponents.GUI_DONE, (p_99033_) -> {
                     this.onClose();
-                }).bounds(this.width / 2 - 100, pY, 98, 20).build());
-                this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), (button) -> {
+                }));
+                this.addRenderableWidget(new Button(this.width / 2 + 2, pY, 98, 20, Component.translatable("lectern.take_book"), (p_99024_) -> {
                     MapAtlasesNetowrking.sendToServer(new TakeAtlasPacket(lectern.getBlockPos()));
                     this.onClose();
-                }).bounds(this.width / 2 + 2, pY, 98, 20).build());
+
+                }));
             } else {
-                this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (p_289629_) -> {
-                    this.onClose();
-                }).bounds(this.width / 2 - 100, pY, 200, 20).build());
+                this.addRenderableWidget(new Button(this.width / 2 - 100, pY, 200, 20, CommonComponents.GUI_DONE, (p_98299_) -> {
+                    this.minecraft.setScreen((Screen)null);
+                }));
             }
+
         }
 
 

@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -48,7 +49,7 @@ public class SliceBookmarkButton extends BookmarkButton {
         pose.translate(0, 0, 1);
         Component text = slice != null ? Component.literal(String.valueOf(slice)) :
                 Component.translatable("message.map_atlases.atlas.slice_default");
-        this.drawCenteredString(pose, parentScreen.getMinecraft().font,
+        GuiComponent.drawCenteredString(pose, parentScreen.getMinecraft().font,
                 text, this.x     + (compact ? 15: 39), this.y + 7, -1);
 
 

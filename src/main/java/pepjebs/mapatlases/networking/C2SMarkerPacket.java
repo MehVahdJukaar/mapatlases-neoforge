@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.networking;
 
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -10,7 +9,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;

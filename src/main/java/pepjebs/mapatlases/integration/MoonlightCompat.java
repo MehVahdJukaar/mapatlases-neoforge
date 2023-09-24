@@ -43,7 +43,7 @@ public class MoonlightCompat {
     public static void addDecoration(MapItemSavedData second, BlockPos pos, ResourceLocation name) {
         var type = MapDecorationRegistry.get(name);
         if(type != null){
-            ((ExpandedMapData)second).addCustomDecoration(type.getDefaultMarker(pos));
+            //((ExpandedMapData)second).addCustomDecoration(type.getDefaultMarker(pos));
         }
     }
 

@@ -18,6 +18,6 @@ return null;
     }
 
     public static int getSliceReach() {
-        return (int) (SliceMapItem.getRangeMultiplier() * 128);
+        return ( 128);
     }
 }

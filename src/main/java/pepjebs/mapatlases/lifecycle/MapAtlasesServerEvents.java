@@ -16,7 +16,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
-import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -38,7 +37,6 @@ public class MapAtlasesServerEvents {
     private static final ReentrantLock mutex = new ReentrantLock();
 
     // Holds the current MapItemSavedData ID for each player
-    //maybe use weakhasmap with plauer
     @Deprecated(forRemoval = true)
     private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
 
