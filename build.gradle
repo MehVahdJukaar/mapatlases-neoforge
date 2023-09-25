@@ -191,6 +191,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
     implementation fg.deobf("curse.maven:supplementaries-412082:4760928")
     implementation fg.deobf("curse.maven:selene-499980:4760803")
+    implementation fg.deobf("curse.maven:config-menus-forge-544048:4672356")
 
     //implementation fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
 

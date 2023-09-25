@@ -86,24 +86,15 @@ public class MapAtlasesServerEvents {
 
             // sets new center map
 
-            Pair<String, MapItemSavedData> activeInfo = maps.select(MapKey.at(maps.getScale(), player, slice));
-            //TODO: improve
-            if (activeInfo == null) {
-                // no map. we try creating a new one for this dimension
-                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
-                        Mth.floor(player.getZ()));
-                return;
-            }
-
-            MapItemSavedData activeState = activeInfo.getSecond();
+            MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
 
             int playX = player.blockPosition().getX();
             int playZ = player.blockPosition().getZ();
-            byte scale = activeState.scale;
+            byte scale = maps.getScale();
             int scaleWidth = (1 << scale) * 128;
             Set<Vector2i> discoveringEdges = getPlayerDiscoveringMapEdges(
-                    activeState.centerX,
-                    activeState.centerZ,
+                    activeKey.mapX(),
+                    activeKey.mapZ(),
                     scaleWidth,
                     playX,
                     playZ,
@@ -111,33 +102,39 @@ public class MapAtlasesServerEvents {
             );
 
             // Update Map states & colors
+            //these also include active map
             List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
                     maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
                             .anyMatch(edge -> edge.x == e.centerX
                                     && edge.y == e.centerZ));
+
+            Pair<String, MapItemSavedData> activeInfo = maps.select(activeKey);
+            if (activeInfo == null) {
+                // no map. we try creating a new one for this dimension
+                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
+                        Mth.floor(player.getZ()));
+            }else nearbyExistentMaps.add(activeInfo);
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
                 updateMapDataForPlayer(mapInfo, player, atlas);
             }
-            updateMapDataForPlayer(activeInfo, player, atlas);
 
             // updateColors is *easily* the most expensive function in the entire server tick
             // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
             if (!nearbyExistentMaps.isEmpty()) {
                 var selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size());
                 updateMapColorsForPlayer(selected.getSecond(), player);
+                //TODO: update active one more frequently
             }
-            updateMapColorsForPlayer(activeState, player);
-
 
             // Create new Map entries
             if (!MapAtlasesConfig.enableEmptyMapEntryAndFill.get() ||
                     MapAtlasItem.isLocked(atlas)) return;
 
             //TODO : this isnt accurate and can be improved
-            if (isPlayerTooFarAway(activeState, player, scaleWidth)) {
+            if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
                 maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }
@@ -152,10 +149,10 @@ public class MapAtlasesServerEvents {
     }
 
     public static boolean isPlayerTooFarAway(
-            MapItemSavedData mapState,
+            MapKey key,
             Player player, int width
     ) {
-        return Mth.square(mapState.centerX - player.getX()) + Mth.square(mapState.centerZ - player.getZ()) > width * width;
+        return Mth.square(key.mapX() - player.getX()) + Mth.square(key.mapZ() - player.getZ()) > width * width;
     }
 
     private static void updateMapDataForPlayer(
@@ -182,7 +179,8 @@ public class MapAtlasesServerEvents {
 
         Packet<?> p = null;
         int tries = 0;
-        while (p == null && tries < 10) {
+        while (p == null && tries < 1) {
+            //we sent at vanilla rate. when new is created we sent packet immediately (not here)
             //WHY??
             p = mapInfo.getSecond().getUpdatePacket(mapId, player);
             tries++;

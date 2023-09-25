@@ -20,7 +20,6 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -40,8 +39,6 @@ import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
 
 public class MapAtlasesClient {
 
@@ -100,6 +97,12 @@ public class MapAtlasesClient {
             Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
+            if (maps.select(currentActiveMapKey) == null) {
+                var closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level().dimension()));
+                if (closest != null) {
+                    currentActiveMapKey = MapKey.of(closest.getSecond());
+                }
+            }
         } else currentActiveMapKey = null;
     }
 
@@ -185,12 +188,6 @@ public class MapAtlasesClient {
         if (player == null) return;
         Level level = player.level();
 
-        //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
-        if (packet.isOnJoin) {
-           // ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-           // packet.mapData.tickCarriedBy(player, atlas);
-           // packet.mapData.getHoldingPlayer(player);
-        }
         ((ClientLevel) level).overrideMapData(packet.mapId, packet.mapData);
     }
 
