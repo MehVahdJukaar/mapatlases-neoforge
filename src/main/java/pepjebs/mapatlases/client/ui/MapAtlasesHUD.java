@@ -146,7 +146,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (currentMapKey == null) return;
         Pair<String, MapItemSavedData> activeMap = maps.select(currentMapKey);
-        if (activeMap == null) return;
+        if (activeMap == null) {
+            return;
+        }
 
 
         MapItemSavedData state = activeMap.getSecond();
@@ -171,8 +173,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         // Draw map background
         Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
-        int x = anchorLocation.isLeft ? 0 : screenWidth - mapWidgetSize;
-        int y = !anchorLocation.isUp ? screenHeight - mapWidgetSize : 0;
+        int x = anchorLocation.isLeft ? 0 : screenWidth - mapWidgetSize * 3 / 2;
+        int y = !anchorLocation.isUp ? screenHeight - mapWidgetSize * 3 / 2 : 0;
         x += MapAtlasesClientConfig.miniMapHorizontalOffset.get() * globalScale * 2;
         y += MapAtlasesClientConfig.miniMapVerticalOffset.get() * globalScale * 2;
 
@@ -204,12 +206,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.pushPose();
 
         if (followingPlayer) {
-            currentXCenter = (float) player.getX();
-            currentZCenter = (float) player.getZ();
+            currentXCenter = player.getX();
+            currentZCenter = player.getZ();
         }
 
         // Set zoom-level for map icons
-        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
+        MapAtlasesClient.setDecorationsScale((float) (zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
         float yRot = player.getYRot();
         if (rotatesWithPlayer) {
             MapAtlasesClient.setDecorationRotation(yRot - 180);
@@ -232,11 +234,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
         //always render as its better
         poseStack.pushPose();
-        poseStack.translate(x + mapWidgetSize / 2f +3f, y + mapWidgetSize / 2f + 3, 0);
+        poseStack.translate(x + mapWidgetSize / 2f + 3f, y + mapWidgetSize / 2f + 3, 0);
         if (!rotatesWithPlayer) {
-            poseStack.mulPose(Vector3f.ZN.rotationDegrees(180-yRot));
+            poseStack.mulPose(Vector3f.ZN.rotationDegrees(180 - yRot));
         }
-        poseStack.translate(-4.5f,-4f,  0);
+        poseStack.translate(-4.5f, -4f, 0);
         RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
         this.blit(poseStack, 0,
                 0,
@@ -344,7 +346,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale,  targetWidth);
+        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale, targetWidth);
     }
 
     public static void drawScaledComponent(
@@ -372,7 +374,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     private static void drawStringWithLighterShadow(PoseStack pose, Font font, String text, float x, float y) {
-        font.draw(pose,text, x+1, y+1, 0x595959);
+        font.draw(pose,text, x + 1, y + 1, 0x595959);
         font.draw(pose, text, x, y, 0xE0E0E0);
     }
 
