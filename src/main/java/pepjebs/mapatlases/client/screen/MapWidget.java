@@ -72,9 +72,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         this.height = height;
 
         this.mapScreen = hack;
-
-        this.targetXCenter = originalCenterMap.centerX;
-        this.targetZCenter = originalCenterMap.centerZ;
     }
 
     @Override
@@ -260,8 +257,14 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     public void resetAndCenter(int centerX, int centerZ, boolean followPlayer) {
+        if(followPlayer){
+            centerX = Minecraft.getInstance().player.getBlockX();
+            centerZ = Minecraft.getInstance().player.getBlockZ();
+        }
         this.targetXCenter = centerX;
         this.targetZCenter = centerZ;
+        this.currentXCenter = centerX;
+        this.currentZCenter = centerZ;
         // Reset offset & zoom
         this.cumulativeMouseX = 0;
         this.cumulativeMouseY = 0;

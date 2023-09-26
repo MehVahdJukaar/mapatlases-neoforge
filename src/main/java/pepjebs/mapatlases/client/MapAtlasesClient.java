@@ -28,13 +28,13 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
-import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -44,7 +44,6 @@ public class MapAtlasesClient {
 
     private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
     private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
-    ;
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
@@ -182,15 +181,6 @@ public class MapAtlasesClient {
         return i / 10f + (unlocked ? 0 : 0.05f);
     }
 
-
-    public static void setClientMapData(S2CSetMapDataPacket packet) {
-        Player player = Minecraft.getInstance().player;
-        if (player == null) return;
-        Level level = player.level();
-
-        ((ClientLevel) level).overrideMapData(packet.mapId, packet.mapData);
-    }
-
     public static void setMapCenter(S2CSyncMapCenterPacket packet) {
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
@@ -210,8 +200,29 @@ public class MapAtlasesClient {
         }
     }
 
+    public static void openScreen(@Nullable BlockPos lecternPos) {
+        @Nullable LecternBlockEntity lectern = null;
+        ItemStack atlas = ItemStack.EMPTY;
+        var player = Minecraft.getInstance().player;
+        if (lecternPos == null) {
+            atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        } else {
+            if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lec) {
+                lectern = lec;
+                atlas = lec.getBook();
+            }
+        }
+        if (atlas.getItem() instanceof MapAtlasItem) {
+            openScreen(atlas, lectern);
+        }
+    }
+
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
-        if (!MapAtlasItem.getMaps(atlas, Minecraft.getInstance().level).isEmpty()) {
+        ClientLevel level = Minecraft.getInstance().level;
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        //we arent ticking these so we have to fix duplicates
+        maps.fixDuplicates(level);
+        if (!maps.isEmpty()) {
             Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
         }
     }

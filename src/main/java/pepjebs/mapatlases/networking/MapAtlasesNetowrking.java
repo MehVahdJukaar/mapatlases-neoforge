@@ -11,16 +11,13 @@ import java.util.Optional;
 
 public class MapAtlasesNetowrking {
 
-    private static final String VERSION = "2";
+    private static final String VERSION = "3";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             MapAtlasesMod.res("channel"),
             () -> VERSION, VERSION::equals, VERSION::equals);
     private static int index = 0;
 
     public static void register() {
-        CHANNEL.registerMessage(index++, S2CSetMapDataPacket.class,
-                S2CSetMapDataPacket::write, S2CSetMapDataPacket::new, S2CSetMapDataPacket::apply,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(index++, S2CSetActiveMapPacket.class,
                 S2CSetActiveMapPacket::write, S2CSetActiveMapPacket::new, S2CSetActiveMapPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
@@ -28,9 +25,9 @@ public class MapAtlasesNetowrking {
                 S2CSyncMapCenterPacket::write, S2CSyncMapCenterPacket::new, S2CSyncMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-        CHANNEL.registerMessage(index++, C2SOpenAtlasPacket.class,
-                C2SOpenAtlasPacket::write, C2SOpenAtlasPacket::new, C2SOpenAtlasPacket::apply,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, C2S2COpenAtlasScreenPacket.class,
+                C2S2COpenAtlasScreenPacket::write, C2S2COpenAtlasScreenPacket::new, C2S2COpenAtlasScreenPacket::apply,
+                Optional.empty());
         CHANNEL.registerMessage(index++, C2SRequestMapCenterPacket.class,
                 C2SRequestMapCenterPacket::write, C2SRequestMapCenterPacket::new, C2SRequestMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));

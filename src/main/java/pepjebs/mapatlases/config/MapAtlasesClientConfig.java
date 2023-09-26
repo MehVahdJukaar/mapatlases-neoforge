@@ -116,6 +116,10 @@ public class MapAtlasesClientConfig {
                 .comment("Multiplier for all the Atlases sound float")
                 .defineInRange("soundScalar", 1, 0, 10d);
 
+        mapTextureShrink = builder
+                .comment("Proportional to how much map up will be stretched. Useful if you notice gaps appearing in the worldmap screen")
+                .defineInRange("shrink_ratio", 0.1f, 0, 10);
+
         spec = builder.build();
     }
 
@@ -139,6 +143,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapDecorationScale;
     public static final Supplier<Double> worldMapDecorationScale;
     public static final Supplier<Double> soundScalar;
+    public static final Supplier<Double> mapTextureShrink;
     public static final Supplier<Boolean> worldMapCompactSliceIndicator;
     public static final Supplier<Boolean> miniMapRotate;
     public static final Supplier<Boolean> miniMapFollowPlayer;

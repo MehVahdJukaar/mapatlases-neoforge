@@ -130,4 +130,12 @@ public class MapAtlasesMod {
         return new ResourceLocation(MOD_ID, name);
     }
 
+    public static boolean containsHack() {
+        return hack;
+    }
+
+    public static void setHack(boolean value){
+        hack = value;
+    }
+    private static boolean hack = false;
 }

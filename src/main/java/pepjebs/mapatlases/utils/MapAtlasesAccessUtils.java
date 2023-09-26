@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -117,6 +118,33 @@ public class MapAtlasesAccessUtils {
         var slice = MapAtlasItem.getSelectedSlice(stack, player.level().dimension());
         MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level());
         return maps.select(MapKey.at(maps.getScale(), player, slice));
+    }
+
+    public static void updateMapDataAndSync(
+            Pair<String, MapItemSavedData> mapInfo,
+            ServerPlayer player,
+            ItemStack atlas
+    ) {
+        MapItemSavedData data = mapInfo.getSecond();
+        MapAtlasesMod.setHack(true);
+        data.tickCarriedBy(player, atlas);
+        MapAtlasesAccessUtils.syncMapDataToClient(mapInfo, player);
+        MapAtlasesMod.setHack(false);
+    }
+
+    public static void syncMapDataToClient(
+            Pair<String, MapItemSavedData> mapInfo, ServerPlayer player
+    ) {
+        //ok so hear me out. we use this to send new map data to the client when needed. thing is this packet isnt enough on its own
+        // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
+        // this means that if moonlight isnt there we need to send full packet
+        //TODO: handle that case (or depend on it)
+        int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getFirst());
+        Packet<?> p = mapInfo.getSecond().getUpdatePacket(mapId, player);
+        if (p != null) {
+            //TODO: maybe use isComplex  update packet and inventory tick
+            player.connection.send(p);
+        }
     }
 
 }

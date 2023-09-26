@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -14,7 +15,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -28,14 +28,6 @@ public abstract class LecternBlockMixin extends Block {
         super(arg);
     }
 
-    @Inject(
-            method = "openScreen",
-            at = @At(value = "HEAD"),
-            cancellable = true
-    )
-    public void injectAtlasScreen(Level level, BlockPos pos, Player player, CallbackInfo ci) {
-
-    }
 
     //use click events?
     @Inject(
@@ -55,12 +47,16 @@ public abstract class LecternBlockMixin extends Block {
                 al.mapatlases$removeAtlas();
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             } else {
+                LecternBlockEntity lbe = (LecternBlockEntity) al;
+                ItemStack atlas = lbe.getBook();
+
                 if(level.isClientSide) {
-                    LecternBlockEntity lbe = (LecternBlockEntity) al;
-                    ItemStack atlas = lbe.getBook();
+
                     if(atlas.getItem() instanceof MapAtlasItem) {
-                        MapAtlasesClient.openScreen(atlas, lbe);
+                        //MapAtlasesClient.openScreen(atlas, lbe);
                     }
+                }else{
+                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, pos);
                 }
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }

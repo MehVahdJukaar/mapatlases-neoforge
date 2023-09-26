@@ -18,6 +18,6 @@ public class MapStateCuriosMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;contains(Lnet/minecraft/world/item/ItemStack;)Z")
     )
     private boolean containsProxy(boolean original, Player player, ItemStack stack) {
-        return original || (MapAtlasesMod.CURIOS && CuriosCompat.getAtlasInCurio(player) == stack);
+        return original || MapAtlasesMod.containsHack() || (MapAtlasesMod.CURIOS && CuriosCompat.getAtlasInCurio(player) == stack);
     }
 }

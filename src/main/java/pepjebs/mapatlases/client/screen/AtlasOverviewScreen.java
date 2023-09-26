@@ -7,18 +7,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.BookEditScreen;
-import net.minecraft.client.gui.screens.inventory.BookViewScreen;
-import net.minecraft.client.gui.screens.inventory.LecternScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
@@ -115,7 +110,6 @@ public class AtlasOverviewScreen extends Screen {
         this.globalScale = lectern == null ?
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
-
     }
 
     public ItemStack getAtlas() {
@@ -181,7 +175,7 @@ public class AtlasOverviewScreen extends Screen {
         this.selectDimension(initialWorldSelected);
 
 
-        if(lectern != null){
+        if (lectern != null) {
 
             int pY = 210;
             if (player.mayBuild()) {
@@ -229,10 +223,10 @@ public class AtlasOverviewScreen extends Screen {
         if (!isValid()) {
             this.minecraft.setScreen(null);
         }
-        if(false && lectern != null && currentWorldSelected.equals(lectern.getLevel().dimension())){
+        if (false && lectern != null && currentWorldSelected.equals(lectern.getLevel().dimension())) {
             var data = MapAtlasItem.getMaps(atlas, level).getClosest(
                     lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
-                    currentWorldSelected,selectedSlice).getSecond();
+                    currentWorldSelected, selectedSlice).getSecond();
 
 
         }
@@ -305,7 +299,7 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
 
         poseStack.translate(width / 2f, height / 2f, 1);
-        RenderSystem.setShaderTexture(0,ATLAS_TEXTURE);
+        RenderSystem.setShaderTexture(0, ATLAS_TEXTURE);
 
         graphics.blit(
                 ATLAS_TEXTURE,
@@ -452,16 +446,16 @@ public class AtlasOverviewScreen extends Screen {
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
 
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, true);
+        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, initialWorldSelected.equals(dimension));
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
         }
-        mapWidget.setFollowingPlayer(currentWorldSelected.equals(initialWorldSelected));
         for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
         decorationBookmarks.clear();
         addDecorationWidgets();
+
 
     }
 
@@ -492,7 +486,7 @@ public class AtlasOverviewScreen extends Screen {
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
                 var d = e.getSecond();
-                d.setY ((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
                 d.setIndex(index);
                 index++;
             }
