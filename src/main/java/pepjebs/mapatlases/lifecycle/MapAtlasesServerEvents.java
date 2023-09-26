@@ -44,7 +44,7 @@ public class MapAtlasesServerEvents {
 
         private final MapItemSavedData data;
         private int waitTime = 20; //set to 0 when this is updated. if not incremented each tick. we start with lowest for newly added entries
-        private int lastDistance;
+        private double lastDistance = 1000000;
         private double currentPriority;
 
         private MapUpdateTicket(MapItemSavedData data) {
@@ -59,12 +59,13 @@ public class MapAtlasesServerEvents {
             this.waitTime++;
             double distSquared = Mth.lengthSquared(px - data.centerX, pz - data.centerZ);
             // Define weights for distance and waitTime
-            double distanceWeight = 1;; // Adjust this based on your preference
-            double waitTimeWeight = 0.3; // Adjust this based on your preference
+            double distanceWeight = 20; // Adjust this based on your preference
+            double waitTimeWeight = 1; // Adjust this based on your preference
 
             // Calculate the priority using a weighted sum
-            double v = distanceWeight * 1 / distSquared;
-            this.currentPriority = 1/( v + (waitTimeWeight * this.waitTime * this.waitTime));
+            double deltaDist = distanceWeight * (lastDistance - distSquared); //for maps getting closer
+            this.currentPriority = deltaDist + (waitTimeWeight * this.waitTime * this.waitTime);
+            this.lastDistance = distSquared;
         }
     }
 
@@ -114,19 +115,23 @@ public class MapAtlasesServerEvents {
                 // no map. we try creating a new one for this dimension
                 maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
-            } else nearbyExistentMaps.add(activeInfo);
+            }
 
             // updateColors is *easily* the most expensive function in the entire server tick
             // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
-            var map = getMapToUpdate(nearbyExistentMaps, player);
             if (!nearbyExistentMaps.isEmpty()) {
+                var map = getMapToUpdate(nearbyExistentMaps, player);
                 //TODO: make a better priority system
                 var selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size()).getSecond();
                 selected = map;
                 ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
                 //TODO: update active one more frequently
             }
-
+            // update center one too but not each tick
+            if (activeInfo != null && server.getTickCount() % 5 == 0) {
+                nearbyExistentMaps.add(activeInfo);
+                ((MapItem) Items.FILLED_MAP).update(player.level(), player, activeInfo.getSecond());
+            }
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
@@ -159,7 +164,7 @@ public class MapAtlasesServerEvents {
         for (var v : nearbyExistentMaps) {
             var d = v.getSecond();
             existing.add(d);
-            if(!m.containsKey(d)) m.put(d, new MapUpdateTicket(d));
+            m.computeIfAbsent(d, a -> new MapUpdateTicket(d));
         }
         int px = player.getBlockX();
         int pz = player.getBlockZ();
@@ -170,7 +175,7 @@ public class MapAtlasesServerEvents {
                 it.remove();
             } else t.getValue().updatePriority(px, pz);
         }
-        MapUpdateTicket selected = m.values().stream().sorted(MapUpdateTicket.COMPARATOR).findFirst().get();
+        MapUpdateTicket selected = m.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
         selected.waitTime = 0;
         return selected.data;
     }
@@ -316,7 +321,9 @@ public class MapAtlasesServerEvents {
                         qJ += width;
                     }
                     // does not add duplicates this way
-                    results.add(new Vector2i(qI, qJ));
+                    if (!(qI == xCenter && qJ == zCenter)) {
+                        results.add(new Vector2i(qI, qJ));
+                    }
                 }
             }
         }
