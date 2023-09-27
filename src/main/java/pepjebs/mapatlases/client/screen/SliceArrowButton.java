@@ -50,10 +50,16 @@ public class SliceArrowButton extends BookmarkButton {
 
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         if(down) this.parentScreen.decreaseSlice();
         else this.parentScreen.increaseSlice();
     }
+
+    @Override
+    public void onClick(double mouseX, double mouseY, int button) {
+        onClick(mouseX, mouseY);
+    }
+
 
     @Override
     public void playDownSound(SoundManager pHandler) {

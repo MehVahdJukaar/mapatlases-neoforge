@@ -48,6 +48,12 @@ public class MapAtlasesConfig {
         pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
                 .define("pin_marked_id", "minecraft:target_point");
 
+        builder.push("update_logic");
+       roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
+                .define("round_robin", false);
+
+        builder.pop();
+
         spec = builder.build();
     }
 
@@ -58,6 +64,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<Boolean> creativeTeleport;
+    public static final Supplier<Boolean> roundRobinUpdate;
     public static final Supplier<String> pinMarkerId;
     public static final Supplier<ActivationLocation> activationLocation;
     public static final ForgeConfigSpec spec;

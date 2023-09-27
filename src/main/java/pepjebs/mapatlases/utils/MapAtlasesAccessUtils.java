@@ -2,6 +2,7 @@ package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,6 +19,8 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -120,30 +123,36 @@ public class MapAtlasesAccessUtils {
         return maps.select(MapKey.at(maps.getScale(), player, slice));
     }
 
+
+    public static void updateMapDataAndSync(Pair<String, MapItemSavedData> mapInfo, ServerPlayer player, ItemStack atlas) {
+        updateMapDataAndSync(mapInfo.getSecond(), getMapIntFromString(mapInfo.getFirst()), player, atlas);
+    }
+
     public static void updateMapDataAndSync(
-            Pair<String, MapItemSavedData> mapInfo,
+            MapItemSavedData data,
+            int mapId,
             ServerPlayer player,
             ItemStack atlas
     ) {
-        MapItemSavedData data = mapInfo.getSecond();
-        MapAtlasesMod.setHack(true);
+        MapAtlasesMod.setMapInInentoryHack(true);
         data.tickCarriedBy(player, atlas);
-        MapAtlasesAccessUtils.syncMapDataToClient(mapInfo, player);
-        MapAtlasesMod.setHack(false);
+        MapAtlasesAccessUtils.syncMapDataToClient(data, mapId, player);
+        MapAtlasesMod.setMapInInentoryHack(false);
     }
 
-    public static void syncMapDataToClient(
-            Pair<String, MapItemSavedData> mapInfo, ServerPlayer player
-    ) {
+    public static void syncMapDataToClient(MapItemSavedData data, int id, ServerPlayer player) {
         //ok so hear me out. we use this to send new map data to the client when needed. thing is this packet isnt enough on its own
         // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
-        // this means that if moonlight isnt there we need to send full packet
-        //TODO: handle that case (or depend on it)
-        int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getFirst());
-        Packet<?> p = mapInfo.getSecond().getUpdatePacket(mapId, player);
+        //TODO: maybe use isComplex  update packet and inventory tick
+        Packet<?> p = data.getUpdatePacket(id, player);
         if (p != null) {
-            //TODO: maybe use isComplex  update packet and inventory tick
-            player.connection.send(p);
+
+            if (MapAtlasesMod.MOONLIGHT) {
+                player.connection.send(p);
+            } else if (p instanceof ClientboundMapItemDataPacket pp) {
+                //send crappy wrapper if we dont.
+                MapAtlasesNetowrking.sendToClientPlayer(player, new S2CMapPacketWrapper(data, pp));
+            }
         }
     }
 

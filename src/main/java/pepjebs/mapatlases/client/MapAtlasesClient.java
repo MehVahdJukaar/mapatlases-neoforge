@@ -9,15 +9,16 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
@@ -35,7 +36,7 @@ import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
-import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
+import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.List;
@@ -181,24 +182,24 @@ public class MapAtlasesClient {
         return i / 10f + (unlocked ? 0 : 0.05f);
     }
 
-    public static void setMapCenter(S2CSyncMapCenterPacket packet) {
+    public static void handleMapPacketWrapperPacket(S2CMapPacketWrapper packet) {
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
 
-        var data = level.getMapData(packet.mapId);
-        if (data != null) {
-            setCenter(data, packet.centerX, packet.centerZ);
+        Minecraft.getInstance().player.connection.handleMapItemData(packet.packet);
+
+        var data = level.getMapData(MapItem.makeKey(packet.packet.getMapId()));
+        if (data instanceof MapItemSavedDataAccessor d) {
+            try {
+                d.setCenterX(packet.centerX);
+                d.setCenterZ(packet.centerZ);
+                d.setDimension(ResourceKey.create(Registries.DIMENSION, packet.dimension));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public static void setCenter(MapItemSavedData data, int centerX, int centerZ) {
-        try {
-            ((MapItemSavedDataAccessor) data).setCenterX(centerX);
-            ((MapItemSavedDataAccessor) data).setCenterZ(centerZ);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static void openScreen(@Nullable BlockPos lecternPos) {
         @Nullable LecternBlockEntity lectern = null;

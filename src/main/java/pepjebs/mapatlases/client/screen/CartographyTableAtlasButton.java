@@ -67,10 +67,15 @@ public class CartographyTableAtlasButton extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         int pId = left ? 4 : 5;
         if( this.menu.clickMenuButton(Minecraft.getInstance().player, pId)){
            Minecraft.getInstance().gameMode.handleInventoryButtonClick((this.menu).containerId, pId);
        }
+    }
+
+    @Override
+    public void onClick(double mouseX, double mouseY, int button) {
+        onClick(mouseX, mouseY);
     }
 }

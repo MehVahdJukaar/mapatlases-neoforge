@@ -9,19 +9,13 @@ public class PinButton extends BookmarkButton{
         this.setTooltip(Tooltip.create(Component.translatable("message.map_atlases.pin")));
     }
 
-
     @Override
-    protected boolean clicked(double pMouseX, double pMouseY) {
-        return super.clicked(pMouseX, pMouseY);
-    }
-
-    @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         parentScreen.placingPin = !parentScreen.placingPin;
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+    public void onClick(double mouseX, double mouseY, int button) {
+        onClick(mouseX, mouseY);
     }
 }

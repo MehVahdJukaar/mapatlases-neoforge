@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -120,12 +119,13 @@ public class MapAtlasesServerEvents {
             // updateColors is *easily* the most expensive function in the entire server tick
             // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
             if (!nearbyExistentMaps.isEmpty()) {
-                var map = getMapToUpdate(nearbyExistentMaps, player);
-                //TODO: make a better priority system
-                var selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size()).getSecond();
-                selected = map;
+                MapItemSavedData selected;
+                if (MapAtlasesConfig.roundRobinUpdate.get()) {
+                    selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size()).getSecond();
+                } else {
+                    selected = getMapToUpdate(nearbyExistentMaps, player);
+                }
                 ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
-                //TODO: update active one more frequently
             }
             // update center one too but not each tick
             if (activeInfo != null && server.getTickCount() % 5 == 0) {
@@ -272,10 +272,7 @@ public class MapAtlasesServerEvents {
                 MapItemSavedData newData = MapItem.getSavedData(mapId, level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    newData.tickCarriedBy(player, newMap);
-                    //sync map immediately
-                    var p = new ClientboundMapItemDataPacket(mapId, newData.scale, newData.locked, null, null);
-                    player.connection.send(p);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, mapId, player, newMap);
                 }
                 addedMap = maps.add(mapId, level);
             } else {

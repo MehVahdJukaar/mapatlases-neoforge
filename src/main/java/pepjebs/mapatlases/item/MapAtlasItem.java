@@ -1,5 +1,11 @@
 package pepjebs.mapatlases.item;
 
+import net.mehvahdjukaar.moonlight.api.map.CustomMapData;
+import net.mehvahdjukaar.moonlight.api.map.MapHelper;
+import net.mehvahdjukaar.moonlight.core.mixins.HoldingPlayerMixin;
+import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
+import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
+import net.mehvahdjukaar.supplementaries.common.misc.ColoredMapHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,6 +25,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -190,6 +197,7 @@ public class MapAtlasItem extends Item {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         } else {
+            //others deco
             return super.useOn(context);
         }
     }

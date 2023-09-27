@@ -64,7 +64,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
         if (shfting) {
             this.deleteMarker();
@@ -72,6 +72,11 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         } else {
             parentScreen.focusDecoration(this);
         }
+    }
+
+    @Override
+    public void onClick(double mouseX, double mouseY, int button) {
+        onClick(mouseX, mouseY);
     }
 
     protected abstract void deleteMarker();
