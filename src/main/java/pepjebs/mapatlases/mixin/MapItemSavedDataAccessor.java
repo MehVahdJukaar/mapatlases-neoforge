@@ -8,6 +8,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.checkerframework.checker.units.qual.A;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
@@ -16,11 +17,15 @@ import javax.annotation.Nullable;
 @Mixin(MapItemSavedData.class)
 public interface MapItemSavedDataAccessor {
 
+    @Mutable
     @Accessor("centerX")
     void setCenterX(int center);
+
+    @Mutable
     @Accessor("centerZ")
     void setCenterZ(int center);
 
+    @Mutable
     @Accessor("dimension")
     void setDimension(ResourceKey<Level> dimension);
 
