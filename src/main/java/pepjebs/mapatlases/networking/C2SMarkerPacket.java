@@ -11,7 +11,7 @@ import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.MoonlightCompat;
-import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
+import pepjebs.mapatlases.mixin.MapDataAccessor;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class C2SMarkerPacket {
             Level level = player.level;
             MapItemSavedData data = level.getMapData(mapId);
 
-            if (data instanceof MapItemSavedDataAccessor d) {
+            if (data instanceof MapDataAccessor d) {
 
                 double d0 = pos.getX() + 0.5D;
                 double d1 = pos.getZ() + 0.5D;

@@ -9,6 +9,7 @@
     "FriendlyByteBufMixin",
     "LecternBlockEntityMixin",
     "LecternBlockMixin",
+    "MaoItemMixin",
     "MapDataAccessor",
     "MapItemSavedDataAccessor",
     "MapStateCuriosMixin",

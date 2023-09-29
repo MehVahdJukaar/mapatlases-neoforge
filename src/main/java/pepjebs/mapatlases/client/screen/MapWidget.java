@@ -16,11 +16,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -30,7 +28,6 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.C2SMarkerPacket;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
@@ -74,9 +71,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         this.height = height;
 
         this.mapScreen = hack;
-
-        this.targetXCenter = originalCenterMap.x;
-        this.targetZCenter = originalCenterMap.z;
+        this.drawBigPlayerMarker = false;
     }
 
     @Override

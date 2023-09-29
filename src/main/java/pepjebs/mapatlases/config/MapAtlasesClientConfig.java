@@ -27,25 +27,21 @@ public class MapAtlasesClientConfig {
         miniMapZoomMultiplier = builder.comment("How many maps to display in a single minimap. Essentially zoom. Can be a fraction")
                 .defineInRange("zoom_multiplier", 1, 0.001, 100);
 
-        forceMiniMapScaling = builder
-                .comment("Scale the mini-map to a given % of the height of your screen.")
-                .defineInRange("force_scaling", 30, 0, 100);
-
         miniMapAnchoring = builder
                 .comment("Controls anchor position of mini-map")
                 .defineEnum("anchoring", Anchoring.UPPER_LEFT);
 
         miniMapHorizontalOffset = builder
                 .comment("An integer which will offset the mini-map horizontally")
-                .defineInRange("horizontal_offset", 5, 0, 4000);
+                .defineInRange("horizontal_offset", 5, -4000, 4000);
 
         miniMapVerticalOffset = builder
                 .comment("An integer which will offset the mini-map vertically")
-                .defineInRange("vertical_offset", 5, 0, 4000);
+                .defineInRange("vertical_offset", 5, -4000, 4000);
 
         activePotionVerticalOffset = builder
                 .comment("The number of pixels to shift vertically when there's an active effect")
-                .defineInRange("active_potion_effects_vertical_offset", 26, 0, 4000);
+                .defineInRange("active_potion_effects_vertical_offset", 26, -4000, 4000);
 
         drawMinimapCoords = builder
                 .comment("When enabled, the player's current Coords will be displayed")
@@ -80,6 +76,10 @@ public class MapAtlasesClientConfig {
 
         builder.push("world_map");
 
+        worldMapBigTexture = builder
+                .comment("Use bigger book like texture for worldmap view. Makes the view a bit bigger." +
+                        " Recommended to ebe used with map scale 1 (you might want to lower lectern one too if buttons dont show)")
+                .define("alternative_texture", false);
         worldMapSmoothPanning = builder.comment("Pan smoothly. When off it will pan in map increments instead")
                 .define("smooth_panning", true);
         worldMapScale = builder
@@ -121,7 +121,6 @@ public class MapAtlasesClientConfig {
 
     public static final Supplier<Boolean> drawMiniMapHUD;
     public static final Supplier<Double> miniMapZoomMultiplier;
-    public static final Supplier<Integer> forceMiniMapScaling;
     public static final Supplier<Anchoring> miniMapAnchoring;
     public static final Supplier<Integer> miniMapHorizontalOffset;
     public static final Supplier<Integer> miniMapVerticalOffset;
@@ -145,6 +144,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapFollowPlayer;
     public static final Supplier<Boolean> yOnlyWithSlice;
     public static final Supplier<Boolean> worldMapSmoothPanning;
+    public static final Supplier<Boolean> worldMapBigTexture;
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;

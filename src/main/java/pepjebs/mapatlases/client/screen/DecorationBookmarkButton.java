@@ -34,7 +34,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected boolean shfting = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, Pair<String, MapItemSavedData> data) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 36, parentScreen);
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
         this.data = data;
     }
 

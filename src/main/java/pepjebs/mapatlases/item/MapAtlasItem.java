@@ -171,6 +171,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         CompoundTag tag = stack.getOrCreateTag();
+        //convert old atlas
         if (tag.contains("maps")) {
             MapCollectionCap maps = getMaps(stack, level);
             for (var i : tag.getIntArray("maps")) {
@@ -250,7 +251,7 @@ public class MapAtlasItem extends Item {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (blockState.is(BlockTags.BANNERS)) {
+        if ( blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
@@ -262,6 +263,8 @@ public class MapAtlasItem extends Item {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         } else {
+            //others deco
+
             return super.useOn(context);
         }
     }

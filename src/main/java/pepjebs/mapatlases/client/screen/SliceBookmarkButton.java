@@ -20,7 +20,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     private Integer slice;
 
     protected SliceBookmarkButton(int pX, int pY, @Nullable Integer slice, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT + 64, screen);
+        super(pX, pY, BUTTON_W, BUTTON_H, 0, 167 + 64, screen);
         this.slice = slice;
         this.selected = false;
         this.tooltip =(createTooltip());

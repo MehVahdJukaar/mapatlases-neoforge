@@ -15,7 +15,7 @@ public class SliceArrowButton extends BookmarkButton {
 
     protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
         super(getpX(button), getpY(down, button),
-                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), AtlasOverviewScreen.IMAGE_HEIGHT + 64,
+                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), 167 + 64,
                 screen);
         this.down = down;
         this.setSelected(false);
