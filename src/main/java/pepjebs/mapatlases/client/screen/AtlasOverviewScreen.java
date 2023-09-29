@@ -38,17 +38,27 @@ import static pepjebs.mapatlases.client.ui.MapAtlasesHUD.scaleVector;
 
 public class AtlasOverviewScreen extends Screen {
 
+
     public static final ResourceLocation ATLAS_OVERLAY =
             MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
-    public static final ResourceLocation ATLAS_TEXTURE =
-            MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
+    public static final ResourceLocation ATLAS_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
+    public static final ResourceLocation ATLAS_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
 
+    private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
 
-    public static final int IMAGE_WIDTH = 162;//226;
-    public static final int IMAGE_HEIGHT = 167;//231;
-    private static final int H_IMAGE_WIDTH = IMAGE_WIDTH / 2;
-    private static final int H_IMAGE_HEIGHT = IMAGE_HEIGHT / 2;
-    private static final int MAP_WIDGET_SIZE = 128;
+    public final ResourceLocation texture = bigTexture ? ATLAS_TEXTURE_BIG : ATLAS_TEXTURE;
+
+    private final int BOOK_WIDTH = bigTexture ? 290 : 162;
+    private final int BOOK_HEIGHT = bigTexture ? 231 : 167;
+
+    private final int H_BOOK_WIDTH = BOOK_WIDTH / 2;
+    private final int H_BOOK_HEIGHT = BOOK_HEIGHT / 2;
+    private final int MAP_WIDGET_WIDTH = bigTexture ? 256 : 128;
+    private final int MAP_WIDGET_HEIGHT = bigTexture ? 192 : 128;
+    private final int TEXTURE_W = bigTexture ? 512 : 256;
+
+    private final int OVERLAY_UR = bigTexture ? 304 : 189;
+    private final int OVERLAY_UL = bigTexture ? 309 : 194;
 
     private final ItemStack atlas;
     private final Player player;
@@ -68,9 +78,6 @@ public class AtlasOverviewScreen extends Screen {
     private ResourceKey<Level> currentWorldSelected;
     private Integer selectedSlice;
     private boolean initialized = false;
-
-    private int mapIconSelectorScroll = 0;
-    private int dimSelectorScroll = 0;
 
     boolean placingPin = false;
 
@@ -93,7 +100,7 @@ public class AtlasOverviewScreen extends Screen {
         if (closest != null) {
             this.initialMapSelected = closest.getSecond();
         } else {
-            //if has no maps here grab a random one
+            //if it has no maps here, grab a random one
             this.initialMapSelected = maps.getAll().stream().findFirst().get().getSecond();
             dim = initialMapSelected.dimension;
         }
@@ -107,9 +114,10 @@ public class AtlasOverviewScreen extends Screen {
 
         this.lectern = lectern;
 
-        this.globalScale = lectern == null ?
+        this.globalScale = lectern == null  ?
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
+
     }
 
     public ItemStack getAtlas() {
@@ -133,8 +141,8 @@ public class AtlasOverviewScreen extends Screen {
     protected void init() {
         super.init();
 
-        this.sliceButton = new SliceBookmarkButton((width + IMAGE_WIDTH) / 2 - 13,
-                (height - IMAGE_HEIGHT) / 2 + 131,
+        this.sliceButton = new SliceBookmarkButton((width + BOOK_WIDTH) / 2 - 13,
+                (height - BOOK_HEIGHT) / 2 + ( BOOK_HEIGHT - 36 ) ,
                 selectedSlice, this);
         this.addRenderableWidget(sliceButton);
         sliceUp = new SliceArrowButton(false, sliceButton, this);
@@ -145,7 +153,7 @@ public class AtlasOverviewScreen extends Screen {
         int i = 0;
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         Collection<ResourceKey<Level>> dimensions = maps.getAvailableDimensions();
-        int separation = Math.min(22, 112 / dimensions.size());
+        int separation = (int) Math.min(22, (BOOK_HEIGHT - 50f) / dimensions.size());
         for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
                     var s = e.location().toString();
                     if (MapAtlasesClient.DIMENSION_TEXTURE_ORDER.contains(s)) {
@@ -155,29 +163,28 @@ public class AtlasOverviewScreen extends Screen {
                 }
         )).toList()) {
             DimensionBookmarkButton pWidget = new DimensionBookmarkButton(
-                    (width + IMAGE_WIDTH) / 2 - 10,
-                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, d, this);
+                    (width + BOOK_WIDTH) / 2 - 10,
+                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, d, this);
             this.addRenderableWidget(pWidget);
             this.dimensionBookmarks.add(pWidget);
             i++;
         }
 
-        this.mapWidget = this.addRenderableWidget(new MapWidget((width - MAP_WIDGET_SIZE) / 2,
-                (height - MAP_WIDGET_SIZE) / 2 + 5, MAP_WIDGET_SIZE, MAP_WIDGET_SIZE, 3,
+        this.mapWidget = this.addRenderableWidget(new MapWidget((width - MAP_WIDGET_WIDTH) / 2,
+                (height - MAP_WIDGET_HEIGHT) / 2 + 5, MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
                 this, initialMapSelected));
 
         this.setFocused(mapWidget);
 
         if (!MapAtlasesConfig.pinMarkerId.get().isEmpty()) {
-            this.addRenderableWidget(new PinButton((width + IMAGE_WIDTH) / 2 + 20,
-                    (height - IMAGE_HEIGHT) / 2 + 16, this));
+            this.addRenderableWidget(new PinButton((width + BOOK_WIDTH) / 2 + 20,
+                    (height - BOOK_HEIGHT) / 2 + 16, this));
         }
         this.selectDimension(initialWorldSelected);
 
 
         if (lectern != null) {
-
-            int pY = 210;
+            int pY = BOOK_HEIGHT + 40;
             if (player.mayBuild()) {
                 this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
                     this.onClose();
@@ -223,6 +230,7 @@ public class AtlasOverviewScreen extends Screen {
         if (!isValid()) {
             this.minecraft.setScreen(null);
         }
+        //add lectern marker
         if (false && lectern != null && currentWorldSelected.equals(lectern.getLevel().dimension())) {
             var data = MapAtlasItem.getMaps(atlas, level).getClosest(
                     lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
@@ -266,23 +274,27 @@ public class AtlasOverviewScreen extends Screen {
 
         //background
         graphics.blit(
-                ATLAS_TEXTURE,
-                -H_IMAGE_WIDTH,
-                -H_IMAGE_HEIGHT,
+                texture,
+                -H_BOOK_WIDTH,
+                -H_BOOK_HEIGHT,
                 0,
                 0,
-                IMAGE_WIDTH,
-                IMAGE_HEIGHT
+                BOOK_WIDTH,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
         );
         // Draw foreground
         graphics.blit(
                 ATLAS_OVERLAY,
-                -H_IMAGE_WIDTH,
-                -H_IMAGE_HEIGHT,
+                -H_BOOK_WIDTH,
+                -H_BOOK_HEIGHT,
                 0,
                 0,
-                IMAGE_WIDTH,
-                IMAGE_HEIGHT
+                BOOK_WIDTH,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
         );
 
         poseStack.translate(-width / 2f, -height / 2f, 0);
@@ -302,22 +314,26 @@ public class AtlasOverviewScreen extends Screen {
         RenderSystem.setShaderTexture(0, ATLAS_TEXTURE);
 
         graphics.blit(
-                ATLAS_TEXTURE,
-                H_IMAGE_WIDTH - 10,
-                -H_IMAGE_HEIGHT,
-                189,
+                texture,
+                H_BOOK_WIDTH - 10,
+                -H_BOOK_HEIGHT,
+                OVERLAY_UR,
                 0,
                 5,
-                IMAGE_HEIGHT
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
         );
         graphics.blit(
-                ATLAS_TEXTURE,
-                -H_IMAGE_WIDTH + 5,
-                -H_IMAGE_HEIGHT,
-                194,
+                texture,
+                -H_BOOK_WIDTH + 5,
+                -H_BOOK_HEIGHT,
+                OVERLAY_UL,
                 0,
                 5,
-                IMAGE_HEIGHT
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
         );
         poseStack.popPose();
 
@@ -409,7 +425,7 @@ public class AtlasOverviewScreen extends Screen {
             averageZ /= count;
             Pair<String, MapItemSavedData> closest = maps.getClosest(averageX, averageZ, currentWorldSelected, slice);
             if (closest == null) {
-                int aa = 1;
+                int error = 1;
             }
             return closest == null ? null : closest.getSecond();
             //centers to any map that has decoration
@@ -486,7 +502,7 @@ public class AtlasOverviewScreen extends Screen {
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {
                 var d = e.getSecond();
-                d.setY((height - IMAGE_HEIGHT) / 2 + 15 + index * separation);
+                d.setY((height - BOOK_HEIGHT) / 2 + 15 + index * separation);
                 d.setIndex(index);
                 index++;
             }
@@ -512,12 +528,12 @@ public class AtlasOverviewScreen extends Screen {
         }
         int i = 0;
 
-        int separation = Math.min(17, (int) (143f / mapIcons.size()));
+        int separation = Math.min(17, (int) ((BOOK_HEIGHT - 22f) / mapIcons.size()));
         List<DecorationBookmarkButton> widgets = new ArrayList<>();
         for (var e : mapIcons) {
             DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
-                    (width - IMAGE_WIDTH) / 2 + 10,
-                    (height - IMAGE_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), e.getSecond(), this);
+                    (width - BOOK_WIDTH) / 2 + 10,
+                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), e.getSecond(), this);
             pWidget.setIndex(i);
             widgets.add(pWidget);
             this.decorationBookmarks.add(pWidget);

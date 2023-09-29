@@ -99,8 +99,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 info.cancel();
             });
 
-            //add map
-        } else if (bottomItem.getItem() == Items.MAP
+        }
+        // add empty
+        else if (bottomItem.getItem() == Items.MAP
                 || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && bottomItem.getItem() == Items.PAPER)) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
@@ -110,12 +111,13 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 this.broadcastChanges();
                 info.cancel();
             });
-        } else if (bottomItem.getItem() == Items.FILLED_MAP) {
+        }
+        // add a filled map
+        else if (bottomItem.getItem() == Items.FILLED_MAP) {
             this.access.execute((world, blockPos) -> {
-
                 ItemStack result = topItem.copy();
                 Integer mapId = MapItem.getMapId(bottomItem);
-                MapCollectionCap maps = MapAtlasItem.getMaps(topItem, world);
+                MapCollectionCap maps = MapAtlasItem.getMaps(result, world);
                 if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();

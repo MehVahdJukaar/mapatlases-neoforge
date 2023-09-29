@@ -25,7 +25,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -34,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
-import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
@@ -121,6 +119,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         CompoundTag tag = stack.getOrCreateTag();
+        //convert old atlas
         if (tag.contains("maps")) {
             MapCollectionCap maps = getMaps(stack, level);
             for (var i : tag.getIntArray("maps")) {
@@ -185,7 +184,7 @@ public class MapAtlasItem extends Item {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (blockState.is(BlockTags.BANNERS)) {
+        if ( blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
@@ -198,6 +197,7 @@ public class MapAtlasItem extends Item {
             return InteractionResult.sidedSuccess(level.isClientSide);
         } else {
             //others deco
+
             return super.useOn(context);
         }
     }

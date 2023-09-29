@@ -8,13 +8,13 @@ import java.util.function.Supplier;
 public class MapAtlasesConfig {
 
 
-
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         maxMapCount = builder
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
                 .define("maxMapCount", 512);
+
 
         acceptPaperForEmptyMaps = builder
                 .comment("If enabled, you can increase the Empty Map count by inserting Paper")
@@ -49,8 +49,11 @@ public class MapAtlasesConfig {
                 .define("pin_marked_id", "minecraft:target_point");
 
         builder.push("update_logic");
-       roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
+        roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
                 .define("round_robin", false);
+        mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
+                .defineInRange("mapUpdatesPerTick", 1, 0, 9);
+
 
         builder.pop();
 
@@ -66,6 +69,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> creativeTeleport;
     public static final Supplier<Boolean> roundRobinUpdate;
     public static final Supplier<String> pinMarkerId;
+    public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<ActivationLocation> activationLocation;
     public static final ForgeConfigSpec spec;
 

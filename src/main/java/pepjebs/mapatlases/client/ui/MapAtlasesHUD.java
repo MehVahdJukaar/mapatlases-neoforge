@@ -59,7 +59,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.mc = Minecraft.getInstance();
         this.rotatesWithPlayer = true;
         this.zoomLevel = 1;
-        this.drawPlayerIcon = false;
     }
 
     @Override
@@ -78,6 +77,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
 
         this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps(currentAtlas, mc.level).hasOneSlice();
+        this.drawBigPlayerMarker = MapAtlasesClientConfig.miniMapFollowPlayer.get();
+
     }
 
     public Vector4d transformPos(double mouseX, double mouseZ) {

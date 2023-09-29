@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 
@@ -43,7 +44,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 emptyMaps++;
             } else if (itemstack.is(Items.FILLED_MAP)) {
                 filledMaps.add(MapItem.getSavedData(itemstack, level));
-            }else if(!itemstack.isEmpty()) return false;
+            } else if (!itemstack.isEmpty()) return false;
         }
         if (!atlas.isEmpty() && (emptyMaps != 0 || !filledMaps.isEmpty())) {
 
@@ -55,12 +56,14 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
             }
+            //ensure no duplicates
 
             int atlasScale = maps.getScale();
 
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
                 if (d.scale != atlasScale) return false;
+                if (maps.select(MapKey.of(d)) != null) return false;
             }
             levelRef = new WeakReference<>(level);
             return true;

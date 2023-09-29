@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
@@ -18,6 +19,7 @@ import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,7 @@ public abstract class AbstractAtlasWidget {
     protected float zoomLevel = 3;
 
     protected boolean rotatesWithPlayer = false;
-    protected boolean drawPlayerIcon = true;
+    protected boolean drawBigPlayerMarker = true;
 
     protected AbstractAtlasWidget(int atlasesCount) {
         this.atlasesCount = atlasesCount;
@@ -175,9 +177,9 @@ public abstract class AbstractAtlasWidget {
         Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.getSecond();
-            boolean drawPlayerIcons = data.dimension.equals(player.level().dimension()) && this.drawPlayerIcon;
+            boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-            this.drawMap(poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
+            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
         }
     }
 
@@ -188,6 +190,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void drawMap(
+            Player player,
             PoseStack poseStack,
             MultiBufferSource.BufferSource vcp,
             List<Matrix4f> outlineHack,
@@ -204,17 +207,26 @@ public abstract class AbstractAtlasWidget {
         // Remove the off-map player icons temporarily during render
         MapItemSavedData data = state.getSecond();
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
+        List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
         for (var e : data.decorations.entrySet()) {
             MapDecoration decoration = e.getValue();
             MapDecoration.Type type = decoration.getType();
-            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS
-                    || (type == MapDecoration.Type.PLAYER && !drawPlayerIcons)) {
+            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
+                if (data == originalCenterMap && drawPlayerIcons) {
+                    var d = e.getValue();
+                    removed.add(e);
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
+                            d.getX(), d.getY(), getPlayerMarkerRot(player), d.getName())));
+                } else removed.add(e);
+
+            } else if (type == MapDecoration.Type.PLAYER && !drawPlayerIcons) {
                 removed.add(e);
             }
         }
 
         removed.forEach(d -> data.decorations.remove(d.getKey()));
+        added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
 
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()
@@ -234,6 +246,12 @@ public abstract class AbstractAtlasWidget {
         for (Map.Entry<String, MapDecoration> e : removed) {
             data.decorations.put(e.getKey(), e.getValue());
         }
+    }
+
+    private static byte getPlayerMarkerRot(Player p) {
+        float pRotation = p.getYRot();
+        pRotation += pRotation < 0.0D ? -8.0D : 8.0D;
+        return (byte) ((int) (pRotation * 16.0D / 360.0D));
     }
 
     /**

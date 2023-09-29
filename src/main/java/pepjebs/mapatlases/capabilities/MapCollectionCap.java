@@ -17,7 +17,6 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -58,15 +57,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     // if a duplicate exists its likely that its data was somehow not synced yet
     public void fixDuplicates(Level level) {
-        var it = duplicates.iterator();
-        while (it.hasNext()) {
-            var i = it.next();
-            if (add(i, level)) {
-                it.remove();
-            } else {
-                int aa = 1;
-            }
-        }
+        duplicates.removeIf(i -> add(i, level));
     }
 
     // we need leven context
@@ -105,7 +96,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public int getCount() {
         assertInitialized();
-        return maps.size();
+        return idMap.size();
     }
 
     public boolean isEmpty() {
@@ -136,21 +127,19 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         if (d != null && d.scale == scale) {
             MapKey key = MapKey.of(d);
             //remove duplicates
+
+            //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
+                if (true) return false;
+                //this should not happen anymire actually
                 var old = maps.get(key);
-                if (!MapKey.of(old.getSecond()).equals(key)) {
-                    // key was incorrect?? let's remove it and recalculate
-                    remove(old.getFirst());
-                    // Add it back. No recursion pls
-                    add(MapAtlasesAccessUtils.getMapIntFromString(old.getFirst()), level);
-                } else {
-                    idMap.put(mapKey, intId);
-                    if (!duplicates.contains(intId)) duplicates.add(intId);
-                    return false;
-                    //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
-                    //we just store the map id without actually adding it as its map key is incorrect
-                    //error
-                }
+                idMap.put(mapKey, intId);
+                if (!duplicates.contains(intId)) duplicates.add(intId);
+                return false;
+                //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
+                //we just store the map id without actually adding it as its map key is incorrect
+                //error
+
             }
             keysMap.put(mapKey, key);
             idMap.put(mapKey, intId);

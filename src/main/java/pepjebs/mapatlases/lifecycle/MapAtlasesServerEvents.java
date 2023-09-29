@@ -44,7 +44,7 @@ public class MapAtlasesServerEvents {
         private final MapItemSavedData data;
         private int waitTime = 20; //set to 0 when this is updated. if not incremented each tick. we start with lowest for newly added entries
         private double lastDistance = 1000000;
-        private double currentPriority;
+        private double currentPriority; //bigger the better
 
         private MapUpdateTicket(MapItemSavedData data) {
             this.data = data;
@@ -122,10 +122,14 @@ public class MapAtlasesServerEvents {
                 MapItemSavedData selected;
                 if (MapAtlasesConfig.roundRobinUpdate.get()) {
                     selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size()).getSecond();
+                    ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
+
                 } else {
-                    selected = getMapToUpdate(nearbyExistentMaps, player);
+                    for(int j = 0; j<MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
+                        selected = getMapToUpdate(nearbyExistentMaps, player);
+                        ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
+                    }
                 }
-                ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
             }
             // update center one too but not each tick
             if (activeInfo != null && server.getTickCount() % 5 == 0) {

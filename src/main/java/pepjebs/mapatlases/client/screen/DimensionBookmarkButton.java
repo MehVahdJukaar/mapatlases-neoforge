@@ -24,7 +24,7 @@ public class DimensionBookmarkButton extends BookmarkButton {
 
 
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H, 0, AtlasOverviewScreen.IMAGE_HEIGHT, screen);
+        super(pX, pY, BUTTON_W, BUTTON_H, 0, 167, screen);
         this.dimension = dimension;
         this.setTooltip(createTooltip());
         int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
@@ -51,7 +51,8 @@ public class DimensionBookmarkButton extends BookmarkButton {
         }
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
-                this.getX() + 4, this.getY() + 2, AtlasOverviewScreen.IMAGE_WIDTH,
+                this.getX() + 4, this.getY() + 2,
+                162,
                 dimY,
                 16, 16);
         pose.popPose();
