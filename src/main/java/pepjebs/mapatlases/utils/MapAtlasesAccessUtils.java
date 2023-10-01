@@ -1,14 +1,17 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.api.map.CustomMapData;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -25,19 +28,41 @@ import java.util.stream.Collectors;
 public class MapAtlasesAccessUtils {
 
 
+
+    public static boolean isValidFilledMap(ItemStack item) {
+        return  Slice.Type.fromItem(item.getItem()) != null;
+    }
+
+    public static Pair<String, MapItemSavedData> findMapFromId(Level level, int id) {
+        //try all known types
+        for (var t : Slice.Type.values()) {
+            var d = t.getMapData(level, id);
+            if (d != null) return d;
+        }
+        return null;
+    }
+
+    public static Pair<String, MapItemSavedData> findMapFromItemStack(Level level, ItemStack item) {
+        return findMapFromId(level, MapItem.getMapId(item));
+    }
+
+    public static int findMapIntFromString(String id) {
+        return Integer.parseInt(id.split("_")[1]);
+        /*
+        for (var t : Slice.Type.values()) {
+            var i = t.findKey(id);
+            if (i != null) return i;
+        }
+        throw new IllegalStateException("Unable to find map id for key " + id);
+         */
+    }
+
     public static ItemStack createMapItemStackFromId(int id) {
         ItemStack map = new ItemStack(Items.FILLED_MAP);
         map.getOrCreateTag().putInt("map", id);
         return map;
     }
 
-    public static int getMapIntFromString(String id) {
-        if (id == null) {
-            MapAtlasesMod.LOGGER.error("Encountered null id when fetching map name. Env: {}", FMLEnvironment.dist);
-            return 0;
-        }
-        return Integer.parseInt(id.substring(4));
-    }
 
     @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
@@ -117,6 +142,38 @@ public class MapAtlasesAccessUtils {
         var slice = MapAtlasItem.getSelectedSlice(stack, player.level.dimension());
         MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level);
         return maps.select(MapKey.at(maps.getScale(), player, slice));
+    }
+
+
+    public static void updateMapDataAndSync(Pair<String, MapItemSavedData> mapInfo, ServerPlayer player, ItemStack atlas) {
+        updateMapDataAndSync(mapInfo.getSecond(), findMapIntFromString(mapInfo.getFirst()), player, atlas);
+    }
+
+    public static void updateMapDataAndSync(
+            MapItemSavedData data,
+            int mapId,
+            ServerPlayer player,
+            ItemStack atlas
+    ) {
+        MapAtlasesMod.setMapInInentoryHack(true);
+        data.tickCarriedBy(player, atlas);
+        MapAtlasesAccessUtils.syncMapDataToClient(data, mapId, player);
+        MapAtlasesMod.setMapInInentoryHack(false);
+    }
+
+    public static void syncMapDataToClient(MapItemSavedData data, int id, ServerPlayer player) {
+        //ok so hear me out. we use this to send new map data to the client when needed. thing is this packet isnt enough on its own
+        // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
+        //TODO: maybe use isComplex  update packet and inventory tick
+        Packet<?> p = data.getUpdatePacket(id, player);
+        if (p != null) {
+            if (MapAtlasesMod.MOONLIGHT) {
+                player.connection.send(p);
+            } else if (p instanceof ClientboundMapItemDataPacket pp) {
+                //send crappy wrapper if we dont.
+                MapAtlasesNetowrking.sendToClientPlayer(player, new S2CMapPacketWrapper(data, pp));
+            }
+        }
     }
 
 }

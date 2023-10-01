@@ -41,7 +41,8 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 
     @ModifyReturnValue(method = "mayPlace", at = @At("RETURN"))
     boolean mapAtlasCanInsert(boolean original, ItemStack stack) {
-        return original || stack.is(MapAtlasesMod.MAP_ATLAS.get()) || stack.getItem() == Items.FILLED_MAP ||
+        return original || stack.is(MapAtlasesMod.MAP_ATLAS.get()) ||
+                MapAtlasesAccessUtils.isValidFilledMap(stack) ||
                 stack.is(Tags.Items.SHEARS);
     }
 }
@@ -72,7 +73,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                 int amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level);
                 // onTakeItem already calls takeStack(1) so we subtract that out
                 slotOne.remove(amountToTake - 1);
-            } else if (slotOneItem.is(Items.FILLED_MAP)) {
+            } else if (MapAtlasesAccessUtils.isValidFilledMap(slotOneItem)) {
                 slotOne.remove(1);
             }
         }

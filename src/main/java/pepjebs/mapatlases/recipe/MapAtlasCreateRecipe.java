@@ -10,16 +10,17 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.common.util.RecipeMatcher;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -51,14 +52,14 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         List<ItemStack> inputs = new ArrayList<>();
         int i = 0;
         boolean hasMap = false;
-        for(int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack itemstack = inv.getItem(j);
-            if(itemstack.is(Items.FILLED_MAP)){
-                if(hasMap || MapItem.getSavedData(itemstack, level) == null){
+            if ( MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
+                if (hasMap || MapItem.getSavedData(itemstack, level) == null) {
                     return false;
-                }hasMap = true;
-            }
-            else if (!itemstack.isEmpty()) {
+                }
+                hasMap = true;
+            } else if (!itemstack.isEmpty()) {
                 ++i;
                 if (isSimple)
                     stackedcontents.accountStack(itemstack, 1);
@@ -68,9 +69,9 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
 
         boolean matches = i == this.ingredients.size() && hasMap &&
                 (isSimple ? stackedcontents.canCraft(this, null) :
-                        RecipeMatcher.findMatches(inputs,  this.ingredients) != null);
+                        RecipeMatcher.findMatches(inputs, this.ingredients) != null);
 
-        if(matches){
+        if (matches) {
             levelReference = new WeakReference<>(level);
         }
         return matches;
@@ -81,8 +82,9 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         ItemStack mapItemStack = null;
         for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack item = inv.getItem(j);
-            if (item.is(Items.FILLED_MAP)) {
+            if( MapAtlasesAccessUtils.isValidFilledMap(item)){
                 mapItemStack = item;
+                break;
             }
         }
         Level level = levelReference.get();
@@ -94,17 +96,19 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
         }
-        MapItemSavedData mapState = MapItem.getSavedData(mapId, level);
+        var mapState = MapAtlasesAccessUtils.findMapFromId(level, mapId);
         if (mapState == null) return ItemStack.EMPTY;
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
-
-        if(!MapAtlasItem.getMaps(atlas, level).add(mapId, level)){
-            MapAtlasItem.increaseEmptyMaps(atlas,1);
-        }
         //initialize tag
         atlas.getOrCreateTag();
-        MapAtlasItem.increaseEmptyMaps(atlas,0);
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        MapAtlasItem.setSelectedSlice(atlas, Slice.of(mapState), level.dimension());
+        if (!maps.add(mapId, level)) {
+            MapAtlasItem.increaseEmptyMaps(atlas, 1);
+        }
+
+        MapAtlasItem.increaseEmptyMaps(atlas, 0);
         return atlas;
     }
 
@@ -133,7 +137,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         public void toNetwork(FriendlyByteBuf pBuffer, MapAtlasCreateRecipe pRecipe) {
 
             pBuffer.writeVarInt(pRecipe.ingredients.size());
-            for(Ingredient ingredient : pRecipe.ingredients) {
+            for (Ingredient ingredient : pRecipe.ingredients) {
                 ingredient.toNetwork(pBuffer);
             }
         }
@@ -147,7 +151,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
 
         private static NonNullList<Ingredient> itemsFromJson(JsonArray pIngredientArray) {
             NonNullList<Ingredient> nonnulllist = NonNullList.create();
-            for(int i = 0; i < pIngredientArray.size(); ++i) {
+            for (int i = 0; i < pIngredientArray.size(); ++i) {
                 nonnulllist.add(Ingredient.fromJson(pIngredientArray.get(i)));
             }
             return nonnulllist;

@@ -72,7 +72,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 }
                 var map = maps.getAll().get(mapatlases$selectedMapIndex);
                 ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(
-                        MapAtlasesAccessUtils.getMapIntFromString(map.getFirst())
+                        MapAtlasesAccessUtils.findMapIntFromString(map.getFirst())
                 );
 
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);

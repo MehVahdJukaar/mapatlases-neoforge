@@ -23,8 +23,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraftforge.client.ForgeRenderTypes;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4d;
+import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -33,6 +37,7 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
@@ -62,11 +67,15 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.zoomLevel = 1;
     }
 
+    @Nullable
     @Override
-    public Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
+    public Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
-        return MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ,
-                currentMapKey.dimension(), currentMapKey.slice());
+        Slice slice = currentMapKey.slice();
+        var m = MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ,
+                currentMapKey.dimension(), slice);
+        if (m == null) return null;
+        return Pair.of(slice.getMapId(m.getFirst()), m.getSecond());
     }
 
     @Override
@@ -166,7 +175,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         // Update client current map id
         // TODO: dont like this sound here. should be in tick instead
-        // playSoundIfMapChanged(curMapId, level, player);
+        // playSoundIfMapChanged(curMapId, height, player);
 
         int mapWidgetSize = (int) (64 * 116 / 128f);
 
@@ -209,7 +218,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             currentZCenter = (float) player.getZ();
         }
 
-        // Set zoom-level for map icons
+        // Set zoom-height for map icons
         MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapDecorationScale.get());
         float yRot = player.getYRot();
         if (rotatesWithPlayer) {
@@ -218,7 +227,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         drawAtlas(poseStack, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get());
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice());
 
         MapAtlasesClient.setDecorationsScale(1);
         if (rotatesWithPlayer) {
@@ -303,7 +312,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         /*
         if (!curMapId.equals(localPlayerCurrentMapId)) {
             if (localPlayerCurrentMapId != null) {
-                level.playLocalSound(player.getX(), player.getY(), player.getZ(),
+                height.playLocalSound(player.getX(), player.getY(), player.getZ(),
                         MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), SoundSource.PLAYERS,
                         (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F, false);
             }

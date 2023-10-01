@@ -12,18 +12,25 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.mojang.blaze3d.platform.GlConst.*;
+import static org.lwjgl.opengl.GL11C.glTexParameterf;
+import static org.lwjgl.opengl.GL11C.glTexParameteri;
+import static org.lwjgl.opengl.GL14.GL_TEXTURE_LOD_BIAS;
 
 public abstract class AbstractAtlasWidget extends GuiComponent {
 
@@ -60,7 +67,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
     }
 
     public void drawAtlas(PoseStack poseStack, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim, boolean showBorders) {
+                          Player player, float zoomLevelDim, boolean showBorders, Slice slice) {
 
 
         poseStack.pushPose();
@@ -72,20 +79,9 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         int intZCenter = (int) (currentZCenter);
         int scaleIndex = mapPixelSize / MAP_DIMENSION;
 
-        int scaleMagicNumber = 0;
-        int scaleMagicNumber2 = 0;
-
-        if (scaleIndex >= 1) {
-            scaleMagicNumber = 64;
-
-            if (scaleIndex >= 2) {
-                scaleMagicNumber2 = 64 * (scaleIndex - 1);
-            }
-        }
-
-        int centerMapX = scaleMagicNumber2 + roundBelow(intXCenter + scaleMagicNumber, mapPixelSize);
-        int centerMapZ = scaleMagicNumber2 + roundBelow(intZCenter + scaleMagicNumber, mapPixelSize);
-
+        ColumnPos c = slice.getCenter(intXCenter, intZCenter, mapPixelSize);
+        int centerMapX = c.x();
+        int centerMapZ = c.z();
 
         //translate to center
         poseStack.translate(x + width / 2f, y + height / 2f, 0);
@@ -175,7 +171,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
                                List<Matrix4f> outlineHack, int i, int j) {
         int reqXCenter = centerMapX + (j * mapPixelSize);
         int reqZCenter = centerMapZ + (i * mapPixelSize);
-        Pair<String, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
+        Pair<Integer, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.getSecond();
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level.dimension());
@@ -184,7 +180,8 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         }
     }
 
-    public abstract Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
+    @Nullable
+    public abstract Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
 
     public void setFollowingPlayer(boolean followingPlayer) {
         this.followingPlayer = followingPlayer;
@@ -196,7 +193,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
             MultiBufferSource.BufferSource vcp,
             List<Matrix4f> outlineHack,
             int ix, int iy,
-            Pair<String, MapItemSavedData> state,
+            Pair<Integer, MapItemSavedData> state,
             boolean drawPlayerIcons
     ) {
         // Draw the map
@@ -229,12 +226,13 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
 
-
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0.0f);
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
                         matrices,
                         vcp,
-                        MapAtlasesAccessUtils.getMapIntFromString(state.getFirst()),
+                        state.getFirst(),
                         data,
                         false,//(1+ix+iy)*50
                         LightTexture.FULL_BRIGHT //

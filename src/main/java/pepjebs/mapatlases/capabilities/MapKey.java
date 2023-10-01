@@ -1,44 +1,42 @@
 
 package pepjebs.mapatlases.capabilities;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.utils.Slice;
+import twilightforest.item.MagicMapItem;
 
 import java.util.Objects;
 
-public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, @Nullable Integer slice) {
-    public boolean isSameDimSameSlice(ResourceKey<Level> dimension, Integer slice) {
+public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, Slice slice) {
+    public boolean isSameDimSameSlice(ResourceKey<Level> dimension, Slice slice) {
         return this.dimension.equals(dimension) && Objects.equals(slice, this.slice);
     }
 
-    public static MapKey of(MapItemSavedData data){
-      return new MapKey(data.dimension, data.x, data.z, getSlice(data));
+    public static MapKey of(Pair<String, MapItemSavedData> d) {
+        var data = d.getSecond();
+        return new MapKey(data.dimension, data.x, data.z, Slice.of(d));
     }
 
-    @Nullable
-    public static Integer getSlice(MapItemSavedData data) {
-        return MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
-    }
-
-    public static MapKey at(byte scale, double px, double pz, ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public static MapKey at(byte scale, double px, double pz, ResourceKey<Level> dimension, Slice slice) {
         //map code
         int i = 128 * (1 << scale);
-        int j = Mth.floor((px + 64.0D) / i);
-        int k = Mth.floor((pz + 64.0D) / i);
-        int mapCenterX = j * i + i / 2 - 64;
-        int mapCenterZ = k * i + i / 2 - 64;
-        return new MapKey(dimension, mapCenterX, mapCenterZ, slice);
+        var center = slice.getCenter(px, pz, i);
+        return new MapKey(dimension, center.x(), center.z(),  slice);
     }
 
-    public static MapKey at(byte scale, Player player, @Nullable Integer slice) {
+    public static MapKey at(byte scale, Player player, Slice slice) {
         double px = player.getX();
         double pz = player.getZ();
         return at(scale, px, pz, player.level.dimension(), slice);
     }
+
 }

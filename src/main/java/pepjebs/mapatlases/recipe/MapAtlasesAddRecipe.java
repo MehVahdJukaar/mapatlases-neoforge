@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.recipe;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -15,6 +16,7 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     public boolean matches(CraftingContainer inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMaps = 0;
-        List<MapItemSavedData> filledMaps = new ArrayList<>();
+        List<Pair<String, MapItemSavedData>> filledMaps = new ArrayList<>();
         // ensure 1 and one only atlas
         for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack itemstack = inv.getItem(j);
@@ -41,8 +43,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 atlas = itemstack;
             } else if (isEmptyMap(itemstack)) {
                 emptyMaps++;
-            } else if (itemstack.is(Items.FILLED_MAP)) {
-                filledMaps.add(MapItem.getSavedData(itemstack, level));
+            } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
+                filledMaps.add(MapAtlasesAccessUtils.findMapFromItemStack(level, itemstack));
             } else if (!itemstack.isEmpty()) return false;
         }
         if (!atlas.isEmpty() && (emptyMaps != 0 || !filledMaps.isEmpty())) {
@@ -61,7 +63,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
-                if (d.scale != atlasScale) return false;
+                if (d.getSecond().scale != atlasScale) return false;
                 if (maps.select(MapKey.of(d)) != null) return false;
             }
             levelRef = new WeakReference<>(level);
@@ -96,7 +98,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 atlas.setCount(1);
             } else if (isEmptyMap(itemstack)) {
                 emptyMapCount++;
-            } else if (itemstack.is(Items.FILLED_MAP)) {
+            } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 mapIds.add(MapItem.getMapId(itemstack));
             }
         }
@@ -104,7 +106,10 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        for (var i : mapIds) MapAtlasItem.getMaps(atlas, level).add(i, level);
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        for (var i : mapIds) {
+            maps.add(i, level);
+        }
 
         MapAtlasItem.increaseEmptyMaps(atlas, emptyMapCount);
         return atlas;

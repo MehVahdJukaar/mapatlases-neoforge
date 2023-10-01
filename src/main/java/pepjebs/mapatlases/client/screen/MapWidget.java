@@ -95,7 +95,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
         this.drawAtlas(poseStack, x, y, width, height, player, zoomLevel,
-                MapAtlasesClientConfig.worldMapBorder.get());
+                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice());
 
         MapAtlasesClient.setDecorationsScale(1);
 
@@ -103,6 +103,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
             this.renderPositionText(poseStack, mc.font, pMouseX, pMouseY);
         }
 
+        //TODO: fix
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
 
@@ -160,7 +161,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     }
 
     @Override
-    public Pair<String, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
+    public Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 
@@ -238,7 +239,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         if (isHovered && Screen.hasShiftDown() && Minecraft.getInstance().gameMode.getPlayerMode().isCreative()) {
             BlockPos pos = getHoveredPos(mouseX, mouseY);
             MapAtlasesNetowrking.sendToServer(new C2STeleportPacket(pos.getX(), pos.getZ(),
-                    mapScreen.getSelectedSlice(), mapScreen.getSelectedDimension()));
+                    mapScreen.getSelectedSlice().height(), mapScreen.getSelectedDimension()));
         }
 
 

@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.item;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,6 +32,8 @@ import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.utils.AtlasLectern;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,12 +42,15 @@ public class MapAtlasItem extends Item {
 
     protected static final String EMPTY_MAPS_NBT = "empty";
     protected static final String LOCKED_NBT = "locked";
-    protected static final String SLICE_NBT = "selected_slice";
+    protected static final String SELECTED_NBT = "selected";
+    public static final String HEIGHT_NBT = "height";
+    public static final String TYPE_NBT = "type";
     private static final String SHARE_TAG = "map_cap";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
     }
+
 
     @Nullable
     @Override
@@ -160,9 +164,14 @@ public class MapAtlasItem extends Item {
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
             }
-            Integer slice = getSelectedSlice(stack, level.dimension());
+            Slice selected = getSelectedSlice(stack, level.dimension());
+            Integer slice = selected.height();
             if (slice != null) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
+            }
+            var type = selected.type();
+            if (type != Slice.Type.VANILLA) {
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", selected.getName()).withStyle(ChatFormatting.GRAY));
             }
         }
     }
@@ -171,14 +180,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         CompoundTag tag = stack.getOrCreateTag();
-        //convert old atlas
-        if (tag.contains("maps")) {
-            MapCollectionCap maps = getMaps(stack, level);
-            for (var i : tag.getIntArray("maps")) {
-                maps.add(i, level);
-            }
-            tag.remove("maps");
-        }
+        convertOldAtlas(level, stack);
         if (player.isSecondaryUseActive()) {
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
@@ -195,18 +197,16 @@ public class MapAtlasItem extends Item {
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
-    public void openHandledAtlasScreen(ServerPlayer player) {
-        //TODO: sent packet
-    }
-
-    private void sendPlayerLecternAtlasData(ServerPlayer serverPlayer, ItemStack atlas) {
-        // Send player all MapItemSavedDatas
-        /*
-        var states = MapAtlasesAccessUtilsOld.getAllMapInfoFromAtlas(serverPlayer.level(), atlas);
-        for (var state : states.entrySet()) {
-            state.getValue().getHoldingPlayer(serverPlayer);
-            MapAtlasesServerEvents.relayMapItemSavedDataSyncToPlayerClient(state, serverPlayer);
-        }*/
+    private static void convertOldAtlas(Level level, ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag();
+        //convert old atlas
+        if (tag.contains("maps")) {
+            MapCollectionCap maps = getMaps(stack, level);
+            for (var i : tag.getIntArray("maps")) {
+                maps.add(i, level);
+            }
+            tag.remove("maps");
+        }
     }
 
     // I hate this
@@ -247,11 +247,11 @@ public class MapAtlasItem extends Item {
         if (blockState.is(Blocks.LECTERN)) {
             if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah) {
                 ah.mapatlases$setAtlas(player, stack);
-                //level.sendBlockUpdated(blockPos, blockState, blockState, 3);
+                //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if ( blockState.is(BlockTags.BANNERS)) {
+        if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
@@ -268,4 +268,102 @@ public class MapAtlasItem extends Item {
             return super.useOn(context);
         }
     }
+
+
+    // Utilities functions
+
+
+    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos) {
+        if (atlas.isEmpty()) return;
+        //we need to send all data for all dimensions as they are not sent automatically
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, player.level());
+        for (var info : maps.getAll()) {
+            // update all maps and sends them to player, if needed
+            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas);
+        }
+        MapAtlasesNetowrking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
+    }
+
+    public static void setSelectedSlice(ItemStack stack, Slice slice, ResourceKey<Level> dimension) {
+        Slice.Type t = slice.type();
+        Integer h = slice.height();
+        if (h == null && t == Slice.Type.VANILLA) {
+            CompoundTag tag = stack.getTagElement(SELECTED_NBT);
+            if (tag != null) {
+                tag.remove(dimension.location().toString());
+            }
+
+        } else {
+            CompoundTag tag = stack.getOrCreateTagElement(SELECTED_NBT);
+            tag.put(dimension.location().toString(), slice.save());
+        }
+    }
+
+    public static MapCollectionCap getMaps(ItemStack stack, Level level) {
+        Optional<MapCollectionCap> resolve = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve();
+        if (resolve.isEmpty()) {
+            throw new AssertionError("Map Atlas capability was empty. How is this possible? Culprit itemstack " + stack);
+        }
+        MapCollectionCap cap = resolve.get();
+        if (!cap.isInitialized()) cap.initialize(level);
+        return cap;
+    }
+
+    public static int getMaxMapCount() {
+        return MapAtlasesConfig.maxMapCount.get();
+    }
+
+    public static int getEmptyMaps(ItemStack atlas) {
+        CompoundTag tag = atlas.getTag();
+        return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT) : 0;
+    }
+
+    public static void setEmptyMaps(ItemStack stack, int count) {
+        stack.getOrCreateTag().putInt(EMPTY_MAPS_NBT, count);
+    }
+
+    public static void increaseEmptyMaps(ItemStack stack, int count) {
+        setEmptyMaps(stack, getEmptyMaps(stack) + count);
+    }
+
+    public static boolean isLocked(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
+        return tag != null && tag.getBoolean(LOCKED_NBT);
+    }
+
+    @NotNull
+    public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
+        CompoundTag tag = stack.getTagElement(SELECTED_NBT);
+        if (tag != null) {
+            String string = dimension.location().toString();
+            if (tag.contains(string)) {
+                var t = tag.getCompound(string);
+                return Slice.parse(t);
+            }
+        }
+        return Slice.DEFAULT_INSTANCE;
+    }
+
+    @Override
+    public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
+        super.onCraftedBy(stack, level, pPlayer);
+
+        validateSelectedSlcies(stack, level);
+        convertOldAtlas(level, stack);
+    }
+
+    private static void validateSelectedSlcies(ItemStack pStack, Level pLevel) {
+        // Populate default slices
+        var maps = getMaps(pStack, pLevel);
+        var dim = maps.getAvailableDimensions();
+        for (var d : dim) {
+            for (var k : maps.getAvailableSlices(d)) {
+                var av = maps.getHeightTree(d, k);
+                if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
+                    setSelectedSlice(pStack, Slice.of(k, av.first()), d);
+                }
+            }
+        }
+    }
+
 }
