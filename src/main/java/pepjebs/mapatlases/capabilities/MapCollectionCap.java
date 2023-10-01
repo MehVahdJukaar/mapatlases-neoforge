@@ -3,6 +3,7 @@ package pepjebs.mapatlases.capabilities;
 import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
+import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -17,11 +18,11 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
 import java.util.function.Predicate;
-
-import static pepjebs.mapatlases.utils.MapAtlasesAccessUtils.createMapItemStackFromId;
 
 // The porpoise of this object is to save a datastructures with all available maps so we dont have to keep deserializing nbt
 public class MapCollectionCap implements IMapCollection, INBTSerializable<CompoundTag> {
@@ -37,9 +38,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     private final Map<MapKey, Pair<String, MapItemSavedData>> maps = new HashMap<>();
     private final Map<String, MapKey> keysMap = new HashMap<>();
-    private final Map<String, Integer> idMap = new HashMap<>();
+    private final Set<Integer> ids = new HashSet<>();
     //available dimensions and slices
-    private final Map<ResourceKey<Level>, TreeSet<Integer>> dimensionSlices = new HashMap<>();
+    private final Map<ResourceKey<Level>, Map<Slice.Type, TreeSet<Integer>>> dimensionSlices = new HashMap<>();
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
     private final Set<Integer> duplicates = new HashSet<>();
@@ -78,14 +79,14 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     public CompoundTag serializeNBT() {
         if (!isInitialized()) return lazyNbt;
         CompoundTag c = new CompoundTag();
-        c.putIntArray(MAP_LIST_NBT, new HashSet<>(idMap.values()).stream().toList());
+        c.putIntArray(MAP_LIST_NBT, ids.stream().toList());
         return c;
     }
 
     @Override
     public int[] getAllIds() {
         if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT);
-        return new HashSet<>(idMap.values()).stream().mapToInt(Integer::intValue).toArray();
+        return ids.stream().mapToInt(Integer::intValue).toArray();
     }
 
     @Override
@@ -96,7 +97,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public int getCount() {
         assertInitialized();
-        return idMap.size();
+        return ids.size();
     }
 
     public boolean isEmpty() {
@@ -107,33 +108,40 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public boolean add(int intId, Level level) {
         assertInitialized();
-        String mapKey = MapItem.makeKey(intId);
-        MapItemSavedData d = level.getMapData(mapKey);
-        if (this.isEmpty() && d != null) {
-            scale = d.scale;
+
+        var found = MapAtlasesAccessUtils.findMapFromId(level, intId);
+        if (this.isEmpty() && found != null) {
+            scale = found.getSecond().scale;
         }
 
-        if (d == null) {
+        if (found == null) {
             if (level instanceof ServerLevel) {
-                ItemStack map = createMapItemStackFromId(intId);
-                d = MapItem.getSavedData(map, level);
+                // Create a default map if server doesnt have it. Should never happen
+                ItemStack map = MapAtlasesAccessUtils.createMapItemStackFromId(intId);
+                MapItemSavedData d = MapItem.getSavedData(map, level);
+                String mapString = MapItem.makeKey(MapItem.getMapId(map));
+                found = Pair.of(mapString, d);
             } else {
                 //wait till we reiceie data from server
-                idMap.put(mapKey, intId);
+                ids.add(intId);
                 if (!duplicates.contains(intId)) duplicates.add(intId);
                 return false;
             }
         }
+        MapItemSavedData d = found.getSecond();
+        String mapString = found.getFirst();
+
         if (d != null && d.scale == scale) {
-            MapKey key = MapKey.of(d);
-            //remove duplicates
+            MapKey key = MapKey.of(found);
 
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
                 if (true) return false;
+                //remove duplicates
+
                 //this should not happen anymire actually
                 var old = maps.get(key);
-                idMap.put(mapKey, intId);
+                ids.add(intId);
                 if (!duplicates.contains(intId)) duplicates.add(intId);
                 return false;
                 //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
@@ -141,11 +149,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                 //error
 
             }
-            keysMap.put(mapKey, key);
-            idMap.put(mapKey, intId);
-            maps.put(key, Pair.of(mapKey, d));
-            dimensionSlices.computeIfAbsent(key.dimension(), a -> new TreeSet<>())
-                    .add(key.slice() == null ? Integer.MAX_VALUE : key.slice());
+            keysMap.put(mapString, key);
+            ids.add(intId);
+            maps.put(key, Pair.of(mapString, d));
+            addToDimensionMap(key);
             if (maps.size() != keysMap.size()) {
                 int error = 1;
             }
@@ -158,17 +165,23 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public Pair<String, MapItemSavedData> remove(String mapKey) {
         assertInitialized();
+        int mapId = MapAtlasesAccessUtils.findMapIntFromString(mapKey);
         var k = keysMap.remove(mapKey);
-        idMap.remove(mapKey);
+        ids.remove(mapId);
         if (k != null) {
             dimensionSlices.clear();
             for (var j : keysMap.values()) {
-                dimensionSlices.computeIfAbsent(j.dimension(), a -> new TreeSet<>())
-                        .add(j.slice() == null ? Integer.MAX_VALUE : j.slice());
+                addToDimensionMap(j);
             }
             return maps.remove(k);
         }
         return null;
+    }
+
+    private void addToDimensionMap(MapKey j) {
+        dimensionSlices.computeIfAbsent(j.dimension(), d -> new EnumMap<>(Slice.Type.class))
+                .computeIfAbsent(j.slice().type(), a -> new TreeSet<>())
+                .add(j.slice().height() == null ? Integer.MAX_VALUE : j.slice().height());
     }
 
     @Override
@@ -176,6 +189,13 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         assertInitialized();
         return scale;
     }
+
+    @Override
+    public Collection<Slice.Type> getAvailableSlices(ResourceKey<Level> dimension) {
+        assertInitialized();
+        return dimensionSlices.get(dimension).keySet();
+    }
+
 
     @Override
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
@@ -190,9 +210,13 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     });
 
     @Override
-    public TreeSet<Integer> getAvailableSlices(ResourceKey<Level> dimension) {
+    public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, Slice.Type kind) {
         assertInitialized();
-        return dimensionSlices.getOrDefault(dimension, TOP);
+        var d = dimensionSlices.get(dimension);
+        if (d != null) {
+            return d.getOrDefault(kind, TOP);
+        }
+        return TOP;
     }
 
     @Override
@@ -202,14 +226,14 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, Slice type) {
         assertInitialized();
-        return maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice))
+        return maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, type))
                 .map(Map.Entry::getValue).toList();
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice,
+    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, Slice slice,
                                                               Predicate<MapItemSavedData> predicate) {
         assertInitialized();
         return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice)
@@ -226,7 +250,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     @Nullable
     @Override
-    public Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
         assertInitialized();
         Pair<String, MapItemSavedData> minDistState = null;
         for (var e : maps.entrySet()) {

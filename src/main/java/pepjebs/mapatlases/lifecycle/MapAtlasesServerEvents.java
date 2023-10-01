@@ -23,6 +23,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -83,7 +84,7 @@ public class MapAtlasesServerEvents {
             if (atlas.isEmpty()) return;
             Level level = player.level();
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-            Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
 
             // sets new center map
 
@@ -99,7 +100,7 @@ public class MapAtlasesServerEvents {
                     scaleWidth,
                     playX,
                     playZ,
-                    slice != null
+                    slice.getDiscoveryReach()
             );
 
             // Update Map states & colors
@@ -112,7 +113,7 @@ public class MapAtlasesServerEvents {
             Pair<String, MapItemSavedData> activeInfo = maps.select(activeKey);
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
-                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
+                maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }
 
@@ -122,20 +123,21 @@ public class MapAtlasesServerEvents {
                 MapItemSavedData selected;
                 if (MapAtlasesConfig.roundRobinUpdate.get()) {
                     selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size()).getSecond();
-                    ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
+                    slice.updateMap(player, selected);
 
                 } else {
-                    for(int j = 0; j<MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
+                    for (int j = 0; j < MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
                         selected = getMapToUpdate(nearbyExistentMaps, player);
-                        ((MapItem) Items.FILLED_MAP).update(player.level(), player, selected);
+                        slice.updateMap(player, selected);
                     }
                 }
             }
             // update center one too but not each tick
-            if (activeInfo != null && server.getTickCount() % 5 == 0) {
-                nearbyExistentMaps.add(activeInfo);
-                ((MapItem) Items.FILLED_MAP).update(player.level(), player, activeInfo.getSecond());
+            if (activeInfo != null && isTimeToUpdate(activeInfo.getSecond(), player, slice, 5, 20)) {
+                slice.updateMap(player, activeInfo.getSecond());
             }
+            if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
+
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             //this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
@@ -149,17 +151,39 @@ public class MapAtlasesServerEvents {
 
             //TODO : this isnt accurate and can be improved
             if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
-                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
+                maybeCreateNewMapEntry(player, atlas, maps ,slice, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
                     d -> d.getSecond().centerX == e.x && d.getSecond().centerZ == e.y));
             for (var edge : discoveringEdges) {
-                maybeCreateNewMapEntry(player, atlas, edge.x, edge.y);
+                maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
             }
 
         }
+    }
+
+    //checks if pixel of this map has been filled at this position with random offset
+    private static boolean isTimeToUpdate(MapItemSavedData data, Player player,
+                                          Slice slice, int min, int max) {
+        int i = 1 << data.scale;
+        int range;
+        if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
+            range =  (SupplementariesCompat.getSliceReach() / i);
+        } else {
+            range = 128 / i;
+        }
+        Level level = player.level();
+        int rx = level.random.nextIntBetweenInclusive(-range, range);
+        int rz = level.random.nextIntBetweenInclusive(-range, range);
+        int x = (int) Mth.clamp((player.getX() + rx - data.centerX) / i + 64, 0, 127);
+        int z = (int) Mth.clamp((player.getZ() + rz - data.centerZ) / i + 64, 0, 127);
+        boolean filled = data.colors[x + z * 128] != 0;
+
+        int interval = filled ? max : min;
+
+        return level.getGameTime() % interval == 0;
     }
 
     private static MapItemSavedData getMapToUpdate(List<Pair<String, MapItemSavedData>> nearbyExistentMaps, ServerPlayer player) {
@@ -224,6 +248,8 @@ public class MapAtlasesServerEvents {
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
+            MapCollectionCap maps,
+            Slice slice,
             int destX,
             int destZ
     ) {
@@ -232,8 +258,6 @@ public class MapAtlasesServerEvents {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }
-        Integer slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
 
         int emptyCount = MapAtlasItem.getEmptyMaps(atlas);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
@@ -246,32 +270,19 @@ public class MapAtlasesServerEvents {
                 //remove 1 map
                 MapAtlasItem.increaseEmptyMaps(atlas, -1);
             }
-            ItemStack newMap;
-            //validate slice
-            if (slice != null && !maps.getAvailableSlices(player.level().dimension()).contains(slice)) {
+            //validate height
+            Integer height = slice.height();
+            if (height != null && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height)) {
                 int error = 1;
             }
 
             byte scale = maps.getScale();
-            if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
-                newMap = SupplementariesCompat.createSliced(
-                        player.level(),
-                        destX,
-                        destZ,
-                        scale,
-                        true,
-                        false, slice);
-            } else {
-                newMap = MapItem.create(
-                        player.level(),
-                        destX,
-                        destZ,
-                        scale,
-                        true,
-                        false);
-            }
 
+            //TODO: create custom ones
+
+            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level());
             Integer mapId = MapItem.getMapId(newMap);
+
             if (mapId != null) {
                 MapItemSavedData newData = MapItem.getSavedData(mapId, level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
@@ -279,8 +290,6 @@ public class MapAtlasesServerEvents {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, mapId, player, newMap);
                 }
                 addedMap = maps.add(mapId, level);
-            } else {
-                MapAtlasesMod.LOGGER.error("Failed to add map with id {}", mapId);
             }
             mutex.unlock();
         }
@@ -299,10 +308,8 @@ public class MapAtlasesServerEvents {
             int width,
             int xPlayer,
             int zPlayer,
-            boolean isSlice) {
+           int reach) {
 
-
-        int reach = isSlice && MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSliceReach() : 128;
 
         int halfWidth = width / 2;
         Set<Vector2i> results = new HashSet<>();

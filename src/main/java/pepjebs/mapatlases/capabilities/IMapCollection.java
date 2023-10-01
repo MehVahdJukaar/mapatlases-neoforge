@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,15 +30,17 @@ public interface IMapCollection {
 
     Collection<ResourceKey<Level>> getAvailableDimensions();
 
-    Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension);
+    Collection<Slice.Type> getAvailableSlices(ResourceKey<Level> dimension);
 
-    List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice);
+    Collection<Integer> getHeightTree(ResourceKey<Level> dimension, Slice.Type type);
 
-    List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice,
+    List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, Slice slice);
+
+    List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, Slice slice,
                                                        Predicate<MapItemSavedData> predicate);
 
     @Nullable
-    default Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+    default Pair<String, MapItemSavedData> select(int x, int z, ResourceKey<Level> dimension, Slice slice) {
         return select(new MapKey(dimension, x, z, slice));
     }
 
@@ -45,11 +48,11 @@ public interface IMapCollection {
 
 
     @Nullable
-    Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice);
+    Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice);
 
     @Nullable
-    default Pair<String, MapItemSavedData> getClosest(Player player, @Nullable Integer slice) {
-        return getClosest(player.getX(), player.getZ(), player.level().dimension(), slice);
+    default Pair<String, MapItemSavedData> getClosest(Player player, Slice group) {
+        return getClosest(player.getX(), player.getZ(), player.level().dimension(), group);
     }
 
     Collection<Pair<String, MapItemSavedData>> getAll();

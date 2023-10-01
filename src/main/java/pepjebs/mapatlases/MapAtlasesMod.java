@@ -23,6 +23,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.stb.STBImageResize;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -64,6 +65,7 @@ public class MapAtlasesMod {
     public static final boolean TRINKETS = ModList.get().isLoaded("trinkets");
     public static final boolean SUPPLEMENTARIES = ModList.get().isLoaded("supplementaries");
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
+    public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
 
     static {
         //lectern marker
@@ -135,4 +137,7 @@ public class MapAtlasesMod {
         hack = value;
     }
     private static boolean hack = false;
+
+
+
 }

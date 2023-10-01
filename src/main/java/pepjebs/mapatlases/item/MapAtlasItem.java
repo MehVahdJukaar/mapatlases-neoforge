@@ -1,11 +1,5 @@
 package pepjebs.mapatlases.item;
 
-import net.mehvahdjukaar.moonlight.api.map.CustomMapData;
-import net.mehvahdjukaar.moonlight.api.map.MapHelper;
-import net.mehvahdjukaar.moonlight.core.mixins.HoldingPlayerMixin;
-import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
-import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
-import net.mehvahdjukaar.supplementaries.common.misc.ColoredMapHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -38,6 +32,7 @@ import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.utils.AtlasLectern;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,12 +41,15 @@ public class MapAtlasItem extends Item {
 
     protected static final String EMPTY_MAPS_NBT = "empty";
     protected static final String LOCKED_NBT = "locked";
-    protected static final String SLICE_NBT = "selected_slice";
+    protected static final String SELECTED_NBT = "selected";
+    public static final String HEIGHT_NBT = "height";
+    public static final String TYPE_NBT = "type";
     private static final String SHARE_TAG = "map_cap";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
     }
+
 
     @Nullable
     @Override
@@ -108,9 +106,14 @@ public class MapAtlasItem extends Item {
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
             }
-            Integer slice = getSelectedSlice(stack, level.dimension());
+            Slice selected = getSelectedSlice(stack, level.dimension());
+            Integer slice = selected.height();
             if (slice != null) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
+            }
+            var type = selected.type();
+            if (type != Slice.Type.VANILLA) {
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", selected.getName()).withStyle(ChatFormatting.GRAY));
             }
         }
     }
@@ -119,14 +122,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         CompoundTag tag = stack.getOrCreateTag();
-        //convert old atlas
-        if (tag.contains("maps")) {
-            MapCollectionCap maps = getMaps(stack, level);
-            for (var i : tag.getIntArray("maps")) {
-                maps.add(i, level);
-            }
-            tag.remove("maps");
-        }
+        convertOldAtlas(level, stack);
         if (player.isSecondaryUseActive()) {
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
@@ -140,6 +136,18 @@ public class MapAtlasItem extends Item {
         } else {
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    private static void convertOldAtlas(Level level, ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag();
+        //convert old atlas
+        if (tag.contains("maps")) {
+            MapCollectionCap maps = getMaps(stack, level);
+            for (var i : tag.getIntArray("maps")) {
+                maps.add(i, level);
+            }
+            tag.remove("maps");
+        }
     }
 
     // I hate this
@@ -180,11 +188,11 @@ public class MapAtlasItem extends Item {
         if (blockState.is(Blocks.LECTERN)) {
             if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah) {
                 ah.mapatlases$setAtlas(player, stack);
-                //level.sendBlockUpdated(blockPos, blockState, blockState, 3);
+                //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if ( blockState.is(BlockTags.BANNERS)) {
+        if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
@@ -217,15 +225,18 @@ public class MapAtlasItem extends Item {
         MapAtlasesNetowrking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
     }
 
-    public static void setSelectedSlice(ItemStack stack, @Nullable Integer slice, ResourceKey<Level> dimension) {
-        if (slice != null) {
-            CompoundTag tag = stack.getOrCreateTagElement(SLICE_NBT);
-            tag.putInt(dimension.location().toString(), slice);
-        } else {
-            CompoundTag tag = stack.getTagElement(SLICE_NBT);
+    public static void setSelectedSlice(ItemStack stack, Slice slice, ResourceKey<Level> dimension) {
+        Slice.Type t = slice.type();
+        Integer h = slice.height();
+        if (h == null && t == Slice.Type.VANILLA) {
+            CompoundTag tag = stack.getTagElement(SELECTED_NBT);
             if (tag != null) {
                 tag.remove(dimension.location().toString());
             }
+
+        } else {
+            CompoundTag tag = stack.getOrCreateTagElement(SELECTED_NBT);
+            tag.put(dimension.location().toString(), slice.save());
         }
     }
 
@@ -261,15 +272,39 @@ public class MapAtlasItem extends Item {
         return tag != null && tag.getBoolean(LOCKED_NBT);
     }
 
-    @Nullable
-    public static Integer getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
-        CompoundTag tag = stack.getTagElement(SLICE_NBT);
+    @NotNull
+    public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
+        CompoundTag tag = stack.getTagElement(SELECTED_NBT);
         if (tag != null) {
             String string = dimension.location().toString();
-            if (tag.contains(string)) return tag.getInt(string);
+            if (tag.contains(string)) {
+                var t = tag.getCompound(string);
+                return Slice.parse(t);
+            }
         }
-        return null;
+        return Slice.DEFAULT_INSTANCE;
     }
 
+    @Override
+    public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
+        super.onCraftedBy(stack, level, pPlayer);
+
+        validateSelectedSlcies(stack, level);
+        convertOldAtlas(level, stack);
+    }
+
+    private static void validateSelectedSlcies(ItemStack pStack, Level pLevel) {
+        // Populate default slices
+        var maps = getMaps(pStack, pLevel);
+        var dim = maps.getAvailableDimensions();
+        for (var d : dim) {
+            for (var k : maps.getAvailableSlices(d)) {
+                var av = maps.getHeightTree(d, k);
+                if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
+                    setSelectedSlice(pStack, Slice.of(k, av.first()), d);
+                }
+            }
+        }
+    }
 
 }

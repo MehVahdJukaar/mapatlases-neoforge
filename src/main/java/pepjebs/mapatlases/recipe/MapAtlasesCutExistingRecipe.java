@@ -4,7 +4,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
@@ -14,15 +13,14 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
@@ -69,7 +67,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
             String stringId = getMapToRemove(inv, maps, slice);
-            int mapId = MapAtlasesAccessUtils.getMapIntFromString(stringId);
+            int mapId = MapAtlasesAccessUtils.findMapIntFromString(stringId);
             return MapAtlasesAccessUtils.createMapItemStackFromId(mapId);
         }
         if (MapAtlasItem.getEmptyMaps(atlas) > 0) {
@@ -79,7 +77,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static String getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Integer slice) {
+    private static String getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Slice slice) {
         String stringId = "";// maps.getActive().getFirst();
         if (inv instanceof TransientCraftingContainer tc) {
             try {

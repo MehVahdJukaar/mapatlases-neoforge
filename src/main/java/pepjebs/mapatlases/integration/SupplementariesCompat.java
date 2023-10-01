@@ -11,12 +11,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.BookmarkButton;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.Locale;
 
@@ -34,5 +36,9 @@ public class SupplementariesCompat {
 
     public static int getSliceReach() {
         return (int) (SliceMapItem.getRangeMultiplier() * 128);
+    }
+
+    public static boolean canPlayerSeeDeathMarker(Player p){
+        return !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
     }
 }

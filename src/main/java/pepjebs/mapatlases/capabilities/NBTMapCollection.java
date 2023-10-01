@@ -6,12 +6,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-// for fabric. or use cardinal components. Less optimized as it deserializes the stuff every time but at least doesnt have syncing issues
+// For fabric.
+// Or use cardinal components.
+// Less optimized as it deserializes the stuff every time but at least doesn't have syncing issues
 public class NBTMapCollection implements IMapCollection {
     private final ItemStack atlas;
 
@@ -55,19 +58,25 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension) {
+    public Collection<Slice.Type> getAvailableSlices(ResourceKey<Level> dimension) {
         return null;
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public Collection<Integer> getHeightTree(ResourceKey<Level> dimension, Slice.Type type) {
+            return null;
+    }
+
+    @Override
+    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, Slice slice) {
         return null;
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice, Predicate<MapItemSavedData> predicate) {
+    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, Slice slice, Predicate<MapItemSavedData> predicate) {
         return null;
     }
+
 
     @Override
     public Pair<String, MapItemSavedData> select(MapKey key) {
@@ -75,9 +84,10 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public @Nullable Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+    public @Nullable Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
         return null;
     }
+
 
     @Override
     public Collection<Pair<String, MapItemSavedData>> getAll() {

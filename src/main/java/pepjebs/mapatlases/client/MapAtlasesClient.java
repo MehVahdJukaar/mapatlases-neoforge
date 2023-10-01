@@ -1,16 +1,21 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
+import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -38,8 +43,10 @@ import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class MapAtlasesClient {
 
@@ -94,13 +101,13 @@ public class MapAtlasesClient {
         if (!atlas.isEmpty()) {
             var maps = MapAtlasItem.getMaps(atlas, player.level());
             maps.fixDuplicates(player.level());
-            Integer slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             if (maps.select(currentActiveMapKey) == null) {
-                var closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level().dimension()));
+                var closest = maps.getClosest(player, slice);
                 if (closest != null) {
-                    currentActiveMapKey = MapKey.of(closest.getSecond());
+                    currentActiveMapKey = MapKey.of(closest);
                 }
             }
         } else currentActiveMapKey = null;

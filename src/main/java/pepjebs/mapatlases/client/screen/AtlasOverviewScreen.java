@@ -31,6 +31,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.TakeAtlasPacket;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
 
@@ -76,7 +77,7 @@ public class AtlasOverviewScreen extends Screen {
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
     private final float globalScale;
     private ResourceKey<Level> currentWorldSelected;
-    private Integer selectedSlice;
+    private Slice selectedSlice;
     private boolean initialized = false;
 
     boolean placingPin = false;
@@ -114,7 +115,7 @@ public class AtlasOverviewScreen extends Screen {
 
         this.lectern = lectern;
 
-        this.globalScale = lectern == null  ?
+        this.globalScale = lectern == null ?
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
 
@@ -124,7 +125,7 @@ public class AtlasOverviewScreen extends Screen {
         return atlas;
     }
 
-    public Integer getSelectedSlice() {
+    public Slice getSelectedSlice() {
         return selectedSlice;
     }
 
@@ -142,7 +143,7 @@ public class AtlasOverviewScreen extends Screen {
         super.init();
 
         this.sliceButton = new SliceBookmarkButton((width + BOOK_WIDTH) / 2 - 13,
-                (height - BOOK_HEIGHT) / 2 + ( BOOK_HEIGHT - 36 ) ,
+                (height - BOOK_HEIGHT) / 2 + (BOOK_HEIGHT - 36),
                 selectedSlice, this);
         this.addRenderableWidget(sliceButton);
         sliceUp = new SliceArrowButton(false, sliceButton, this);
@@ -170,8 +171,10 @@ public class AtlasOverviewScreen extends Screen {
             i++;
         }
 
-        this.mapWidget = this.addRenderableWidget(new MapWidget((width - MAP_WIDGET_WIDTH) / 2,
-                (height - MAP_WIDGET_HEIGHT) / 2 + 5, MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
+        this.mapWidget = this.addRenderableWidget(new MapWidget(
+                (width - MAP_WIDGET_WIDTH) / 2,
+                (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 1 : 5),
+                MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
                 this, initialMapSelected));
 
         this.setFocused(mapWidget);
@@ -433,8 +436,10 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected Pair<String, MapItemSavedData> findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-        return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, currentWorldSelected, selectedSlice);
+    protected Pair<Integer, MapItemSavedData> findMapEntryForCenter(int reqXCenter, int reqZCenter) {
+        var m = MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, currentWorldSelected, selectedSlice);
+        if (m == null) return null;
+        return Pair.of(selectedSlice.getMapId(m.getFirst()), m.getSecond());
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -461,7 +466,10 @@ public class AtlasOverviewScreen extends Screen {
         updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
-
+        if (center == null) {
+            int error = 0;
+            return;
+        }
         this.mapWidget.resetAndCenter(center.centerX, center.centerZ, initialWorldSelected.equals(dimension));
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
@@ -511,6 +519,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private void addDecorationWidgets() {
+        if (!this.selectedSlice.hasMarkers()) return;
         List<Pair<Object, Pair<String, MapItemSavedData>>> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
@@ -553,20 +562,29 @@ public class AtlasOverviewScreen extends Screen {
 
     public boolean decreaseSlice() {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        int current = selectedSlice == null ? Integer.MAX_VALUE : selectedSlice;
-        Integer newSlice = maps.getAvailableSlices(currentWorldSelected).floor(current - 1);
-        return updateSlice(newSlice);
+        int current = selectedSlice.heightOrTop();
+        Slice.Type type = selectedSlice.type();
+        Integer newHeight = maps.getHeightTree(currentWorldSelected, type).floor(current - 1);
+        return updateSlice(Slice.of(type, newHeight));
     }
 
     public boolean increaseSlice() {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        int current = selectedSlice == null ? Integer.MAX_VALUE : selectedSlice;
-        Integer newSlice = maps.getAvailableSlices(currentWorldSelected).ceiling(current + 1);
-        return updateSlice(newSlice);
+        int current = selectedSlice.heightOrTop();
+        Slice.Type type = selectedSlice.type();
+        Integer newHeight = maps.getHeightTree(currentWorldSelected, type).ceiling(current + 1);
+        return updateSlice(Slice.of(type, newHeight));
     }
 
-    private boolean updateSlice(Integer newSlice) {
-        if (Objects.equals(newSlice, Integer.MAX_VALUE)) newSlice = null;
+    public void cycleSliceType() {
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        var slices = new ArrayList<>(maps.getAvailableSlices(currentWorldSelected));
+        int index = slices.indexOf(selectedSlice.type());
+        index = (index + 1) % slices.size();
+        updateSlice(Slice.of(slices.get(index), selectedSlice.height()));
+    }
+
+    private boolean updateSlice(Slice newSlice) {
         boolean changed = false;
         if (!Objects.equals(selectedSlice, newSlice)) {
             selectedSlice = newSlice;
@@ -581,10 +599,14 @@ public class AtlasOverviewScreen extends Screen {
         }
         //update button regardless
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        boolean active = maps.getAvailableSlices(currentWorldSelected).size() > 1;
-        sliceButton.setActive(active);
-        sliceDown.setActive(active);
-        sliceUp.setActive(active);
+        boolean manySlices = maps.getHeightTree(currentWorldSelected, selectedSlice.type()).size() > 1;
+        boolean manyTypes = maps.getAvailableSlices(currentWorldSelected).size() != 1;
+        sliceButton.setActive(manyTypes || manySlices);
+        sliceButton.setHasMultipleSlices(manySlices);
+        sliceDown.setActive(manySlices);
+        sliceUp.setActive(manySlices);
         return changed;
     }
+
+
 }
