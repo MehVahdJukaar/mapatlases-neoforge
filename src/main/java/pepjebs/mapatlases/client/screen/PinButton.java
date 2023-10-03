@@ -18,7 +18,7 @@ public class PinButton extends BookmarkButton{
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        parentScreen.placingPin = !parentScreen.placingPin;
+        parentScreen.togglePlacingPin();
     }
 
     @Override

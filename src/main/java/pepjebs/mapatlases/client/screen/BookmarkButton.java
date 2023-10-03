@@ -24,9 +24,7 @@ public abstract class BookmarkButton extends AbstractWidget {
         this.xOff = xOff;
         this.yOff = yOff;
         this.parentScreen = screen;
-
     }
-
 
     public void setSelected(boolean selected) {
         this.selected = selected;
@@ -45,7 +43,7 @@ public abstract class BookmarkButton extends AbstractWidget {
                 this.x, this.y, xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
-
+        if (parentScreen.isEditingText()) isHovered = false; //cancel tooltip
     }
 
     @Override

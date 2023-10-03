@@ -2,6 +2,7 @@ package pepjebs.mapatlases.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import pepjebs.mapatlases.client.Anchoring;
+import pepjebs.mapatlases.client.InHandMode;
 
 import java.util.function.Supplier;
 
@@ -14,6 +15,8 @@ public class MapAtlasesClientConfig {
 
         builder.push("minimap");
 
+        hideWhenInHand = builder.comment("Hide minimap when holding the atlas in hand")
+                .define("hide_when_in_hand", true);
         yOnlyWithSlice = builder.comment("Only display y coordinates if atlas holds some slice maps")
                 .define("only_show_y_when_has_slices", true);
 
@@ -116,6 +119,12 @@ public class MapAtlasesClientConfig {
                 .comment("Multiplier for all the Atlases sound float")
                 .defineInRange("soundScalar", 1, 0, 10d);
 
+        mapTextureShrink = builder
+                .comment("Proportional to how much map up will be stretched. Useful if you notice gaps appearing in the worldmap screen")
+                .defineInRange("shrink_ratio", 0.1f, 0, 10);
+
+        inHandMode = builder.comment("Render atlas like normal map when in hand")
+                .define("in_hand_renderer", InHandMode.NOT_LOCKED);
         spec = builder.build();
     }
 
@@ -145,6 +154,8 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> yOnlyWithSlice;
     public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Boolean> worldMapBigTexture;
+    public static final Supplier<Boolean> hideWhenInHand;
+    public static final Supplier<InHandMode> inHandMode;
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;

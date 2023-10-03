@@ -6,6 +6,8 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector3f;
 import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -14,7 +16,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 
 import java.util.List;
 import java.util.Locale;
@@ -98,7 +100,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     @Override
     public void renderButton(PoseStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         super.renderButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        if (this.shfting) {
+        if (this.shfting && !parentScreen.isPlacingPin()) {
             RenderSystem.setShaderTexture(0, AtlasOverviewScreen.ATLAS_TEXTURE);
             this.blit(pGuiGraphics, x, y,
                     24, 167, 5, 5);
@@ -172,7 +174,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
                var deco = d.getValue();
                if(deco == decoration){
                    //we cant use string id because server has them diferent...
-                   MapAtlasesNetowrking.sendToServer(new C2SRemoveMarkerPacket(data.getFirst(), deco.hashCode()));
+                   MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(data.getFirst(), deco.hashCode()));
                    decorations.remove(d.getKey());
                    return;
                }

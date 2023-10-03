@@ -19,6 +19,8 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 
 import java.util.AbstractMap;
 import java.util.Map;
@@ -173,7 +175,7 @@ public class MapAtlasesAccessUtils {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-                MapAtlasesNetowrking.sendToClientPlayer(player, new S2CMapPacketWrapper(data, pp));
+                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(data, pp));
             }
         }
     }

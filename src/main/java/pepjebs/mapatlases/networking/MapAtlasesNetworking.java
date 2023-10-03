@@ -9,7 +9,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 
 import java.util.Optional;
 
-public class MapAtlasesNetowrking {
+public class MapAtlasesNetworking {
 
     private static final String VERSION = "2";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(

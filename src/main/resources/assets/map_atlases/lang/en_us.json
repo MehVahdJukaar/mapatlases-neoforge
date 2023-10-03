@@ -27,6 +27,7 @@
   "tooltip.map_atlases.delete_marker": "Delete Marker",
   "trinkets.slot.hand.atlas": "Atlas",
   "message.map_atlases.pin": "Place a marker",
+  "message.map_atlases.marker_name": "Marker Name",
   "message.map_atlases.map_scale": "1:%d",
   "message.map_atlases.map_index": "#: %s"
 }

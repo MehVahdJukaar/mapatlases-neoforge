@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -49,6 +50,7 @@ public class MapAtlasesClient {
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
+    private static Integer lastActiveId = 0;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
 
     public static final Material OVERWORLD_TEXTURE =
@@ -97,7 +99,8 @@ public class MapAtlasesClient {
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
-            if (maps.select(currentActiveMapKey) == null) {
+            Pair<String, MapItemSavedData> select = maps.select(currentActiveMapKey);
+            if (select == null) {
                 var closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level.dimension()));
                 if (closest != null) {
                     currentActiveMapKey = MapKey.of(closest.getSecond());

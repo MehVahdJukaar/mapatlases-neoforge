@@ -1,25 +1,15 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.platform.TextureUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.MapRenderer;
-import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SOpenAtlasPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-
-import java.io.IOException;
 
 public class MapAtlasesClientEvents {
 
@@ -36,7 +26,7 @@ public class MapAtlasesClientEvents {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
-                MapAtlasesNetowrking.sendToServer(new C2SOpenAtlasPacket());
+                MapAtlasesNetworking.sendToServer(new C2SOpenAtlasPacket());
                 MapAtlasesClient.openScreen(atlas);
             }
         }
