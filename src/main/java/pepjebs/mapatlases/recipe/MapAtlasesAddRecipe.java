@@ -17,6 +17,7 @@ import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     public boolean matches(CraftingContainer inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMaps = 0;
-        List<Pair<String, MapItemSavedData>> filledMaps = new ArrayList<>();
+        List<MapDataHolder> filledMaps = new ArrayList<>();
         // ensure 1 and one only atlas
         for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack itemstack = inv.getItem(j);
@@ -63,8 +64,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
-                if (d.getSecond().scale != atlasScale) return false;
-                if (maps.select(MapKey.of(d)) != null) return false;
+                if (d.data().scale != atlasScale) return false;
+                if (maps.select(d.key()) != null) return false;
             }
             levelRef = new WeakReference<>(level);
             return true;

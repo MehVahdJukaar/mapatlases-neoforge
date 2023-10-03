@@ -2,28 +2,25 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import net.mehvahdjukaar.moonlight.core.MoonlightClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.blockentity.BellRenderer;
 import net.minecraft.client.resources.model.Material;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.AbstractMap;
@@ -61,18 +58,18 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize(MapItemSavedData originalCenterMap, Slice slice) {
-        this.originalCenterMap = originalCenterMap;
+    protected void initialize(MapDataHolder originalCenter) {
+        this.originalCenterMap = originalCenter.data();
         this.mapPixelSize = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
         this.currentXCenter = originalCenterMap.x;
         this.currentZCenter = originalCenterMap.z;
 
-        this.zoomLevel = atlasesCount * slice.getDefaultZoomFactor();
+        this.zoomLevel = atlasesCount * originalCenter.getDefaultZoomFactor();
     }
 
     public void drawAtlas(PoseStack poseStack, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim, boolean showBorders, Slice slice) {
+                          Player player, float zoomLevelDim, boolean showBorders, MapType type) {
 
         poseStack.pushPose();
 
@@ -83,7 +80,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         int intZCenter = (int) (currentZCenter);
         int scaleIndex = mapPixelSize / MAP_DIMENSION;
 
-        ColumnPos c = slice.getCenter(intXCenter, intZCenter, mapPixelSize);
+        ColumnPos c = type.getCenter(intXCenter, intZCenter, mapPixelSize);
         int centerMapX = c.x();
         int centerMapZ = c.z();
 
@@ -178,9 +175,9 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
                                List<Matrix4f> outlineHack, int i, int j) {
         int reqXCenter = centerMapX + (j * mapPixelSize);
         int reqZCenter = centerMapZ + (i * mapPixelSize);
-        Pair<Integer, MapItemSavedData> state = getMapWithCenter(reqXCenter, reqZCenter);
+        MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
-            MapItemSavedData data = state.getSecond();
+            MapItemSavedData data = state.data();
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level.dimension());
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
             this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
@@ -188,7 +185,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
     }
 
     @Nullable
-    public abstract Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ);
+    public abstract MapDataHolder getMapWithCenter(int centerX, int centerZ);
 
     public void setFollowingPlayer(boolean followingPlayer) {
         this.followingPlayer = followingPlayer;
@@ -200,7 +197,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
             MultiBufferSource.BufferSource vcp,
             List<Matrix4f> outlineHack,
             int ix, int iy,
-            Pair<Integer, MapItemSavedData> state,
+            MapDataHolder state,
             boolean drawPlayerIcons
     ) {
         // Draw the map
@@ -210,7 +207,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
 
         // Remove the off-map player icons temporarily during render
-        MapItemSavedData data = state.getSecond();
+        MapItemSavedData data = state.data();
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
@@ -239,7 +236,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
                 .render(
                         poseStack,
                         vcp,
-                        state.getFirst(),
+                        state.intId(),
                         data,
                         false,//(1+ix+iy)*50
                         LightTexture.FULL_BRIGHT //

@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.utils;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -22,43 +20,20 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class MapAtlasesAccessUtils {
 
 
     public static boolean isValidFilledMap(ItemStack item) {
-        return Slice.Type.fromItem(item.getItem()) != null;
+        return MapType.fromItem(item.getItem()) != null;
     }
 
     public static boolean isValidEmptyMap(ItemStack item) {
-        return Slice.Type.isEmptyMap(item.getItem());
+        return MapType.isEmptyMap(item.getItem());
     }
 
-    public static Pair<String, MapItemSavedData> findMapFromId(Level level, int id) {
-        //try all known types
-        for (var t : Slice.Type.values()) {
-            var d = t.getMapData(level, id);
-            if (d != null) return d;
-        }
-        return null;
-    }
 
-    public static Pair<String, MapItemSavedData> findMapFromItemStack(Level level, ItemStack item) {
-        return findMapFromId(level, MapItem.getMapId(item));
-    }
-
-    public static int findMapIntFromString(String id) {
-        return Integer.parseInt(id.split("_")[1]);
-        /*
-        for (var t : Slice.Type.values()) {
-            var i = t.findKey(id);
-            if (i != null) return i;
-        }
-        throw new IllegalStateException("Unable to find map id for key " + id);
-         */
+    public static MapDataHolder findMapFromItemStack(Level level, ItemStack item) {
+        return MapDataHolder.findFromId(level, MapItem.getMapId(item));
     }
 
     public static ItemStack createMapItemStackFromId(int id) {
@@ -113,7 +88,6 @@ public class MapAtlasesAccessUtils {
         return itemStack;
     }
 
-
     public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
         int amountToAdd = bottomItem.getCount();
         int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas);
@@ -125,57 +99,34 @@ public class MapAtlasesAccessUtils {
         return amountToAdd;
     }
 
-
-    // KEEP NAME
-    @Deprecated(forRemoval = true)
-    public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level level, ItemStack atlas) {
-        return MapAtlasItem.getMaps(atlas, level).getAll().stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
-    }
-
-    // KEEP NAME
-    @Deprecated(forRemoval = true)
-    public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(
-            Map<String, MapItemSavedData> currentDimMapInfos,
-            ServerPlayer player) {
-        ItemStack atlas = getAtlasFromPlayerByConfig(player);
-        var a = getActiveStateServer(atlas, player);
-        return new AbstractMap.SimpleEntry<>(a.getFirst(), a.getSecond());
-    }
-
-    public static Pair<String, MapItemSavedData> getActiveStateServer(ItemStack stack, Player player) {
+    public static MapDataHolder getActiveStateServer(ItemStack stack, Player player) {
         var slice = MapAtlasItem.getSelectedSlice(stack, player.level.dimension());
         MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level);
         return maps.select(MapKey.at(maps.getScale(), player, slice));
     }
 
-
-    public static void updateMapDataAndSync(Pair<String, MapItemSavedData> mapInfo, ServerPlayer player, ItemStack atlas) {
-        updateMapDataAndSync(mapInfo.getSecond(), findMapIntFromString(mapInfo.getFirst()), player, atlas);
-    }
-
     public static void updateMapDataAndSync(
-            MapItemSavedData data,
-            int mapId,
+            MapDataHolder holder,
             ServerPlayer player,
             ItemStack atlas
     ) {
         MapAtlasesMod.setMapInInentoryHack(true);
-        data.tickCarriedBy(player, atlas);
-        MapAtlasesAccessUtils.syncMapDataToClient(data, mapId, player);
+        holder.data().tickCarriedBy(player, atlas);
+        MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
         MapAtlasesMod.setMapInInentoryHack(false);
     }
 
-    public static void syncMapDataToClient(MapItemSavedData data, int id, ServerPlayer player) {
+    public static void syncMapDataToClient(MapDataHolder data, ServerPlayer player) {
         //ok so hear me out. we use this to send new map data to the client when needed. thing is this packet isnt enough on its own
         // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
         //TODO: maybe use isComplex  update packet and inventory tick
-        Packet<?> p = data.getUpdatePacket(id, player);
+        Packet<?> p = data.data().getUpdatePacket(data.intId(), player);
         if (p != null) {
             if (MapAtlasesMod.MOONLIGHT) {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(data, pp));
+                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(data.data(), pp));
             }
         }
     }

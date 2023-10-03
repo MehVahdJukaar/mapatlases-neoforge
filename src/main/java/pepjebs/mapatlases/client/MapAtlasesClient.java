@@ -2,7 +2,6 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -18,7 +17,6 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -30,6 +28,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
@@ -99,10 +99,11 @@ public class MapAtlasesClient {
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
-            Pair<String, MapItemSavedData> select = maps.select(currentActiveMapKey);
+            MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
-                var closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level.dimension()));
+                MapDataHolder closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level.dimension()));
                 if (closest != null) {
+                    currentActiveMapKey = closest.key();
                     currentActiveMapKey = MapKey.of(closest.getSecond());
                 }
             }

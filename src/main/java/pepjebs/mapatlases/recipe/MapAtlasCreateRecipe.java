@@ -17,6 +17,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.RecipeMatcher;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -96,14 +97,14 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
         }
-        var mapState = MapAtlasesAccessUtils.findMapFromId(level, mapId);
+        MapDataHolder mapState = MapDataHolder.findFromId(level, mapId);
         if (mapState == null) return ItemStack.EMPTY;
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         atlas.getOrCreateTag();
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, Slice.of(mapState), level.dimension());
+        MapAtlasItem.setSelectedSlice(atlas, mapState.slice(), level.dimension());
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
         }

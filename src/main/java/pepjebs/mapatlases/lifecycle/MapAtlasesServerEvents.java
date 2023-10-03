@@ -9,7 +9,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -20,6 +19,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -49,7 +49,9 @@ public class MapAtlasesServerEvents {
         private static final Comparator<MapUpdateTicket> COMPARATOR = Comparator.comparingDouble(MapUpdateTicket::getPriority);
 
         private final MapItemSavedData data;
-        private int waitTime = 20; //set to 0 when this is updated. if not incremented each tick. we start with lowest for newly added entries
+        private int waitTime = 20; //set to zero when this is updated.
+        // if not incremented, each tick.
+        // we start with lowest for newly added entries
         private double lastDistance = 1000000;
         private double currentPriority; //bigger the better
     }
@@ -112,22 +114,47 @@ public class MapAtlasesServerEvents {
             );
 
             // Update Map states & colors
-            //these also include active map
-            List<Pair<String, MapItemSavedData>> nearbyExistentMaps =
+            //these also include an active map
+            List<MapDataHolder> nearbyExistentMaps =
                     maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
                             .anyMatch(edge -> edge.x == e.x
                                     && edge.y == e.z));
 
-            Pair<String, MapItemSavedData> activeInfo = maps.select(activeKey);
+            MapDataHolder activeInfo = maps.select(activeKey);
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
+                maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
+            }
+
+            // updateColors is *easily* the most expensive function in the entire server tick
+            // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
+            if (!nearbyExistentMaps.isEmpty()) {
+                MapDataHolder selected;
+                if (MapAtlasesConfig.roundRobinUpdate.get()) {
+                    selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size());
+                    selected.updateMap(player);
+
+                } else {
+                    for (int j = 0; j < MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
+                        selected = getMapToUpdate(nearbyExistentMaps, player);
+                        selected.updateMap(player);
+                    }
+                }
+            }
+            // update center one too but not each tick
+            if (activeInfo != null && isTimeToUpdate(activeInfo.data(), player, slice, 5, 20)) {
+                activeInfo.updateMap(player);
+            }
+            if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
                 maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }else nearbyExistentMaps.add(activeInfo);
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
-            //this also update banners and decorations so wen dont want to update stuff we cant see
+            // this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
+                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas);
+                //if data has changed, a packet will be sent
                 updateMapDataForPlayer(mapInfo, player, atlas);
             }
 
@@ -150,7 +177,7 @@ public class MapAtlasesServerEvents {
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                    d -> d.getSecond().x == e.x && d.getSecond().z == e.y));
+                    d -> d.data().x == e.x && d.data().z == e.y));
             for (var edge : discoveringEdges) {
                 maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
             }
@@ -180,12 +207,11 @@ public class MapAtlasesServerEvents {
         return level.getGameTime() % interval == 0;
     }
 
-    private static MapItemSavedData getMapToUpdate(List<Pair<String, MapItemSavedData>> nearbyExistentMaps, ServerPlayer player) {
+    private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
         var m = queues.computeIfAbsent(player, a -> new HashMap<>());
-        Set<MapItemSavedData> existing = new HashSet<>();
+        Set<MapDataHolder> existing = new HashSet<>();
         for (var v : nearbyExistentMaps) {
-            var d = v.getSecond();
-            existing.add(d);
+            existing.add(v);
             m.computeIfAbsent(d, a -> new MapUpdateTicket(d));
         }
         int px = player.getBlockX();

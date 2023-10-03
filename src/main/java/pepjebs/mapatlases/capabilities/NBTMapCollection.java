@@ -1,11 +1,12 @@
 package pepjebs.mapatlases.capabilities;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
@@ -17,11 +18,7 @@ import java.util.function.Predicate;
 // Less optimized as it deserializes the stuff every time but at least doesn't have syncing issues
 // for fabric. or use cardinal components. Less optimized as it deserializes the stuff every time but at least doesnt have syncing issues
 public class NBTMapCollection implements IMapCollection {
-    private final ItemStack atlas;
-
-    public NBTMapCollection(ItemStack atlas){
-        this.atlas = atlas;
-    }
+        ItemStack atlas;
 
     @Override
     public boolean add(int mapId, Level level) {
@@ -29,7 +26,7 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public @Nullable Pair<String, MapItemSavedData> remove(String mapName) {
+    public @Nullable MapDataHolder remove(MapKey mapKey) {
         return null;
     }
 
@@ -59,24 +56,24 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public Collection<Slice.Type> getAvailableSlices(ResourceKey<Level> dimension) {
+    public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
     public Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension) {
         return null;
     }
 
     @Override
-    public Collection<Integer> getHeightTree(ResourceKey<Level> dimension, Slice.Type type) {
-            return null;
+    public Collection<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type) {
+        return null;
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, Slice slice) {
+    public List<MapDataHolder> selectSection(ResourceKey<Level> dimension, Slice slice) {
     public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
         return null;
     }
 
     @Override
-    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, Slice slice, Predicate<MapItemSavedData> predicate) {
+    public List<MapDataHolder> filterSection(ResourceKey<Level> dimension, Slice slice, Predicate<MapItemSavedData> predicate) {
         return null;
     }
 
@@ -86,12 +83,12 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public Pair<String, MapItemSavedData> select(MapKey key) {
+    public MapDataHolder select(MapKey key) {
         return null;
     }
 
     @Override
-    public @Nullable Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
+    public @Nullable MapDataHolder getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
         return null;
     }
 
@@ -101,7 +98,7 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public Collection<Pair<String, MapItemSavedData>> getAll() {
+    public Collection<MapDataHolder> getAll() {
         return null;
     }
 }

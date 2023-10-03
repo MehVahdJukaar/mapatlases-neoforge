@@ -10,6 +10,7 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -77,8 +78,20 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
     private static String getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Slice slice) {
         String stringId = "";// maps.getActive().getFirst();
-
-        stringId = maps.getAll().stream().findAny().get().getFirst();
+        if (inv instanceof TransientCraftingContainer tc) {
+            try {
+                if (tc.menu instanceof CraftingMenu cm) {
+                    MapDataHolder c = maps.getClosest(cm.player, slice);
+                    if (c != null) {
+                        stringId = c.getFirst();
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (stringId.isEmpty()) {
+            stringId = maps.getAll().stream().findAny().get().getFirst();
+        }
         return stringId;
     }
 
