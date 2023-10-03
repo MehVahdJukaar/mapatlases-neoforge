@@ -334,13 +334,10 @@ public class MapAtlasesServerEvents {
             Integer mapId = MapItem.getMapId(newMap);
 
             if (mapId != null) {
-                MapItemSavedData newData = MapItem.getSavedData(mapId, level);
+                var newData = MapAtlasesAccessUtils.findMapFromId(level,mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    newData.tickCarriedBy(player, newMap);
-                    //sync map immediately
-                    var p = new ClientboundMapItemDataPacket(mapId, newData.scale, newData.locked, null, null);
-                    player.connection.send(p);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData.getSecond(), mapId, player, newMap);
                 }
                 addedMap = maps.add(mapId, level);
             }

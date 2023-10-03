@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -20,15 +21,13 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.TwilightForestCompat;
 
-import java.util.Arrays;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static pepjebs.mapatlases.item.MapAtlasItem.HEIGHT_NBT;
 import static pepjebs.mapatlases.item.MapAtlasItem.TYPE_NBT;
 
+// this is a pair of map item type + y level basically
 public final class Slice {
 
     public static final Slice DEFAULT_INSTANCE = new Slice(Type.VANILLA, null);
@@ -49,18 +48,14 @@ public final class Slice {
     }
 
     public static Slice of(Pair<String, MapItemSavedData> d) {
-        return Slice.of(Type.fromKey(d.getFirst()), getHeight(d.getSecond()));
+        Type t = Type.fromKey(d.getFirst());
+        return Slice.of(t, t.getHeight(d.getSecond()));
     }
 
     public static Slice parse(CompoundTag t) {
         int anInt = t.getInt(TYPE_NBT);
         if (anInt >= Type.values().length) anInt = 0;
         return of(Type.values()[anInt], t.getInt(HEIGHT_NBT));
-    }
-
-    @Nullable
-    private static Integer getHeight(MapItemSavedData data) {
-        return MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
     }
 
     @Override
@@ -138,9 +133,11 @@ public final class Slice {
                         false);
             }
         } else if (this.type == Type.MAZE && MapAtlasesMod.TWILIGHTFOREST) {
-            newMap = TwilightForestCompat.makeMaze(destX, destZ, scale, level, 60);
+            if (height == null) return ItemStack.EMPTY;
+            newMap = TwilightForestCompat.makeMaze(destX, destZ, scale, level, height);
         } else if (this.type == Type.ORE_MAZE && MapAtlasesMod.TWILIGHTFOREST) {
-            newMap = TwilightForestCompat.makeOre(destX, destZ, scale, level, 60);
+            if (height == null) return ItemStack.EMPTY;
+            newMap = TwilightForestCompat.makeOre(destX, destZ, scale, level, height);
         } else if (this.type == Type.MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             newMap = TwilightForestCompat.makeMagic(destX, destZ, scale, level);
         }
@@ -182,6 +179,15 @@ public final class Slice {
         };
     }
 
+    public float getDefaultZoomFactor() {
+        if (this.type == Type.MAGIC) return 1 / 3f;
+        return 1;
+    }
+
+    public String getMapString(int id) {
+        return type.makeKey(id);
+    }
+
 
     //item slice
     public enum Type {
@@ -192,6 +198,16 @@ public final class Slice {
 
         private static final Map<Item, Type> FROM_ITEM = Arrays.stream(values())
                 .collect(Collectors.toMap(t -> t.filled, c -> c, (existing, replacement) -> existing, IdentityHashMap::new));
+
+        private static final Set<Item> EMPTY = Util.make(() -> {
+            var s = new HashSet<Item>();
+            for (var v : Type.values()) {
+                var t = v.empty;
+                if (t != null) s.add(t);
+                BuiltInRegistries.ITEM.getOptional(new ResourceLocation("supplementaries:slice_map")).ifPresent(s::add);
+            }
+            return s;
+        });
 
         private final String keyPrefix;
         public final Item filled;
@@ -222,6 +238,10 @@ public final class Slice {
             return null;
         }
 
+        public static boolean isEmptyMap(Item i) {
+            return EMPTY.contains(i);
+        }
+
         public static Type fromItem(Item item) {
             return FROM_ITEM.get(item);
         }
@@ -247,6 +267,14 @@ public final class Slice {
                 data = TwilightForestCompat.getMaze(level, key);
             }
             return data == null ? null : Pair.of(key, data);
+        }
+
+        public Integer getHeight(MapItemSavedData data) {
+            return switch (this) {
+                case VANILLA -> MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
+                case MAZE, ORE_MAZE -> MapAtlasesMod.TWILIGHTFOREST ? TwilightForestCompat.getSlice(data) : null;
+                case MAGIC -> null;
+            };
         }
     }
 

@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
+import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.ChatFormatting;
@@ -18,6 +19,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
@@ -96,21 +98,26 @@ public class MoonlightCompat {
         @Override
         public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
             matrices.pushPose();
-            matrices.translate(0, 0, 0.01 * this.index);
             super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
 
-            matrices.translate(x + width / 2f, y + height / 2f, 1.0D);
+            DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
 
-            // de translates by the amount the decoration renderer will translate
-            matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
-                    -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
+            if(renderer != null) {
 
-            var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+                matrices.translate(x + width / 2f, y + height / 2f, 1.0D);
 
-            MapDecorationClientHandler.render(decoration, matrices,
-                    buffer, null, false, LightTexture.FULL_BRIGHT, 0);
+                // de translates by the amount the decoration renderer will translate
+                matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
+                        -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
-            buffer.endBatch();
+                var buffer = pGuiGraphics.bufferSource();
+
+                renderer.render(decoration, matrices,
+                        vertexBuilder, buffer, data.getSecond(),
+                        false, LightTexture.FULL_BRIGHT, index);
+
+
+            }
             matrices.popPose();
 
             setSelected(false);

@@ -3,7 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Vector4f;
+import net.mehvahdjukaar.supplementaries.common.block.faucet.DataItemInteraction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -469,6 +469,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void selectDimension(ResourceKey<Level> dimension) {
+        boolean changedDim = currentWorldSelected.equals(dimension);
         this.currentWorldSelected = dimension;
         //TODO: edge case with just slices
         //we dont change slice when calling this from init as we want to use the atlas initial slice
@@ -479,7 +480,8 @@ public class AtlasOverviewScreen extends Screen {
             int error = 0;
             return;
         }
-        this.mapWidget.resetAndCenter(center.x, center.z, true);
+        this.mapWidget.resetAndCenter(center.centerX, center.centerZ,
+                initialWorldSelected.equals(dimension), changedDim);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentWorldSelected));
         }
@@ -566,7 +568,7 @@ public class AtlasOverviewScreen extends Screen {
     public void focusDecoration(DecorationBookmarkButton button) {
         int x = (int) button.getWorldX();
         int z = (int) button.getWorldZ();
-        this.mapWidget.resetAndCenter(x, z, false);
+        this.mapWidget.resetAndCenter(x, z, false, true);
     }
 
     public boolean decreaseSlice() {
@@ -590,7 +592,11 @@ public class AtlasOverviewScreen extends Screen {
         var slices = new ArrayList<>(maps.getAvailableSlices(currentWorldSelected));
         int index = slices.indexOf(selectedSlice.type());
         index = (index + 1) % slices.size();
-        updateSlice(Slice.of(slices.get(index), selectedSlice.height()));
+        Slice.Type type = slices.get(index);
+        TreeSet<Integer> heightTree = maps.getHeightTree(currentWorldSelected, type);
+        Integer ceiling = heightTree.floor(selectedSlice.heightOrTop());
+        if (ceiling == null) ceiling = heightTree.first();
+        updateSlice(Slice.of(type, ceiling));
     }
 
     private boolean updateSlice(Slice newSlice) {
@@ -610,10 +616,10 @@ public class AtlasOverviewScreen extends Screen {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         boolean manySlices = maps.getHeightTree(currentWorldSelected, selectedSlice.type()).size() > 1;
         boolean manyTypes = maps.getAvailableSlices(currentWorldSelected).size() != 1;
-        sliceButton.setActive(manyTypes || manySlices);
-        sliceButton.setHasMultipleSlices(manySlices);
+        sliceButton.refreshState(manySlices, manyTypes);
         sliceDown.setActive(manySlices);
         sliceUp.setActive(manySlices);
+        mapWidget.resetZoom();
         return changed;
     }
 

@@ -17,6 +17,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -53,18 +54,18 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
     protected int targetXCenter;
     protected int targetZCenter;
-    protected float targetZoomLevel = 3;
+    protected float targetZoomLevel;
 
     private boolean isHovered;
     private float animationProgress = 0; //from zero to 1
 
-
+    private float scaleAlpha = 0;
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
                      AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
         super(atlasesCount);
-        initialize(originalCenterMap);
-
+        initialize(originalCenterMap, hack.getSelectedSlice());
+        this.targetZoomLevel = zoomLevel;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -99,17 +100,14 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
         MapAtlasesClient.setDecorationsScale(1);
 
-        if (this.isHovered) {
-            this.renderPositionText(poseStack, mc.font, pMouseX, pMouseY);
-        }
 
         //TODO: fix
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
 
-        if(isHovered && mapScreen.placingPin){
+        if (isHovered && mapScreen.placingPin) {
             poseStack.pushPose();
-            poseStack.translate( pMouseX-2.5f,pMouseY-2.5f,  10);
+            poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
             RenderSystem.setShaderTexture(0,MAP_ICON_TEXTURE);
            // blit(poseStack, 20, 0,
            //         40, 0, 8, 8, 128, 128);
@@ -146,17 +144,38 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
             bufferbuilder.vertex(pMatrix, (float)x1, (float)y, (float)pBlitOffset).uv(nu1, nv0).endVertex();
             bufferbuilder.vertex(pMatrix, (float)x, (float)y, (float)pBlitOffset).uv(nu0, nv0).endVertex();
             BufferUploader.drawWithShader(bufferbuilder.end());
-
             poseStack.popPose();
 
 
         }
+        if (this.isHovered) {
+            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
 
-        if (isHovered && Screen.hasShiftDown() && mapScreen.getMinecraft().gameMode.getPlayerMode().isCreative()) {
-            mapScreen.renderTooltip(poseStack,
-                    Component.translatable("chat.coordinates.tooltip")
-                            .withStyle(ChatFormatting.GREEN),
-                    pMouseX, pMouseY);
+            if (Screen.hasShiftDown() && mapScreen.getMinecraft().gameMode.getPlayerMode().isCreative()) {
+                mapScreen.renderTooltip(poseStack,
+                        Component.translatable("chat.coordinates.tooltip")
+                                .withStyle(ChatFormatting.GREEN),
+                        pMouseX, pMouseY);
+            }
+        }
+
+        boolean animation = zoomLevel != targetZoomLevel;
+        if (animation || scaleAlpha != 0) {
+            if (animation) scaleAlpha = 1;
+            else {
+                scaleAlpha = Math.max(0, scaleAlpha - 0.07f);
+            }
+            int a = (int) (scaleAlpha * 255);
+            if(a != 0) {
+                PoseStack poseStack = graphics.pose();
+                poseStack.pushPose();
+                poseStack.translate(0,0,4);
+                graphics.drawString(mc.font,
+                        Component.translatable("message.map_atlases.map_scale", (int) targetZoomLevel),
+                        x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
+                poseStack.popPose();
+
+            }
         }
     }
 
@@ -167,7 +186,6 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
     private void renderPositionText(PoseStack graphics, Font font, int mouseX, int mouseY) {
         // Draw world map coords
-
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
         BlockPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
@@ -176,8 +194,6 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         String coordsToDisplay = "X: " + pos.getX() + ", Z: " + pos.getZ();
         MapAtlasesHUD.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
-
-
     }
 
 
@@ -246,7 +262,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         if (mapScreen.placingPin) {
             BlockPos pos = getHoveredPos(mouseX, mouseY);
             MapCollectionCap maps = MapAtlasItem.getMaps(mapScreen.getAtlas(), mapScreen.getMinecraft().level);
-            MapKey key = MapKey.at(maps.getScale(), pos.getX(),pos.getZ(), mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
+            MapKey key = MapKey.at(maps.getScale(), pos.getX(), pos.getZ(), mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
             var m = maps.select(key);
             if (m != null) {
                 MapAtlasesNetowrking.sendToServer(new C2SMarkerPacket(pos, m.getFirst()));
@@ -281,15 +297,23 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
     }
 
-    public void resetAndCenter(int centerX, int centerZ, boolean followPlayer) {
+    public void resetAndCenter(int centerX, int centerZ, boolean followPlayer, boolean animation) {
         this.targetXCenter = centerX;
         this.targetZCenter = centerZ;
+        if (!animation) {
+            this.currentXCenter = centerX;
+            this.currentZCenter = centerZ;
+        }
         // Reset offset & zoom
         this.cumulativeMouseX = 0;
         this.cumulativeMouseY = 0;
         this.cumulativeZoomValue = ZOOM_BUCKET;
-        this.targetZoomLevel = 3;
         this.followingPlayer = followPlayer;
+        resetZoom();
+    }
+
+    public void resetZoom() {
+        this.targetZoomLevel = atlasesCount * mapScreen.getSelectedSlice().getDefaultZoomFactor();
     }
 
     public void tick() {

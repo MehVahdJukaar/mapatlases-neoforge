@@ -1,7 +1,8 @@
 package pepjebs.mapatlases;
 
 
-import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -69,6 +70,7 @@ public class MapAtlasesMod {
     public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
 
     static {
+
         //lectern marker
 //sound
         //ml deco
