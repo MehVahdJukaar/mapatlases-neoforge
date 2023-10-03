@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.ui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
@@ -66,18 +66,15 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
     @Nullable
     @Override
-    public Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
+    public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        var m = MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ,
-                currentMapKey.dimension(), slice);
-        if (m == null) return null;
-        return Pair.of(slice.getMapId(m.getFirst()), m.getSecond());
+        return MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ, currentMapKey.dimension(), slice);
     }
 
     @Override
-    protected void initialize(MapItemSavedData originalCenterMap, Slice slice) {
-        super.initialize(originalCenterMap, slice);
+    protected void initialize(MapDataHolder originalCenterMap) {
+        super.initialize(originalCenterMap);
 
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
@@ -154,17 +151,14 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (currentMapKey == null) return;
-        Pair<String, MapItemSavedData> activeMap = maps.select(currentMapKey);
+        MapDataHolder activeMap = maps.select(currentMapKey);
         if (activeMap == null) {
             return;
         }
 
-
-        MapItemSavedData state = activeMap.getSecond();
-
         if (needsInit) {
             needsInit = false;
-            initialize(state, currentMapKey.slice());
+            initialize(activeMap);
         }
 
         PoseStack poseStack = graphics.pose();
@@ -229,7 +223,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         drawAtlas(graphics, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice());
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.type());
 
         MapAtlasesClient.setDecorationsScale(1);
         if (rotatesWithPlayer) {

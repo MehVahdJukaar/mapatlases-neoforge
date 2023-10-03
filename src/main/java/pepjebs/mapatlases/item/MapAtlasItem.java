@@ -25,6 +25,7 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -32,6 +33,7 @@ import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.AtlasLectern;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
@@ -89,8 +91,7 @@ public class MapAtlasItem extends Item {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
                         .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
             }
-            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize)
-                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
             if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
                     MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
                 // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
@@ -112,8 +113,8 @@ public class MapAtlasItem extends Item {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
             }
             var type = selected.type();
-            if (type != Slice.Type.VANILLA) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", selected.getName()).withStyle(ChatFormatting.GRAY));
+            if (type != MapType.VANILLA) {
+                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", type.getName()).withStyle(ChatFormatting.GRAY));
             }
         }
     }
@@ -196,9 +197,9 @@ public class MapAtlasItem extends Item {
             if (!level.isClientSide) {
 
                 MapCollectionCap maps = getMaps(stack, level);
-                var mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
-                boolean didAdd = mapState.getSecond().toggleBanner(level, blockPos);
+                boolean didAdd = mapState.data().toggleBanner(level, blockPos);
                 if (!didAdd)
                     return InteractionResult.FAIL;
             }
@@ -226,9 +227,9 @@ public class MapAtlasItem extends Item {
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice, ResourceKey<Level> dimension) {
-        Slice.Type t = slice.type();
+        MapType t = slice.type();
         Integer h = slice.height();
-        if (h == null && t == Slice.Type.VANILLA) {
+        if (h == null && t == MapType.VANILLA) {
             CompoundTag tag = stack.getTagElement(SELECTED_NBT);
             if (tag != null) {
                 tag.remove(dimension.location().toString());
@@ -298,7 +299,7 @@ public class MapAtlasItem extends Item {
         var maps = getMaps(pStack, pLevel);
         var dim = maps.getAvailableDimensions();
         for (var d : dim) {
-            for (var k : maps.getAvailableSlices(d)) {
+            for (var k : maps.getAvailableTypes(d)) {
                 var av = maps.getHeightTree(d, k);
                 if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
                     setSelectedSlice(pStack, Slice.of(k, av.first()), d);

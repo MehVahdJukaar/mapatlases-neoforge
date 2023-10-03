@@ -11,6 +11,7 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.function.Supplier;
@@ -32,7 +33,7 @@ public class C2SSelectSlicePacket {
     public C2SSelectSlicePacket(FriendlyByteBuf buf) {
         dimension = buf.readResourceKey(Registries.DIMENSION);
 
-        Slice.Type type = Slice.Type.values()[buf.readVarInt()];
+        MapType type = MapType.values()[buf.readVarInt()];
 
         Integer h;
         if (buf.readBoolean()) {

@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -10,7 +9,6 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
@@ -18,8 +16,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
@@ -56,16 +54,16 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private float scaleAlpha = 0;
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
-                     AtlasOverviewScreen hack, MapItemSavedData originalCenterMap) {
+                     AtlasOverviewScreen screen, MapDataHolder originalCenterMap) {
         super(atlasesCount);
-        initialize(originalCenterMap, hack.getSelectedSlice());
+        initialize(originalCenterMap);
         this.targetZoomLevel = zoomLevel;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
 
-        this.mapScreen = hack;
+        this.mapScreen = screen;
         this.drawBigPlayerMarker = false;
     }
 
@@ -90,7 +88,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
-                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice());
+                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type());
 
         MapAtlasesClient.setDecorationsScale(1);
 
@@ -143,7 +141,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     @Override
-    public Pair<Integer, MapItemSavedData> getMapWithCenter(int centerX, int centerZ) {
+    public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         return mapScreen.findMapEntryForCenter(centerX, centerZ);
     }
 

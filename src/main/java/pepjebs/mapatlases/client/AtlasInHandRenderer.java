@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -37,10 +38,9 @@ public class AtlasInHandRenderer {
         pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
 
         MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
-        var ss = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).select(activeMapKey);
-        if (ss == null) return;
-        Integer integer = activeMapKey.slice().getMapId(ss.getFirst());
-        MapItemSavedData mapitemsaveddata = ss.getSecond();
+        MapDataHolder data = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).select(activeMapKey);
+        if (data == null) return;
+        MapItemSavedData mapitemsaveddata = data.data();
         VertexConsumer vertexconsumer = pBuffer.getBuffer(mapitemsaveddata == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
         Matrix4f matrix4f = pPoseStack.last().pose();
         vertexconsumer.vertex(matrix4f, -MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(pCombinedLight).endVertex();
@@ -48,7 +48,7 @@ public class AtlasInHandRenderer {
         vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(pCombinedLight).endVertex();
         vertexconsumer.vertex(matrix4f, -MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(pCombinedLight).endVertex();
         if (mapitemsaveddata != null) {
-            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, integer, mapitemsaveddata, false, pCombinedLight);
+            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, data.intId(), mapitemsaveddata, false, pCombinedLight);
         }
 
     }

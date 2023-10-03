@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -70,9 +71,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 if (mapatlases$selectedMapIndex > maps.getCount()) {
                     mapatlases$selectedMapIndex = 0;
                 }
-                var map = maps.getAll().get(mapatlases$selectedMapIndex);
-                ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(
-                        MapAtlasesAccessUtils.findMapIntFromString(map.getFirst())
+                MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
+                ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.intId()
                 );
 
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -167,7 +167,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         access.execute((level, pos) -> {
             var maps = MapAtlasItem.getMaps(atlas, level);
             var m = maps.getAll().get(mapatlases$selectedMapIndex);
-            maps.remove(m.getFirst());
+            maps.remove(m.key());
         });
     }
 
