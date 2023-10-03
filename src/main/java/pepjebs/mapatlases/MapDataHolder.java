@@ -1,6 +1,8 @@
 package pepjebs.mapatlases;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.core.mixins.FirstPersonRendererMixin;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;

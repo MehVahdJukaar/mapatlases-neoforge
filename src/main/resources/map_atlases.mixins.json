@@ -18,6 +18,7 @@
   ],
   "client": [
     "CartographyTableScreenMixin",
+    "ItemInHandRendererMixin",
     "LecternRendererMixin",
     "MapRendererMixin"
   ],

@@ -4,15 +4,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.core.MoonlightClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BellRenderer;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -33,9 +37,8 @@ import static org.lwjgl.opengl.GL14.GL_TEXTURE_LOD_BIAS;
 
 public abstract class AbstractAtlasWidget {
 
-    public static final ResourceLocation MAP_BORDER =
-            MapAtlasesMod.res("textures/gui/screen/map_border.png");
-
+    public static final Material MAP_BORDER = new Material(InventoryMenu.BLOCK_ATLAS,
+            MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final int MAP_DIMENSION = 128;
 
@@ -147,14 +150,18 @@ public abstract class AbstractAtlasWidget {
         vcp.endBatch();
 
         if (showBorders) {
-            VertexConsumer outlineVC = vcp.getBuffer(RenderType.text(MAP_BORDER));
+            VertexConsumer outlineVC = MAP_BORDER.buffer(vcp, RenderType::text); //its already on block atlas
+            //using this so we use mipmap
             int a = 50;
             for (var matrix4f : outlineHack) {
-                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 1.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 1.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 0.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
-                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 0.0F).uv2(LightTexture.FULL_BRIGHT).endVertex();
-
+                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 1.0F)
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 1.0F)
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 0.0F)
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 0.0F)
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
             }
             vcp.endBatch();
         }
@@ -251,13 +258,6 @@ public abstract class AbstractAtlasWidget {
         float pRotation = p.getYRot();
         pRotation += pRotation < 0.0D ? -8.0D : 8.0D;
         return (byte) ((int) (pRotation * 16.0D / 360.0D));
-    }
-
-    /**
-     * @return biggest int multiple of factor that is less than value
-     */
-    public static int roundBelow(int value, int factor) {
-        return Mth.roundToward(value, factor) - factor;
     }
 
     public static int round(int num, int mod) {

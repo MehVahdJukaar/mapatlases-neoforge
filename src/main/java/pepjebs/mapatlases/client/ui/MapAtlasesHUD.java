@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.ui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
@@ -20,7 +21,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.client.ForgeRenderTypes;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
@@ -132,13 +132,14 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             return;
         }
 
-        // Check config disable
         // Check F3 menu displayed
         if (mc.options.renderDebug) return;
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
 
-
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
+
+        if (MapAtlasesClientConfig.hideWhenInHand.get() && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get()) ||
+                mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
 
         if (atlas != currentAtlas) {
             currentAtlas = atlas;
@@ -220,7 +221,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         // Set zoom-height for map icons
-        MapAtlasesClient.setDecorationsScale((float) (2*zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
+        MapAtlasesClient.setDecorationsScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
         float yRot = player.getYRot();
         if (rotatesWithPlayer) {
             MapAtlasesClient.setDecorationRotation(yRot - 180);

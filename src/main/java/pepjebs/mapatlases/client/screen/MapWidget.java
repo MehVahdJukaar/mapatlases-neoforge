@@ -12,24 +12,20 @@ import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ColumnPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.C2SMarkerPacket;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
@@ -103,7 +99,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
 
-        if (isHovered && mapScreen.placingPin) {
+        if (isHovered && mapScreen.isPlacingPin()) {
             PoseStack poseStack = graphics.pose();
             poseStack.pushPose();
             poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
@@ -113,33 +109,35 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             poseStack.popPose();
 
         }
-        if (this.isHovered) {
+        if (this.isHovered && !mapScreen.isEditingText()) {
             this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
 
-            if (Screen.hasShiftDown() && mapScreen.getMinecraft().gameMode.getPlayerMode().isCreative()) {
+            if (mapScreen.canTeleport()) {
                 graphics.renderTooltip(mapScreen.getMinecraft().font,
                         Component.translatable("chat.coordinates.tooltip")
                                 .withStyle(ChatFormatting.GREEN),
                         pMouseX, pMouseY);
             }
         }
+        renderScaleText(graphics, mc);
+    }
 
+    private void renderScaleText(GuiGraphics graphics, Minecraft mc) {
         boolean animation = zoomLevel != targetZoomLevel;
         if (animation || scaleAlpha != 0) {
             if (animation) scaleAlpha = 1;
             else {
-                scaleAlpha = Math.max(0, scaleAlpha - 0.07f);
+                scaleAlpha = Math.max(0, scaleAlpha - 0.04f);
             }
             int a = (int) (scaleAlpha * 255);
-            if(a != 0) {
+            if (a != 0) {
                 PoseStack poseStack = graphics.pose();
                 poseStack.pushPose();
-                poseStack.translate(0,0,4);
+                poseStack.translate(0, 0, 4);
                 graphics.drawString(mc.font,
                         Component.translatable("message.map_atlases.map_scale", (int) targetZoomLevel),
                         x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
                 poseStack.popPose();
-
             }
         }
     }
@@ -152,11 +150,11 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
         // Draw world map coords
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
-        BlockPos pos = getHoveredPos(mouseX, mouseY);
+        ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
         //TODO: fix coordinate being slightly offset
         //idk why
-        String coordsToDisplay = "X: " + pos.getX() + ", Z: " + pos.getZ();
+        String coordsToDisplay = "X: " + pos.x() + ", Z: " + pos.z();
         MapAtlasesHUD.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
     }
@@ -214,41 +212,33 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         return true;
     }
 
-
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
-        if (isHovered && Screen.hasShiftDown() && Minecraft.getInstance().gameMode.getPlayerMode().isCreative()) {
-            BlockPos pos = getHoveredPos(mouseX, mouseY);
-            MapAtlasesNetowrking.sendToServer(new C2STeleportPacket(pos.getX(), pos.getZ(),
-                    mapScreen.getSelectedSlice().height(), mapScreen.getSelectedDimension()));
-        }
-
-
-        if (mapScreen.placingPin) {
-            BlockPos pos = getHoveredPos(mouseX, mouseY);
-            MapCollectionCap maps = MapAtlasItem.getMaps(mapScreen.getAtlas(), mapScreen.getMinecraft().level);
-            MapKey key = MapKey.at(maps.getScale(), pos.getX(), pos.getZ(), mapScreen.getSelectedDimension(), mapScreen.getSelectedSlice());
-            var m = maps.select(key);
-            if (m != null) {
-                MapAtlasesNetowrking.sendToServer(new C2SMarkerPacket(pos, m.getFirst()));
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                mapScreen.placingPin = false;
+        if (isHovered) {
+            if (mapScreen.isPlacingPin()) {
+                ColumnPos pos = getHoveredPos(mouseX, mouseY);
+                mapScreen.placePinAt(pos);
+                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            } else if (mapScreen.canTeleport()) {
+                ColumnPos pos = getHoveredPos(mouseX, mouseY);
+                MapAtlasesNetworking.sendToServer(new C2STeleportPacket(pos.x(), pos.z(),
+                        mapScreen.getSelectedSlice().height(), mapScreen.getSelectedDimension()));
+                return true;
             }
+            return !mapScreen.isEditingText();
         }
-
-        return isHovered;
+        return false;
     }
 
     @NotNull
-    private BlockPos getHoveredPos(double mouseX, double mouseY) {
+    private ColumnPos getHoveredPos(double mouseX, double mouseY) {
         double atlasMapsRelativeMouseX = Mth.map(
                 mouseX, x, x + width, -1.0, 1.0);
         double atlasMapsRelativeMouseZ = Mth.map(
                 mouseY, y, y + height, -1.0, 1.0);
         int hackOffset = +3;
-        return new BlockPos(
+        return new ColumnPos(
                 (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevel * (mapPixelSize / 2.0)) + currentXCenter) + hackOffset,
-                0,
                 (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevel * (mapPixelSize / 2.0)) + currentZCenter) + hackOffset);
     }
 

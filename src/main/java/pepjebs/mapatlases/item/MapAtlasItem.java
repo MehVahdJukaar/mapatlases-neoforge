@@ -29,7 +29,7 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.AtlasLectern;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.Slice;
@@ -132,7 +132,7 @@ public class MapAtlasItem extends Item {
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
         if (player instanceof ServerPlayer) {
-            MapAtlasesNetowrking.sendToServer(new C2S2COpenAtlasScreenPacket());
+            MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket());
         } else {
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -222,7 +222,7 @@ public class MapAtlasItem extends Item {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas);
         }
-        MapAtlasesNetowrking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
+        MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice, ResourceKey<Level> dimension) {

@@ -8,9 +8,10 @@ import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
+import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
+import net.mehvahdjukaar.moonlight.core.mixins.MapDataMixin;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.LightTexture;
@@ -20,11 +21,11 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.client.MapAtlasesClient;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -42,10 +43,17 @@ public class MoonlightCompat {
                 .map(a -> Pair.of((Object) a, data)).toList();
     }
 
-    public static void addDecoration(MapItemSavedData second, BlockPos pos, ResourceLocation name) {
-        var type = MapDecorationRegistry.get(name);
+    public static void addDecoration(MapItemSavedData second, BlockPos pos, ResourceLocation id, @Nullable Component name) {
+        var type = MapDecorationRegistry.get(id);
         if(type != null){
-            ((ExpandedMapData)second).addCustomDecoration(type.getDefaultMarker(pos));
+            MapBlockMarker<?> defaultMarker = type.getDefaultMarker(pos);
+            var decoration = defaultMarker.createDecorationFromMarker(second);
+            if (decoration != null) {
+                decoration.setDisplayName(name);
+                ExpandedMapData data = (ExpandedMapData) second;
+                data.getCustomDecorations().put(defaultMarker.getMarkerId(), decoration);
+                data.setCustomDecorationsDirty();
+            }
         }
     }
 
@@ -133,7 +141,7 @@ public class MoonlightCompat {
             for (var d : decorations.entrySet()) {
                 CustomMapDecoration deco = d.getValue();
                 if (deco == decoration) {
-                    MapAtlasesNetowrking.sendToServer(new C2SRemoveMarkerPacket(data.getFirst(), deco.hashCode()));
+                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(data.getFirst(), deco.hashCode()));
                     decorations.remove(d.getKey());
                     return;
                 }
