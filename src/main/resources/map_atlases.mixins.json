@@ -6,6 +6,7 @@
   "refmap": "map_atlases.refmap.json",
   "mixins": [
     "CartographyTableMenuMixin",
+    "CompatTFMapRendererMixin",
     "FriendlyByteBufMixin",
     "LecternBlockEntityMixin",
     "LecternBlockMixin",

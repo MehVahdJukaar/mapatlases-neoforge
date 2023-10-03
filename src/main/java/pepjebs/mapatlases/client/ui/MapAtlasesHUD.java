@@ -76,8 +76,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     @Override
-    protected void initialize(MapItemSavedData originalCenterMap) {
-        super.initialize(originalCenterMap);
+    protected void initialize(MapItemSavedData originalCenterMap, Slice slice) {
+        super.initialize(originalCenterMap, slice);
 
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
@@ -163,7 +163,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         if (needsInit) {
             needsInit = false;
-            initialize(state);
+            initialize(state, currentMapKey.slice());
         }
 
         PoseStack poseStack = graphics.pose();
@@ -220,7 +220,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         // Set zoom-height for map icons
-        MapAtlasesClient.setDecorationsScale((float) (zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
+        MapAtlasesClient.setDecorationsScale((float) (2*zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
         float yRot = player.getYRot();
         if (rotatesWithPlayer) {
             MapAtlasesClient.setDecorationRotation(yRot - 180);

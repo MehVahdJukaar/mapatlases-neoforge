@@ -57,12 +57,14 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize(MapItemSavedData originalCenterMap) {
+    protected void initialize(MapItemSavedData originalCenterMap, Slice slice) {
         this.originalCenterMap = originalCenterMap;
         this.mapPixelSize = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
         this.currentXCenter = originalCenterMap.centerX;
         this.currentZCenter = originalCenterMap.centerZ;
+
+        this.zoomLevel = atlasesCount * slice.getDefaultZoomFactor();
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
@@ -107,7 +109,6 @@ public abstract class AbstractAtlasWidget {
         if (rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
         }
-        //divide by 2 on scale 2
         poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
 
         //grid side len

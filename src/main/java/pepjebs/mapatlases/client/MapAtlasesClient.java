@@ -1,21 +1,16 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
-import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -46,7 +41,6 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class MapAtlasesClient {
 
@@ -154,14 +148,6 @@ public class MapAtlasesClient {
         event.register(INCREASE_MINIMAP_ZOOM);
     }
 
-    public static void modifyDecorationTransform(PoseStack poseStack) {
-        Float scale = globalDecorationScale.get();
-        if (scale != null) poseStack.scale(scale, scale, 1);
-        Float rot = globalDecorationRotation.get();
-        if (rot != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
-        }
-    }
 
     @Deprecated(forRemoval = true)
     public static float getWorldMapZoomLevel() {
@@ -245,4 +231,30 @@ public class MapAtlasesClient {
     }
 
 
+    public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
+        Float scale = globalDecorationScale.get();
+        if (scale != null) {
+            float s = textWidth * textScale / 2.0F;
+            poseStack.translate(s, -4, 0);
+
+            Float rot = globalDecorationRotation.get();
+            if (rot != null) {
+                poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+            }
+            poseStack.translate(-s*scale, 4*scale, 0);
+
+            poseStack.scale(scale, scale, 1);
+        }
+    }
+
+
+    public static void modifyDecorationTransform(PoseStack poseStack) {
+        Float rot = globalDecorationRotation.get();
+        if (rot != null) {
+            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+        }
+        Float scale = globalDecorationScale.get();
+        if (scale != null) poseStack.scale(scale, scale, 1);
+
+    }
 }

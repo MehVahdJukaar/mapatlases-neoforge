@@ -37,4 +37,11 @@ public class TwilightForestCompat {
     public static ColumnPos getMagicMapCenter(int px, int pz) {
         return MagicMapItem.getMagicMapCenter(px, pz);
     }
+
+    public static Integer getSlice(MapItemSavedData data) {
+        if (data instanceof TFMazeMapData d) {
+            return d.yCenter;
+        }
+        return null;
+    }
 }

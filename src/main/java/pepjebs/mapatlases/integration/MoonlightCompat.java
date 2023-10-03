@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
+import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.ChatFormatting;
@@ -19,6 +20,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
@@ -97,26 +99,32 @@ public class MoonlightCompat {
         protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
             PoseStack matrices = pGuiGraphics.pose();
             matrices.pushPose();
-            matrices.translate(0, 0, 0.01 * this.index);
             super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
-            matrices.translate(getX() + width / 2f, getY() + height / 2f, 1.0D);
+            DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
 
-            // de translates by the amount the decoration renderer will translate
-            matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
-                    -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
+            if(renderer != null) {
 
-            var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
+                matrices.translate(getX() + width / 2f, getY() + height / 2f, 1.0D);
 
-            MapDecorationClientManager.render(decoration, matrices,
-                    vertexBuilder, buffer, null, false, LightTexture.FULL_BRIGHT, 0);
+                // de translates by the amount the decoration renderer will translate
+                matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
+                        -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
+                var buffer = pGuiGraphics.bufferSource();
+
+                VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
+
+                renderer.render(decoration, matrices,
+                        vertexBuilder, buffer, data.getSecond(),
+                        false, LightTexture.FULL_BRIGHT, index);
+
+
+            }
             matrices.popPose();
 
             setSelected(false);
 
-            buffer.endBatch();
         }
 
         @Override

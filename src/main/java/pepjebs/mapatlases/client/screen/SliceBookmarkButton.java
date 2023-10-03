@@ -17,6 +17,7 @@ public class SliceBookmarkButton extends BookmarkButton {
 
     private Slice slice;
     private boolean hasMoreThan1Type = true;
+    private boolean hasMoreThan1Slice = true;
 
     protected SliceBookmarkButton(int pX, int pY, Slice slice, AtlasOverviewScreen screen) {
         super(pX, pY, BUTTON_W, BUTTON_H, 0, 167 + 64, screen);
@@ -25,8 +26,10 @@ public class SliceBookmarkButton extends BookmarkButton {
         this.setTooltip(createTooltip());
     }
 
-    public void setHasMultipleSlices(boolean b) {
-        hasMoreThan1Type = b;
+    public void refreshState(boolean slice, boolean types) {
+        hasMoreThan1Type = types;
+        hasMoreThan1Slice = slice;
+        this.setActive(slice || types);
     }
 
     @Override
@@ -54,13 +57,14 @@ public class SliceBookmarkButton extends BookmarkButton {
                 167 + 66,
                 16, 16);
 
-        pose.translate(0, 0, 1);
-        Integer h = slice.height();
-        Component text = h != null ? Component.literal(String.valueOf(h)) :
-                Component.translatable("message.map_atlases.atlas.slice_default");
-        pGuiGraphics.drawCenteredString(parentScreen.getMinecraft().font,
-                text, this.getX() + (compact ? 15 : 39), this.getY() + 7, -1);
-
+        if(hasMoreThan1Slice) {
+            pose.translate(0, 0, 1);
+            Integer h = slice.height();
+            Component text = h != null ? Component.literal(String.valueOf(h)) :
+                    Component.translatable("message.map_atlases.atlas.slice_default");
+            pGuiGraphics.drawCenteredString(parentScreen.getMinecraft().font,
+                    text, this.getX() + (compact ? 15 : 39), this.getY() + 7, -1);
+        }
 
         pose.popPose();
     }

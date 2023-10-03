@@ -1,7 +1,6 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.moonlight.api.map.CustomMapData;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,9 +29,12 @@ import java.util.stream.Collectors;
 public class MapAtlasesAccessUtils {
 
 
-
     public static boolean isValidFilledMap(ItemStack item) {
-        return  Slice.Type.fromItem(item.getItem()) != null;
+        return Slice.Type.fromItem(item.getItem()) != null;
+    }
+
+    public static boolean isValidEmptyMap(ItemStack item) {
+        return Slice.Type.isEmptyMap(item.getItem());
     }
 
     public static Pair<String, MapItemSavedData> findMapFromId(Level level, int id) {

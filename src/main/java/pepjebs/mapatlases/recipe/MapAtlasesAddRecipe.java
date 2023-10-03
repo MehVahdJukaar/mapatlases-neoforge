@@ -75,7 +75,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
     private boolean isEmptyMap(ItemStack itemstack) {
         if (itemstack.isEmpty()) return false;
-        if (itemstack.is(Items.MAP)) {
+        if (MapAtlasesAccessUtils.isValidEmptyMap(itemstack)) {
             return MapAtlasesConfig.enableEmptyMapEntryAndFill.get();
         }
         if (itemstack.is(Items.PAPER)) {
