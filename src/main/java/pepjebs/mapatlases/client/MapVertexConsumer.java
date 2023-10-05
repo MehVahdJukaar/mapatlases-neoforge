@@ -1,17 +1,17 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public record MapVertexConsumer(VertexConsumer original, int textureSize) implements VertexConsumer {
 
-    private static final float RATIO = (float)(double) MapAtlasesClientConfig.mapTextureShrink.get();
+    private static final float RATIO = (float) (double) MapAtlasesClientConfig.mapTextureShrink.get();
+
     @Override
     public VertexConsumer vertex(double pX, double pY, double pZ) {
-         original.vertex(pX, pY, pZ);
-         return this;
+        original.vertex(pX, pY, pZ);
+        return this;
     }
 
     @Override
@@ -22,10 +22,9 @@ public record MapVertexConsumer(VertexConsumer original, int textureSize) implem
 
     @Override
     public VertexConsumer uv(float u0, float v0) {
-        TextureAtlasSprite sprite;
         float shrink = RATIO / textureSize;
         original.uv(Mth.lerp(shrink, u0, 0.5f), Mth.lerp(shrink, v0, 0.5f));
-    return this;
+        return this;
     }
 
     @Override

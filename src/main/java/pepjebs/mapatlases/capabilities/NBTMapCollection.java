@@ -25,9 +25,10 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public @Nullable MapDataHolder remove(MapKey mapKey) {
-        return null;
+    public boolean remove(MapDataHolder obj) {
+        return false;
     }
+
 
     @Override
     public int getCount() {

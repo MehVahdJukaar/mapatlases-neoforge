@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.utils;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
@@ -9,31 +8,32 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.capabilities.MapKey;
 
 public class MapDataHolder {
-    //TODO: replace pair<String,MapData> with this
-    private final int id;
-    private final String stringId;
-    private final MapItemSavedData data;
+    public final int id;
+    public final String stringId;
+    public final MapItemSavedData data;
 
-    //lazy
-    private MapKey key = null;
-
+    //redundant info, cache basically as we use this for data structures
+    public final Slice slice;
+    public final MapType type;
+    @Nullable
+    public final Integer height;
 
     public MapDataHolder(String name, MapItemSavedData data) {
-        this.id = findMapIntFromString(name);
-        this.data = data;
-        this.stringId = key.slice().getMapString(id);
+        this(findMapIntFromString(name), name, data);
     }
 
     private MapDataHolder(int id, String stringId, MapItemSavedData data) {
         this.id = id;
         this.stringId = stringId;
         this.data = data;
+        this.type = MapType.fromKey(stringId);
+        this.height = type.getHeight(data);
+        this.slice = Slice.of(type, height);
     }
 
     private static int findMapIntFromString(String id) {
         return Integer.parseInt(id.split("_")[1]);
     }
-
 
     @Nullable
     public static MapDataHolder findFromId(Level level, int id) {
@@ -47,29 +47,14 @@ public class MapDataHolder {
         return null;
     }
 
-    public int intId() {
-        return id;
-    }
-
-    public String stringId() {
-        return stringId;
-    }
-
-    public MapKey key() {
-        if (key == null) {
-            this.key = MapKey.of(Pair.of(stringId, data));
-        }
-        return key;
-    }
-
-    public MapItemSavedData data() {
-        return data;
+    public MapKey makeKey() {
+        return MapKey.at(data.scale, data.centerX, data.centerZ, data.dimension, slice);
     }
 
     public void updateMap(ServerPlayer player) {
-        ((MapItem) key.slice().type().filled).update(player.level(), player, data);
+        ((MapItem) type.filled).update(player.level(), player, data);
     }
 
-    //utility methods. merge with slice
+    //utility methods. merge with slice TODO
 
 }

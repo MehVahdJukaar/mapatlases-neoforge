@@ -50,7 +50,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
     //cached stuff
     private boolean needsInit = true;
-    private ItemStack currentAtlas;
+    private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapKey currentMapKey = null;
 
 
@@ -138,10 +138,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (MapAtlasesClientConfig.hideWhenInHand.get() && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get()) ||
                 mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
 
-        if (atlas != currentAtlas) {
-            currentAtlas = atlas;
+        if (currentAtlas.isEmpty()) {
             needsInit = true;
         }
+        currentAtlas = atlas;
 
         if (atlas.isEmpty()) return;
 
@@ -223,7 +223,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         drawAtlas(graphics, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.type());
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type());
 
         MapAtlasesClient.setDecorationsScale(1);
         if (rotatesWithPlayer) {

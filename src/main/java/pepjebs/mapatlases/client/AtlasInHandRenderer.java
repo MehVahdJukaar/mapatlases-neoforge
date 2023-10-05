@@ -38,17 +38,17 @@ public class AtlasInHandRenderer {
         pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
 
         MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
-        MapDataHolder data = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).select(activeMapKey);
-        if (data == null) return;
-        MapItemSavedData mapitemsaveddata = data.data();
-        VertexConsumer vertexconsumer = pBuffer.getBuffer(mapitemsaveddata == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
+        MapDataHolder state = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).select(activeMapKey);
+        if (state == null) return;
+        MapItemSavedData data = state.data;
+        VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
         Matrix4f matrix4f = pPoseStack.last().pose();
         vertexconsumer.vertex(matrix4f, -MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(pCombinedLight).endVertex();
         vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(pCombinedLight).endVertex();
         vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(pCombinedLight).endVertex();
         vertexconsumer.vertex(matrix4f, -MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(pCombinedLight).endVertex();
-        if (mapitemsaveddata != null) {
-            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, data.intId(), mapitemsaveddata, false, pCombinedLight);
+        if (data != null) {
+            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
         }
 
     }

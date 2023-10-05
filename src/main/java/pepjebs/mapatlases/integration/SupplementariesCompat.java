@@ -39,6 +39,6 @@ public class SupplementariesCompat {
     }
 
     public static boolean canPlayerSeeDeathMarker(Player p){
-        return !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
+        return false;// TODO  !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
     }
 }

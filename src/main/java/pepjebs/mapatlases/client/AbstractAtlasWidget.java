@@ -58,13 +58,13 @@ public abstract class AbstractAtlasWidget {
     }
 
     protected void initialize(MapDataHolder originalCenter) {
-        this.originalCenterMap = originalCenter.data();
+        this.originalCenterMap = originalCenter.data;
         this.mapPixelSize = (1 << originalCenterMap.scale) * MAP_DIMENSION;
 
         this.currentXCenter = originalCenterMap.centerX;
         this.currentZCenter = originalCenterMap.centerZ;
 
-        this.zoomLevel = atlasesCount * originalCenter.getDefaultZoomFactor();
+        this.zoomLevel = atlasesCount * originalCenter.type.getDefaultZoomFactor();
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
@@ -177,7 +177,7 @@ public abstract class AbstractAtlasWidget {
         int reqZCenter = centerMapZ + (i * mapPixelSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
-            MapItemSavedData data = state.data();
+            MapItemSavedData data = state.data;
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
             this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
@@ -207,7 +207,7 @@ public abstract class AbstractAtlasWidget {
         poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
 
         // Remove the off-map player icons temporarily during render
-        MapItemSavedData data = state.data();
+        MapItemSavedData data = state.data;
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
@@ -236,7 +236,7 @@ public abstract class AbstractAtlasWidget {
                 .render(
                         poseStack,
                         vcp,
-                        state.intId(),
+                        state.id,
                         data,
                         false,//(1+ix+iy)*50
                         LightTexture.FULL_BRIGHT //

@@ -104,7 +104,7 @@ public class MapAtlasesClient {
             if (select == null) {
                 MapDataHolder closest = maps.getClosest(player, slice);
                 if (closest != null) {
-                    currentActiveMapKey = closest.key();
+                    currentActiveMapKey = closest.makeKey();
                 }
             }
         } else currentActiveMapKey = null;

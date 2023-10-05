@@ -2,6 +2,9 @@ package pepjebs.mapatlases.utils;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ColumnPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +24,6 @@ public final class Slice {
         this.type = type;
         this.height = height;
     }
-
     public static Slice of(MapType type, @Nullable Integer height) {
         if (height != null && height.equals(Integer.MAX_VALUE)) {
             height = null;
@@ -78,17 +80,19 @@ public final class Slice {
         return Objects.hash(type, height);
     }
 
-    public int getMapId(String mapKey) {
-        return Integer.parseInt(mapKey.substring(this.type.keyPrefix.length()));
-    }
-
     public String getMapString(int id) {
         return type.makeKey(id);
     }
-
 
     public boolean hasMarkers() {
         return type.hasMarkers();
     }
 
+    public int getDiscoveryReach() {
+        return type.getDiscoveryReach(height);
+    }
+
+    public ItemStack createNewMap(int destX, int destZ, byte scale, Level level) {
+        return type.createNewMapItem(destX, destZ, scale, level, height);
+    }
 }
