@@ -43,12 +43,12 @@ public class MapAtlasesServerEvents {
     // Holds the current MapItemSavedData ID for each player
     @Deprecated(forRemoval = true)
     private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
-    private static final WeakHashMap<Player, HashMap<MapItemSavedData, MapUpdateTicket>> queues = new WeakHashMap<>();
+    private static final WeakHashMap<Player, HashMap<Integer, MapUpdateTicket>> queues = new WeakHashMap<>();
 
     private static class MapUpdateTicket {
         private static final Comparator<MapUpdateTicket> COMPARATOR = Comparator.comparingDouble(MapUpdateTicket::getPriority);
 
-        private final MapItemSavedData data;
+        private final MapDataHolder holder;
         private int waitTime = 20; //set to zero when this is updated.
         // if not incremented, each tick.
         // we start with lowest for newly added entries
@@ -56,6 +56,8 @@ public class MapAtlasesServerEvents {
         private double currentPriority; //bigger the better
     }
 
+        private MapUpdateTicket(MapDataHolder data) {
+            this.holder = data;
     @SubscribeEvent
     public static void mapAtlasPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
@@ -74,6 +76,12 @@ public class MapAtlasesServerEvents {
             state.tickCarriedBy(player, atlas);
             state.getHoldingPlayer(player);
 
+        public void updatePriority(int px, int pz) {
+            this.waitTime++;
+            double distSquared = Mth.lengthSquared(px - holder.data.centerX, pz - holder.data.centerZ);
+            // Define weights for distance and waitTime
+            double distanceWeight = 20; // Adjust this based on your preference
+            double waitTimeWeight = 1; // Adjust this based on your preference
             MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetMapDataPacket(mapId, state, true));
 
         }
@@ -142,7 +150,7 @@ public class MapAtlasesServerEvents {
                 }
             }
             // update center one too but not each tick
-            if (activeInfo != null && isTimeToUpdate(activeInfo.data(), player, slice, 5, 20)) {
+            if (activeInfo != null && isTimeToUpdate(activeInfo.data, player, slice, 5, 20)) {
                 activeInfo.updateMap(player);
             }
             if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
@@ -177,7 +185,7 @@ public class MapAtlasesServerEvents {
             }
             //remove existing maps and tries to fill in remaining nones
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                    d -> d.data().x == e.x && d.data().z == e.y));
+                    d -> d.data.x == e.x && d.data.z == e.y));
             for (var edge : discoveringEdges) {
                 maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
             }
@@ -209,23 +217,23 @@ public class MapAtlasesServerEvents {
 
     private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
         var m = queues.computeIfAbsent(player, a -> new HashMap<>());
-        Set<MapDataHolder> existing = new HashSet<>();
-        for (var v : nearbyExistentMaps) {
-            existing.add(v);
-            m.computeIfAbsent(d, a -> new MapUpdateTicket(d));
+        Set<Integer> nearbyIds = new HashSet<>();
+        for (var holder : nearbyExistentMaps) {
+            nearbyIds.add(holder.id);
+            m.computeIfAbsent(holder.id, a -> new MapUpdateTicket(holder));
         }
         int px = player.getBlockX();
         int pz = player.getBlockZ();
         var it = m.entrySet().iterator();
         while (it.hasNext()) {
             var t = it.next();
-            if (!existing.contains(t.getKey())) {
+            if (!nearbyIds.contains(t.getKey())) {
                 it.remove();
             } else t.getValue().updatePriority(px, pz);
         }
         MapUpdateTicket selected = m.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
         selected.waitTime = 0;
-        return selected.data;
+        return selected.holder;
     }
 
 
@@ -338,10 +346,10 @@ public class MapAtlasesServerEvents {
             Integer mapId = MapItem.getMapId(newMap);
 
             if (mapId != null) {
-                var newData = MapAtlasesAccessUtils.findMapFromId(level,mapId);
+                MapDataHolder newData = MapDataHolder.findFromId(level,mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    MapAtlasesAccessUtils.updateMapDataAndSync(newData.getSecond(), mapId, player, newMap);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap);
                 }
                 addedMap = maps.add(mapId, level);
             }

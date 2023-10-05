@@ -37,7 +37,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     @Override
     public List<Component> createTooltip() {
         return List.of(slice == null ? Component.translatable("item.map_atlases.atlas.tooltip_slice_default") :
-                Component.translatable("item.map_atlases.atlas.tooltip_slice", slice.getName().getString()));
+                Component.translatable("item.map_atlases.atlas.tooltip_slice", slice.type().getName().getString()));
     }
 
     public Slice getSlice() {
@@ -64,7 +64,7 @@ public class SliceBookmarkButton extends BookmarkButton {
             Component text = h != null ? Component.literal(String.valueOf(h)) :
                     Component.translatable("message.map_atlases.atlas.slice_default");
             GuiComponent.drawCenteredString(pose, parentScreen.getMinecraft().font,
-                text, this.x     + (compact ? 15 : 39), this.y + 7, -1);
+                text, this.x     + (compact ? 17 : 39), this.y + 7, -1);
         }
 
         pose.popPose();

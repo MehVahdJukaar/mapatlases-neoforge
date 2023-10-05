@@ -5,29 +5,26 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
-import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
+import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,28 +32,24 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MoonlightCompat {
-
+//TODO: fix
 
     public static DecorationBookmarkButton makeCustomButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration) {
         return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration);
     }
 
-    public static Collection<Pair<Object, MapDataHolder>> getCustomDecorations(MapDataHolder data) {
-        return ((ExpandedMapData) data.data()).getCustomDecorations().values().stream()
-                .map(a -> Pair.of((Object) a, data)).toList();
+    public static Collection<Pair<Object, MapDataHolder>> getCustomDecorations(MapDataHolder map) {
+        return ((ExpandedMapData) map.data).getCustomDecorations().values().stream()
+                .map(a -> Pair.of((Object) a, map)).toList();
     }
 
-    public static void addDecoration(MapItemSavedData second, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        var type = MapDecorationRegistry.get(id);
-        if(type != null){
-            MapBlockMarker<?> defaultMarker = type.getDefaultMarker(pos);
-            var decoration = defaultMarker.createDecorationFromMarker(second);
-            if (decoration != null) {
-                decoration.setDisplayName(name);
-                ExpandedMapData data = (ExpandedMapData) second;
-                data.getCustomDecorations().put(defaultMarker.getMarkerId(), decoration);
-                data.setCustomDecorationsDirty();
-            }
+    public static void addDecoration(MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
+        var type = MapDataRegistry.get(id);
+        if (type != null) {
+            MapBlockMarker<?> defaultMarker = type.createEmptyMarker();
+            defaultMarker.setPos( pos);
+            defaultMarker.setName(name);
+            ((ExpandedMapData)data).addCustomMarker(defaultMarker);
         }
     }
 
@@ -78,12 +71,12 @@ public class MoonlightCompat {
 
         @Override
         public double getWorldX() {
-            return data.data().x - getDecorationPos(decoration.getX(), data.data());
+            return mapData.data.x - getDecorationPos(decoration.getX(), mapData.data);
         }
 
         @Override
         public double getWorldZ() {
-            return data.data().z - getDecorationPos(decoration.getY(), data.data());
+            return mapData.data.z - getDecorationPos(decoration.getY(), mapData.data);
         }
 
         @Override
@@ -92,9 +85,9 @@ public class MoonlightCompat {
         }
 
         @Override
-        public List<Component> createTooltip() {
+        public Component getDecorationName() {
             Component displayName = decoration.getDisplayName();
-            Component mapIconComponent = displayName == null
+            return displayName == null
                     ? Component.literal(
                     AtlasOverviewScreen.getReadableName(Utils.getID(decoration.getType()).getPath()
                             .toLowerCase(Locale.ROOT)))
@@ -113,7 +106,7 @@ public class MoonlightCompat {
 
             DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
 
-            if(renderer != null) {
+            if (renderer != null) {
 
                 matrices.translate(x + width / 2f, y + height / 2f, 1.0D);
 
@@ -124,7 +117,7 @@ public class MoonlightCompat {
                 var buffer = pGuiGraphics.bufferSource();
 
                 renderer.render(decoration, matrices,
-                        vertexBuilder, buffer, data.data(),
+                        vertexBuilder, buffer, mapData.data,
                         false, LightTexture.FULL_BRIGHT, index);
 
 
@@ -137,11 +130,11 @@ public class MoonlightCompat {
 
         @Override
         protected void deleteMarker() {
-            Map<String, CustomMapDecoration> decorations = ((ExpandedMapData) data.data()).getCustomDecorations();
+            Map<String, CustomMapDecoration> decorations = ((ExpandedMapData) mapData.data).getCustomDecorations();
             for (var d : decorations.entrySet()) {
                 CustomMapDecoration deco = d.getValue();
                 if (deco == decoration) {
-                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(data.stringId(), deco.hashCode()));
+                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
                     decorations.remove(d.getKey());
                     return;
                 }

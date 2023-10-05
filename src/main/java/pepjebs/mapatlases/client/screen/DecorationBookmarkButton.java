@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
@@ -11,14 +12,18 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.List;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
@@ -30,14 +35,14 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
-    protected final MapDataHolder data;
+    protected final MapDataHolder mapData;
 
     protected int index = 0;
     protected boolean shfting = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
-        this.data = data;
+        this.mapData = data;
     }
 
     public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, MapDataHolder data, AtlasOverviewScreen screen) {
@@ -83,6 +88,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     public abstract double getWorldZ();
 
+    public abstract Component getDecorationName();
 
     protected static double getDecorationPos(int decoX, MapItemSavedData data) {
         float s = (1 << data.scale) * (float) MAP_DIMENSION;
@@ -108,6 +114,28 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
     }
 
+    @Override
+    public Tooltip createTooltip() {
+        Component mapIconComponent = getDecorationName();
+        // draw text
+        MutableComponent coordsComponent = Component.literal("X: " + getWorldX() + ", Z: " + getWorldZ());
+        MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
+        var t = Tooltip.create(mapIconComponent);
+        var t2 = Tooltip.create(formattedCoords);
+        lines.setAccessible(true);
+        ArrayList<FormattedCharSequence> merged =
+                new ArrayList<>(t.toCharSequence(parentScreen.getMinecraft()));
+        merged.addAll(t2.toCharSequence(parentScreen.getMinecraft()));
+        try {
+            lines.set(t, ImmutableList.copyOf(merged));
+        } catch (Exception ignored) {
+        }
+        return t;
+    }
+
+    private static final Field lines = ObfuscationReflectionHelper.findField(Tooltip.class, "cachedTooltip");
+
+
     public static class Vanilla extends DecorationBookmarkButton {
 
         private final MapDecoration decoration;
@@ -120,15 +148,19 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         public double getWorldX() {
-            return data.data().x - getDecorationPos(decoration.getX(), data.data());
+            return mapData.data.x - getDecorationPos(decoration.getX(), mapData.data);
         }
 
         @Override
         public double getWorldZ() {
-            return data.data().z - getDecorationPos(decoration.getY(), data.data());
+            return mapData.data.z - getDecorationPos(decoration.getY(), mapData.data);
         }
 
+
         @Override
+        public Component getDecorationName() {
+            var name = decoration.getName();
+            return name == null
         public List<Component> createTooltip() {
             Component name = decoration.getName();
             Component mapIconComponent = name == null
@@ -169,17 +201,18 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         protected void deleteMarker() {
-            Map<String, MapDecoration> decorations = data.data().decorations;
-            for(var d : decorations.entrySet()){
-               var deco = d.getValue();
-               if(deco == decoration){
-                   //we cant use string id because server has them diferent...
-                   MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(data.stringId(), deco.hashCode()));
-                   decorations.remove(d.getKey());
-                   return;
-               }
-           }
+            Map<String, MapDecoration> decorations = mapData.data.decorations;
+            for (var d : decorations.entrySet()) {
+                var deco = d.getValue();
+                if (deco == decoration) {
+                    //we cant use string id because server has them diferent...
+                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
+                    decorations.remove(d.getKey());
+                    return;
+                }
+            }
         }
     }
+
 
 }

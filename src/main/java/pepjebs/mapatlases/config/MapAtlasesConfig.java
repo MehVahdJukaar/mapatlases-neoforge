@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.config;
 
+import net.mehvahdjukaar.moonlight.core.mixins.MapDataMixin;
 import net.minecraftforge.common.ForgeConfigSpec;
 import pepjebs.mapatlases.utils.ActivationLocation;
 
@@ -46,7 +47,7 @@ public class MapAtlasesConfig {
                 .define("creative_teleport", true);
 
         pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
-                .define("pin_marked_id", "minecraft:target_point");
+                .define("pin_marked_id", "map_atlases:pin");
 
         builder.push("update_logic");
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
@@ -56,7 +57,7 @@ public class MapAtlasesConfig {
 
 
         builder.pop();
-
+MapDataMixin
         spec = builder.build();
     }
 

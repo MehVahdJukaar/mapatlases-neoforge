@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 import twilightforest.item.MagicMapItem;
 
@@ -19,12 +20,6 @@ import java.util.Objects;
 public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, Slice slice) {
     public boolean isSameDimSameSlice(ResourceKey<Level> dimension, Slice slice) {
         return this.dimension.equals(dimension) && Objects.equals(slice, this.slice);
-    }
-
-    @Deprecated(forRemoval = true)
-    public static MapKey of(String s, MapItemSavedData d) {
-        var data = d.getSecond();
-        return new MapKey(data.dimension, data.x, data.z, Slice.of(d));
     }
 
     public static MapKey at(byte scale, double px, double pz, ResourceKey<Level> dimension, Slice slice) {

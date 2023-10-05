@@ -111,22 +111,22 @@ public class MapAtlasesAccessUtils {
             ItemStack atlas
     ) {
         MapAtlasesMod.setMapInInentoryHack(true);
-        holder.data().tickCarriedBy(player, atlas);
+        holder.data.tickCarriedBy(player, atlas);
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
         MapAtlasesMod.setMapInInentoryHack(false);
     }
 
-    public static void syncMapDataToClient(MapDataHolder data, ServerPlayer player) {
-        //ok so hear me out. we use this to send new map data to the client when needed. thing is this packet isnt enough on its own
+    public static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {
+        //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
         // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
         //TODO: maybe use isComplex  update packet and inventory tick
-        Packet<?> p = data.data().getUpdatePacket(data.intId(), player);
+        Packet<?> p = holder.data.getUpdatePacket(holder.id, player);
         if (p != null) {
             if (MapAtlasesMod.MOONLIGHT) {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(data.data(), pp));
+                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
             }
         }
     }

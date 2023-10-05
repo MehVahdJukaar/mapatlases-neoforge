@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.recipe;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -10,10 +9,8 @@ import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -64,8 +61,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
-                if (d.data().scale != atlasScale) return false;
-                if (maps.select(d.key()) != null) return false;
+                if (d.data.scale != atlasScale) return false;
+                if (maps.select(d.makeKey()) != null) return false;
             }
             levelRef = new WeakReference<>(level);
             return true;

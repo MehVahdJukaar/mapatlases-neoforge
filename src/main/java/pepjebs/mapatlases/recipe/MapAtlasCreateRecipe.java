@@ -97,14 +97,14 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
         }
-        MapDataHolder mapState = MapDataHolder.findFromId(level, mapId);
-        if (mapState == null) return ItemStack.EMPTY;
+        MapDataHolder holder = MapDataHolder.findFromId(level, mapId);
+        if (holder == null) return ItemStack.EMPTY;
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         atlas.getOrCreateTag();
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, mapState.slice(), level.dimension());
+        MapAtlasItem.setSelectedSlice(atlas, holder.slice, level.dimension());
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
         }

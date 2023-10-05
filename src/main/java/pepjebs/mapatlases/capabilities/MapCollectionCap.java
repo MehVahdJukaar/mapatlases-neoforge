@@ -16,8 +16,8 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -110,7 +110,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
         MapDataHolder found = MapDataHolder.findFromId(level, intId);
         if (this.isEmpty() && found != null) {
-            scale = found.data().scale;
+            scale = found.data.scale;
         }
 
         if (d == null) {
@@ -137,11 +137,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                 return false;
             }
         }
-        MapItemSavedData d = found.data();
-        String mapString = found.stringId();
+        MapItemSavedData d = found.data;
 
         if (d != null && d.scale == scale) {
-            MapKey key = found.key();
+            MapKey key = found.makeKey();
 
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
@@ -167,18 +166,16 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public boolean remove(MapDataHolder mapKey) {
+    public boolean remove(MapDataHolder map) {
         assertInitialized();
-
-        ids.remove(mapId);
-        if (k != null) {
+        boolean success = ids.remove(map.id);
+        if (maps.remove(map.makeKey()) != null) {
             dimensionSlices.clear();
-            for (var j : keysMap.values()) {
+            for (var j : maps.keySet()) {
                 addToDimensionMap(j);
             }
-            return maps.remove(k) !=null;
         }
-        return false;
+        return success;
     }
 
     private void addToDimensionMap(MapKey j) {
@@ -237,10 +234,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     @Override
     public List<MapDataHolder> filterSection(ResourceKey<Level> dimension, Slice slice,
-                                                              Predicate<MapItemSavedData> predicate) {
+                                             Predicate<MapItemSavedData> predicate) {
         assertInitialized();
         return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice)
-                        && predicate.test(e.getValue().data()))
+                        && predicate.test(e.getValue().data))
                 .map(Map.Entry::getValue).toList());
     }
 
@@ -263,7 +260,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                     minDistState = e.getValue();
                     continue;
                 }
-                if (distSquare(minDistState.data(), x, z) > distSquare(e.getValue().data(), x, z)) {
+                if (distSquare(minDistState.data, x, z) > distSquare(e.getValue().data, x, z)) {
                     minDistState = e.getValue();
                 }
             }

@@ -302,7 +302,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     }
 
     public void resetZoom() {
-        this.targetZoomLevel = atlasesCount * mapScreen.getSelectedSlice().getDefaultZoomFactor();
+        this.targetZoomLevel = atlasesCount * mapScreen.getSelectedSlice().type().getDefaultZoomFactor();
     }
 
     public void tick() {

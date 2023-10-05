@@ -108,7 +108,7 @@ public class AtlasOverviewScreen extends Screen {
         } else {
             //if it has no maps here, grab a random one
             this.initialMapSelected = maps.getAll().stream().findFirst().get();
-            dim = initialMapSelected.data().dimension;
+            dim = initialMapSelected.data.dimension;
         }
         //improve for wrong dimension atlas
         this.initialWorldSelected = dim;
@@ -180,13 +180,13 @@ public class AtlasOverviewScreen extends Screen {
 
         this.mapWidget = this.addRenderableWidget(new MapWidget(
                 (width - MAP_WIDGET_WIDTH) / 2,
-                (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 1 : 5),
+                (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 2 : 5),
                 MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
                 this, initialMapSelected));
 
         this.setFocused(mapWidget);
 
-        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty()) {
+        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT) {
             this.addRenderableWidget(new PinButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16, this));
         }
@@ -245,7 +245,7 @@ public class AtlasOverviewScreen extends Screen {
         if (false && lectern != null && currentSelectedDimension.equals(lectern.getLevel().dimension())) {
             var data = MapAtlasItem.getMaps(atlas, level).getClosest(
                     lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
-                    currentSelectedDimension, selectedSlice).data();
+                    currentSelectedDimension, selectedSlice).data;
         }
     }
 
@@ -430,7 +430,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public MapItemSavedData getCenterMapForSelectedDim() {
         if (currentSelectedDimension.equals(initialWorldSelected)) {
-            return initialMapSelected.data();
+            return initialMapSelected.data;
         } else {
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
             MapItemSavedData best = null;
@@ -438,8 +438,8 @@ public class AtlasOverviewScreen extends Screen {
             float averageZ = 0;
             int count = 0;
             var slice = selectedSlice;
-            for (var m : maps.selectSection(currentSelectedDimension, slice)) {
-                MapItemSavedData d = m.data();
+            for (MapDataHolder holder : maps.selectSection(currentSelectedDimension, slice)) {
+                MapItemSavedData d = holder.data;
                 averageX += d.x;
                 averageZ += d.z;
                 count++;
@@ -461,7 +461,7 @@ public class AtlasOverviewScreen extends Screen {
             if (closest == null) {
                 int error = 1;
             }
-            return closest == null ? null : closest.data();
+            return closest == null ? null : closest.data;
             //centers to any map that has decoration
         }
     }
@@ -553,16 +553,16 @@ public class AtlasOverviewScreen extends Screen {
         List<Pair<Object, MapDataHolder>> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
-        for (var p : MapAtlasItem.getMaps(atlas, level).selectSection(currentSelectedDimension, selectedSlice)) {
-            MapItemSavedData data = p.data();
+        for (MapDataHolder holder : MapAtlasItem.getMaps(atlas, level).selectSection(currentSelectedDimension, selectedSlice)) {
+            MapItemSavedData data = holder.data;
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame()) {
-                    mapIcons.add(Pair.of(deco, p));
+                    mapIcons.add(Pair.of(deco, holder));
                 }
             }
             if (ml) {
-                mapIcons.addAll(MoonlightCompat.getCustomDecorations(p));
+                mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
             }
         }
         int i = 0;
@@ -657,10 +657,10 @@ public class AtlasOverviewScreen extends Screen {
     public void placePinAt(ColumnPos pos) {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         MapKey key = MapKey.at(maps.getScale(), pos.x(), pos.z(), currentSelectedDimension, selectedSlice);
-        MapDataHolder m = maps.select(key);
-        if (m != null) {
+        MapDataHolder selected = maps.select(key);
+        if (selected != null) {
             editBox.setValue("");
-            String mapName = m.stringId();
+            String mapName = selected.stringId;
             this.partialPin = Pair.of(mapName, pos);
             if (hasShiftDown() || hasAltDown()) {
                 editBox.active = true;

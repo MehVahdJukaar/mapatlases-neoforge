@@ -72,8 +72,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     mapatlases$selectedMapIndex = 0;
                 }
                 MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
-                ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.intId()
-                );
+                ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.id);
 
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();
@@ -166,8 +165,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
             var maps = MapAtlasItem.getMaps(atlas, level);
-            var m = maps.getAll().get(mapatlases$selectedMapIndex);
-            maps.remove(m.key());
+            MapDataHolder m = maps.getAll().get(mapatlases$selectedMapIndex);
+            maps.remove(m);
         });
     }
 
@@ -182,7 +181,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             if(l.get() == null){
                 try{
                     MapAtlasesClient.getClientAccess().execute((level, pos) -> l.set(level));
-                }catch (Exception ignored){};
+                }catch (Exception ignored){}
             }
             if(l.get() != null) {
                 if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
