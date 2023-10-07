@@ -1,10 +1,5 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
-import net.mehvahdjukaar.moonlight.core.mixins.HoldingPlayerMixin;
-import net.mehvahdjukaar.moonlight.core.mixins.MapDataMixin;
-import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
-import net.mehvahdjukaar.moonlight.core.mixins.MapRendererMixin;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceLocation;
