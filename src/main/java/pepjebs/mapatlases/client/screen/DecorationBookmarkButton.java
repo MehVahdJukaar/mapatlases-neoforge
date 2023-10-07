@@ -15,7 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -122,18 +121,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
         var t = Tooltip.create(mapIconComponent);
         var t2 = Tooltip.create(formattedCoords);
-        lines.setAccessible(true);
         ArrayList<FormattedCharSequence> merged =
                 new ArrayList<>(t.toCharSequence(parentScreen.getMinecraft()));
         merged.addAll(t2.toCharSequence(parentScreen.getMinecraft()));
-        try {
-            lines.set(t, ImmutableList.copyOf(merged));
-        } catch (Exception ignored) {
-        }
+        t.cachedTooltip = ImmutableList.copyOf(merged);
         return t;
     }
-
-    private static final Field lines = ObfuscationReflectionHelper.findField(Tooltip.class, "cachedTooltip");
 
 
     public static class Vanilla extends DecorationBookmarkButton {

@@ -19,7 +19,6 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -30,6 +29,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
@@ -89,6 +89,7 @@ public class MapAtlasesServerEvents {
 
     @SubscribeEvent
     public static void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         if (event.side == LogicalSide.CLIENT) {
             //caches client stuff
             MapAtlasesClient.cachePlayerState(event.player);
@@ -180,7 +181,7 @@ public class MapAtlasesServerEvents {
 
             //TODO : this isnt accurate and can be improved
             if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
-                maybeCreateNewMapEntry(player, atlas, maps ,slice, Mth.floor(player.getX()),
+                maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
                         Mth.floor(player.getZ()));
             }
             //remove existing maps and tries to fill in remaining nones
@@ -199,7 +200,7 @@ public class MapAtlasesServerEvents {
         int i = 1 << data.scale;
         int range;
         if (slice != null && MapAtlasesMod.SUPPLEMENTARIES) {
-            range =  (SupplementariesCompat.getSliceReach() / i);
+            range = (SupplementariesCompat.getSliceReach() / i);
         } else {
             range = 128 / i;
         }
@@ -346,7 +347,7 @@ public class MapAtlasesServerEvents {
             Integer mapId = MapItem.getMapId(newMap);
 
             if (mapId != null) {
-                MapDataHolder newData = MapDataHolder.findFromId(level,mapId);
+                MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap);
@@ -370,7 +371,7 @@ public class MapAtlasesServerEvents {
             int width,
             int xPlayer,
             int zPlayer,
-           int reach) {
+            int reach) {
 
 
         int halfWidth = width / 2;

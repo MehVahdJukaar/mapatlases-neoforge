@@ -57,7 +57,7 @@ public class MapAtlasesConfig {
 
 
         builder.pop();
-MapDataMixin
+
         spec = builder.build();
     }
 

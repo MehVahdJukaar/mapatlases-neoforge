@@ -16,8 +16,6 @@ public class MapAtlasesClientEvents {
     @SubscribeEvent
     public static void onKeyPressed(InputEvent.Key event) {
 
-
-
         if (Minecraft.getInstance().screen != null || event.getAction() != InputConstants.PRESS) return;
         if (!MapAtlasesClient.OPEN_ATLAS_KEYBIND.isUnbound() &&
                 event.getKey() == MapAtlasesClient.OPEN_ATLAS_KEYBIND.getKey().getValue()
