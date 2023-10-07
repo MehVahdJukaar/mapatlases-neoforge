@@ -98,9 +98,9 @@ public class MapAtlasesClient {
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             if (maps.select(currentActiveMapKey) == null) {
-                var closest = maps.getClosest(player, slice);
+                var closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level.dimension()));
                 if (closest != null) {
-                    currentActiveMapKey = MapKey.of(closest);
+                    currentActiveMapKey = MapKey.of(closest.getSecond());
                 }
             }
         } else currentActiveMapKey = null;
@@ -198,13 +198,7 @@ public class MapAtlasesClient {
         if (player == null) return;
         Level level = player.level;
 
-        //TODO: send less data and dont tick likehere. also send all data regardles of atlas or not
-        if (packet.isOnJoin) {
-           // ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-           // packet.mapData.tickCarriedBy(player, atlas);
-           // packet.mapData.getHoldingPlayer(player);
-        }
-        level.setMapData(packet.mapId, packet.mapData);
+        ( level).setMapData(packet.mapId, packet.mapData);
     }
 
     public static void setMapCenter(S2CSyncMapCenterPacket packet) {

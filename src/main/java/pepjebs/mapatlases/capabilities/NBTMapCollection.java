@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 // For fabric.
 // Or use cardinal components.
 // Less optimized as it deserializes the stuff every time but at least doesn't have syncing issues
+// for fabric. or use cardinal components. Less optimized as it deserializes the stuff every time but at least doesnt have syncing issues
 public class NBTMapCollection implements IMapCollection {
     private final ItemStack atlas;
 
@@ -59,6 +60,7 @@ public class NBTMapCollection implements IMapCollection {
 
     @Override
     public Collection<Slice.Type> getAvailableSlices(ResourceKey<Level> dimension) {
+    public Collection<Integer> getAvailableSlices(ResourceKey<Level> dimension) {
         return null;
     }
 
@@ -69,6 +71,7 @@ public class NBTMapCollection implements IMapCollection {
 
     @Override
     public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, Slice slice) {
+    public List<Pair<String, MapItemSavedData>> selectSection(ResourceKey<Level> dimension, @Nullable Integer slice) {
         return null;
     }
 
@@ -77,6 +80,10 @@ public class NBTMapCollection implements IMapCollection {
         return null;
     }
 
+
+    public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, @Nullable Integer slice, Predicate<MapItemSavedData> predicate) {
+        return null;
+    }
 
     @Override
     public Pair<String, MapItemSavedData> select(MapKey key) {
@@ -88,6 +95,10 @@ public class NBTMapCollection implements IMapCollection {
         return null;
     }
 
+
+    public @Nullable Pair<String, MapItemSavedData> getClosest(double x, double z, ResourceKey<Level> dimension, @Nullable Integer slice) {
+        return null;
+    }
 
     @Override
     public Collection<Pair<String, MapItemSavedData>> getAll() {

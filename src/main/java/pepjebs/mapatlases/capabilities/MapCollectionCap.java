@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.capabilities;
 
+import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
 import net.minecraft.client.gui.MapRenderer;
@@ -11,7 +12,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.common.capabilities.*;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -39,7 +43,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private final Map<ResourceKey<Level>, Map<Slice.Type, TreeSet<Integer>>> dimensionSlices = new HashMap<>();
     private byte scale = 0;
     private CompoundTag lazyNbt = null;
-    private final List<Integer> duplicates = new ArrayList<>();
+    private final Set<Integer> duplicates = new HashSet<>();
 
     public MapCollectionCap() {
     }
@@ -49,12 +53,12 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     private void assertInitialized() {
-        assert this.lazyNbt == null;
+        Preconditions.checkState(this.lazyNbt == null, "map collection capability was not initialized");
     }
 
     // if a duplicate exists its likely that its data was somehow not synced yet
     public void fixDuplicates(Level level){
-          duplicates.removeIf(i ->add(i, level));
+          duplicates.removeIf(i ->add(i, level)) ;
     }
 
     // we need leven context
@@ -64,10 +68,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         }
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
+            lazyNbt = null;
             for (int i : array) {
                 add(i, level);
             }
-            lazyNbt = null;
         }
     }
 
@@ -110,6 +114,16 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
             scale = found.getSecond().scale;
         }
 
+        if (d == null) {
+            if (level instanceof ServerLevel) {
+                ItemStack map = createMapItemStackFromId(intId);
+                d = MapItem.getSavedData(map, level);
+            } else {
+                //wait till we reiceie data from server
+                idMap.put(mapKey, intId);
+                if (!duplicates.contains(intId)) duplicates.add(intId);
+                return false;
+            }
         if (found == null) {
             if (level instanceof ServerLevel) {
                 // Create a default map if server doesnt have it. Should never happen
@@ -138,12 +152,10 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
                 //this should not happen anymire actually
                 var old = maps.get(key);
                 ids.add(intId);
-                duplicates.add(intId);
-                    if(!duplicates.contains(intId)) duplicates.add(intId);
-                return false;
-                //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
-                //we just store the map id without actually adding it as its map key is incorrect
-
+                    if (!duplicates.contains(intId)) duplicates.add(intId);
+                    return false;
+                    //if we reach here something went wrong. likely extra map data not being received yet. TODO: fix
+                    //we just store the map id without actually adding it as its map key is incorrect
                     //error
 
             }
@@ -234,9 +246,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     public List<Pair<String, MapItemSavedData>> filterSection(ResourceKey<Level> dimension, Slice slice,
                                                               Predicate<MapItemSavedData> predicate) {
         assertInitialized();
-        return maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice)
+        return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice)
                         && predicate.test(e.getValue().getSecond()))
-                .map(Map.Entry::getValue).toList();
+                .map(Map.Entry::getValue).toList());
     }
 
     @Nullable

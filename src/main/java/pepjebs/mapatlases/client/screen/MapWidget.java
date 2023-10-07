@@ -93,7 +93,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
         // Handle zooming markers hack
-        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
+        MapAtlasesClient.setDecorationsScale( zoomLevel * (float)(double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
         this.drawAtlas(poseStack, x, y, width, height, player, zoomLevel,
                 MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice());
@@ -323,7 +323,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
             animationProgress = Math.max(0, animationProgress);
         }
         if (this.zoomLevel != targetZoomLevel) {
-            zoomLevel = interpolate(targetZoomLevel, zoomLevel, animationSpeed);
+            zoomLevel = (float) interpolate(targetZoomLevel, zoomLevel, animationSpeed);
         }
         boolean test = true;
         if (this.currentXCenter != targetXCenter) {
@@ -345,12 +345,12 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         }
     }
 
-    private float interpolate(float targetZCenter, float currentZCenter, float animationSpeed) {
-        float diff = targetZCenter - currentZCenter;
+    private double interpolate(double targetZCenter, double currentZCenter, double animationSpeed) {
+        double diff = targetZCenter - currentZCenter;
         if (diff < 0) {
-            return Math.max(targetZCenter, currentZCenter + (diff * animationSpeed) - 0.001f);
+            return Math.max(targetZCenter, currentZCenter + (diff * animationSpeed) - 0.001);
         } else {
-            return Math.min(targetZCenter, currentZCenter + (diff * animationSpeed) + 0.001f);
+            return Math.min(targetZCenter, currentZCenter + (diff * animationSpeed) + 0.001);
         }
     }
 }

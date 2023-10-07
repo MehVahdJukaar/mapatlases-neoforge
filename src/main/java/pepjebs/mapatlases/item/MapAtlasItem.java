@@ -156,10 +156,7 @@ public class MapAtlasItem extends Item {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
 
-            Pair<String, MapItemSavedData> select = maps.select(MapAtlasesClient.getActiveMapKey());
-            if (select == null) return;
-            MapItemSavedData activeState = select.getSecond();
-            tooltip.add(Component.translatable("filled_map.scale", 1 << activeState.scale).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
 
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));

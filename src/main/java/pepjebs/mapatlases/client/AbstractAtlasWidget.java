@@ -47,8 +47,8 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
     private MapItemSavedData originalCenterMap;
 
     protected boolean followingPlayer = true;
-    protected float currentXCenter;
-    protected float currentZCenter;
+    protected double currentXCenter;
+    protected double currentZCenter;
     protected float zoomLevel = 3;
 
     protected boolean rotatesWithPlayer = false;
@@ -70,7 +70,6 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     public void drawAtlas(PoseStack poseStack, int x, int y, int width, int height,
                           Player player, float zoomLevelDim, boolean showBorders, Slice slice) {
-
 
         poseStack.pushPose();
 
@@ -101,8 +100,8 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
         applyScissors(poseStack, x, y, (x + width), (y + height));
 
-        float mapCenterOffsetX = currentXCenter - centerMapX;
-        float mapCenterOffsetZ = currentZCenter - centerMapZ;
+        double mapCenterOffsetX = currentXCenter - centerMapX;
+        double mapCenterOffsetZ = currentZCenter - centerMapZ;
 
         //zoom leve is essentially maps on screen
         //dont ask me why all this stuff is like that
@@ -113,7 +112,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
 
         //grid side len
-        float sideLength = mapPixelSize * zoomScale;
+        double sideLength = mapPixelSize * zoomScale;
         //radius of widget
         int radius = (int) (mapPixelSize * atlasesCount * 0.71f); // radius using hyp
 
@@ -190,7 +189,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     private void drawMap(
             Player player,
-            PoseStack matrices,
+            PoseStack poseStack,
             MultiBufferSource.BufferSource vcp,
             List<Matrix4f> outlineHack,
             int ix, int iy,
@@ -198,10 +197,10 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
             boolean drawPlayerIcons
     ) {
         // Draw the map
-        double curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2f;
-        double curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2f;
-        matrices.pushPose();
-        matrices.translate(curMapComponentX, curMapComponentY, 0.0);
+        int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
+        int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;
+        poseStack.pushPose();
+        poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
 
         // Remove the off-map player icons temporarily during render
         MapItemSavedData data = state.getSecond();
@@ -231,7 +230,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0.0f);
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
-                        matrices,
+                        poseStack,
                         vcp,
                         state.getFirst(),
                         data,
@@ -239,9 +238,9 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
                         LightTexture.FULL_BRIGHT //
                 );
 
-        outlineHack.add(new Matrix4f(matrices.last().pose()));
+        outlineHack.add(new Matrix4f(poseStack.last().pose()));
 
-        matrices.popPose();
+        poseStack.popPose();
         // Re-add the off-map player icons after render
         for (Map.Entry<String, MapDecoration> e : removed) {
             data.decorations.put(e.getKey(), e.getValue());
