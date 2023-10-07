@@ -72,7 +72,7 @@ public class MapAtlasesServerEvents {
     }
 
     @SubscribeEvent
-    public static void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event) {
+    public static void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent.Post event) {
         if (event.side == LogicalSide.CLIENT) {
             //caches client stuff
             MapAtlasesClient.cachePlayerState(event.player);
