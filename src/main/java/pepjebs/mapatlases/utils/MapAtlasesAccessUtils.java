@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -19,6 +20,10 @@ import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
+
+import java.util.AbstractMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MapAtlasesAccessUtils {
 
@@ -131,4 +136,21 @@ public class MapAtlasesAccessUtils {
         }
     }
 
+
+
+    // KEEP NAME
+    @Deprecated(forRemoval = true)
+    public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level level, ItemStack atlas) {
+        return MapAtlasItem.getMaps(atlas, level).getAll().stream().collect(Collectors.toMap(a->a.stringId, a->a.data));
+    }
+
+    // KEEP NAME
+    @Deprecated(forRemoval = true)
+    public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(
+            Map<String, MapItemSavedData> currentDimMapInfos,
+            ServerPlayer player) {
+        ItemStack atlas = getAtlasFromPlayerByConfig(player);
+        var a = getActiveStateServer(atlas, player);
+        return new AbstractMap.SimpleEntry<>(a.stringId, a.data);
+    }
 }

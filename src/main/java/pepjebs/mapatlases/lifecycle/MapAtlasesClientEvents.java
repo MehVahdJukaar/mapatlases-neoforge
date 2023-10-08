@@ -7,7 +7,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.C2SOpenAtlasPacket;
+import pepjebs.mapatlases.networking.C2SCOpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -24,7 +24,7 @@ public class MapAtlasesClientEvents {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
-                MapAtlasesNetworking.sendToServer(new C2SOpenAtlasPacket());
+                MapAtlasesNetworking.sendToServer(new C2SCOpenAtlasScreenPacket());
                 MapAtlasesClient.openScreen(atlas);
             }
         }

@@ -9,14 +9,17 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -28,17 +31,17 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.mixin.MapDataAccessor;
+import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.networking.S2CSyncMapCenterPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
@@ -91,6 +94,7 @@ public class MapAtlasesClient {
     );
 
     public static void cachePlayerState(Player player) {
+        if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
         if (!atlas.isEmpty()) {
@@ -101,10 +105,9 @@ public class MapAtlasesClient {
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
-                MapDataHolder closest = maps.getClosest(player, MapAtlasItem.getSelectedSlice(atlas, player.level.dimension()));
+                MapDataHolder closest = maps.getClosest(player, slice);
                 if (closest != null) {
                     currentActiveMapKey = closest.makeKey();
-                    currentActiveMapKey = MapKey.of(closest.getSecond());
                 }
             }
         } else currentActiveMapKey = null;
@@ -137,8 +140,8 @@ public class MapAtlasesClient {
     }
 
     @SubscribeEvent
-    public static void textures(TextureStitchEvent.Pre event){
-        if(event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)){
+    public static void textures(TextureStitchEvent.Pre event) {
+        if (event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)) {
             event.addSprite(END_TEXTURE.texture());
             event.addSprite(OVERWORLD_TEXTURE.texture());
             event.addSprite(NETHER_TEXTURE.texture());
@@ -161,14 +164,6 @@ public class MapAtlasesClient {
         event.register(INCREASE_MINIMAP_ZOOM);
     }
 
-    public static void modifyDecorationTransform(PoseStack poseStack) {
-        Float scale = globalDecorationScale.get();
-        if (scale != null) poseStack.scale(scale, scale, 1);
-        Float rot = globalDecorationRotation.get();
-        if (rot != null) {
-            poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
-        }
-    }
 
     @Deprecated(forRemoval = true)
     public static float getWorldMapZoomLevel() {
@@ -202,7 +197,7 @@ public class MapAtlasesClient {
         if (player == null) return;
         Level level = player.level;
 
-        ( level).setMapData(packet.mapId, packet.mapData);
+        (level).setMapData(packet.mapId, packet.mapData);
     }
 
     public static void setMapCenter(S2CSyncMapCenterPacket packet) {
@@ -225,6 +220,22 @@ public class MapAtlasesClient {
             Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
         }
     }
+    public static void openScreen(@Nullable BlockPos lecternPos) {
+        @Nullable LecternBlockEntity lectern = null;
+        ItemStack atlas = ItemStack.EMPTY;
+        var player = Minecraft.getInstance().player;
+        if (lecternPos == null) {
+            atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        } else {
+            if (player.level.getBlockEntity(lecternPos) instanceof LecternBlockEntity lec) {
+                lectern = lec;
+                atlas = lec.getBook();
+            }
+        }
+        if (atlas.getItem() instanceof MapAtlasItem) {
+            openScreen(atlas, lectern);
+        }
+    }
 
     public static void openScreen(ItemStack atlas) {
         openScreen(atlas, null);
@@ -244,9 +255,9 @@ public class MapAtlasesClient {
 
             Float rot = globalDecorationRotation.get();
             if (rot != null) {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+                poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
             }
-            poseStack.translate(-s*scale, 4*scale, 0);
+            poseStack.translate(-s * scale, 4 * scale, 0);
 
             poseStack.scale(scale, scale, 1);
         }
@@ -256,10 +267,28 @@ public class MapAtlasesClient {
     public static void modifyDecorationTransform(PoseStack poseStack) {
         Float rot = globalDecorationRotation.get();
         if (rot != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
         }
         Float scale = globalDecorationScale.get();
         if (scale != null) poseStack.scale(scale, scale, 1);
 
+    }
+
+    public static void handleMapPacketWrapperPacket(S2CMapPacketWrapper packet) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) return;
+
+        Minecraft.getInstance().player.connection.handleMapItemData(packet.packet);
+
+        var data = level.getMapData(MapItem.makeKey(packet.packet.getMapId()));
+        if (data instanceof MapDataAccessor d) {
+            try {
+                d.setX(packet.centerX);
+                d.setZ(packet.centerZ);
+                d.setDimension(ResourceKey.create(Registry.DIMENSION_REGISTRY, packet.dimension));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

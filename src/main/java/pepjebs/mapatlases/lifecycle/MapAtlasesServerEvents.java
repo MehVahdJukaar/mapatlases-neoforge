@@ -1,9 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -12,10 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
 import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -26,8 +21,6 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
-import pepjebs.mapatlases.networking.S2CSetMapDataPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -41,6 +34,7 @@ public class MapAtlasesServerEvents {
     private static final ReentrantLock mutex = new ReentrantLock();
 
     // Holds the current MapItemSavedData ID for each player
+    //maybe use weakhasmap with plauer
     @Deprecated(forRemoval = true)
     private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
     private static final WeakHashMap<Player, HashMap<Integer, MapUpdateTicket>> queues = new WeakHashMap<>();
@@ -54,36 +48,26 @@ public class MapAtlasesServerEvents {
         // we start with lowest for newly added entries
         private double lastDistance = 1000000;
         private double currentPriority; //bigger the better
-    }
 
         private MapUpdateTicket(MapDataHolder data) {
             this.holder = data;
-    @SubscribeEvent
-    public static void mapAtlasPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            mapAtlasPlayerJoinImpl(serverPlayer);
         }
-    }
 
-    public static void mapAtlasPlayerJoinImpl(ServerPlayer player) {
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-        if (atlas.isEmpty()) return;
-        //we need to send all data for all dimensions as they are not sent automatically
-        var mapInfos = MapAtlasItem.getMaps(atlas, player.level).getAll();
-        for (var info : mapInfos) {
-            String mapId = info.getFirst();
-            MapItemSavedData state = info.getSecond();
-            state.tickCarriedBy(player, atlas);
-            state.getHoldingPlayer(player);
+        public double getPriority() {
+            return currentPriority;
+        }
 
         public void updatePriority(int px, int pz) {
             this.waitTime++;
-            double distSquared = Mth.lengthSquared(px - holder.data.centerX, pz - holder.data.centerZ);
+            double distSquared = Mth.lengthSquared(px - holder.data.x, pz - holder.data.z);
             // Define weights for distance and waitTime
             double distanceWeight = 20; // Adjust this based on your preference
             double waitTimeWeight = 1; // Adjust this based on your preference
-            MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetMapDataPacket(mapId, state, true));
 
+            // Calculate the priority using a weighted sum
+            double deltaDist = distanceWeight * (lastDistance - distSquared); //for maps getting closer
+            this.currentPriority = deltaDist + (waitTimeWeight * this.waitTime * this.waitTime);
+            this.lastDistance = distSquared;
         }
     }
 
@@ -155,24 +139,12 @@ public class MapAtlasesServerEvents {
                 activeInfo.updateMap(player);
             }
             if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
-                maybeCreateNewMapEntry(player, atlas, Mth.floor(player.getX()),
-                        Mth.floor(player.getZ()));
-            }else nearbyExistentMaps.add(activeInfo);
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             // this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
                 MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas);
                 //if data has changed, a packet will be sent
-                updateMapDataForPlayer(mapInfo, player, atlas);
-            }
-
-            // updateColors is *easily* the most expensive function in the entire server tick
-            // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
-            if (!nearbyExistentMaps.isEmpty()) {
-                var selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size());
-                updateMapColorsForPlayer(selected.getSecond(), player);
-                //TODO: update active one more frequently
             }
 
             // Create new Map entries
@@ -188,7 +160,7 @@ public class MapAtlasesServerEvents {
             discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
                     d -> d.data.x == e.x && d.data.z == e.y));
             for (var edge : discoveringEdges) {
-                maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+                maybeCreateNewMapEntry(player, atlas, maps, slice, (int) edge.x, (int) edge.y);
             }
 
         }
@@ -204,11 +176,11 @@ public class MapAtlasesServerEvents {
         } else {
             range = 128 / i;
         }
-        Level level = player.level();
+        Level level = player.level;
         int rx = level.random.nextIntBetweenInclusive(-range, range);
         int rz = level.random.nextIntBetweenInclusive(-range, range);
-        int x = (int) Mth.clamp((player.getX() + rx - data.centerX) / i + 64, 0, 127);
-        int z = (int) Mth.clamp((player.getZ() + rz - data.centerZ) / i + 64, 0, 127);
+        int x = (int) Mth.clamp((player.getX() + rx - data.x) / i + 64, 0, 127);
+        int z = (int) Mth.clamp((player.getZ() + rz - data.z) / i + 64, 0, 127);
         boolean filled = data.colors[x + z * 128] != 0;
 
         int interval = filled ? max : min;
@@ -245,42 +217,7 @@ public class MapAtlasesServerEvents {
         return Mth.square(key.mapX() - player.getX()) + Mth.square(key.mapZ() - player.getZ()) > width * width;
     }
 
-    private static void updateMapDataForPlayer(
-            Pair<String, MapItemSavedData> mapInfo,
-            ServerPlayer player,
-            ItemStack atlas
-    ) {
-        mapInfo.getSecond().tickCarriedBy(player, atlas);
-        relayMapItemSavedDataSyncToPlayerClient(mapInfo, player);
-    }
-
-    private static void updateMapColorsForPlayer(
-            MapItemSavedData state,
-            ServerPlayer player) {
-        ((MapItem) Items.FILLED_MAP).update(player.level, player, state);
-    }
-
-    public static void relayMapItemSavedDataSyncToPlayerClient(
-            Pair<String, MapItemSavedData> mapInfo,
-            ServerPlayer player
-    ) {
-        int mapId = MapAtlasesAccessUtils.getMapIntFromString(mapInfo.getFirst());
-        //TODO make better
-
-        Packet<?> p = null;
-        int tries = 0;
-        while (p == null && tries < 1) {
-            //we sent at vanilla rate. when new is created we sent packet immediately (not here)
-            //WHY??
-            p = mapInfo.getSecond().getUpdatePacket(mapId, player);
-            tries++;
-        }
-        if (p != null) {
-            //TODO: maybe use isComplex  update packet and inventory tick
-            player.connection.send(p);
-        }
-    }
-
+    @Deprecated(forRemoval = true)
     private static String relayActiveMapIdToPlayerClient(
             Pair<String, MapItemSavedData> activeInfo,
             ServerPlayer player
@@ -291,7 +228,8 @@ public class MapAtlasesServerEvents {
             boolean addingPlayer = cachedMapId == null;
             // Players that pick up an atlas will need their MapItemSavedDatas initialized
             if (addingPlayer) {
-                mapAtlasPlayerJoinImpl(player);
+                ItemStack stack = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+                // MapAtlasItem.syncAndOpenGui(player, stack);
             }
             String currentMapId = activeInfo.getFirst();
             if (addingPlayer || !currentMapId.equals(cachedMapId)) {
@@ -343,7 +281,7 @@ public class MapAtlasesServerEvents {
 
             //TODO: create custom ones
 
-            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level());
+            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level);
             Integer mapId = MapItem.getMapId(newMap);
 
             if (mapId != null) {
@@ -392,7 +330,9 @@ public class MapAtlasesServerEvents {
                         qJ += width;
                     }
                     // does not add duplicates this way
-                    results.add(new Vec2(qI, qJ));
+                    if (!(qI == xCenter && qJ == zCenter)) {
+                        results.add(new Vec2(qI, qJ));
+                    }
                 }
             }
         }

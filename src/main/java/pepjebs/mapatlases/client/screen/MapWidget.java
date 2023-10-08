@@ -144,7 +144,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
 
         }
         if (this.isHovered && !mapScreen.isEditingText()) {
-            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
+            this.renderPositionText(poseStack, mc.font, pMouseX, pMouseY);
 
             if (mapScreen.canTeleport()) {
                 mapScreen.renderTooltip(poseStack,
@@ -153,10 +153,10 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
                         pMouseX, pMouseY);
             }
         }
-        renderScaleText(graphics, mc);
+        renderScaleText(poseStack, mc);
     }
 
-    private void renderScaleText(GuiGraphics graphics, Minecraft mc) {
+    private void renderScaleText(PoseStack poseStack, Minecraft mc) {
         boolean animation = zoomLevel != targetZoomLevel;
         if (animation || scaleAlpha != 0) {
             if (animation) scaleAlpha = 1;
@@ -165,12 +165,11 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
             }
             int a = (int) (scaleAlpha * 255);
             if (a != 0) {
-                PoseStack poseStack = graphics.pose();
                 poseStack.pushPose();
                 poseStack.translate(0, 0, 4);
-                graphics.drawString(mc.font,
+                mc.font.draw(poseStack,
                         Component.translatable("message.map_atlases.map_scale", (int) targetZoomLevel),
-                        x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
+                        x, y + height - 8, FastColor.ARGB32.color(a, 255, 255, 255));
                 poseStack.popPose();
             }
         }

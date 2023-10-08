@@ -4,6 +4,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -76,17 +77,6 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     }
 
     private static MapDataHolder getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Slice slice) {
-        if (inv instanceof TransientCraftingContainer tc) {
-            try {
-                if (tc.menu instanceof CraftingMenu cm) {
-                    MapDataHolder c = maps.getClosest(cm.player, slice);
-                    if (c != null) {
-                        return c;
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        }
         return maps.getAll().stream().findAny().get();
     }
 

@@ -64,7 +64,7 @@ public class MapAtlasesMod {
     public static final boolean TRINKETS = ModList.get().isLoaded("trinkets");
     public static final boolean SUPPLEMENTARIES = false;//ModList.get().isLoaded("supplementaries");
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
-    public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
+    public static final boolean TWILIGHTFOREST = false;// ModList.get().isLoaded("twilightforest");
 
     static {
 

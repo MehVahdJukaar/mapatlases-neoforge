@@ -29,7 +29,7 @@ public class C2SRequestMapCenterPacket {
             if (player == null) return;
             MapItemSavedData data = player.level.getMapData(mapId);
             if(data != null) {
-                MapAtlasesNetowrking.sendToClientPlayer(player,
+                MapAtlasesNetworking.sendToClientPlayer(player,
                         new S2CSyncMapCenterPacket(mapId, data.x, data.z));
             }
         });

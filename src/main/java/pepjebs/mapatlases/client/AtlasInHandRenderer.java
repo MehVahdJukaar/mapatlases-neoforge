@@ -2,14 +2,14 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import org.joml.Matrix4f;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
@@ -31,8 +31,8 @@ public class AtlasInHandRenderer {
     public static void render(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, ItemStack pStack, Minecraft mc) {
         if (mc.screen instanceof AtlasOverviewScreen) return;
 
-        pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        pPoseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+        pPoseStack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
+        pPoseStack.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
         pPoseStack.scale(MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE);
         pPoseStack.translate(MAP_GLOBAL_X_POS, MAP_GLOBAL_Y_POS, MAP_GLOBAL_Z_POS);
         pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);

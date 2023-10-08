@@ -48,11 +48,11 @@ public class MapDataHolder {
     }
 
     public MapKey makeKey() {
-        return MapKey.at(data.scale, data.centerX, data.centerZ, data.dimension, slice);
+        return MapKey.at(data.scale, data.x, data.z, data.dimension, slice);
     }
 
     public void updateMap(ServerPlayer player) {
-        ((MapItem) type.filled).update(player.level(), player, data);
+        ((MapItem) type.filled).update(player.level, player, data);
     }
 
     //utility methods. merge with slice TODO

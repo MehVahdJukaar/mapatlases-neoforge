@@ -2,7 +2,6 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -21,11 +20,10 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack p = pGuiGraphics.pose();
+    public void renderButton(PoseStack p, int pMouseX, int pMouseY, float pPartialTick) {
         p.pushPose();
         p.translate(0, 0, 30);
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.renderButton(p, pMouseX, pMouseY, pPartialTick);
         p.popPose();
     }
 

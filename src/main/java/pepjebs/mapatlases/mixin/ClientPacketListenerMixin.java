@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import pepjebs.mapatlases.networking.C2SRequestMapCenterPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetowrking;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 
 @Mixin(ClientPacketListener.class)
 public class ClientPacketListenerMixin {
@@ -21,6 +21,6 @@ public class ClientPacketListenerMixin {
     locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     public void keepCenter(ClientboundMapItemDataPacket pPacket, CallbackInfo ci,
                            MapRenderer maprenderer, int i, String s, MapItemSavedData mapitemsaveddata){
-        MapAtlasesNetowrking.sendToServer(new C2SRequestMapCenterPacket(s));
+        MapAtlasesNetworking.sendToServer(new C2SRequestMapCenterPacket(s));
     }
 }

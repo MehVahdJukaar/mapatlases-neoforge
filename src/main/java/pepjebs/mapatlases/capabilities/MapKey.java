@@ -8,12 +8,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
-import twilightforest.item.MagicMapItem;
 
 import java.util.Objects;
 

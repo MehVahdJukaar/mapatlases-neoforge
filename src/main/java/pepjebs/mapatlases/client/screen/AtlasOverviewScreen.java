@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -186,7 +187,7 @@ public class AtlasOverviewScreen extends Screen {
 
         this.setFocused(mapWidget);
 
-        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT) {
+        if (false && !MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT) {
             this.addRenderableWidget(new PinButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16, this));
         }
@@ -206,9 +207,9 @@ public class AtlasOverviewScreen extends Screen {
 
                 }));
             } else {
-                this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
+                this.addRenderableWidget(new Button(this.width / 2 - 100, pY, 200, 20, CommonComponents.GUI_DONE, (p_99033_) -> {
                     this.onClose();
-                }).bounds(this.width / 2 - 100, pY, 200, 20).build());
+                }));
             }
 
         }
@@ -273,8 +274,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        PoseStack poseStack = graphics.pose();
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
 
         poseStack.pushPose();
 
@@ -363,7 +363,7 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
         RenderSystem.enableDepthTest();
         poseStack.translate(0, 0, editBox.active ? 22 : -20);
-        renderBackground(graphics);
+        renderBackground(poseStack);
         poseStack.popPose();
 
     }
@@ -499,12 +499,12 @@ public class AtlasOverviewScreen extends Screen {
             int error = 0;
             return;
         }
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ,
+        this.mapWidget.resetAndCenter(center.x, center.z,
                 initialWorldSelected.equals(dimension), changedDim);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentSelectedDimension));
         }
-        mapWidget.setFollowingPlayer(currentWorldSelected.equals(initialWorldSelected));
+        mapWidget.setFollowingPlayer(currentSelectedDimension.equals(initialWorldSelected));
         for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
@@ -666,7 +666,7 @@ public class AtlasOverviewScreen extends Screen {
                 editBox.active = true;
                 editBox.visible = true;
                 editBox.setCanLoseFocus(false);
-                editBox.setFocused(true);
+                editBox.changeFocus(true);
                 this.setFocused(editBox);
             } else {
                 addNewPin();

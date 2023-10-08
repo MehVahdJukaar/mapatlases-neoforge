@@ -53,8 +53,9 @@ public class SliceBookmarkButton extends BookmarkButton {
         RenderSystem.enableDepthTest();
 
         super.renderButton(pose, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
-                this.getX() + 8, this.getY() + 2, 51 + slice.type().ordinal() * 16,
+        RenderSystem.setShaderTexture(0,AtlasOverviewScreen.ATLAS_TEXTURE);
+        this.blit(pose,
+                this.x   + 8, this.y + 2, 51 + slice.type().ordinal() * 16,
                 167 + 66,
                 16, 16);
 
@@ -71,7 +72,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY, int button) {
+    public void onClick(double mouseX, double mouseY) {
         parentScreen.cycleSliceType();
     }
 

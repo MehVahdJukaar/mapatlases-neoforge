@@ -28,9 +28,9 @@ public class MapAtlasesNetworking {
                 S2CSyncMapCenterPacket::write, S2CSyncMapCenterPacket::new, S2CSyncMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-        CHANNEL.registerMessage(index++, C2SOpenAtlasPacket.class,
-                C2SOpenAtlasPacket::write, C2SOpenAtlasPacket::new, C2SOpenAtlasPacket::apply,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(index++, C2SCOpenAtlasScreenPacket.class,
+                C2SCOpenAtlasScreenPacket::write, C2SCOpenAtlasScreenPacket::new, C2SCOpenAtlasScreenPacket::apply,
+                Optional.empty());
         CHANNEL.registerMessage(index++, C2SRequestMapCenterPacket.class,
                 C2SRequestMapCenterPacket::write, C2SRequestMapCenterPacket::new, C2SRequestMapCenterPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));

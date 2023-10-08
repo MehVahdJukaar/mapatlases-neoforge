@@ -1,18 +1,13 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
-import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.MoonlightCompat;
@@ -21,8 +16,6 @@ import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.List;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
@@ -114,18 +107,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public Tooltip createTooltip() {
+    public List<Component> createTooltip() {
         Component mapIconComponent = getDecorationName();
         // draw text
         MutableComponent coordsComponent = Component.literal("X: " + getWorldX() + ", Z: " + getWorldZ());
         MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
-        var t = Tooltip.create(mapIconComponent);
-        var t2 = Tooltip.create(formattedCoords);
-        ArrayList<FormattedCharSequence> merged =
-                new ArrayList<>(t.toCharSequence(parentScreen.getMinecraft()));
-        merged.addAll(t2.toCharSequence(parentScreen.getMinecraft()));
-        t.cachedTooltip = ImmutableList.copyOf(merged);
-        return t;
+        return List.of(mapIconComponent, formattedCoords);
     }
 
 
@@ -154,6 +141,11 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Component getDecorationName() {
             var name = decoration.getName();
             return name == null
+                    ? Component.literal(
+                    AtlasOverviewScreen.getReadableName(decoration.getType().name().toLowerCase(Locale.ROOT)))
+                    : name;
+        }
+
         public List<Component> createTooltip() {
             Component name = decoration.getName();
             Component mapIconComponent = name == null

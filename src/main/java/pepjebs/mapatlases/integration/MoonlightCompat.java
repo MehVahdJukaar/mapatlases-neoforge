@@ -5,19 +5,19 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
-import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
@@ -44,12 +44,8 @@ public class MoonlightCompat {
     }
 
     public static void addDecoration(MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        var type = MapDataRegistry.get(id);
+        var type = MapDecorationRegistry.get(id);
         if (type != null) {
-            MapBlockMarker<?> defaultMarker = type.createEmptyMarker();
-            defaultMarker.setPos( pos);
-            defaultMarker.setName(name);
-            ((ExpandedMapData)data).addCustomMarker(defaultMarker);
         }
     }
 
@@ -92,11 +88,6 @@ public class MoonlightCompat {
                     AtlasOverviewScreen.getReadableName(Utils.getID(decoration.getType()).getPath()
                             .toLowerCase(Locale.ROOT)))
                     : displayName;
-
-            // draw text
-            MutableComponent coordsComponent = Component.literal("X: " + decoration.getX() + ", Z: " + decoration.getY());
-            MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
-            return List.of(mapIconComponent, formattedCoords);
         }
 
         @Override
@@ -104,7 +95,7 @@ public class MoonlightCompat {
             matrices.pushPose();
             super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
 
-            DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
+            DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientHandler.getRenderer(decoration);
 
             if (renderer != null) {
 
@@ -114,11 +105,9 @@ public class MoonlightCompat {
                 matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
                         -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
-                var buffer = pGuiGraphics.bufferSource();
-
-                renderer.render(decoration, matrices,
-                        vertexBuilder, buffer, mapData.data,
-                        false, LightTexture.FULL_BRIGHT, index);
+                var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
+                MapDecorationClientHandler.render(decoration, matrices,
+                        buffer, null, false, LightTexture.FULL_BRIGHT, 0);
 
 
             }
