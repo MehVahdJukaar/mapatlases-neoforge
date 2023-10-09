@@ -15,6 +15,8 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
@@ -26,9 +28,16 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class MoonlightCompat {
 //TODO: fix
+
+    public static void onLogin(MinecraftServer server){
+        String name = server.getWorldData().getLevelName()  ;
+        long id = server.overworld().getSeed();
+        int hash = Objects.hash(name, id);
+    }
 
     public static DecorationBookmarkButton makeCustomButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration) {
         return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration);
