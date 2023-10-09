@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MapItemMixin {
     @Inject(method = "update", at = @At(value = "INVOKE",
             target = "Lcom/google/common/collect/LinkedHashMultiset;create()Lcom/google/common/collect/LinkedHashMultiset;"),
-    cancellable = true)
+            cancellable = true)
     public void reduceUpdateNonGeneratedChunks(Level pLevel, Entity pViewer, MapItemSavedData pData, CallbackInfo ci,
                                                @Local(ordinal = 10) int worldX, @Local(ordinal = 11) int worldZ) {
         if (worldZ % 16 == 0 && worldX % 16 == 0) {
