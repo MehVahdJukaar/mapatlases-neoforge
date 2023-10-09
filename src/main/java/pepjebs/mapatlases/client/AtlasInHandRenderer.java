@@ -38,7 +38,7 @@ public class AtlasInHandRenderer {
         pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
 
         MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
-        MapDataHolder state = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).select(activeMapKey);
+        MapDataHolder state = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).selectWithKey(activeMapKey);
         if (state == null) return;
         MapItemSavedData data = state.data;
         VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);

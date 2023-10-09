@@ -102,7 +102,7 @@ public class AtlasOverviewScreen extends Screen {
         ResourceKey<Level> dim = level.dimension();
 
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
+        this.selectedSlice = MapAtlasItem.getSelectedSlic(atlas, dim);
         MapDataHolder closest = maps.getClosest(player, selectedSlice);
         if (closest != null) {
             this.initialMapSelected = closest;
@@ -325,24 +325,24 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
 
         poseStack.translate(width / 2f, height / 2f, 1);
-        RenderSystem.setShaderTexture(0, texture);
 
-        this.blit(
+        RenderSystem.setShaderTexture(0,texture);
+        blit(
                 poseStack,
                 H_BOOK_WIDTH - 10,
                 -H_BOOK_HEIGHT,
-                189,
+                OVERLAY_UR,
                 0,
                 5,
                 BOOK_HEIGHT,
                 TEXTURE_W,
                 256
         );
-        this.blit(
+        blit(
                 poseStack,
                 -H_BOOK_WIDTH + 5,
                 -H_BOOK_HEIGHT,
-                194,
+                OVERLAY_UL,
                 0,
                 5,
                 BOOK_HEIGHT,
@@ -468,7 +468,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     protected MapDataHolder findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-       return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, currentSelectedDimension, selectedSlice);
+       return MapAtlasItem.getMaps(atlas, level).selectWithKey(reqXCenter, reqZCenter, currentSelectedDimension, selectedSlice);
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -492,7 +492,7 @@ public class AtlasOverviewScreen extends Screen {
         boolean changedDim = currentSelectedDimension.equals(dimension);
         this.currentSelectedDimension = dimension;
         //we dont change slice when calling this from init as we want to use the atlas initial slice
-        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
+        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlic(atlas, dimension));
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
         if (center == null) {
@@ -657,7 +657,7 @@ public class AtlasOverviewScreen extends Screen {
     public void placePinAt(ColumnPos pos) {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         MapKey key = MapKey.at(maps.getScale(), pos.x(), pos.z(), currentSelectedDimension, selectedSlice);
-        MapDataHolder selected = maps.select(key);
+        MapDataHolder selected = maps.selectWithKey(key);
         if (selected != null) {
             editBox.setValue("");
             String mapName = selected.stringId;

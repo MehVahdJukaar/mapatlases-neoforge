@@ -27,6 +27,9 @@ public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, Slice sli
         return new MapKey(dimension, center.x(), center.z(),  slice);
     }
 
+    public static MapKey at(byte scale, Player player, Integer h) {
+        return at(scale, player, Slice.of(MapType.VANILLA,h));
+    }
     public static MapKey at(byte scale, Player player, Slice slice) {
         double px = player.getX();
         double pz = player.getZ();

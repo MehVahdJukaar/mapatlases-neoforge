@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.recipe;
 
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +61,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             // Ensure Filled Maps are all same Scale & Dimension
             for (var d : filledMaps) {
                 if (d.data.scale != atlasScale) return false;
-                if (maps.select(d.makeKey()) != null) return false;
+                if (maps.selectWithKey(d.makeKey()) != null) return false;
             }
             levelRef = new WeakReference<>(level);
             return true;

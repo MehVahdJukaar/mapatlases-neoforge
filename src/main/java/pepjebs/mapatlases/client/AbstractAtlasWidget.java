@@ -242,7 +242,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
                         LightTexture.FULL_BRIGHT //
                 );
 
-        outlineHack.add(new Matrix4f(poseStack.last().pose()));
+      //  outlineHack.add(new Matrix4f(poseStack.last().pose()));
 
         poseStack.popPose();
         // Re-add the off-map player icons after render

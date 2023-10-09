@@ -4,7 +4,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -64,7 +63,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         }
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         if (maps.getCount() > 1) {
-            var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
+            var slice = MapAtlasItem.getSelectedSlic(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
             MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
             return MapAtlasesAccessUtils.createMapItemStackFromId(toRemove.id);
@@ -94,7 +93,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 boolean didRemoveFilled = false;
                 MapCollectionCap maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
-                    var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
+                    var slice = MapAtlasItem.getSelectedSlic(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));
                     didRemoveFilled = true;
                 }

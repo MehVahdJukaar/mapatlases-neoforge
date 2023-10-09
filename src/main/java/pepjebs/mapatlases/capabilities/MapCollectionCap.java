@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.capabilities;
 
 import com.google.common.base.Preconditions;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
@@ -134,6 +135,8 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
+                ids.add(intId);
+                if (!duplicates.contains(intId)) duplicates.add(intId);
                 if (true) return false;
                 //remove duplicates
 
@@ -233,10 +236,16 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     @Nullable
     @Override
-    public MapDataHolder select(MapKey key) {
+    public MapDataHolder selectWithKey(MapKey key) {
         assertInitialized();
         return maps.get(key);
     }
+
+    public Pair<String,MapItemSavedData> select(MapKey key) {
+        var r = selectWithKey(key);
+        return Pair.of(r.stringId, r.data);
+    }
+
 
     @Nullable
     @Override

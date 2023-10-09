@@ -39,11 +39,11 @@ public interface IMapCollection {
                                                        Predicate<MapItemSavedData> predicate);
 
     @Nullable
-    default MapDataHolder select(int x, int z, ResourceKey<Level> dimension, Slice slice) {
-        return select(new MapKey(dimension, x, z, slice));
+    default MapDataHolder selectWithKey(int x, int z, ResourceKey<Level> dimension, Slice slice) {
+        return selectWithKey(new MapKey(dimension, x, z, slice));
     }
 
-    MapDataHolder select(MapKey key);
+    MapDataHolder selectWithKey(MapKey key);
 
 
     @Nullable

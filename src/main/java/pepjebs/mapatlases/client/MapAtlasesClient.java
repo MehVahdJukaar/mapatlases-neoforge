@@ -100,10 +100,10 @@ public class MapAtlasesClient {
         if (!atlas.isEmpty()) {
             var maps = MapAtlasItem.getMaps(atlas, player.level);
             maps.fixDuplicates(player.level);
-            Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
+            Slice slice = MapAtlasItem.getSelectedSlic(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
-            MapDataHolder select = maps.select(currentActiveMapKey);
+            MapDataHolder select = maps.selectWithKey(currentActiveMapKey);
             if (select == null) {
                 MapDataHolder closest = maps.getClosest(player, slice);
                 if (closest != null) {

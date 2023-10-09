@@ -105,9 +105,9 @@ public class MapAtlasesAccessUtils {
     }
 
     public static MapDataHolder getActiveStateServer(ItemStack stack, Player player) {
-        var slice = MapAtlasItem.getSelectedSlice(stack, player.level.dimension());
+        var slice = MapAtlasItem.getSelectedSlic(stack, player.level.dimension());
         MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level);
-        return maps.select(MapKey.at(maps.getScale(), player, slice));
+        return maps.selectWithKey(MapKey.at(maps.getScale(), player, slice));
     }
 
     public static void updateMapDataAndSync(

@@ -22,7 +22,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +69,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        return MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ, currentMapKey.dimension(), slice);
+        return MapAtlasItem.getMaps(currentAtlas, mc.level).selectWithKey(centerX, centerZ, currentMapKey.dimension(), slice);
     }
 
     @Override
@@ -151,7 +150,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (currentMapKey == null) return;
-        MapDataHolder activeMap = maps.select(currentMapKey);
+        MapDataHolder activeMap = maps.selectWithKey(currentMapKey);
         if (activeMap == null) {
             return;
         }

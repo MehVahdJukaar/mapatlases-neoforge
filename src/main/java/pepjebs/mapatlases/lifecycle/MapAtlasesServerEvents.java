@@ -87,7 +87,7 @@ public class MapAtlasesServerEvents {
             if (atlas.isEmpty()) return;
             Level level = player.level;
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-            Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+            Slice slice = MapAtlasItem.getSelectedSlic(atlas, level.dimension());
 
             // sets new center map
 
@@ -113,7 +113,7 @@ public class MapAtlasesServerEvents {
                             .anyMatch(edge -> edge.x == e.x
                                     && edge.y == e.z));
 
-            MapDataHolder activeInfo = maps.select(activeKey);
+            MapDataHolder activeInfo = maps.selectWithKey(activeKey);
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
                 maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
