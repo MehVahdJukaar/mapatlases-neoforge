@@ -31,7 +31,6 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.C2SMarkerPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.TakeAtlasPacket;
@@ -83,7 +82,7 @@ public class AtlasOverviewScreen extends Screen {
     private Slice selectedSlice;
     private boolean initialized = false;
     private boolean placingPin = false;
-    private Pair<String, ColumnPos> partialPin = null;
+    private Pair<MapDataHolder, ColumnPos> partialPin = null;
 
     public AtlasOverviewScreen(ItemStack atlas) {
         this(atlas, null);
@@ -320,7 +319,6 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
 
         poseStack.translate(width / 2f, height / 2f, 1);
-        RenderSystem.setShaderTexture(0, ATLAS_TEXTURE);
 
         graphics.blit(
                 texture,
@@ -646,8 +644,7 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder selected = maps.select(key);
         if (selected != null) {
             editBox.setValue("");
-            String mapName = selected.stringId;
-            this.partialPin = Pair.of(mapName, pos);
+            this.partialPin = Pair.of(selected, pos);
             if (hasShiftDown() || hasAltDown()) {
                 editBox.active = true;
                 editBox.visible = true;
@@ -663,15 +660,16 @@ public class AtlasOverviewScreen extends Screen {
 
     private void addNewPin() {
         if (partialPin != null) {
-            String value = editBox.getValue();
-            MapAtlasesNetworking.sendToServer(new C2SMarkerPacket(partialPin.getSecond(), partialPin.getFirst(),
-                    value.isEmpty() ? null : value));
+            String text = editBox.getValue();
+            PinButton.placePin( partialPin.getFirst(), partialPin.getSecond(),text);
             this.setFocused(mapWidget);
             editBox.active = false;
             editBox.visible = false;
             partialPin = null;
         }
     }
+
+
 
     public boolean canTeleport() {
         return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() && !placingPin && !editBox.active;

@@ -27,6 +27,7 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -67,19 +68,18 @@ public class MapAtlasesMod {
     public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
 
     static {
-
         //lectern marker
-//sound
-        //ml deco
-        //lectern gui handler
+        //sound
         //spyglass zoom
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
-
+        bus.addListener(MapAtlasesMod::addItemsToTabs);
         bus.addListener(MapCollectionCap::register);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             MapAtlasesClient.init();
         }
+
+        if(MOONLIGHT) MoonlightCompat.init();
 
         RECIPES.register(bus);
         MENU_TYPES.register(bus);
@@ -104,7 +104,6 @@ public class MapAtlasesMod {
         MapAtlasesNetworking.register();
 
         MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
-        bus.addListener(MapAtlasesMod::addItemsToTabs);
     }
 
     public static void addItemsToTabs(BuildCreativeModeTabContentsEvent event) {
@@ -133,11 +132,11 @@ public class MapAtlasesMod {
         return hack;
     }
 
-    public static void setMapInInentoryHack(boolean value){
+    public static void setMapInInentoryHack(boolean value) {
         hack = value;
     }
-    private static boolean hack = false;
 
+    private static boolean hack = false;
 
 
 }

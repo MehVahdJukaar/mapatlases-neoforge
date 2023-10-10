@@ -24,6 +24,9 @@ public class MapAtlasesNetworking {
         CHANNEL.registerMessage(index++, S2CMapPacketWrapper.class,
                 S2CMapPacketWrapper::write, S2CMapPacketWrapper::new, S2CMapPacketWrapper::apply,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(index++, S2CWorldHashPacket.class,
+                S2CWorldHashPacket::write, S2CWorldHashPacket::new, S2CWorldHashPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
         CHANNEL.registerMessage(index++, C2S2COpenAtlasScreenPacket.class,
                 C2S2COpenAtlasScreenPacket::write, C2S2COpenAtlasScreenPacket::new, C2S2COpenAtlasScreenPacket::apply,

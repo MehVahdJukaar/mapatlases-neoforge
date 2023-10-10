@@ -31,12 +31,9 @@ import java.util.Map;
 import java.util.Objects;
 
 public class MoonlightCompat {
-//TODO: fix
 
-    public static void onLogin(MinecraftServer server){
-        String name = server.getWorldData().getLevelName()  ;
-        long id = server.overworld().getSeed();
-        int hash = Objects.hash(name, id);
+    public static void init(){
+        MapDataRegistry.addDynamicClientMarkersEvent(ClientMarker::send);
     }
 
     public static DecorationBookmarkButton makeCustomButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration) {
@@ -118,11 +115,11 @@ public class MoonlightCompat {
                 var buffer = pGuiGraphics.bufferSource();
 
                 VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
-
+                renderer.rendersText =false;
                 renderer.render(decoration, matrices,
                         vertexBuilder, buffer, mapData.data,
                         false, LightTexture.FULL_BRIGHT, index);
-
+                renderer.rendersText =true;
 
             }
             matrices.popPose();
@@ -139,6 +136,7 @@ public class MoonlightCompat {
                 if (deco == decoration) {
                     MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
                     decorations.remove(d.getKey());
+                    ClientMarker.removeDeco(mapData.stringId, d.getKey());
                     return;
                 }
             }
