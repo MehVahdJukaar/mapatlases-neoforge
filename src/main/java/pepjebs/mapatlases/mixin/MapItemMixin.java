@@ -16,7 +16,7 @@ public class MapItemMixin {
             target = "Lcom/google/common/collect/LinkedHashMultiset;create()Lcom/google/common/collect/LinkedHashMultiset;"),
             cancellable = true)
     public void reduceUpdateNonGeneratedChunks(Level pLevel, Entity pViewer, MapItemSavedData pData, CallbackInfo ci,
-                                               @Local(ordinal = 10) int worldX, @Local(ordinal = 11) int worldZ) {
+                                               @Local(ordinal = 9) int worldX, @Local(ordinal = 10) int worldZ) {
         if (worldZ % 16 == 0 && worldX % 16 == 0) {
             if (!pLevel.hasChunkAt(worldX, worldZ)){
                 ci.cancel();

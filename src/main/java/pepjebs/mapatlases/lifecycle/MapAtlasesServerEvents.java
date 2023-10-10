@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -21,6 +22,8 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -337,5 +340,13 @@ public class MapAtlasesServerEvents {
             }
         }
         return results;
+    }
+
+
+    @SubscribeEvent
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp && MapAtlasesMod.MOONLIGHT) {
+            MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
+        }
     }
 }

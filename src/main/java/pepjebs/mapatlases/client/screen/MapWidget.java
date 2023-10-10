@@ -20,13 +20,13 @@ import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
@@ -203,28 +203,32 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         if (pButton == 0) {
             float hack = (zoomLevel / atlasesCount);
             //TODO: fix pan
-            cumulativeMouseX += deltaX * hack;
-            cumulativeMouseY += deltaY * hack;
-            int newXCenter;
-            int newZCenter;
+            cumulativeMouseX += deltaX;
+            cumulativeMouseY += deltaY;
+            double newXCenter;
+            double newZCenter;
             boolean discrete = !MapAtlasesClientConfig.worldMapSmoothPanning.get();
             if (discrete) {
                 //discrete mode
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
                 newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
             } else {
-                newXCenter = (int) (currentXCenter - cumulativeMouseX * mapPixelSize / PAN_BUCKET);
-                newZCenter = (int) (currentZCenter - cumulativeMouseY * mapPixelSize / PAN_BUCKET);
+                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapPixelSize/MAP_DIMENSION));
+                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapPixelSize/MAP_DIMENSION));
             }
-            if (newXCenter != currentXCenter || newZCenter != currentZCenter) {
+            if (newXCenter != currentXCenter) {
+                cumulativeMouseX = 0;
                 if (!discrete) {
                     currentXCenter = newXCenter;
+                }
+                targetXCenter = (int) newXCenter;
+            }
+            if (newZCenter != currentZCenter) {
+                cumulativeMouseY = 0;
+                if (!discrete) {
                     currentZCenter = newZCenter;
                 }
-                targetXCenter = newXCenter;
-                targetZCenter = newZCenter;
-                cumulativeMouseX = 0;
-                cumulativeMouseY = 0;
+                targetZCenter = (int) newZCenter;
             }
             followingPlayer = false;
             return true;

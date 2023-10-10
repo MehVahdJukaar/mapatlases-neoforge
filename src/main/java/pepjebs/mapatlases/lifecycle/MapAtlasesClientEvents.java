@@ -3,9 +3,12 @@ package pepjebs.mapatlases.lifecycle;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
+import pepjebs.mapatlases.integration.ClientMarker;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SCOpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -46,5 +49,10 @@ public class MapAtlasesClientEvents {
         }
     }
 
+    @SubscribeEvent
+    public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        if (MapAtlasesMod.MOONLIGHT) ClientMarker.saveClientMarkers();
+
+    }
 
 }

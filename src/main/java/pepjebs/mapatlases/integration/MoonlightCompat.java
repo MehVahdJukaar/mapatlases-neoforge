@@ -32,7 +32,10 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MoonlightCompat {
-//TODO: fix
+
+    public static void init(){
+        MapDataRegistry.addDynamicClientMarkersEvent(ClientMarker::send);
+    }
 
     public static DecorationBookmarkButton makeCustomButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration) {
         return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration);
@@ -106,9 +109,13 @@ public class MoonlightCompat {
                         -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
                 var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
-                MapDecorationClientHandler.render(decoration, matrices,
-                        buffer, null, false, LightTexture.FULL_BRIGHT, 0);
 
+                VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
+                renderer.rendersText =false;
+                renderer.render(decoration, matrices,
+                        vertexBuilder, buffer, mapData.data,
+                        false, LightTexture.FULL_BRIGHT, index);
+                renderer.rendersText =true;
 
             }
             matrices.popPose();
@@ -125,6 +132,7 @@ public class MoonlightCompat {
                 if (deco == decoration) {
                     MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
                     decorations.remove(d.getKey());
+                    ClientMarker.removeDeco(mapData.stringId, d.getKey());
                     return;
                 }
             }

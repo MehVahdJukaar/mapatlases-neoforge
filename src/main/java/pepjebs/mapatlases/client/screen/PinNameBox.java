@@ -17,6 +17,7 @@ public class PinNameBox extends EditBox {
         this.visible = false;
         this.setFocused(false);
         this.setCanLoseFocus(true);
+        this.setMaxLength(16);
     }
 
     @Override
@@ -29,10 +30,25 @@ public class PinNameBox extends EditBox {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if((pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode ==GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()){
+        if ((pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
             onDone.run();
             return true;
         }
         return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        return super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    protected boolean clicked(double pMouseX, double pMouseY) {
+        return super.clicked(pMouseX, pMouseY);
+    }
+
+    @Override
+    public void onClick(double mouseX, double mouseY, int button) {
+        super.onClick(mouseX, mouseY, button);
     }
 }
