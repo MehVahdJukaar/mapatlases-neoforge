@@ -241,8 +241,9 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         return maps.get(key);
     }
 
-    public Pair<String,MapItemSavedData> select(MapKey key) {
+    public Pair<String, MapItemSavedData> select(MapKey key) {
         var r = selectWithKey(key);
+        if (r == null) return null;
         return Pair.of(r.stringId, r.data);
     }
 
