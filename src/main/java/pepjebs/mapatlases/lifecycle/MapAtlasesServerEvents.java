@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.lifecycle;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -36,12 +35,9 @@ public class MapAtlasesServerEvents {
     // Used to prevent Map creation spam consuming all Empty Maps on auto-create
     private static final ReentrantLock mutex = new ReentrantLock();
 
-    // Holds the current MapItemSavedData ID for each player
-    //maybe use weakhasmap with plauer
-    @Deprecated(forRemoval = true)
-    private static final WeakHashMap<Player, String> playerToActiveMapId = new WeakHashMap<>();
-    private static final WeakHashMap<Player, HashMap<Integer, MapUpdateTicket>> queues = new WeakHashMap<>();
+    private static final WeakHashMap<Player, HashMap<String, MapUpdateTicket>> updateQueue = new WeakHashMap<>();
 
+    //TODO: improve and make multithreaded
     private static class MapUpdateTicket {
         private static final Comparator<MapUpdateTicket> COMPARATOR = Comparator.comparingDouble(MapUpdateTicket::getPriority);
 
@@ -192,11 +188,11 @@ public class MapAtlasesServerEvents {
     }
 
     private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
-        var m = queues.computeIfAbsent(player, a -> new HashMap<>());
-        Set<Integer> nearbyIds = new HashSet<>();
+        var m = updateQueue.computeIfAbsent(player, a -> new HashMap<>());
+        Set<String> nearbyIds = new HashSet<>();
         for (var holder : nearbyExistentMaps) {
-            nearbyIds.add(holder.id);
-            m.computeIfAbsent(holder.id, a -> new MapUpdateTicket(holder));
+            nearbyIds.add(holder.stringId);
+            m.computeIfAbsent(holder.stringId, a -> new MapUpdateTicket(holder));
         }
         int px = player.getBlockX();
         int pz = player.getBlockZ();
@@ -218,34 +214,6 @@ public class MapAtlasesServerEvents {
             Player player, int width
     ) {
         return Mth.square(key.mapX() - player.getX()) + Mth.square(key.mapZ() - player.getZ()) > width * width;
-    }
-
-    @Deprecated(forRemoval = true)
-    private static String relayActiveMapIdToPlayerClient(
-            Pair<String, MapItemSavedData> activeInfo,
-            ServerPlayer player
-    ) {
-        String changedMapItemSavedData = null;
-        String cachedMapId = playerToActiveMapId.get(player);
-        if (activeInfo != null) {
-            boolean addingPlayer = cachedMapId == null;
-            // Players that pick up an atlas will need their MapItemSavedDatas initialized
-            if (addingPlayer) {
-                ItemStack stack = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-                // MapAtlasItem.syncAndOpenGui(player, stack);
-            }
-            String currentMapId = activeInfo.getFirst();
-            if (addingPlayer || !currentMapId.equals(cachedMapId)) {
-                changedMapItemSavedData = cachedMapId;
-                playerToActiveMapId.put(player, currentMapId);
-                //   MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket(currentMapId));
-            }
-        } else if (cachedMapId != null) {
-            playerToActiveMapId.put(player, null);
-
-            // MapAtlasesNetowrking.sendToClientPlayer(player, new S2CSetActiveMapPacket("null"));
-        }
-        return changedMapItemSavedData;
     }
 
     //TODO: optimize

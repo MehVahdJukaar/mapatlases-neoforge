@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -43,12 +44,13 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     protected final int width;
     protected final int height;
 
-    private float cumulativeZoomValue = ZOOM_BUCKET;
+    private float cumulativeZoomValue;
+    private float startZoom = 1;
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
-    protected int targetXCenter;
-    protected int targetZCenter;
+    protected double targetXCenter;
+    protected double targetZCenter;
     protected float targetZoomLevel;
 
     private boolean isHovered;
@@ -91,7 +93,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         MapAtlasesClient.setDecorationsScale( zoomLevel * (float)(double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
         this.drawAtlas(poseStack, x, y, width, height, player, zoomLevel,
-                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type());
+                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type(), LightTexture.FULL_BRIGHT);
 
         MapAtlasesClient.setDecorationsScale(1);
 
@@ -161,10 +163,10 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         if (animation || scaleAlpha != 0) {
             if (animation) scaleAlpha = 1;
             else {
-                scaleAlpha = Math.max(0, scaleAlpha - 0.04f);
+                scaleAlpha = Math.max(0, scaleAlpha - 0.03f);
             }
             int a = (int) (scaleAlpha * 255);
-            if (a != 0) {
+            if (a > 10) {
                 poseStack.pushPose();
                 poseStack.translate(0, 0, 4);
                 mc.font.draw(poseStack,
@@ -181,12 +183,9 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     }
 
     private void renderPositionText(PoseStack graphics, Font font, int mouseX, int mouseY) {
-        // Draw world map coords
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
-        //TODO: fix coordinate being slightly offset
-        //idk why
         String coordsToDisplay = "X: " + pos.x() + ", Z: " + pos.z();
         MapAtlasesHUD.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
@@ -201,8 +200,6 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double deltaX, double deltaY) {
         if (pButton == 0) {
-            float hack = (zoomLevel / atlasesCount);
-            //TODO: fix pan
             cumulativeMouseX += deltaX;
             cumulativeMouseY += deltaY;
             double newXCenter;
@@ -213,22 +210,22 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
                 newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
             } else {
-                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapPixelSize/MAP_DIMENSION));
-                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapPixelSize/MAP_DIMENSION));
+                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapPixelSize / MAP_DIMENSION));
+                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapPixelSize / MAP_DIMENSION));
             }
             if (newXCenter != currentXCenter) {
-                cumulativeMouseX = 0;
+                targetXCenter = newXCenter;
                 if (!discrete) {
-                    currentXCenter = newXCenter;
+                    currentXCenter = targetXCenter;
                 }
-                targetXCenter = (int) newXCenter;
+                cumulativeMouseX = 0;
             }
             if (newZCenter != currentZCenter) {
-                cumulativeMouseY = 0;
+                targetZCenter = newZCenter;
                 if (!discrete) {
-                    currentZCenter = newZCenter;
+                    currentZCenter = targetZCenter;
                 }
-                targetZCenter = (int) newZCenter;
+                cumulativeMouseY = 0;
             }
             followingPlayer = false;
             return true;
@@ -240,12 +237,20 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         if (targetZoomLevel > 20 && pDelta < 0) return false;
 
-        cumulativeZoomValue -= pDelta;
-        cumulativeZoomValue = Math.max(cumulativeZoomValue, -1 * ZOOM_BUCKET);
+        float zl;
+        if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
+            float c = (float) (pDelta);
+            float v = -c / 10;
+            targetZoomLevel = Math.max(startZoom, targetZoomLevel + v);
+            zoomLevel = targetZoomLevel - 0.001f;
+        } else {
+            cumulativeZoomValue -= pDelta;
+            cumulativeZoomValue = Math.max(cumulativeZoomValue, 0);
+            zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
+            zl = Math.max(zl, 0);
+            targetZoomLevel = startZoom + (2 * zl) + 1f;
+        }
 
-        int zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
-        zl = Math.max(zl, 0);
-        targetZoomLevel = (2 * zl) + 1f;
         return true;
     }
 
@@ -299,7 +304,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         // Reset offset & zoom
         this.cumulativeMouseX = 0;
         this.cumulativeMouseY = 0;
-        this.cumulativeZoomValue = ZOOM_BUCKET;
+        this.cumulativeZoomValue = 0;
         this.followingPlayer = followPlayer;
         resetZoom();
     }

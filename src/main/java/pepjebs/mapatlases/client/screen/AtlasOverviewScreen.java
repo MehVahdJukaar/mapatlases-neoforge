@@ -23,7 +23,6 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -34,6 +33,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.TakeAtlasPacket;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -235,7 +235,13 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public void tick() {
-        if (mapWidget != null) mapWidget.tick();
+        if (mapWidget != null) {
+            mapWidget.tick();
+        }
+        if (this.editBox != null && editBox.active) {
+            this.editBox.tick();
+        }
+
         //TODO: update widgets
         //recalculate parameters
         if (!isValid()) {
@@ -414,7 +420,7 @@ public class AtlasOverviewScreen extends Screen {
         if (!editBox.active) {
             var v = transformMousePos(pMouseX, pMouseY);
             return super.mouseDragged(v.x(), v.y(), pButton, pDragX, pDragY);
-        }else return editBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        } else return editBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
     }
 
     public Vector4f transformMousePos(double mouseX, double mouseZ) {
@@ -467,7 +473,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     protected MapDataHolder findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-       return MapAtlasItem.getMaps(atlas, level).selectWithKey(reqXCenter, reqZCenter, currentSelectedDimension, selectedSlice);
+        return MapAtlasItem.getMaps(atlas, level).selectWithKey(reqXCenter, reqZCenter, currentSelectedDimension, selectedSlice);
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -503,7 +509,10 @@ public class AtlasOverviewScreen extends Screen {
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentSelectedDimension));
         }
-        mapWidget.setFollowingPlayer(currentSelectedDimension.equals(initialWorldSelected));
+        recalculateDecorationWidgets();
+    }
+
+    private void recalculateDecorationWidgets() {
         for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
@@ -625,9 +634,9 @@ public class AtlasOverviewScreen extends Screen {
             //notify server
             MapAtlasesNetworking.sendToServer(new C2SSelectSlicePacket(selectedSlice,
                     lectern == null ? null : lectern.getBlockPos(), currentSelectedDimension));
-            //update client immediately
+            //update the client immediately
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice, currentSelectedDimension);
-
+            recalculateDecorationWidgets();
             changed = true;
         }
         //update button regardless
@@ -641,7 +650,7 @@ public class AtlasOverviewScreen extends Screen {
         return changed;
     }
 
-    public boolean isEditingText(){
+    public boolean isEditingText() {
         return editBox.active;
     }
 
@@ -676,14 +685,13 @@ public class AtlasOverviewScreen extends Screen {
     private void addNewPin() {
         if (partialPin != null) {
             String text = editBox.getValue();
-            PinButton.placePin( partialPin.getFirst(), partialPin.getSecond(),text);
+            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text);
             this.setFocused(mapWidget);
             editBox.active = false;
             editBox.visible = false;
             partialPin = null;
         }
     }
-
 
 
     public boolean canTeleport() {
