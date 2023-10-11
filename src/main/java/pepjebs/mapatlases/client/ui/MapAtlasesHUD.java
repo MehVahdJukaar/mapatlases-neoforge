@@ -9,6 +9,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -18,15 +19,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
@@ -34,6 +34,7 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
@@ -69,7 +70,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        return MapAtlasItem.getMaps(currentAtlas, mc.level).select(centerX, centerZ, currentMapKey.dimension(), slice);
+        MapCollectionCap maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
+        return maps.select(centerX, centerZ, currentMapKey.dimension(), slice);
     }
 
     @Override
@@ -138,7 +140,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (MapAtlasesClientConfig.hideWhenInHand.get() && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get()) ||
                 mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
 
-        if (currentAtlas.isEmpty()) {
+        if (currentAtlas != atlas) {
             needsInit = true;
         }
         currentAtlas = atlas;
@@ -220,10 +222,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (rotatesWithPlayer) {
             MapAtlasesClient.setDecorationRotation(yRot - 180);
         }
+        int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? LightTexture.FULL_BRIGHT :
+                LightTexture.pack(0, level.getBrightness(LightLayer.SKY, player.getOnPos().above()));
         drawAtlas(graphics, x + (BG_SIZE - mapWidgetSize) / 2, y + (BG_SIZE - mapWidgetSize) / 2,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type());
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light);
 
         MapAtlasesClient.setDecorationsScale(1);
         if (rotatesWithPlayer) {

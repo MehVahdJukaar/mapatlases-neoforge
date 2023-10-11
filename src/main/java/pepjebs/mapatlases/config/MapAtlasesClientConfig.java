@@ -75,6 +75,9 @@ public class MapAtlasesClientConfig {
                         .define("only_show_north_cardinal", false);
         miniMapBorder = builder.comment("Shows map separation borders")
                         .define("map_borders", true);
+
+        minimapSkyLight = builder.comment("Use sky color for minimap")
+                        .define("darken_at_night", false);
         builder.pop();
 
         builder.push("world_map");
@@ -85,6 +88,9 @@ public class MapAtlasesClientConfig {
                 .define("alternative_texture", false);
         worldMapSmoothPanning = builder.comment("Pan smoothly. When off it will pan in map increments instead")
                 .define("smooth_panning", true);
+        worldMapSmoothZooming = builder.comment("Makes zooming work smoothly instead of in 2 maps increments")
+                .define("smooth_zooming", true);
+
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
                 .defineInRange("scale", 1.25f, 0, 20);
@@ -112,7 +118,6 @@ public class MapAtlasesClientConfig {
 
         worldMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
                 .define("follow_player", true);
-
         builder.pop();
 
         soundScalar = builder
@@ -140,6 +145,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> drawMinimapCardinals;
     public static final Supplier<Boolean> miniMapOnlyNorth;
     public static final Supplier<Boolean> miniMapBorder;
+    public static final Supplier<Boolean> minimapSkyLight;
     public static final Supplier<Boolean> worldMapBorder;
     public static final Supplier<Double> miniMapCardinalsScale;
     public static final Supplier<Double> minimapCoordsAndBiomeScale;
@@ -154,6 +160,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapFollowPlayer;
     public static final Supplier<Boolean> yOnlyWithSlice;
     public static final Supplier<Boolean> worldMapSmoothPanning;
+    public static final Supplier<Boolean> worldMapSmoothZooming;
     public static final Supplier<Boolean> worldMapBigTexture;
     public static final Supplier<Boolean> hideWhenInHand;
     public static final Supplier<InHandMode> inHandMode;

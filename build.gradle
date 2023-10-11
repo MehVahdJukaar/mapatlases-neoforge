@@ -194,7 +194,7 @@ dependencies {
     compileOnly fg.deobf("curse.maven:config-menus-forge-544048:4672356")
     implementation fg.deobf("curse.maven:the-twilight-forest-227639:4755494")
     // implementation fg.deobf("curse.maven:journeymap-32274:4580627")
-    //implementation fg.deobf("curse.maven:xaeros-world-map-317780:4749572")
+    implementation fg.deobf("curse.maven:xaeros-world-map-317780:4749572")
 
     //implementation fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
 

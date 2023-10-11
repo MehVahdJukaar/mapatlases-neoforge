@@ -68,7 +68,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim, boolean showBorders, MapType type) {
+                          Player player, float zoomLevelDim, boolean showBorders, MapType type, int light) {
 
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
@@ -140,7 +140,7 @@ public abstract class AbstractAtlasWidget {
                             Math.abs(gridCenterJ - mapCenterOffsetX * zoomScale) < maxDist;
                 }
                 if (shouldDraw) {
-                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j);
+                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j, light);
                 }
             }
         }
@@ -172,7 +172,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ, MultiBufferSource.BufferSource vcp,
-                               List<Matrix4f> outlineHack, int i, int j) {
+                               List<Matrix4f> outlineHack, int i, int j, int light) {
         int reqXCenter = centerMapX + (j * mapPixelSize);
         int reqZCenter = centerMapZ + (i * mapPixelSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
@@ -180,7 +180,7 @@ public abstract class AbstractAtlasWidget {
             MapItemSavedData data = state.data;
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons);
+            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons, light);
         }
     }
 
@@ -198,7 +198,8 @@ public abstract class AbstractAtlasWidget {
             List<Matrix4f> outlineHack,
             int ix, int iy,
             MapDataHolder state,
-            boolean drawPlayerIcons
+            boolean drawPlayerIcons,
+            int light
     ) {
         // Draw the map
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
@@ -230,8 +231,6 @@ public abstract class AbstractAtlasWidget {
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, 0.0f);
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
                         poseStack,
@@ -239,7 +238,7 @@ public abstract class AbstractAtlasWidget {
                         state.id,
                         data,
                         false,//(1+ix+iy)*50
-                        LightTexture.FULL_BRIGHT //
+                        light //
                 );
 
         outlineHack.add(new Matrix4f(poseStack.last().pose()));
