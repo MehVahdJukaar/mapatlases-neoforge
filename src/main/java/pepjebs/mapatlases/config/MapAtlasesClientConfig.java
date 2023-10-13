@@ -120,7 +120,7 @@ public class MapAtlasesClientConfig {
                 .defineInRange("soundScalar", 1, 0, 10d);
 
         inHandMode = builder.comment("Render atlas like normal map when in hand")
-                .define("in_hand_renderer", InHandMode.NOT_LOCKED);
+                .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
         spec = builder.build();
     }
 
