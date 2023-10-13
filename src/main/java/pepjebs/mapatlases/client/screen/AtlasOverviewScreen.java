@@ -194,7 +194,7 @@ public class AtlasOverviewScreen extends Screen {
 
 
         if (lectern != null) {
-            int pY = BOOK_HEIGHT + 40;
+            int pY = BOOK_HEIGHT + 44;
 
             if (this.minecraft.player.mayBuild()) {
                 this.addRenderableWidget(new Button(this.width / 2 - 100, pY, 98, 20, CommonComponents.GUI_DONE, (p_99033_) -> {
@@ -212,6 +212,7 @@ public class AtlasOverviewScreen extends Screen {
             }
 
         }
+
         this.initialized = true;
     }
 
