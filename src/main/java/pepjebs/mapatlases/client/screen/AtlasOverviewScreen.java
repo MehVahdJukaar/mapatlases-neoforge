@@ -194,7 +194,7 @@ public class AtlasOverviewScreen extends Screen {
 
 
         if (lectern != null) {
-            int pY = BOOK_HEIGHT + 40;
+            int pY = BOOK_HEIGHT + 44;
             if (player.mayBuild()) {
                 this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
                     this.onClose();
@@ -209,6 +209,7 @@ public class AtlasOverviewScreen extends Screen {
                 }).bounds(this.width / 2 - 100, pY, 200, 20).build());
             }
         }
+
         this.initialized = true;
     }
 
