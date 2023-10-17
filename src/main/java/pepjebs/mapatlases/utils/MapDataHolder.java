@@ -26,7 +26,7 @@ public class MapDataHolder {
         this.id = id;
         this.stringId = stringId;
         this.data = data;
-        this.type = MapType.fromKey(stringId);
+        this.type = MapType.fromKey(stringId, data);
         this.height = type.getHeight(data);
         this.slice = Slice.of(type, height);
     }

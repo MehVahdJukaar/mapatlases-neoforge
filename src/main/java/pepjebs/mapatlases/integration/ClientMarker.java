@@ -1,20 +1,26 @@
 package pepjebs.mapatlases.integration;
 
+import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
+import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.mehvahdjukaar.moonlight.core.map.MapDataInternal;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -32,6 +38,7 @@ import java.util.*;
 
 public class ClientMarker {
 
+    private static final TagKey<MapDecorationType<?,?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static int name = 0;
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
@@ -74,17 +81,10 @@ public class ClientMarker {
     private static final DataObjectReference<MapDecorationType<?, ?>> PIN = new DataObjectReference<>(
             MapAtlasesMod.res("pin"), MapDataRegistry.REGISTRY_KEY);
 
-    private static final DataObjectReference<MapDecorationType<?, ?>>[] PINS = new DataObjectReference[]{
-            new DataObjectReference<>(MapAtlasesMod.res("pin_red"), MapDataRegistry.REGISTRY_KEY),
-            new DataObjectReference<>(MapAtlasesMod.res("pin_green"), MapDataRegistry.REGISTRY_KEY),
-            new DataObjectReference<>(MapAtlasesMod.res("pin_blue"), MapDataRegistry.REGISTRY_KEY),
-            new DataObjectReference<>(MapAtlasesMod.res("pin_yellow"), MapDataRegistry.REGISTRY_KEY),
-    };
 
-    private static int COUNTER = 0;
-
-    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text) {
-        MapBlockMarker<?> marker = PINS[COUNTER++ % PINS.length].get().createEmptyMarker();
+    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
+        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
+        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
         if (!text.isEmpty()) marker.setName(Component.translatable(text));
         ClientLevel level = Minecraft.getInstance().level;
         Integer h = holder.height;
@@ -94,6 +94,12 @@ public class ClientMarker {
         markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
         //add immediately
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
+    }
+
+    @NotNull
+    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
+        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+                .getTag(PINS).get().stream().toList();
     }
 
     private static void load(CompoundTag tag) {
@@ -150,5 +156,12 @@ public class ClientMarker {
         if (mr != null) {
             mr.removeIf(m -> m.getMarkerId().equals(key));
         }
+    }
+
+    public static void renderPin(GuiGraphics pGuiGraphics, float x, float y, int index) {
+        var p = getPins();
+        var t = p.get(index%p.size());
+        var d = new CustomMapDecoration(t.value(), (byte) 0,(byte)0,(byte)0, null);
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1);
     }
 }
