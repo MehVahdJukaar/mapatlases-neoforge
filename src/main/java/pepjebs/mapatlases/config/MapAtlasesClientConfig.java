@@ -129,7 +129,7 @@ public class MapAtlasesClientConfig {
                 .defineInRange("shrink_ratio", 0.1f, 0, 10);
 
         inHandMode = builder.comment("Render atlas like normal map when in hand")
-                .define("in_hand_renderer", InHandMode.NOT_LOCKED);
+                .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
         spec = builder.build();
     }
 

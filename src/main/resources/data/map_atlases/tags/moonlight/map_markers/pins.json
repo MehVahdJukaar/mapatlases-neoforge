@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "map_atlases:pin_red",
+    "map_atlases:pin_blue",
+    "map_atlases:pin_green",
+    "map_atlases:pin_yellow"
+  ]
+}

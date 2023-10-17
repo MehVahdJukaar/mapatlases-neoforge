@@ -22,9 +22,9 @@ public class PinButton extends BookmarkButton {
     }
 
 
-    public static void placePin( MapDataHolder map, ColumnPos pos, String text) {
+    public static void placePin( MapDataHolder map, ColumnPos pos, String text, int index) {
         if (MapAtlasesMod.MOONLIGHT) {
-            ClientMarker.addMarker(map, pos, text);
+            ClientMarker.addMarker(map, pos, text, index);
         } else MapAtlasesNetworking.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text));
     }
 

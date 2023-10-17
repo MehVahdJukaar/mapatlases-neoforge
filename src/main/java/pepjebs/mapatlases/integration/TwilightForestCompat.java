@@ -44,4 +44,8 @@ public class TwilightForestCompat {
         }
         return null;
     }
+
+    public static boolean isMazeOre(MapItemSavedData data) {
+        return data instanceof TFMazeMapData md && md.ore;
+    }
 }

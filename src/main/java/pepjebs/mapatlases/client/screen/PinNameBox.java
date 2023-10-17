@@ -1,18 +1,24 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import org.lwjgl.glfw.GLFW;
+import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.integration.ClientMarker;
 
 public class PinNameBox extends EditBox {
 
     private final Runnable onDone;
+    private int index = 0;
 
     public PinNameBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pMessage, Runnable onDone) {
-        super(pFont, pX, pY, pWidth, pHeight, pMessage);
+        super(pFont, pX + pHeight / 2, pY, pWidth, pHeight, pMessage);
         this.onDone = onDone;
         this.active = false;
         this.visible = false;
@@ -21,12 +27,28 @@ public class PinNameBox extends EditBox {
         this.setMaxLength(16);
     }
 
+    public int getIndex() {
+        return index;
+    }
+
     @Override
     public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         PoseStack p = pGuiGraphics.pose();
         p.pushPose();
         p.translate(0, 0, 30);
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        int col = this.isFocused() ? -1 : -6250336;
+      //  pGuiGraphics.fill(this.getX() - 1 - this.height, this.getY() - 1,
+        //        this.getX() + 1, this.getY() + this.height + 1, col);
+       // pGuiGraphics.fill(this.getX() - this.height, this.getY(),
+         //       this.getX(), this.getY() + this.height, -16777216);
+        if (MapAtlasesMod.MOONLIGHT) {
+            p.pushPose();
+            p.translate(this.getX() - height / 2f -1, this.getY() + height / 2f -1,0);
+            p.scale(2,2,0);
+            ClientMarker.renderPin(pGuiGraphics, 0,0, index);
+            p.popPose();
+        }
         p.popPose();
     }
 
@@ -40,17 +62,14 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
-    }
-
-    @Override
     protected boolean clicked(double pMouseX, double pMouseY) {
+        if (pMouseX >= (double) this.getX() - height && pMouseY >= (double) this.getY() &&
+                pMouseX < (double) (this.getX()) && pMouseY < (double) (this.getY() + this.height)) {
+            this.index++;
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            return false;
+        }
         return super.clicked(pMouseX, pMouseY);
     }
 
-    @Override
-    public void onClick(double mouseX, double mouseY, int button) {
-        super.onClick(mouseX, mouseY, button);
-    }
 }

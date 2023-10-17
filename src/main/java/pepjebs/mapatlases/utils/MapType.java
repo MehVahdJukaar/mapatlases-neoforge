@@ -52,7 +52,10 @@ public enum MapType {
         this.translationKey = filled == null ? "missing" : filled.getDescriptionId();
     }
 
-    public static MapType fromKey(String mapString) {
+    public static MapType fromKey(String mapString, MapItemSavedData data) {
+        if(MapAtlasesMod.TWILIGHTFOREST && TwilightForestCompat.isMazeOre(data)){
+            return ORE_MAZE;
+        }
         for (var t : values()) {
             if (mapString.startsWith(t.keyPrefix)) return t;
         }

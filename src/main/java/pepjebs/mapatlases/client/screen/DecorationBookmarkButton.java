@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.integration.CustomDecorationButton;
 import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -43,7 +44,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, MapDataHolder data, AtlasOverviewScreen screen) {
         if (mapDecoration instanceof MapDecoration md) return new Vanilla(px, py, screen, data, md);
         else {
-            return MoonlightCompat.makeCustomButton(px, py, screen, data, mapDecoration);
+            return CustomDecorationButton.create(px, py, screen, data, mapDecoration);
         }
     }
 
@@ -106,7 +107,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        if (this.shfting && !parentScreen.isPlacingPin()) {
+        if (this.shfting && !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                     24, 167, 5, 5);
 

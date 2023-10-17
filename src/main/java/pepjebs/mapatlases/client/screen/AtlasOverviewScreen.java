@@ -255,6 +255,11 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        if(pKeyCode == 256 && editBox.active){
+            editBox.active = false;
+            partialPin = null;
+            return true;
+        }
         if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || editBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
         }
@@ -672,7 +677,7 @@ public class AtlasOverviewScreen extends Screen {
     private void addNewPin() {
         if (partialPin != null) {
             String text = editBox.getValue();
-            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text);
+            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
             this.setFocused(mapWidget);
             editBox.active = false;
             editBox.visible = false;
