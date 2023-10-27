@@ -21,17 +21,11 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static com.mojang.blaze3d.platform.GlConst.*;
-import static org.lwjgl.opengl.GL11C.glTexParameterf;
-import static org.lwjgl.opengl.GL11C.glTexParameteri;
-import static org.lwjgl.opengl.GL14.GL_TEXTURE_LOD_BIAS;
 
 public abstract class AbstractAtlasWidget extends GuiComponent {
 
@@ -43,8 +37,8 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     //internally controls how many maps are displayed
     protected final int atlasesCount;
-    protected int mapPixelSize;
-    private MapItemSavedData originalCenterMap;
+    protected int mapBlocksSize;
+    private MapItemSavedData mapWherePlayerIs;
 
     protected boolean followingPlayer = true;
     protected double currentXCenter;
@@ -59,11 +53,11 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
     }
 
     protected void initialize(MapDataHolder originalCenter) {
-        this.originalCenterMap = originalCenter.data;
-        this.mapPixelSize = (1 << originalCenterMap.scale) * MAP_DIMENSION;
+        this.mapWherePlayerIs = originalCenter.data;
+        this.mapBlocksSize = (1 << mapWherePlayerIs.scale) * MAP_DIMENSION;
 
-        this.currentXCenter = originalCenterMap.x;
-        this.currentZCenter = originalCenterMap.z;
+        this.currentXCenter = mapWherePlayerIs.x;
+        this.currentZCenter = mapWherePlayerIs.z;
 
         this.zoomLevel = atlasesCount * originalCenter.type.getDefaultZoomFactor();
     }
@@ -78,9 +72,9 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
         int intXCenter = (int) (currentXCenter);
         int intZCenter = (int) (currentZCenter);
-        int scaleIndex = mapPixelSize / MAP_DIMENSION;
+        int scaleIndex = mapBlocksSize / MAP_DIMENSION;
 
-        ColumnPos c = type.getCenter(intXCenter, intZCenter, mapPixelSize);
+        ColumnPos c = type.getCenter(intXCenter, intZCenter, mapBlocksSize);
         int centerMapX = c.x();
         int centerMapZ = c.z();
 
@@ -112,9 +106,9 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
         poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
 
         //grid side len
-        double sideLength = mapPixelSize * zoomScale;
+        double sideLength = mapBlocksSize * zoomScale;
         //radius of widget
-        int radius = (int) (mapPixelSize * atlasesCount * 0.71f); // radius using hyp
+        int radius = (int) (mapBlocksSize * atlasesCount * 0.71f); // radius using hyp
 
         // Calculate the distance from the circle's center to the center of each grid square
         int o = Mth.ceil(zoomLevelDim);
@@ -152,13 +146,13 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
             int a = 50;
             for (var matrix4f : outlineHack) {
                 outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 1.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
                 outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 1.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
                 outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 0.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
                 outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 0.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0,1,0).endVertex();
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
             }
             vcp.endBatch();
         }
@@ -173,8 +167,8 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
 
     private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ, MultiBufferSource.BufferSource vcp,
                                List<Matrix4f> outlineHack, int i, int j, int light) {
-        int reqXCenter = centerMapX + (j * mapPixelSize);
-        int reqZCenter = centerMapZ + (i * mapPixelSize);
+        int reqXCenter = centerMapX + (j * mapBlocksSize);
+        int reqZCenter = centerMapZ + (i * mapBlocksSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.data;
@@ -216,7 +210,7 @@ public abstract class AbstractAtlasWidget extends GuiComponent {
             MapDecoration decoration = e.getValue();
             MapDecoration.Type type = decoration.getType();
             if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
-                if (data == originalCenterMap && drawPlayerIcons) {
+                if (data == mapWherePlayerIs && drawPlayerIcons) {
                     var d = e.getValue();
                     removed.add(e);
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,

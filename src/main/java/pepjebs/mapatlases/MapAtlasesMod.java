@@ -1,6 +1,7 @@
 package pepjebs.mapatlases;
 
 
+import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
