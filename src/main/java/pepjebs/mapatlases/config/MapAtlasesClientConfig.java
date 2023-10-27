@@ -126,7 +126,7 @@ public class MapAtlasesClientConfig {
 
         mapTextureShrink = builder
                 .comment("Proportional to how much map up will be stretched. Useful if you notice gaps appearing in the worldmap screen")
-                .defineInRange("shrink_ratio", 0.1f, 0, 10);
+                .defineInRange("shrink_ratio", 0f, 0, 10);
 
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);

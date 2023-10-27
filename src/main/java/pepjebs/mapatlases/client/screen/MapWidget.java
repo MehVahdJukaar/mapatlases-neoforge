@@ -67,6 +67,10 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.mapScreen = screen;
         this.drawBigPlayerMarker = false;
+
+        var player = Minecraft.getInstance().player;
+        this.currentXCenter = player.getX();
+        this.currentZCenter = player.getZ();
     }
 
     @Override
@@ -95,9 +99,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapAtlasesClient.setDecorationsScale(1);
 
 
-        //TODO: fix
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
-                zoomLevel / 2f * MAP_DIMENSION, followingPlayer);
+                (zoomLevel / 2) * mapBlocksSize, followingPlayer);
 
         if (isHovered && mapScreen.isPlacingPin()) {
             PoseStack poseStack = graphics.pose();
@@ -172,11 +175,11 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             boolean discrete = !MapAtlasesClientConfig.worldMapSmoothPanning.get();
             if (discrete) {
                 //discrete mode
-                newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
-                newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapPixelSize));
+                newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
+                newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
             } else {
-                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapPixelSize / MAP_DIMENSION));
-                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapPixelSize / MAP_DIMENSION));
+                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapBlocksSize / MAP_DIMENSION));
+                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapBlocksSize / MAP_DIMENSION));
             }
             if (newXCenter != currentXCenter) {
                 targetXCenter = newXCenter;
@@ -245,8 +248,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 mouseY, y, y + height, -1.0, 1.0);
         int hackOffset = +3;
         return new ColumnPos(
-                (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevel * (mapPixelSize / 2.0)) + currentXCenter) + hackOffset,
-                (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevel * (mapPixelSize / 2.0)) + currentZCenter) + hackOffset);
+                (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevel * (mapBlocksSize / 2.0)) + currentXCenter) + hackOffset,
+                (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevel * (mapBlocksSize / 2.0)) + currentZCenter) + hackOffset);
     }
 
     @Override

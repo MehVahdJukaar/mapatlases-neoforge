@@ -65,8 +65,6 @@ public class AtlasOverviewScreen extends Screen {
     private final ItemStack atlas;
     private final Player player;
     private final Level level;
-    private final ResourceKey<Level> initialWorldSelected;
-    private final MapDataHolder initialMapSelected;
     @Nullable
     private final LecternBlockEntity lectern;
 
@@ -98,25 +96,26 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
 
-        ResourceKey<Level> dim = level.dimension();
-
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
-        MapDataHolder closest = maps.getClosest(player, selectedSlice);
-        if (closest != null) {
-            this.initialMapSelected = closest;
-        } else {
-            //if it has no maps here, grab a random one
-            this.initialMapSelected = maps.getAll().stream().findFirst().get();
-            dim = initialMapSelected.data.dimension;
-        }
+        MapDataHolder closest = getMapClosestToPlayer();
         //improve for wrong dimension atlas
-        this.initialWorldSelected = dim;
-        this.currentSelectedDimension = dim;
+        this.currentSelectedDimension = closest.data.dimension;
+        ;
 
         // Play open sound
         this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                 (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+    }
+
+    @NotNull
+    private MapDataHolder getMapClosestToPlayer() {
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+        MapDataHolder closest = maps.getClosest(player, selectedSlice);
+        if (closest == null) {
+            //if it has no maps here, grab a random one
+            closest = maps.getAll().stream().findFirst().get();
+        }
+        return closest;
     }
 
     public ItemStack getAtlas() {
@@ -145,7 +144,6 @@ public class AtlasOverviewScreen extends Screen {
                 (height - 20) / 2,
                 100, 20,
                 Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
-        this.addRenderableOnly(editBox);
         //we manage this separately on its own
 
         this.sliceButton = new SliceBookmarkButton(
@@ -182,7 +180,7 @@ public class AtlasOverviewScreen extends Screen {
                 (width - MAP_WIDGET_WIDTH) / 2,
                 (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 2 : 5),
                 MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
-                this, initialMapSelected));
+                this, getMapClosestToPlayer()));
 
         this.setFocused(mapWidget);
 
@@ -190,11 +188,10 @@ public class AtlasOverviewScreen extends Screen {
             this.addRenderableWidget(new PinButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16, this));
         }
-        this.selectDimension(initialWorldSelected);
-
+        this.selectDimension(level.dimension());
 
         if (lectern != null) {
-            int pY = BOOK_HEIGHT + 44;
+            int pY = (int) (globalScale * (height + BOOK_HEIGHT + 4) / 2);
             if (player.mayBuild()) {
                 this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, (button) -> {
                     this.onClose();
@@ -255,8 +252,9 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if(pKeyCode == 256 && editBox.active){
+        if (pKeyCode == 256 && editBox.active) {
             editBox.active = false;
+            editBox.visible = false;
             partialPin = null;
             return true;
         }
@@ -365,6 +363,7 @@ public class AtlasOverviewScreen extends Screen {
         renderBackground(graphics);
         poseStack.popPose();
 
+        if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
     }
 
     // ================== Mouse Functions ==================
@@ -428,8 +427,8 @@ public class AtlasOverviewScreen extends Screen {
     // ================== Other Util Fns ==================
 
     public MapItemSavedData getCenterMapForSelectedDim() {
-        if (currentSelectedDimension.equals(initialWorldSelected)) {
-            return initialMapSelected.data;
+        if (currentSelectedDimension.equals(level.dimension())) {
+            return getMapClosestToPlayer().data;
         } else {
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
             MapItemSavedData best = null;
@@ -492,14 +491,14 @@ public class AtlasOverviewScreen extends Screen {
         this.currentSelectedDimension = dimension;
         //we dont change slice when calling this from init as we want to use the atlas initial slice
         updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
+        boolean isWherePlayerIs = level.dimension().equals(dimension);
 
-        MapItemSavedData center = this.getCenterMapForSelectedDim();
+        MapItemSavedData center = isWherePlayerIs ? getMapClosestToPlayer().data : this.getCenterMapForSelectedDim();
         if (center == null) {
             int error = 0;
             return;
         }
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ,
-                initialWorldSelected.equals(dimension), changedDim);
+        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, isWherePlayerIs, changedDim);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(currentSelectedDimension));
         }
@@ -514,11 +513,11 @@ public class AtlasOverviewScreen extends Screen {
         addDecorationWidgets();
     }
 
-    public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float r, boolean followingPlayer) {
-        float minX = currentXCenter - r;
-        float maxX = currentXCenter + r;
-        float minZ = currentZCenter - r;
-        float maxZ = currentZCenter + r;
+    public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
+        float minX = currentXCenter - radius;
+        float maxX = currentXCenter + radius;
+        float minZ = currentZCenter - radius;
+        float maxZ = currentZCenter + radius;
         // Create a list to store selected decorations
         // Create a TreeMap to store selected decorations sorted by distance
         List<Pair<Double, DecorationBookmarkButton>> byDistance = new ArrayList<>();
@@ -526,7 +525,7 @@ public class AtlasOverviewScreen extends Screen {
             double x = bookmark.getWorldX();
             double z = bookmark.getWorldZ();
             // Check if the decoration is within the specified range
-            bookmark.setSelected(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
+            if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) bookmark.setSelected(true);
             if (followingPlayer) {
                 double distance = Mth.square(x - currentXCenter) + Mth.square(z - currentZCenter);
                 // Store the decoration in the TreeMap with distance as the key

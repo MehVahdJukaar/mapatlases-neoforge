@@ -18,7 +18,7 @@ public class PinNameBox extends EditBox {
     private int index = 0;
 
     public PinNameBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pMessage, Runnable onDone) {
-        super(pFont, pX + pHeight / 2, pY, pWidth, pHeight, pMessage);
+        super(pFont, pX + pHeight /2, pY, pWidth, pHeight, pMessage);
         this.onDone = onDone;
         this.active = false;
         this.visible = false;
