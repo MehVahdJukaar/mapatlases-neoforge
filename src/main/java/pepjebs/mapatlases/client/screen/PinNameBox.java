@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -15,6 +16,7 @@ public class PinNameBox extends EditBox {
 
     private final Runnable onDone;
     private int index = 0;
+    private boolean markerHovered;
 
     public PinNameBox(Font pFont, int pX, int pY, int pWidth, int pHeight, Component pMessage, Runnable onDone) {
         super(pFont, pX + pHeight /2, pY, pWidth, pHeight, pMessage);
@@ -35,16 +37,19 @@ public class PinNameBox extends EditBox {
         p.pushPose();
         p.translate(0, 0, 30);
         super.renderButton(p, pMouseX, pMouseY, pPartialTick);
-        int col = this.isFocused() ? -1 : -6250336;
-      //  pGuiGraphics.fill(this.getX() - 1 - this.height, this.getY() - 1,
+        // int col = this.isFocused() ? -1 : -6250336;
+        //  pGuiGraphics.fill(this.getX() - 1 - this.height, this.getY() - 1,
         //        this.getX() + 1, this.getY() + this.height + 1, col);
-       // pGuiGraphics.fill(this.getX() - this.height, this.getY(),
+         // pGuiGraphics.fill(this.getX() - this.height, this.getY(),
          //       this.getX(), this.getY() + this.height, -16777216);
+        this.markerHovered = pMouseX >= (double) this.getX() - height - 1 && pMouseY >= this.getY() &&
+                pMouseX < (this.getX()) && pMouseY < (this.getY() + this.height);
         if (MapAtlasesMod.MOONLIGHT) {
             p.pushPose();
-            p.translate(this.getX() - height / 2f -1, this.getY() + height / 2f -1,0);
+            p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f -1,0);
             p.scale(2,2,0);
-            ClientMarker.renderPin(pGuiGraphics, 0,0, index);
+            RenderSystem.setShaderColor(1,1,1,1);
+            ClientMarker.renderPin(pGuiGraphics, 0,0, index, this.markerHovered);
             p.popPose();
         }
         p.popPose();
@@ -61,8 +66,7 @@ public class PinNameBox extends EditBox {
 
     @Override
     protected boolean clicked(double pMouseX, double pMouseY) {
-        if (pMouseX >= (double) this.getX() - height && pMouseY >= (double) this.getY() &&
-                pMouseX < (double) (this.getX()) && pMouseY < (double) (this.getY() + this.height)) {
+        if (this.markerHovered) {
             this.index++;
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return false;

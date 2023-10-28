@@ -103,15 +103,26 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public void renderButton(PoseStack pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        super.renderButton(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+    public void renderButton(PoseStack graphics, int pMouseX, int pMouseY, float pPartialTick) {
+        PoseStack matrices = graphics.pose();
+        matrices.pushPose();
+        matrices.translate(0, 0, 0.01 * this.index);
+        super.renderButton(graphics, pMouseX, pMouseY, pPartialTick);
         if (this.shfting && !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             RenderSystem.setShaderTexture(0, AtlasOverviewScreen.ATLAS_TEXTURE);
             this.blit(pGuiGraphics, x, y,
                     24, 167, 5, 5);
 
         }
+        renderDecoration(graphics, pMouseX, pMouseY);
+
+        matrices.popPose();
+
+        //hide waiting to be activated by mapWidget
+        setSelected(false);
     }
+
+    protected abstract void renderDecoration(GuiGraphics graphics, int mouseX, int mouseY);
 
     @Override
     public List<Component> createTooltip() {
@@ -167,11 +178,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
 
         @Override
-        public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
-            matrices.pushPose();
-            matrices.translate(0, 0, 0.01 * this.index);
-            super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
-
+        protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
+            PoseStack matrices = pGuiGraphics.pose();
             byte b = decoration.getImage();
 
             int u = (b % 16) * 8;
@@ -184,10 +192,6 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             RenderSystem.setShaderTexture(0, MAP_ICON_TEXTURE);
             this.blit(matrices, -4, -4, u, v, 8, 8, 128, 128);
 
-            matrices.popPose();
-
-            //hide waiting to be activated by mapWidget
-            setSelected(false);
         }
 
 

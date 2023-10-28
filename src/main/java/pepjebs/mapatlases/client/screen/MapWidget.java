@@ -173,7 +173,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
                 poseStack.pushPose();
                 poseStack.translate(0, 0, 4);
                 mc.font.draw(poseStack,
-                        Component.translatable("message.map_atlases.map_scale", (int) targetZoomLevel),
+                        Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
                         x, y + height - 8, FastColor.ARGB32.color(a, 255, 255, 255));
                 poseStack.popPose();
             }
@@ -191,7 +191,7 @@ public class MapWidget extends AbstractAtlasWidget implements GuiEventListener, 
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
         String coordsToDisplay = "X: " + pos.x() + ", Z: " + pos.z();
         MapAtlasesHUD.drawScaledComponent(
-                graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
+                graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width, width);
     }
 
 

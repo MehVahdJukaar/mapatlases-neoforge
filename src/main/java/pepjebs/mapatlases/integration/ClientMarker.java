@@ -158,10 +158,10 @@ public class ClientMarker {
         }
     }
 
-    public static void renderPin(GuiGraphics pGuiGraphics, float x, float y, int index) {
+    public static void renderPin(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
         var p = getPins();
         var t = p.get(index%p.size());
         var d = new CustomMapDecoration(t.value(), (byte) 0,(byte)0,(byte)0, null);
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1);
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
     }
 }
