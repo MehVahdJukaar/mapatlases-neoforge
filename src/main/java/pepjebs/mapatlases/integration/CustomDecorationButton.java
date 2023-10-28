@@ -71,7 +71,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f, index, false);
+        renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f, 0, false);
     }
 
 
@@ -97,11 +97,11 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
-            poseStack.translate(x, y, 1.0D);
+            poseStack.translate(x, y, 0.02);
 
             // de translates by the amount the decoration renderer will translate
             poseStack.translate(-(float) decoration.getX() / 2.0F - 64.0F,
-                    -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
+                    -(float) decoration.getY() / 2.0F - 64.0F, 0);
 
             var buffer = pGuiGraphics.bufferSource();
 

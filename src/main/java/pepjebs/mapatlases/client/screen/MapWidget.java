@@ -203,7 +203,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        if (targetZoomLevel > 20 && pDelta < 0) return false;
+        if ((pDelta < 0 && targetZoomLevel  > 20)|| (pDelta>0 && zoomLevel == startZoom)) return false;
 
         float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {

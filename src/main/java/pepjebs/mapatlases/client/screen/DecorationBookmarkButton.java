@@ -183,7 +183,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             int u = (b % 16) * 8;
             int v = (b / 16) * 8;
 
-            matrices.translate(getX() + width / 2f, getY() + height / 2f, 1.0D);
+            matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
             matrices.mulPose(Axis.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
 
