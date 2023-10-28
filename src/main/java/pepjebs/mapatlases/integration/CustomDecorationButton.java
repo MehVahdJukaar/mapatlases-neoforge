@@ -9,11 +9,8 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
-import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.font.FontSet;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -41,17 +38,17 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     private CustomDecorationButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, CustomMapDecoration mapDecoration) {
         super(px, py, screen, data);
         this.decoration = mapDecoration;
-        this.setTooltip(createTooltip());
+        this.tooltip = (createTooltip());
     }
 
     @Override
     public double getWorldX() {
-        return mapData.data.centerX - getDecorationPos(decoration.getX(), mapData.data);
+        return mapData.data.x - getDecorationPos(decoration.getX(), mapData.data);
     }
 
     @Override
     public double getWorldZ() {
-        return mapData.data.centerZ - getDecorationPos(decoration.getY(), mapData.data);
+        return mapData.data.z - getDecorationPos(decoration.getY(), mapData.data);
     }
 
     @Override
@@ -70,8 +67,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     @Override
-    protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f, index, false);
+    protected void renderDecoration(PoseStack pGuiGraphics, int pMouseX, int pMouseY) {
+        renderStaticMarker(pGuiGraphics, decoration, mapData.data, x + width / 2f, y     + height / 2f, index, false);
     }
 
 
@@ -89,12 +86,11 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         }
     }
 
-    public static void renderStaticMarker(GuiGraphics pGuiGraphics, CustomMapDecoration decoration,
+    public static void renderStaticMarker(PoseStack poseStack, CustomMapDecoration decoration,
                                           MapItemSavedData data, float x, float y, int index, boolean outline) {
         DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
 
         if (renderer != null) {
-            PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
             poseStack.translate(x, y, 1.0D);
@@ -103,7 +99,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             poseStack.translate(-(float) decoration.getX() / 2.0F - 64.0F,
                     -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
-            var buffer = pGuiGraphics.bufferSource();
+            var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
             renderer.rendersText = false;
 

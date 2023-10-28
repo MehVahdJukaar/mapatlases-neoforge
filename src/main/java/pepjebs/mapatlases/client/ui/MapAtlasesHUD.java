@@ -89,7 +89,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     @Override
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+    protected void applyScissors(PoseStack graphics, int x, int y, int x1, int y1) {
         super.applyScissors(graphics, (int) (x*globalScale), (int) (y*globalScale),(int) (x1*globalScale),(int) (y1*globalScale));
     }
 

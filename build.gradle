@@ -143,6 +143,7 @@ repositories {
      flatDir {
          dir 'libs'
      }
+    mavenCentral() // This is the default Maven Central Repository
 
     mavenLocal()
 
@@ -185,6 +186,7 @@ dependencies {
     implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.2.0-rc.3")) {
         jarJar.ranged(it, "[0.2.0-rc.3,)")
     }
+    //implementation 'net.jodah:typetools:0.8.0'
 
     compileOnly fg.deobf("curse.maven:jei-238222:4712868")
     compileOnly fg.deobf("curse.maven:curios-309927:4583413")

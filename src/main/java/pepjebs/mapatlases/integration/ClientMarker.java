@@ -1,16 +1,13 @@
 package pepjebs.mapatlases.integration;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
-import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.mehvahdjukaar.moonlight.core.map.MapDataInternal;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -158,10 +155,10 @@ public class ClientMarker {
         }
     }
 
-    public static void renderPin(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
+    public static void renderPin(PoseStack poseStack, float x, float y, int index, boolean outline) {
         var p = getPins();
         var t = p.get(index%p.size());
         var d = new CustomMapDecoration(t.value(), (byte) 0,(byte)0,(byte)0, null);
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
+        CustomDecorationButton.renderStaticMarker(poseStack, d, null, x, y, 1, outline);
     }
 }

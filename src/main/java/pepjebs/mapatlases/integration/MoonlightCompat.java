@@ -1,13 +1,16 @@
 package pepjebs.mapatlases.integration;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -19,6 +22,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
+import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Collection;
@@ -29,7 +34,7 @@ import java.util.Map;
 public class MoonlightCompat {
 
     public static void init() {
-        if(PlatHelper.getPhysicalSide().isClient()) {
+        if (PlatformHelper.getEnv().isClient()) {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarker::send);
         }
     }
@@ -91,10 +96,7 @@ public class MoonlightCompat {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-            PoseStack matrices = pGuiGraphics.pose();
-            matrices.pushPose();
-            super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        protected void renderDecoration(PoseStack matrices, int mouseX, int mouseY) {
 
             DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
 
@@ -106,18 +108,20 @@ public class MoonlightCompat {
                 matrices.translate(-(float) decoration.getX() / 2.0F - 64.0F,
                         -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
-                var buffer = pGuiGraphics.bufferSource();
+                var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
                 VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
-                renderer.rendersText =false;
+                renderer.rendersText = false;
                 renderer.render(decoration, matrices,
                         vertexBuilder, buffer, mapData.data,
                         false, LightTexture.FULL_BRIGHT, index);
-                renderer.rendersText =true;
+                renderer.rendersText = true;
 
             }
             matrices.popPose();
 
             setSelected(false);
 
+        }
+    }
 }

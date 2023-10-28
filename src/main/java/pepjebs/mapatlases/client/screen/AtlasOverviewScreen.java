@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -22,8 +23,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4d;
-import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -108,7 +107,7 @@ public class AtlasOverviewScreen extends Screen {
     @NotNull
     private MapDataHolder getMapClosestToPlayer() {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+        this.selectedSlice = MapAtlasItem.getSelectedSlic(atlas, player.level.dimension());
         MapDataHolder closest = maps.getClosest(player, selectedSlice);
         if (closest == null) {
             //if it has no maps here, grab a random one
@@ -334,7 +333,7 @@ public class AtlasOverviewScreen extends Screen {
 
         poseStack.translate(width / 2f, height / 2f, 1);
 
-        RenderSystem.setShaderTexture(0,texture);
+        RenderSystem.setShaderTexture(0, texture);
         blit(
                 poseStack,
                 H_BOOK_WIDTH - 10,
@@ -374,7 +373,7 @@ public class AtlasOverviewScreen extends Screen {
         renderBackground(poseStack);
         poseStack.popPose();
 
-        if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
+        if (editBox.active) editBox.render(poseStack, mouseX, mouseY, delta);
     }
 
     // ================== Mouse Functions ==================
@@ -703,29 +702,26 @@ public class AtlasOverviewScreen extends Screen {
     }
 
 
-    public static Vector4d scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
-        Matrix4d matrix4d = new Matrix4d();
-
+    public static Vector4f scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
+        Matrix4f matrix4f = new Matrix4f();
+        matrix4f.setIdentity();
         // Calculate the translation and scaling factors
-        double translateX = w / 2.0;
-        double translateY = h / 2.0;
-        double scaleFactor = scale - 1.0;
-
+        float translateX = w / 2.0F;
+        float translateY = h / 2.0F;
         // Apply translation to the matrix (combined)
-        matrix4d.translate(translateX, translateY, 0);
+        matrix4f.multiplyWithTranslation(translateX, translateY, 0);
 
         // Apply scaling to the matrix
-        matrix4d.scale(1.0 + scaleFactor);
+        matrix4f.multiply(Matrix4f.createScaleMatrix(scale, scale, scale));
 
         // Apply translation back to the original position (combined)
-        matrix4d.translate(-translateX, -translateY, 0);
+        matrix4f.multiplyWithTranslation(-translateX, -translateY, 0);
 
         // Create a vector with the input coordinates
-        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
+        Vector4f v = new Vector4f((float) mouseX, (float) mouseZ, 0, 1.0F);
 
         // Apply the transformation matrix to the vector
-        matrix4d.transform(v);
+        v.transform(matrix4f);
         return v;
     }
-
 }

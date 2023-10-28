@@ -1,15 +1,9 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.github.alexmodguy.alexscaves.client.render.misc.CaveMapRenderer;
-import com.github.alexmodguy.alexscaves.server.item.CaveMapItem;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementProgress;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -17,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.CustomDecorationButton;
-import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -103,18 +96,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public void renderButton(PoseStack graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack matrices = graphics.pose();
+    public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
         matrices.pushPose();
         matrices.translate(0, 0, 0.01 * this.index);
-        super.renderButton(graphics, pMouseX, pMouseY, pPartialTick);
+        super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
         if (this.shfting && !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             RenderSystem.setShaderTexture(0, AtlasOverviewScreen.ATLAS_TEXTURE);
-            this.blit(pGuiGraphics, x, y,
+            this.blit(matrices, x, y,
                     24, 167, 5, 5);
 
         }
-        renderDecoration(graphics, pMouseX, pMouseY);
+        renderDecoration(matrices, pMouseX, pMouseY);
 
         matrices.popPose();
 
@@ -122,7 +114,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         setSelected(false);
     }
 
-    protected abstract void renderDecoration(GuiGraphics graphics, int mouseX, int mouseY);
+    protected abstract void renderDecoration(PoseStack graphics, int mouseX, int mouseY);
 
     @Override
     public List<Component> createTooltip() {
@@ -178,8 +170,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
 
         @Override
-        protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-            PoseStack matrices = pGuiGraphics.pose();
+        protected void renderDecoration(PoseStack matrices, int pMouseX, int pMouseY) {
             byte b = decoration.getImage();
 
             int u = (b % 16) * 8;
