@@ -138,7 +138,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 poseStack.pushPose();
                 poseStack.translate(0, 0, 4);
                 graphics.drawString(mc.font,
-                        Component.translatable("message.map_atlases.map_scale", (int) targetZoomLevel),
+                        Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
                         x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
                 poseStack.popPose();
             }
@@ -156,7 +156,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
         String coordsToDisplay = "X: " + pos.x() + ", Z: " + pos.z();
         MapAtlasesHUD.drawScaledComponent(
-                graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width);
+                graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width, width);
     }
 
 

@@ -21,6 +21,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -38,8 +39,6 @@ import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
-
-import static pepjebs.mapatlases.client.ui.MapAtlasesHUD.scaleVector;
 
 //in retrospective, we should have kept the menu
 public class AtlasOverviewScreen extends Screen {
@@ -99,7 +98,6 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder closest = getMapClosestToPlayer();
         //improve for wrong dimension atlas
         this.currentSelectedDimension = closest.data.dimension;
-        ;
 
         // Play open sound
         this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
@@ -688,4 +686,31 @@ public class AtlasOverviewScreen extends Screen {
     public boolean canTeleport() {
         return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() && !placingPin && !editBox.active;
     }
+
+
+    public static Vector4d scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
+        Matrix4d matrix4d = new Matrix4d();
+
+        // Calculate the translation and scaling factors
+        double translateX = w / 2.0;
+        double translateY = h / 2.0;
+        double scaleFactor = scale - 1.0;
+
+        // Apply translation to the matrix (combined)
+        matrix4d.translate(translateX, translateY, 0);
+
+        // Apply scaling to the matrix
+        matrix4d.scale(1.0 + scaleFactor);
+
+        // Apply translation back to the original position (combined)
+        matrix4d.translate(-translateX, -translateY, 0);
+
+        // Create a vector with the input coordinates
+        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
+
+        // Apply the transformation matrix to the vector
+        matrix4d.transform(v);
+        return v;
+    }
+
 }

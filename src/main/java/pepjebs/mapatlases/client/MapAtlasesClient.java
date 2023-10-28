@@ -1,11 +1,13 @@
 package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,7 +32,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
@@ -39,6 +41,7 @@ import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
@@ -136,10 +139,24 @@ public class MapAtlasesClient {
 
     }
 
+    public static ShaderInstance TEXT_ALPHA_SHADER;
+
+    @SubscribeEvent
+    public static void registerShaders(RegisterShadersEvent event) {
+        try {
+            ShaderInstance shader = new ShaderInstance(event.getResourceProvider(),
+                    MapAtlasesMod.res("text_alpha_color"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
+
+            event.registerShader(shader, s -> TEXT_ALPHA_SHADER = s);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static MapAtlasesHUD HUD;
 
     @SubscribeEvent
-    public static void clientSetup(RegisterGuiOverlaysEvent event) {
+    public static void registerOverlay(RegisterGuiOverlaysEvent event) {
         HUD = new MapAtlasesHUD();
         event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", HUD);
     }
@@ -244,7 +261,7 @@ public class MapAtlasesClient {
             if (rot != null) {
                 poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
             }
-            poseStack.translate(-s*scale, 4*scale, 0);
+            poseStack.translate(-s * scale, 4 * scale, 0);
 
             poseStack.scale(scale, scale, 1);
         }
