@@ -4,6 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
+import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -38,7 +40,7 @@ public class AtlasInHandRenderer {
         pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
 
         MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
-        MapDataHolder state = MapAtlasItem.getMaps(MapAtlasesClient.getCurrentActiveAtlas(), mc.level).selectWithKey(activeMapKey);
+        MapDataHolder state = MapAtlasItem.getMaps(pStack, mc.level).selectWithKey(activeMapKey);
         if (state == null) return;
         MapItemSavedData data = state.data;
         VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
