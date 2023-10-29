@@ -124,10 +124,6 @@ public class MapAtlasesClientConfig {
                 .comment("Multiplier for all the Atlases sound float")
                 .defineInRange("soundScalar", 1, 0, 10d);
 
-        mapTextureShrink = builder
-                .comment("Proportional to how much map up will be stretched. Useful if you notice gaps appearing in the worldmap screen")
-                .defineInRange("shrink_ratio", 0f, 0, 10);
-
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
         spec = builder.build();

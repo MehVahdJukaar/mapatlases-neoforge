@@ -17,7 +17,7 @@ public class S2CWorldHashPacket {
     public final int hash;
 
     public S2CWorldHashPacket(ServerPlayer player) {
-        Level level = player.level();
+        Level level = player.level;
         String name = level.getServer().getWorldData().getLevelName();
         long seed = level.getServer().overworld().getSeed();
         int hash = Objects.hash(name, seed);

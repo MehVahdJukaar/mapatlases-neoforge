@@ -148,7 +148,7 @@ public class MapAtlasesClient {
     @SubscribeEvent
     public static void registerShaders(RegisterShadersEvent event) {
         try {
-            ShaderInstance shader = new ShaderInstance(event.getResourceProvider(),
+            ShaderInstance shader = new ShaderInstance(event.getResourceManager(),
                     MapAtlasesMod.res("text_alpha_color"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
 
             event.registerShader(shader, s -> TEXT_ALPHA_SHADER = s);

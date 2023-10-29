@@ -3,10 +3,12 @@ package pepjebs.mapatlases.integration;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
+import net.mehvahdjukaar.moonlight.api.map.MapDecorationRegistry;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
+import net.mehvahdjukaar.moonlight.core.map.MapDataInternal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -35,7 +37,7 @@ import java.util.*;
 
 public class ClientMarker {
 
-    private static final TagKey<MapDecorationType<?,?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
+    private static final TagKey<MapDecorationType<?,?>> PINS = TagKey.create(MapDecorationRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static int name = 0;
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
@@ -76,7 +78,7 @@ public class ClientMarker {
     }
 
     private static final DataObjectReference<MapDecorationType<?, ?>> PIN = new DataObjectReference<>(
-            MapAtlasesMod.res("pin"), MapDataRegistry.REGISTRY_KEY);
+            MapAtlasesMod.res("pin"), MapDecorationRegistry.REGISTRY_KEY);
 
 
     public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
@@ -95,7 +97,7 @@ public class ClientMarker {
 
     @NotNull
     private static List<Holder<MapDecorationType<?, ?>>> getPins() {
-        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+        return MapDecorationRegistry.getRegistry(Utils.hackyGetRegistryAccess())
                 .getTag(PINS).get().stream().toList();
     }
 

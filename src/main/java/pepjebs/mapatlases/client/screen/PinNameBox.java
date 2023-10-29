@@ -42,14 +42,14 @@ public class PinNameBox extends EditBox {
         //        this.getX() + 1, this.getY() + this.height + 1, col);
          // pGuiGraphics.fill(this.getX() - this.height, this.getY(),
          //       this.getX(), this.getY() + this.height, -16777216);
-        this.markerHovered = pMouseX >= (double) this.getX() - height - 1 && pMouseY >= this.getY() &&
-                pMouseX < (this.getX()) && pMouseY < (this.getY() + this.height);
+        this.markerHovered = pMouseX >= (double) this.x - height - 1 && pMouseY >= this.y &&
+                pMouseX < (this.x) && pMouseY < (this.y + this.height);
         if (MapAtlasesMod.MOONLIGHT) {
             p.pushPose();
-            p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f -1,0);
+            p.translate(this.x - height / 2f - 2, this.y + height / 2f -1,0);
             p.scale(2,2,0);
             RenderSystem.setShaderColor(1,1,1,1);
-            ClientMarker.renderPin(pGuiGraphics, 0,0, index, this.markerHovered);
+            ClientMarker.renderPin(p, 0,0, index, this.markerHovered);
             p.popPose();
         }
         p.popPose();
