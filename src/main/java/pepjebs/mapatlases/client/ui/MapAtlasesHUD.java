@@ -136,8 +136,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         poseStack.pushPose();
 
-        globalScale = 2;
-
         //scaling on 0,0
         poseStack.scale(globalScale, globalScale, 1);
 

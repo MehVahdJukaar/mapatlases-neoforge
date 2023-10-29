@@ -178,8 +178,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
                 newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
             } else {
-                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * (mapBlocksSize / MAP_DIMENSION));
-                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * (mapBlocksSize / MAP_DIMENSION));
+                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * ((float)mapBlocksSize / (width* mapScreen.globalScale)));
+                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * ((float)mapBlocksSize / (width * mapScreen.globalScale)));
             }
             if (newXCenter != currentXCenter) {
                 targetXCenter = newXCenter;

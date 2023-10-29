@@ -74,7 +74,7 @@ public class AtlasOverviewScreen extends Screen {
     private SliceArrowButton sliceDown;
     private final List<DecorationBookmarkButton> decorationBookmarks = new ArrayList<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
-    private final float globalScale;
+    public final float globalScale;
     private ResourceKey<Level> currentSelectedDimension;
     private Slice selectedSlice;
     private boolean initialized = false;
