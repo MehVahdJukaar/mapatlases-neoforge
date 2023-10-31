@@ -645,7 +645,7 @@ public class AtlasOverviewScreen extends Screen {
         //update button regardless
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         boolean manySlices = maps.getHeightTree(currentSelectedDimension, selectedSlice.type()).size() > 1;
-        boolean manyTypes = maps.getAvailableTypes(currentSelectedDimension).size() != 1;
+        boolean manyTypes = maps.getAvailableTypes(currentSelectedDimension).size() >1;
         sliceButton.refreshState(manySlices, manyTypes);
         sliceDown.setActive(manySlices);
         sliceUp.setActive(manySlices);
