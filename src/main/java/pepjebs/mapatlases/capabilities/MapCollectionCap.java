@@ -183,8 +183,11 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     @Override
     public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
         assertInitialized();
-        return dimensionSlices.get(dimension).keySet();
+        var mapTypeTreeSetMap = dimensionSlices.get(dimension);
+        if (mapTypeTreeSetMap != null) return mapTypeTreeSetMap.keySet();
+        else return List.of();
     }
+
 
 
     @Override

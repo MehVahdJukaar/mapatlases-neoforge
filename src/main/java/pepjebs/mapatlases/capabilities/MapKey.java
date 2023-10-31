@@ -1,19 +1,10 @@
 
 package pepjebs.mapatlases.capabilities;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
-import twilightforest.item.MagicMapItem;
 
 import java.util.Objects;
 
@@ -26,7 +17,7 @@ public record MapKey(ResourceKey<Level> dimension, int mapX, int mapZ, Slice sli
         //map code
         int i = 128 * (1 << scale);
         var center = slice.type().getCenter(px, pz, i);
-        return new MapKey(dimension, center.x(), center.z(),  slice);
+        return new MapKey(dimension, center.x(), center.z(), slice);
     }
 
     public static MapKey at(byte scale, Player player, Slice slice) {

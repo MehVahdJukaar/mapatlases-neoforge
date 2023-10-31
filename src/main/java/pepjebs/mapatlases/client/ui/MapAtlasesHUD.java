@@ -3,6 +3,8 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -10,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -33,6 +36,8 @@ import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.integration.ClientMarker;
+import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -240,22 +245,26 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
                     textScaling, player.blockPosition(), level);
         }
 
-        poseStack.pushPose();
-        poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
+        if(MapAtlasesClientConfig.drawMinimapCardinals.get()) {
+            poseStack.pushPose();
+            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
 
+            var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
+            float a = p.getFirst();
+            float b = p.getSecond();
+            drawLetter(graphics, font, a, b, "N");
+            if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
+                drawLetter(graphics, font, -a, -b, "S");
+                drawLetter(graphics, font, -b, a, "E");
+                drawLetter(graphics, font, b, -a, "W");
+            }
 
-        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
-        float a = p.getFirst();
-        float b = p.getSecond();
-        drawLetter(graphics, font, a, b, "N");
-        if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
-            drawLetter(graphics, font, -a, -b, "S");
-            drawLetter(graphics, font, -b, a, "E");
-            drawLetter(graphics, font, b, -a, "W");
+            poseStack.popPose();
         }
 
-        poseStack.popPose();
-
+        if(MapAtlasesClientConfig.moonlightSmallPins.get()){
+            ClientMarker.drawSmallPins(graphics,font);
+        }
 
         poseStack.popPose();
     }

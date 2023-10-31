@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 public class MapAtlasesClientConfig {
 
 
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -130,6 +131,13 @@ public class MapAtlasesClientConfig {
 
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
+
+        builder.push("moonlight_integration");
+        moonlightCompat = builder
+                .comment("Enables moonlight compat, which allows to place map markers on map via a special pin button")
+                .define("enabled", true);
+        moonlightSmallPins = builder.comment("Makes added pins follow you on minimap")
+                .define("follow_on_minimap", true);
         spec = builder.build();
     }
 
@@ -167,6 +175,8 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;
+    public static final Supplier<Boolean> moonlightCompat;
+    public static final Supplier<Boolean> moonlightSmallPins;
 
     public static final ForgeConfigSpec spec;
 

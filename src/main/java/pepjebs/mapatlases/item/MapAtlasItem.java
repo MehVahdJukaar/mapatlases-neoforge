@@ -290,11 +290,11 @@ public class MapAtlasItem extends Item {
     public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
         super.onCraftedBy(stack, level, pPlayer);
 
-        validateSelectedSlcies(stack, level);
+        validateSelectedSlices(stack, level);
         convertOldAtlas(level, stack);
     }
 
-    private static void validateSelectedSlcies(ItemStack pStack, Level pLevel) {
+    private static void validateSelectedSlices(ItemStack pStack, Level pLevel) {
         // Populate default slices
         var maps = getMaps(pStack, pLevel);
         var dim = maps.getAvailableDimensions();

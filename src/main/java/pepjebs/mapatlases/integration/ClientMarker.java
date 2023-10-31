@@ -1,17 +1,20 @@
 package pepjebs.mapatlases.integration;
 
+import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.mehvahdjukaar.moonlight.core.map.MapDataInternal;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -27,6 +30,7 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,8 +43,9 @@ import java.util.*;
 public class ClientMarker {
 
     private static final TagKey<MapDecorationType<?,?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
-    private static int name = 0;
+    private static int currentWorldHash = 0;
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
+    private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
 
 
@@ -54,7 +59,6 @@ public class ClientMarker {
             try (OutputStream outputstream = new FileOutputStream(path.toFile())) {
                 NbtIo.writeCompressed(save(), outputstream);
             }
-            int aa = 1;
 
         } catch (Exception ignored) {
         }
@@ -64,7 +68,7 @@ public class ClientMarker {
     public static void loadClientMarkers(int hash) {
         markers.clear();
         mapLookup.clear();
-        name = hash;
+        currentWorldHash = hash;
 
         Path path = getPath();
         try (InputStream inputStream = new FileInputStream(path.toFile())) {
@@ -75,7 +79,7 @@ public class ClientMarker {
 
     @NotNull
     private static Path getPath() {
-        return FMLPaths.GAMEDIR.get().resolve("map_atlases/" + name + ".nbt");
+        return FMLPaths.GAMEDIR.get().resolve("map_atlases/" + currentWorldHash + ".nbt");
     }
 
     private static final DataObjectReference<MapDecorationType<?, ?>> PIN = new DataObjectReference<>(
@@ -163,5 +167,21 @@ public class ClientMarker {
         var t = p.get(index%p.size());
         var d = new CustomMapDecoration(t.value(), (byte) 0,(byte)0,(byte)0, null);
         CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
+    }
+
+    public static void drawSmallPin(GuiGraphics graphics, Font font) {
+
+
+    }
+
+    public static void drawSmallPins(GuiGraphics graphics, Font font) {
+
+
+        TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(this.getTextureId());
+        //so we can use local coordinates
+        //idk wy wrap doesnt work, it does the same as here
+        //vertexBuilder = sprite.wrap(vertexBuilder);
+
+        RenderUtil.renderSprite(matrixStack, vertexBuilder, light, index, b, g, r, sprite);
     }
 }
