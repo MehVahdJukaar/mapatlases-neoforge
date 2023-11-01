@@ -1,14 +1,10 @@
 package pepjebs.mapatlases.networking;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.network.NetworkEvent;
-import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.integration.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarker;
 
 import java.util.Objects;
 import java.util.function.Supplier;

@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.integration;
+package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -11,7 +11,6 @@ import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.mehvahdjukaar.moonlight.core.map.MapDataInternal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -123,7 +122,7 @@ public class ClientMarker {
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
             for (int j = 0; j < listNbt.size(); ++j) {
                 var c = listNbt.getCompound(j);
-                MapBlockMarker<?> marker = MapDataInternal.readWorldMarker(c);
+                MapBlockMarker<?> marker = MapDataRegistry.readMarker(c);
                 if (marker != null) {
                     l.add(marker);
                 }
@@ -183,11 +182,20 @@ public class ClientMarker {
         }
     }
 
-    public static void renderPin(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
+    public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
         var p = getPins();
         var t = p.get(index % p.size());
-        var d = new CustomMapDecoration(t.value(), (byte) 0, (byte) 0, (byte) 0, null);
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
+        CustomMapDecoration d;
+
+        if (MapDecorationClientManager.getRenderer(t.get()) instanceof PinDecorationRenderer) {
+            d = new PinDecoration(t.value(), (byte) 0, (byte) 0, (byte) 0, null);
+        } else d = new CustomMapDecoration(t.value(), (byte) 0, (byte) 0, (byte) 0, null);
+        try {
+            //this will fail with custom types... TODO: fix
+            CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
+        } catch (Exception ignored) {
+        }
+        ;
     }
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, MapKey center, float widgetWorldLen, Player player) {
@@ -202,24 +210,24 @@ public class ClientMarker {
             float yRot = player.getYRot();
 
             for (var p : pins) {
-                if (!p.shouldSave() || isOffscreen(p, widgetWorldLen, player)) continue;
-                matrixStack.pushPose();
-                BlockPos pos = p.getPos();
-                Vec3 v = player.position().subtract(pos.getCenter());
-                double angle = Mth.RAD_TO_DEG * (Math.atan2(v.x, v.z)) + yRot;
-                var pp = MapAtlasesHUD.getDirectionPos(29F, (float) angle);
-                float a = pp.getFirst();
-                float b = pp.getSecond();
+                if (p instanceof PinMarker mp && mp.isFocused() && !isOffscreen(p, widgetWorldLen, player)) {
+                    matrixStack.pushPose();
+                    BlockPos pos = p.getPos();
+                    Vec3 v = player.position().subtract(pos.getCenter());
+                    double angle = Mth.RAD_TO_DEG * (Math.atan2(v.x, v.z)) + yRot;
+                    var pp = MapAtlasesHUD.getDirectionPos(29F, (float) angle);
+                    float a = pp.getFirst();
+                    float b = pp.getSecond();
 
-                matrixStack.translate(a, b, 0);
-                matrixStack.scale(4, 4, 0);
-                ResourceLocation id = Utils.getID(p.getType());
-                ResourceLocation texture = MINI_PINS.get(id);
-                if (texture != null) {
+                    matrixStack.translate(a, b, 0);
+                    matrixStack.scale(4, 4, 0);
+                    matrixStack.translate(-0.25, -0.25, 0);
+                    ResourceLocation id = Utils.getID(p.getType());
+                    ResourceLocation texture = id.withPath(k -> "map_marker/" + k + "_small");
                     TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
+                    matrixStack.popPose();
                 }
-                matrixStack.popPose();
             }
         }
         //so we can use local coordinates
@@ -233,15 +241,17 @@ public class ClientMarker {
     private static boolean isOffscreen(MapBlockMarker<?> p, float maxSize, Player player) {
         BlockPos pos = p.getPos().subtract(player.blockPosition());
         var c = pos.getCenter().yRot(player.getYRot() * Mth.DEG_TO_RAD);
-        float l = maxSize / 2 + 4;
+        float l = maxSize / 2 + 5;
         return (c.z <= l) && (c.z >= -l) && (c.x <= l) && (c.x >= -l);
     }
 
     public static void focusMarker(MapDataHolder map, CustomMapDecoration deco, boolean focused) {
         MapBlockMarker<?> found = decoToMarker(map, deco);
-        if (found != null) {
+        if (found instanceof PinMarker mp) {
             //hack. this is used for somehting else...
-            found.setPersistent(focused);
+            mp.setFocused(focused);
+            //Bad code
+            if (deco instanceof PinDecoration pd) pd.focused = focused;
         }
     }
 
@@ -262,20 +272,12 @@ public class ClientMarker {
 
     public static boolean isDecorationFocused(MapDataHolder map, CustomMapDecoration deco) {
         MapBlockMarker<?> found = decoToMarker(map, deco);
-        if (found != null) {
-            return found.shouldSave();
+        if (found instanceof PinMarker mp) {
+            return mp.isFocused();
         }
         return false;
     }
 
     private static final WeakHashMap<CustomMapDecoration, MapBlockMarker<?>> DECO_TO_MARKER = new WeakHashMap<>();
-
-
-    private static final Map<ResourceLocation, ResourceLocation> MINI_PINS = Map.of(
-            MapAtlasesMod.res("pin_green"), MapAtlasesMod.res("map_marker/pin_green_small"),
-            MapAtlasesMod.res("pin_red"), MapAtlasesMod.res("map_marker/pin_red_small"),
-            MapAtlasesMod.res("pin_yellow"), MapAtlasesMod.res("map_marker/pin_yellow_small"),
-            MapAtlasesMod.res("pin_blue"), MapAtlasesMod.res("map_marker/pin_blue_small")
-    );
 
 }

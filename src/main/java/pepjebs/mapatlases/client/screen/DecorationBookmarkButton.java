@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.integration.CustomDecorationButton;
+import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -109,9 +109,15 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         matrices.pushPose();
         matrices.translate(0, 0, 0.01 * this.index);
         super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
-        if (this.shfting && !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
-            graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
-                    24, 167, 5, 5);
+        if (  !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
+            if(this.shfting) {
+                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
+                        24, 167, 5, 5);
+            }
+            if(control && canFocusMarker()){
+                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
+                        24, 173, 5, 5);
+            }
 
         }
         renderDecoration(graphics, pMouseX, pMouseY);

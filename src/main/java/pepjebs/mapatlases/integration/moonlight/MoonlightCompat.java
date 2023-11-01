@@ -1,24 +1,32 @@
-package pepjebs.mapatlases.integration;
+package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
+import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Collection;
 
 public class MoonlightCompat {
 
+    private static final ResourceLocation CUSTOM_TYPE_ID = MapAtlasesMod.res("pin");
+
     public static void init() {
-        if(PlatHelper.getPhysicalSide().isClient()) {
+        MapDataRegistry.registerCustomType(CUSTOM_TYPE_ID, () -> CustomDecorationType.simple(PinMarker::new, PinDecoration::new));
+
+        if (PlatHelper.getPhysicalSide().isClient()) {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarker::send);
+            MapDecorationClientManager.registerCustomRenderer(CUSTOM_TYPE_ID, PinDecorationRenderer::new);
         }
     }
 

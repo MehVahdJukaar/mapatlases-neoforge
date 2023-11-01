@@ -1,13 +1,12 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.MoonlightCompat;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 
 import java.util.function.Supplier;
 

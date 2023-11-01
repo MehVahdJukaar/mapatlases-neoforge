@@ -1,7 +1,6 @@
 package pepjebs.mapatlases;
 
 
-import net.minecraft.advancements.Advancement;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -14,6 +13,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -22,13 +22,14 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.compress.archivers.sevenz.CLI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.integration.MoonlightCompat;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -69,6 +70,12 @@ public class MapAtlasesMod {
     public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
 
     static {
+        // Register config
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MapAtlasesConfig.spec);
+        if(FMLEnvironment.dist == Dist.CLIENT) {
+            ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MapAtlasesClientConfig.spec);
+        }
+
         //lectern marker
         //sound
         //spyglass zoom
@@ -87,9 +94,6 @@ public class MapAtlasesMod {
         ITEMS.register(bus);
         SOUND_EVENTS.register(bus);
 
-        // Register config
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MapAtlasesConfig.spec);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MapAtlasesClientConfig.spec);
 
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RECIPES.register("crafting_atlas", MapAtlasCreateRecipe.Serializer::new);

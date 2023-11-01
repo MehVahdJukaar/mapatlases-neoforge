@@ -8,7 +8,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.integration.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarker;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;

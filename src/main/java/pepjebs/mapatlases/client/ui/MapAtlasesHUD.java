@@ -32,7 +32,7 @@ import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.integration.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarker;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;

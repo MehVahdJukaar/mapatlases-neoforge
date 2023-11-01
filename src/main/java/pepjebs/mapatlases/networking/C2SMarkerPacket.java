@@ -14,7 +14,7 @@ import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.integration.MoonlightCompat;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 
 import java.util.Arrays;

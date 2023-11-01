@@ -1,10 +1,8 @@
-package pepjebs.mapatlases.integration;
+package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
@@ -12,11 +10,8 @@ import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
@@ -95,7 +90,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected boolean canFocusMarker() {
-        return true;
+        return decoration instanceof PinDecoration;
     }
 
     @Override
@@ -112,35 +107,29 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         }
     }
 
-    public static void renderStaticMarker(GuiGraphics pGuiGraphics, CustomMapDecoration decoration,
+    public static<T extends CustomMapDecoration> void renderStaticMarker(GuiGraphics pGuiGraphics, T decoration,
                                           MapItemSavedData data, float x, float y, int index, boolean outline) {
-        DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientManager.getRenderer(decoration);
+        DecorationRenderer<T> renderer = MapDecorationClientManager.getRenderer(decoration);
 
         if (renderer != null) {
             PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
-            poseStack.translate(x, y, 1.02);
-
-            // de translates by the amount the decoration renderer will translate
-            poseStack.translate(-(float) decoration.getX() / 2.0F - 64.0F,
-                    -(float) decoration.getY() / 2.0F - 64.0F, 0);
+            poseStack.translate(x, y, 1);
+            poseStack.scale(4,4,-3);
 
             var buffer = pGuiGraphics.bufferSource();
 
-            renderer.rendersText = false;
-
-            if (outline) {
+            if (outline && false) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
-                VertexConsumer vb2 = buffer.getBuffer(R.COLOR_TEXT);
+                VertexConsumer vb2 = buffer.getBuffer(PinDecorationRenderer.getOutlineRenderType());
                 for (int j = -1; j <= 1; ++j) {
                     for (int k = -1; k <= 1; ++k) {
                         if (j != 0 || k != 0) {
                             poseStack.pushPose();
-                            poseStack.translate(j * 0.5, k * 0.5, -0.01);
-                            renderer.render(decoration, poseStack,
-                                    vb2, buffer, data,
-                                    false, LightTexture.FULL_BRIGHT, index);
+                            poseStack.translate(j * 0.125, k * 0.125, -0.001);
+                            renderer.renderSprite(decoration, poseStack,
+                                    vb2, LightTexture.FULL_BRIGHT, index);
                             poseStack.popPose();
                         }
                     }
@@ -148,34 +137,12 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             }
             VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
 
-            renderer.render(decoration, poseStack,
-                    vertexBuilder, buffer, data,
-                    false, LightTexture.FULL_BRIGHT, index);
-            renderer.rendersText = true;
+            renderer.renderSprite(decoration, poseStack,
+                    vertexBuilder,  LightTexture.FULL_BRIGHT, index);
 
             poseStack.popPose();
         }
     }
 
-    private static class R extends RenderType {
-        protected static final RenderStateShard.ShaderStateShard SHARD = new RenderStateShard.ShaderStateShard(
-                () -> MapAtlasesClient.TEXT_ALPHA_SHADER);
-
-        public static final RenderType COLOR_TEXT = create("map_atlases_text_colored",
-                DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP,
-                com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, 256, false, true,
-
-                CompositeState.builder()
-                        .setShaderState(SHARD)
-                        .setTextureState(new TextureStateShard(MapDecorationClientManager.LOCATION_MAP_MARKERS,
-                                false, true))
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setLightmapState(LIGHTMAP)
-                        .createCompositeState(false));
-
-        public R(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, Runnable pSetupState, Runnable pClearState) {
-            super(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, pSetupState, pClearState);
-        }
-    }
 
 }

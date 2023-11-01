@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarker;
 
 public class PinNameBox extends EditBox {
 
@@ -51,7 +51,7 @@ public class PinNameBox extends EditBox {
             p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f -1,0);
             p.scale(2,2,0);
             RenderSystem.setShaderColor(1,1,1,1);
-            ClientMarker.renderPin(pGuiGraphics, 0,0, index, this.markerHovered);
+            ClientMarker.renderDecorationPreview(pGuiGraphics, 0,0, index, this.markerHovered);
             p.popPose();
         }
         p.popPose();
