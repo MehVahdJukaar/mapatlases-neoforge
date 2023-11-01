@@ -66,12 +66,12 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public List<MapDataHolder> selectSection(ResourceKey<Level> dimension, Slice slice) {
+    public List<MapDataHolder> selectSection(Slice slice) {
         return null;
     }
 
     @Override
-    public List<MapDataHolder> filterSection(ResourceKey<Level> dimension, Slice slice, Predicate<MapItemSavedData> predicate) {
+    public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
         return null;
     }
 
@@ -81,7 +81,7 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public @Nullable MapDataHolder getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
+    public @Nullable MapDataHolder getClosest(double x, double z, Slice slice) {
         return null;
     }
 

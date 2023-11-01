@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.integration;
 
-import com.mojang.blaze3d.font.GlyphInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -11,9 +10,7 @@ import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -71,9 +68,35 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f, 0, false);
+        renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f,
+                0, isMarkerFocused());
     }
 
+
+    @Override
+    public void onClick(double mouseX, double mouseY, int button) {
+        if (control || button == 1) {
+            focusMarker();
+        } else onClick(mouseX, mouseY);
+    }
+
+    @Override
+    protected boolean isValidClickButton(int pButton) {
+        return pButton == 0 || pButton == 1 && canFocusMarker();
+    }
+
+    private boolean isMarkerFocused() {
+        return ClientMarker.isDecorationFocused(mapData, decoration);
+    }
+
+    protected void focusMarker() {
+        ClientMarker.focusMarker(mapData, decoration, !ClientMarker.isDecorationFocused(mapData, decoration));
+    }
+
+    @Override
+    protected boolean canFocusMarker() {
+        return true;
+    }
 
     @Override
     protected void deleteMarker() {
@@ -97,7 +120,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
-            poseStack.translate(x, y, 0.02);
+            poseStack.translate(x, y, 1.02);
 
             // de translates by the amount the decoration renderer will translate
             poseStack.translate(-(float) decoration.getX() / 2.0F - 64.0F,
@@ -110,11 +133,11 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             if (outline) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 VertexConsumer vb2 = buffer.getBuffer(R.COLOR_TEXT);
-                for(int j = -1; j <= 1; ++j) {
-                    for(int k = -1; k <= 1; ++k) {
+                for (int j = -1; j <= 1; ++j) {
+                    for (int k = -1; k <= 1; ++k) {
                         if (j != 0 || k != 0) {
                             poseStack.pushPose();
-                            poseStack.translate(j*0.5,k*0.5, -0.01);
+                            poseStack.translate(j * 0.5, k * 0.5, -0.01);
                             renderer.render(decoration, poseStack,
                                     vb2, buffer, data,
                                     false, LightTexture.FULL_BRIGHT, index);

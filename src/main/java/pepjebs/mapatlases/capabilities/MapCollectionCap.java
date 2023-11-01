@@ -169,7 +169,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     private void addToDimensionMap(MapKey j) {
-        dimensionSlices.computeIfAbsent(j.dimension(), d -> new EnumMap<>(MapType.class))
+        dimensionSlices.computeIfAbsent(j.slice().dimension(), d -> new EnumMap<>(MapType.class))
                 .computeIfAbsent(j.slice().type(), a -> new TreeSet<>())
                 .add(j.slice().height() == null ? Integer.MAX_VALUE : j.slice().height());
     }
@@ -187,7 +187,6 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
         if (mapTypeTreeSetMap != null) return mapTypeTreeSetMap.keySet();
         else return List.of();
     }
-
 
 
     @Override
@@ -219,17 +218,16 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     }
 
     @Override
-    public List<MapDataHolder> selectSection(ResourceKey<Level> dimension, Slice type) {
+    public List<MapDataHolder> selectSection(Slice slice) {
         assertInitialized();
-        return maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, type))
+        return maps.entrySet().stream().filter(e -> e.getKey().isSameSlice(slice))
                 .map(Map.Entry::getValue).toList();
     }
 
     @Override
-    public List<MapDataHolder> filterSection(ResourceKey<Level> dimension, Slice slice,
-                                             Predicate<MapItemSavedData> predicate) {
+    public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
         assertInitialized();
-        return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameDimSameSlice(dimension, slice)
+        return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameSlice(slice)
                         && predicate.test(e.getValue().data))
                 .map(Map.Entry::getValue).toList());
     }
@@ -243,12 +241,12 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
 
     @Nullable
     @Override
-    public MapDataHolder getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice) {
+    public MapDataHolder getClosest(double x, double z, Slice slice) {
         assertInitialized();
         MapDataHolder minDistState = null;
         for (var e : maps.entrySet()) {
             var key = e.getKey();
-            if (key.isSameDimSameSlice(dimension, slice)) {
+            if (key.isSameSlice(slice)) {
                 if (minDistState == null) {
                     minDistState = e.getValue();
                     continue;

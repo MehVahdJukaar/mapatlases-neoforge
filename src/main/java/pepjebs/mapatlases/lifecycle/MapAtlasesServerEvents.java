@@ -108,7 +108,7 @@ public class MapAtlasesServerEvents {
             // Update Map states & colors
             //these also include an active map
             List<MapDataHolder> nearbyExistentMaps =
-                    maps.filterSection(level.dimension(), slice, e -> discoveringEdges.stream()
+                    maps.filterSection(slice, e -> discoveringEdges.stream()
                             .anyMatch(edge -> edge.x == e.centerX
                                     && edge.y == e.centerZ));
 

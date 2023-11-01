@@ -1,10 +1,9 @@
 package pepjebs.mapatlases.utils;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ColumnPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,27 +14,27 @@ import static pepjebs.mapatlases.item.MapAtlasItem.TYPE_NBT;
 
 // this is a pair of map item type + y levels basically
 public final class Slice {
-    public static final Slice DEFAULT_INSTANCE = new Slice(MapType.VANILLA, null);
 
     private final MapType type;
     private final @Nullable Integer height;
+    private final ResourceKey<Level> dimension;
 
-    private Slice(MapType type, Integer height) {
+    private Slice(MapType type, Integer height, ResourceKey<Level> dimension) {
         this.type = type;
         this.height = height;
+        this.dimension = dimension;
     }
-    public static Slice of(MapType type, @Nullable Integer height) {
+    public static Slice of(MapType type, @Nullable Integer height, ResourceKey<Level> dimension) {
         if (height != null && height.equals(Integer.MAX_VALUE)) {
             height = null;
         }
-        if (height == null && type == MapType.VANILLA) return DEFAULT_INSTANCE;
-        return new Slice(type, height);
+        return new Slice(type, height, dimension);
     }
 
-    public static Slice parse(CompoundTag t) {
+    public static Slice parse(CompoundTag t, ResourceKey<Level> dimension) {
         int anInt = t.getInt(TYPE_NBT);
         if (anInt >= MapType.values().length) anInt = 0;
-        return of(MapType.values()[anInt], t.getInt(HEIGHT_NBT));
+        return of(MapType.values()[anInt], t.getInt(HEIGHT_NBT), dimension);
     }
 
     public CompoundTag save() {
@@ -66,18 +65,21 @@ public final class Slice {
         return height;
     }
 
+    public ResourceKey<Level> dimension() {
+        return dimension;
+    }
+
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (Slice) obj;
-        return Objects.equals(this.type, that.type) &&
-                Objects.equals(this.height, that.height);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Slice slice = (Slice) o;
+        return type == slice.type && Objects.equals(height, slice.height) && Objects.equals(dimension, slice.dimension);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, height);
+        return Objects.hash(type, height, dimension);
     }
 
     public String getMapString(int id) {

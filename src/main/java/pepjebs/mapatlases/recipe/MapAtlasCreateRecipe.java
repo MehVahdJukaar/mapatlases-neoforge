@@ -104,7 +104,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         //initialize tag
         atlas.getOrCreateTag();
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, holder.slice, level.dimension());
+        MapAtlasItem.setSelectedSlice(atlas, holder.slice);
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
         }

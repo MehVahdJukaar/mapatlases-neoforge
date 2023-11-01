@@ -1,10 +1,9 @@
 package pepjebs.mapatlases.client.ui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
-import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
-import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -12,7 +11,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
@@ -27,8 +25,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4d;
-import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
@@ -37,7 +33,6 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ClientMarker;
-import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -76,7 +71,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
         MapCollectionCap maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
-        return maps.select(centerX, centerZ, currentMapKey.dimension(), slice);
+        return maps.select(centerX, centerZ, slice);
     }
 
     @Override
@@ -94,7 +89,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
     @Override
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
-        super.applyScissors(graphics, (int) (x*globalScale), (int) (y*globalScale),(int) (x1*globalScale),(int) (y1*globalScale));
+        super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
     @Override
@@ -151,9 +146,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         int mapWidgetSize = (int) (BG_SIZE * (116 / 128f));
         // Draw map background
         Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
-        int x = anchorLocation.isLeft ? 0 :  (int) (screenWidth / globalScale) - BG_SIZE;
+        int x = anchorLocation.isLeft ? 0 : (int) (screenWidth / globalScale) - BG_SIZE;
         int y = anchorLocation.isUp ? 0 : (int) (screenHeight / globalScale) - BG_SIZE;
-        x += MapAtlasesClientConfig.miniMapHorizontalOffset.get() / globalScale ;
+        x += MapAtlasesClientConfig.miniMapHorizontalOffset.get() / globalScale;
         y += MapAtlasesClientConfig.miniMapVerticalOffset.get() / globalScale;
 
         //TODO: fix rounding error when at non integer scales
@@ -225,14 +220,14 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         // Draw text data
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
         int textHeightOffset = 0;
-        int actualBgSize = (int) (BG_SIZE*globalScale);
+        int actualBgSize = (int) (BG_SIZE * globalScale);
         if (!anchorLocation.isUp) {
             //textHeightOffset = -actualBgSize + ;
         }
         Font font = mc.font;
         if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
             drawMapComponentCoords(
-                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset/globalScale)), actualBgSize,
+                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                     textScaling, new BlockPos(new Vec3i(
                             towardsZero(player.position().x),
                             towardsZero(player.position().y),
@@ -241,11 +236,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset/globalScale)), actualBgSize,
+                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                     textScaling, player.blockPosition(), level);
         }
 
-        if(MapAtlasesClientConfig.drawMinimapCardinals.get()) {
+        if (MapAtlasesClientConfig.drawMinimapCardinals.get()) {
             poseStack.pushPose();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
 
@@ -262,8 +257,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.popPose();
         }
 
-        if(MapAtlasesClientConfig.moonlightSmallPins.get()){
-            ClientMarker.drawSmallPins(graphics,font);
+        if (MapAtlasesClientConfig.moonlightSmallPins.get()) {
+            poseStack.pushPose();
+            RenderSystem.enableDepthTest();
+            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
+            ClientMarker.drawSmallPins(graphics, font, currentMapKey, mapBlocksSize * zoomLevel, player);
+            poseStack.popPose();
         }
 
         poseStack.popPose();
@@ -308,7 +307,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             BlockPos pos
     ) {
         String coordsToDisplay = displaysY ? pos.toShortString() : pos.getX() + ", " + pos.getZ();
-        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling/globalScale, targetWidth, (int) (targetWidth/globalScale));
+        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
     public void drawMapComponentBiome(
@@ -326,7 +325,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling/globalScale, targetWidth, (int) (targetWidth/globalScale));
+        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
     public static void drawScaledComponent(
@@ -360,7 +359,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         context.drawString(font, text, x, y, 0xE0E0E0, false);
     }
 
-    private static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {
+    public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {
 
         angleDegrees = Mth.wrapDegrees(90 - angleDegrees);
 

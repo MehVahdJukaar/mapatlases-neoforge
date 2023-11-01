@@ -25,6 +25,7 @@
   "message.map_atlases.unlocked": "Unlocked atlas",
   "message.map_atlases.atlas.slice_default": "Top",
   "tooltip.map_atlases.delete_marker": "Delete Marker",
+  "tooltip.map_atlases.focus_marker": "Focus Marker",
   "trinkets.slot.hand.atlas": "Atlas",
   "message.map_atlases.pin": "Place a marker",
   "message.map_atlases.marker_name": "Marker Name",

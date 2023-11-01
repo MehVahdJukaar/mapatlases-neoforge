@@ -28,7 +28,7 @@ public class MapDataHolder {
         this.data = data;
         this.type = MapType.fromKey(stringId, data);
         this.height = type.getHeight(data);
-        this.slice = Slice.of(type, height);
+        this.slice = Slice.of(type, height, data.dimension);
     }
 
     private static int findMapIntFromString(String id) {
@@ -48,7 +48,7 @@ public class MapDataHolder {
     }
 
     public MapKey makeKey() {
-        return MapKey.at(data.scale, data.centerX, data.centerZ, data.dimension, slice);
+        return MapKey.at(data.scale, data.centerX, data.centerZ, slice);
     }
 
     public void updateMap(ServerPlayer player) {

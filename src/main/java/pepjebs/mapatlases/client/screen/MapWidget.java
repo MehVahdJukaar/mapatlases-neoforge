@@ -25,11 +25,11 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
 public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
-
 
     private static final int PAN_BUCKET = 25;
     private static final int ZOOM_BUCKET = 2;
@@ -231,8 +231,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             } else if (mapScreen.canTeleport()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
-                MapAtlasesNetworking.sendToServer(new C2STeleportPacket(pos.x(), pos.z(),
-                        mapScreen.getSelectedSlice().height(), mapScreen.getSelectedDimension()));
+                Slice slice = mapScreen.getSelectedSlice();
+                MapAtlasesNetworking.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
                 return true;
             }
             return !mapScreen.isEditingText();

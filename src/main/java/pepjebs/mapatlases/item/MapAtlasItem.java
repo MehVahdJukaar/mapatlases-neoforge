@@ -25,16 +25,12 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
-import pepjebs.mapatlases.utils.AtlasLectern;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.utils.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -226,9 +222,10 @@ public class MapAtlasItem extends Item {
         MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
     }
 
-    public static void setSelectedSlice(ItemStack stack, Slice slice, ResourceKey<Level> dimension) {
+    public static void setSelectedSlice(ItemStack stack, Slice slice) {
         MapType t = slice.type();
         Integer h = slice.height();
+        var dimension = slice.dimension();
         if (h == null && t == MapType.VANILLA) {
             CompoundTag tag = stack.getTagElement(SELECTED_NBT);
             if (tag != null) {
@@ -280,10 +277,10 @@ public class MapAtlasItem extends Item {
             String string = dimension.location().toString();
             if (tag.contains(string)) {
                 var t = tag.getCompound(string);
-                return Slice.parse(t);
+                return Slice.parse(t, dimension);
             }
         }
-        return Slice.DEFAULT_INSTANCE;
+        return Slice.of(MapType.VANILLA, null, dimension);
     }
 
     @Override
@@ -294,15 +291,15 @@ public class MapAtlasItem extends Item {
         convertOldAtlas(level, stack);
     }
 
-    private static void validateSelectedSlices(ItemStack pStack, Level pLevel) {
+    private static void validateSelectedSlices(ItemStack pStack, Level level) {
         // Populate default slices
-        var maps = getMaps(pStack, pLevel);
+        var maps = getMaps(pStack, level);
         var dim = maps.getAvailableDimensions();
         for (var d : dim) {
             for (var k : maps.getAvailableTypes(d)) {
                 var av = maps.getHeightTree(d, k);
                 if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
-                    setSelectedSlice(pStack, Slice.of(k, av.first()), d);
+                    setSelectedSlice(pStack, Slice.of(k, av.first(), d));
                 }
             }
         }

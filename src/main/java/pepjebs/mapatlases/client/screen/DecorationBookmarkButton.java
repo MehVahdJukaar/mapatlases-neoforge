@@ -1,15 +1,12 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.github.alexmodguy.alexscaves.client.render.misc.CaveMapRenderer;
-import com.github.alexmodguy.alexscaves.server.item.CaveMapItem;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
-import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.data.advancements.AdvancementSubProvider;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -18,7 +15,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.CustomDecorationButton;
-import pepjebs.mapatlases.integration.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -39,6 +35,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     protected int index = 0;
     protected boolean shfting = false;
+    protected boolean control = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
@@ -54,19 +51,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        if (parentScreen.getMinecraft().options.keyShift.matches(pKeyCode, pScanCode)) {
-            shfting = false;
-            this.setTooltip(this.createTooltip());
-        }
+        this.shfting = Screen.hasShiftDown();
+        this.control = Screen.hasControlDown();
+        this.setTooltip(this.createTooltip());
         return false;
     }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (parentScreen.getMinecraft().options.keyShift.matches(pKeyCode, pScanCode)) {
-            shfting = true;
-            this.setTooltip(Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker")));
-        }
+        this.shfting = Screen.hasShiftDown();
+        this.control = Screen.hasControlDown();
+        this.setTooltip(this.createTooltip());
         return false;
     }
 
@@ -131,6 +126,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public Tooltip createTooltip() {
+        if(shfting){
+           return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
+        }
+        if(control && canFocusMarker()){
+            return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
+        }
         Component mapIconComponent = getDecorationName();
         // draw text
         MutableComponent coordsComponent = Component.literal("X: " + getWorldX() + ", Z: " + getWorldZ());
@@ -142,6 +143,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         merged.addAll(t2.toCharSequence(parentScreen.getMinecraft()));
         t.cachedTooltip = ImmutableList.copyOf(merged);
         return t;
+    }
+
+    protected boolean canFocusMarker() {
+        return false;
     }
 
 

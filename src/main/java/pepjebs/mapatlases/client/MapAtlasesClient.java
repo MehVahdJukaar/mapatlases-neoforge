@@ -78,7 +78,6 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
-
     public static final KeyMapping INCREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_in_minimap",
             InputConstants.Type.KEYSYM,

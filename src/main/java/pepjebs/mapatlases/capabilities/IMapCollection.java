@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 public interface IMapCollection {
 
-    boolean add(int mapId, Level level );
+    boolean add(int mapId, Level level);
 
     boolean remove(MapDataHolder obj);
 
@@ -33,25 +33,24 @@ public interface IMapCollection {
 
     Collection<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type);
 
-    List<MapDataHolder> selectSection(ResourceKey<Level> dimension, Slice slice);
+    List<MapDataHolder> selectSection(Slice slice);
 
-    List<MapDataHolder> filterSection(ResourceKey<Level> dimension, Slice slice,
-                                                       Predicate<MapItemSavedData> predicate);
+    List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate);
 
     @Nullable
-    default MapDataHolder select(int x, int z, ResourceKey<Level> dimension, Slice slice) {
-        return select(new MapKey(dimension, x, z, slice));
+    default MapDataHolder select(int x, int z, Slice slice) {
+        return select(new MapKey(x, z, slice));
     }
 
     MapDataHolder select(MapKey key);
 
 
     @Nullable
-    MapDataHolder getClosest(double x, double z, ResourceKey<Level> dimension, Slice slice);
+    MapDataHolder getClosest(double x, double z, Slice slice);
 
     @Nullable
-    default MapDataHolder getClosest(Player player, Slice group) {
-        return getClosest(player.getX(), player.getZ(), player.level().dimension(), group);
+    default MapDataHolder getClosest(Player player, Slice slice) {
+        return getClosest(player.getX(), player.getZ(), slice);
     }
 
     Collection<MapDataHolder> getAll();
