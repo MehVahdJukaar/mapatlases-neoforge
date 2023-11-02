@@ -110,10 +110,10 @@ public class MapAtlasesAccessUtils {
             ServerPlayer player,
             ItemStack atlas
     ) {
-        MapAtlasesMod.setMapInInentoryHack(true);
+        MapAtlasesMod.setMapInInventoryHack(true);
         holder.data.tickCarriedBy(player, atlas);
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
-        MapAtlasesMod.setMapInInentoryHack(false);
+        MapAtlasesMod.setMapInInventoryHack(false);
     }
 
     public static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {

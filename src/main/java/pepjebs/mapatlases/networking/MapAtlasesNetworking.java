@@ -44,9 +44,13 @@ public class MapAtlasesNetworking {
         CHANNEL.registerMessage(index++, C2SRemoveMarkerPacket.class,
                 C2SRemoveMarkerPacket::write, C2SRemoveMarkerPacket::new, C2SRemoveMarkerPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(index++, TakeAtlasPacket.class,
-                TakeAtlasPacket::write, TakeAtlasPacket::new, TakeAtlasPacket::apply,
+        CHANNEL.registerMessage(index++, C2STakeAtlasPacket.class,
+                C2STakeAtlasPacket::write, C2STakeAtlasPacket::new, C2STakeAtlasPacket::apply,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
+        CHANNEL.registerMessage(index++, S2CDebugUpdateMapPacket.class,
+                S2CDebugUpdateMapPacket::write, S2CDebugUpdateMapPacket::new, S2CDebugUpdateMapPacket::apply,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
 

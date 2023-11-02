@@ -64,7 +64,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
         renderStaticMarker(pGuiGraphics, decoration, mapData.data, getX() + width / 2f, getY() + height / 2f,
-                0, isMarkerFocused());
+                0, false);
     }
 
 
@@ -77,11 +77,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected boolean isValidClickButton(int pButton) {
-        return pButton == 0 || pButton == 1 && canFocusMarker();
-    }
-
-    private boolean isMarkerFocused() {
-        return ClientMarker.isDecorationFocused(mapData, decoration);
+        return pButton == 0 || (pButton == 1 && canFocusMarker());
     }
 
     protected void focusMarker() {
@@ -115,12 +111,12 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
-            poseStack.translate(x, y, 1);
+            poseStack.translate(x, y, 0.005);
             poseStack.scale(4,4,-3);
 
             var buffer = pGuiGraphics.bufferSource();
 
-            if (outline && false) {
+            if (outline) {
                 RenderSystem.setShaderColor(1, 1, 1, 1);
                 VertexConsumer vb2 = buffer.getBuffer(PinDecorationRenderer.getOutlineRenderType());
                 for (int j = -1; j <= 1; ++j) {

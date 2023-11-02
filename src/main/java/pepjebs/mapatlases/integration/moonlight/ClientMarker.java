@@ -219,7 +219,7 @@ public class ClientMarker {
                     float a = pp.getFirst();
                     float b = pp.getSecond();
 
-                    matrixStack.translate(a, b, 0);
+                    matrixStack.translate(a, b, 5);
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
                     ResourceLocation id = Utils.getID(p.getType());

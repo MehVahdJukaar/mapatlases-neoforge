@@ -4,15 +4,22 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.capabilities.MapKey;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapDataHolder {
     public final int id;
     public final String stringId;
     public final MapItemSavedData data;
 
-    //redundant info, cache basically as we use this for data structures
+    // redundant info, cache basically as we use this for data structures
     public final Slice slice;
     public final MapType type;
     @Nullable
@@ -52,9 +59,19 @@ public class MapDataHolder {
     }
 
     public void updateMap(ServerPlayer player) {
-        ((MapItem) type.filled).update(player.level(), player, data);
+        if(MapAtlasesConfig.mapUpdateMultithreaded.get()){
+            EXECUTORS.submit(()-> {
+                ((MapItem) type.filled).update(player.level(), player, data);
+            });
+        }else{
+            ((MapItem) type.filled).update(player.level(), player, data);
+        }
+        if(!FMLEnvironment.production || MapAtlasesConfig.debugUpdate.get()){
+            MapAtlasesNetworking.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
+        }
     }
 
-    //utility methods. merge with slice TODO
+    private static final ExecutorService EXECUTORS = Executors.newFixedThreadPool(6);
+
 
 }

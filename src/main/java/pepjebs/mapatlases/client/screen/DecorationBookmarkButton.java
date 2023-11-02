@@ -109,12 +109,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         matrices.pushPose();
         matrices.translate(0, 0, 0.01 * this.index);
         super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
-        if (  !parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
-            if(this.shfting) {
+        if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
+            if (this.shfting) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 167, 5, 5);
             }
-            if(control && canFocusMarker()){
+            if (control && canFocusMarker()) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 173, 5, 5);
             }
@@ -132,10 +132,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public Tooltip createTooltip() {
-        if(shfting){
-           return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
+        if (shfting) {
+            return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
-        if(control && canFocusMarker()){
+        if (control && canFocusMarker()) {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
         }
         Component mapIconComponent = getDecorationName();

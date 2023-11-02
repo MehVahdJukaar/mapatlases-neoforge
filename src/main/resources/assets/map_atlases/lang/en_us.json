@@ -14,6 +14,7 @@
   "key.map_atlases.open_minimap": "Open Minimap GUI",
   "key.map_atlases.zoom_in_minimap": "Zoom in Minimap",
   "key.map_atlases.zoom_out_minimap": "Zoom out Minimap",
+  "key.map_atlases.place_pin": "Place pin",
   "item.map_atlases.dummy_filled_map": "Map",
   "item.map_atlases.dummy_filled_map.dummy": "Dummy",
   "item.map_atlases.dummy_filled_map.desc": "Use any filled Map",

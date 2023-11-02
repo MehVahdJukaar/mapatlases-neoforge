@@ -56,7 +56,7 @@ public abstract class LecternBlockMixin extends Block {
                         //MapAtlasesClient.openScreen(atlas, lbe);
                     }
                 }else{
-                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, pos);
+                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, pos, false);
                 }
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }

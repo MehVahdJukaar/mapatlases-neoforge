@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
@@ -32,8 +33,8 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
+import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
-import pepjebs.mapatlases.networking.TakeAtlasPacket;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -46,9 +47,9 @@ public class AtlasOverviewScreen extends Screen {
     public static final ResourceLocation ATLAS_OVERLAY = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final ResourceLocation ATLAS_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final ResourceLocation ATLAS_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
+    public static final ResourceLocation GUI_ICONS = new ResourceLocation("textures/gui/icons.png");
 
     private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
-
     public final ResourceLocation texture = bigTexture ? ATLAS_TEXTURE_BIG : ATLAS_TEXTURE;
 
     private final int BOOK_WIDTH = bigTexture ? 290 : 162;
@@ -75,20 +76,22 @@ public class AtlasOverviewScreen extends Screen {
     private final List<DecorationBookmarkButton> decorationBookmarks = new ArrayList<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
     public final float globalScale;
+    private final boolean isPinOnly;
     private Slice selectedSlice;
     private boolean initialized = false;
-    private boolean placingPin = false;
+    private boolean placingPin;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
+    private PinButton pinButton;
 
     public AtlasOverviewScreen(ItemStack atlas) {
-        this(atlas, null);
+        this(atlas, null, false);
     }
 
-    public AtlasOverviewScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
+    public AtlasOverviewScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean placingPin) {
         super(Component.translatable(MapAtlasesMod.MAP_ATLAS.get().getDescriptionId()));
         this.atlas = atlas;
-        this.level = Minecraft.getInstance().level;
-        this.player = Minecraft.getInstance().player;
+        this.level = Objects.requireNonNull(Minecraft.getInstance().level);
+        this.player = Objects.requireNonNull(Minecraft.getInstance().player);
         this.lectern = lectern;
         this.globalScale = lectern == null ?
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
@@ -98,9 +101,15 @@ public class AtlasOverviewScreen extends Screen {
         //improve for wrong dimension atlas
         this.selectedSlice = closest.slice;
 
-        // Play open sound
-        this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
-                (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+        this.isPinOnly = placingPin;
+        this.placingPin = placingPin;
+        if (!isPinOnly) {
+            // Play open sound
+            this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
+                    (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+        } else {
+            partialPin = Pair.of(closest, new ColumnPos(player.blockPosition().getX(), player.blockPosition().getZ()));
+        }
     }
 
     @NotNull
@@ -178,8 +187,9 @@ public class AtlasOverviewScreen extends Screen {
         this.setFocused(mapWidget);
 
         if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
-            this.addRenderableWidget(new PinButton((width + BOOK_WIDTH) / 2 + 20,
-                    (height - BOOK_HEIGHT) / 2 + 16, this));
+            this.pinButton = new PinButton((width + BOOK_WIDTH) / 2 + 20,
+                    (height - BOOK_HEIGHT) / 2 + 16, this);
+            this.addRenderableWidget(pinButton);
         }
         this.selectDimension(level.dimension());
 
@@ -190,7 +200,7 @@ public class AtlasOverviewScreen extends Screen {
                     this.onClose();
                 }).bounds(this.width / 2 - 100, pY, 98, 20).build());
                 this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), (button) -> {
-                    MapAtlasesNetworking.sendToServer(new TakeAtlasPacket(lectern.getBlockPos()));
+                    MapAtlasesNetworking.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
                     this.onClose();
                 }).bounds(this.width / 2 + 2, pY, 98, 20).build());
             } else {
@@ -199,6 +209,8 @@ public class AtlasOverviewScreen extends Screen {
                 }).bounds(this.width / 2 - 100, pY, 200, 20).build());
             }
         }
+
+        if (isPinOnly) focusEditBox(true);
 
         this.initialized = true;
     }
@@ -249,6 +261,15 @@ public class AtlasOverviewScreen extends Screen {
             editBox.active = false;
             editBox.visible = false;
             partialPin = null;
+            if (isPinOnly) {
+                this.onClose();
+            }
+            return true;
+        }
+        if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
+            if (!isPinOnly && pinButton != null) {
+                this.togglePlacingPin();
+            }
             return true;
         }
         if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || editBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
@@ -276,80 +297,80 @@ public class AtlasOverviewScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         PoseStack poseStack = graphics.pose();
 
-        poseStack.pushPose();
+        if (!isPinOnly) {
+            poseStack.pushPose();
 
-        poseStack.translate(width / 2f, height / 2f, 0);
-        poseStack.scale(globalScale, globalScale, 1);
+            poseStack.translate(width / 2f, height / 2f, 0);
+            poseStack.scale(globalScale, globalScale, 1);
 
-        RenderSystem.enableDepthTest();
+            RenderSystem.enableDepthTest();
 
-        //background
-        graphics.blit(
-                texture,
-                -H_BOOK_WIDTH,
-                -H_BOOK_HEIGHT,
-                0,
-                0,
-                BOOK_WIDTH,
-                BOOK_HEIGHT,
-                TEXTURE_W,
-                256
-        );
-        // Draw foreground
-        graphics.blit(
-                ATLAS_OVERLAY,
-                -H_BOOK_WIDTH,
-                -H_BOOK_HEIGHT,
-                0,
-                0,
-                BOOK_WIDTH,
-                BOOK_HEIGHT,
-                TEXTURE_W,
-                256
-        );
+            //background
+            graphics.blit(
+                    texture,
+                    -H_BOOK_WIDTH,
+                    -H_BOOK_HEIGHT,
+                    0,
+                    0,
+                    BOOK_WIDTH,
+                    BOOK_HEIGHT,
+                    TEXTURE_W,
+                    256
+            );
+            // Draw foreground
+            graphics.blit(
+                    ATLAS_OVERLAY,
+                    -H_BOOK_WIDTH,
+                    -H_BOOK_HEIGHT,
+                    0,
+                    0,
+                    BOOK_WIDTH,
+                    BOOK_HEIGHT,
+                    TEXTURE_W,
+                    256
+            );
 
-        poseStack.translate(-width / 2f, -height / 2f, 0);
-
-
-        //render widgets
-        poseStack.pushPose();
-        var v = transformMousePos(mouseX, mouseY);
-        super.render(graphics, (int) v.x, (int) v.y, delta);
-        poseStack.popPose();
-
-        RenderSystem.enableDepthTest();
-
-        poseStack.pushPose();
-
-        poseStack.translate(width / 2f, height / 2f, 1);
-
-        graphics.blit(
-                texture,
-                H_BOOK_WIDTH - 10,
-                -H_BOOK_HEIGHT,
-                OVERLAY_UR,
-                0,
-                5,
-                BOOK_HEIGHT,
-                TEXTURE_W,
-                256
-        );
-        graphics.blit(
-                texture,
-                -H_BOOK_WIDTH + 5,
-                -H_BOOK_HEIGHT,
-                OVERLAY_UL,
-                0,
-                5,
-                BOOK_HEIGHT,
-                TEXTURE_W,
-                256
-        );
-        poseStack.popPose();
-
-        poseStack.popPose();
+            poseStack.translate(-width / 2f, -height / 2f, 0);
 
 
+            //render widgets
+            poseStack.pushPose();
+            var v = transformMousePos(mouseX, mouseY);
+            super.render(graphics, (int) v.x, (int) v.y, delta);
+            poseStack.popPose();
+
+            RenderSystem.enableDepthTest();
+
+            poseStack.pushPose();
+
+            poseStack.translate(width / 2f, height / 2f, 1);
+
+            graphics.blit(
+                    texture,
+                    H_BOOK_WIDTH - 10,
+                    -H_BOOK_HEIGHT,
+                    OVERLAY_UR,
+                    0,
+                    5,
+                    BOOK_HEIGHT,
+                    TEXTURE_W,
+                    256
+            );
+            graphics.blit(
+                    texture,
+                    -H_BOOK_WIDTH + 5,
+                    -H_BOOK_HEIGHT,
+                    OVERLAY_UL,
+                    0,
+                    5,
+                    BOOK_HEIGHT,
+                    TEXTURE_W,
+                    256
+            );
+            poseStack.popPose();
+
+            poseStack.popPose();
+        }
         poseStack.pushPose();
         RenderSystem.enableDepthTest();
         poseStack.translate(0, 0, editBox.active ? 22 : -20);
@@ -357,6 +378,19 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.popPose();
 
         if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
+
+        else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 5);
+            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
+                    GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
+                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            graphics.blit(GUI_ICONS, (width - 15) / 2, (height - 15) / 2,
+                    0, 0, 15, 15);
+            RenderSystem.defaultBlendFunc();
+
+            poseStack.popPose();
+        }
     }
 
     // ================== Mouse Functions ==================
@@ -657,11 +691,7 @@ public class AtlasOverviewScreen extends Screen {
             editBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
             if (hasShiftDown() || hasAltDown()) {
-                editBox.active = true;
-                editBox.visible = true;
-                editBox.setCanLoseFocus(false);
-                editBox.setFocused(true);
-                this.setFocused(editBox);
+                focusEditBox(true);
             } else {
                 addNewPin();
             }
@@ -669,13 +699,20 @@ public class AtlasOverviewScreen extends Screen {
         placingPin = false;
     }
 
+    private void focusEditBox(boolean on) {
+        editBox.active = on;
+        editBox.visible = on;
+        editBox.setCanLoseFocus(!on);
+        editBox.setFocused(on);
+        this.setFocused(on ? editBox : mapWidget);
+        if (isPinOnly) this.onClose();
+    }
+
     private void addNewPin() {
         if (partialPin != null) {
             String text = editBox.getValue();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
-            this.setFocused(mapWidget);
-            editBox.active = false;
-            editBox.visible = false;
+            focusEditBox(false);
             partialPin = null;
         }
     }

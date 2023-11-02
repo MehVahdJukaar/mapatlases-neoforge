@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.client;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -7,12 +9,14 @@ import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -45,6 +49,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
 
@@ -75,6 +80,13 @@ public class MapAtlasesClient {
             "key.map_atlases.open_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_M,
+            "category.map_atlases.minimap"
+    );
+
+    public static final KeyMapping PLACE_PIN_KEYBIND = new KeyMapping(
+            "key.map_atlases.place_pin",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_B,
             "category.map_atlases.minimap"
     );
 
@@ -165,6 +177,7 @@ public class MapAtlasesClient {
         event.register(OPEN_ATLAS_KEYBIND);
         event.register(DECREASE_MINIMAP_ZOOM);
         event.register(INCREASE_MINIMAP_ZOOM);
+        event.register(PLACE_PIN_KEYBIND);
     }
 
 
@@ -213,10 +226,10 @@ public class MapAtlasesClient {
     }
 
 
-    public static void openScreen(@Nullable BlockPos lecternPos) {
+    public static void openScreen(@Nullable BlockPos lecternPos, boolean pinOnly) {
         @Nullable LecternBlockEntity lectern = null;
         ItemStack atlas = ItemStack.EMPTY;
-        var player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
         if (lecternPos == null) {
             atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         } else {
@@ -226,29 +239,24 @@ public class MapAtlasesClient {
             }
         }
         if (atlas.getItem() instanceof MapAtlasItem) {
-            openScreen(atlas, lectern);
+            openScreen(atlas, lectern, pinOnly);
         }
     }
 
-    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern) {
+    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
         ClientLevel level = Minecraft.getInstance().level;
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         //we arent ticking these so we have to fix duplicates
         maps.fixDuplicates(level);
         if (!maps.isEmpty()) {
-            Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern));
+            Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
         }
-    }
-
-    public static void openScreen(ItemStack atlas) {
-        openScreen(atlas, null);
     }
 
     //hack
     public static ContainerLevelAccess getClientAccess() {
         return ContainerLevelAccess.create(Minecraft.getInstance().level, BlockPos.ZERO);
     }
-
 
     public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
         Float scale = globalDecorationScale.get();
@@ -274,6 +282,43 @@ public class MapAtlasesClient {
         }
         Float scale = globalDecorationScale.get();
         if (scale != null) poseStack.scale(scale, scale, 1);
-
     }
+
+
+
+
+    //debug stuff
+    private static final int DUR = 10;
+    public static void debugMapUpdated( String mapId) {
+        CACHE.put(mapId, DUR);
+    }
+
+    public static int debugIsMapUpdated(int light, String stringId) {
+        Integer value = getValue(stringId);
+        if(value != null) {
+            int pBlockLight = Mth.clamp((int) (value/ (float) DUR * 15f), 0, 15);
+            return LightTexture.pack(pBlockLight,pBlockLight);
+        }
+        return light;
+    }
+
+    private static Integer getValue(String key) {
+        Integer value = CACHE.getIfPresent(key);
+        if (value != null) {
+            value--; // Decrease the counter
+            if (value <= 0) {
+                // Value has reached its limit, remove it from the cache
+                CACHE.invalidate(key);
+            } else {
+                // Update the value in the cache
+                CACHE.put(key, value);
+            }
+        }
+        return value;
+    }
+
+    private static final Cache<String, Integer> CACHE = CacheBuilder.newBuilder()
+            .maximumSize(100) // Set your desired maximum size
+            .expireAfterAccess(10, TimeUnit.SECONDS) // Set your desired time for validity
+            .build();
 }

@@ -8,6 +8,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.ClientMarker;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
@@ -20,6 +21,7 @@ public class MapAtlasesClientEvents {
     public static void onKeyPressed(InputEvent.Key event) {
 
         if (Minecraft.getInstance().screen != null || event.getAction() != InputConstants.PRESS) return;
+
         if (!MapAtlasesClient.OPEN_ATLAS_KEYBIND.isUnbound() &&
                 event.getKey() == MapAtlasesClient.OPEN_ATLAS_KEYBIND.getKey().getValue()
         ) {
@@ -27,8 +29,21 @@ public class MapAtlasesClientEvents {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
+                // needed as we might not have all mas needed
                 MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket());
-                //MapAtlasesClient.openScreen(atlas);
+            }
+        }
+
+        if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() &&
+                event.getKey() == MapAtlasesClient.PLACE_PIN_KEYBIND.getKey().getValue()
+        ) {
+            if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
+                Minecraft client = Minecraft.getInstance();
+                if (client.level == null || client.player == null) return;
+                ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
+                if (atlas.getItem() instanceof MapAtlasItem) {
+                    MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
+                }
             }
         }
 
@@ -52,7 +67,7 @@ public class MapAtlasesClientEvents {
     @SubscribeEvent
     public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
         if (MapAtlasesMod.MOONLIGHT) ClientMarker.saveClientMarkers();
-
     }
+
 
 }

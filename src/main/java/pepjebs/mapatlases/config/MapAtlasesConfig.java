@@ -16,6 +16,10 @@ public class MapAtlasesConfig {
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
                 .define("max_map_count", 512);
 
+        mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues")
+                .define("multithreaded_update", true);
+        debugUpdate = builder.comment("Visually shows map updates")
+                .define("debug_map_updates", false);
 
         acceptPaperForEmptyMaps = builder
                 .comment("If enabled, you can increase the Empty Map count by inserting Paper")
@@ -61,6 +65,8 @@ public class MapAtlasesConfig {
         spec = builder.build();
     }
 
+    public static final Supplier<Boolean> debugUpdate;
+    public static final Supplier<Boolean> mapUpdateMultithreaded;
     public static final Supplier<Integer> maxMapCount;
     public static final Supplier<Integer> mapEntryValueMultiplier;
     public static final Supplier<Integer> pityActivationMapCount;

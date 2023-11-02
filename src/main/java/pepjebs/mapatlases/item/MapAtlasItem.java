@@ -211,7 +211,7 @@ public class MapAtlasItem extends Item {
     // Utilities functions
 
 
-    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos) {
+    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, player.level());
@@ -219,7 +219,7 @@ public class MapAtlasItem extends Item {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas);
         }
-        MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos));
+        MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {

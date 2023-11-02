@@ -83,6 +83,7 @@ public class MapAtlasesClientConfig {
 
         builder.push("world_map");
 
+        worldMapCrossair = builder.define("crossair", false);
         worldMapBigTexture = builder
                 .comment("Use bigger book like texture for worldmap view. Makes the view a bit bigger." +
                         " Recommended to ebe used with map scale 1 (you might want to lower lectern one too if buttons dont show)")
@@ -170,6 +171,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Boolean> worldMapSmoothZooming;
     public static final Supplier<Boolean> worldMapBigTexture;
+    public static final Supplier<Boolean> worldMapCrossair;
     public static final Supplier<Boolean> hideWhenInHand;
     public static final Supplier<InHandMode> inHandMode;
     public static final Supplier<Double> miniMapScale;

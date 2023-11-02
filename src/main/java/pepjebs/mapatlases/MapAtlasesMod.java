@@ -13,7 +13,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.MutableHashedLinkedMap;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -22,7 +21,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.compress.archivers.sevenz.CLI;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -78,7 +76,8 @@ public class MapAtlasesMod {
 
         //lectern marker
         //sound
-        //spyglass zoom
+        //spyglass zoom in curio with keybind
+        //auto waystone marker
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(MapAtlasesMod::addItemsToTabs);
         bus.addListener(MapCollectionCap::register);
@@ -137,7 +136,7 @@ public class MapAtlasesMod {
         return hack;
     }
 
-    public static void setMapInInentoryHack(boolean value) {
+    public static void setMapInInventoryHack(boolean value) {
         hack = value;
     }
 

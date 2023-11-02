@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -12,6 +14,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
@@ -178,8 +181,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
                 newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
             } else {
-                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * ((float)mapBlocksSize / (width* mapScreen.globalScale)));
-                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * ((float)mapBlocksSize / (width * mapScreen.globalScale)));
+                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * ((float) mapBlocksSize / (width * mapScreen.globalScale)));
+                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * ((float) mapBlocksSize / (width * mapScreen.globalScale)));
             }
             if (newXCenter != currentXCenter) {
                 targetXCenter = newXCenter;
@@ -203,7 +206,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        if ((pDelta < 0 && targetZoomLevel  > 20)|| (pDelta>0 && zoomLevel == startZoom)) return false;
+        if ((pDelta < 0 && targetZoomLevel > 20) || (pDelta > 0 && zoomLevel == startZoom)) return false;
 
         float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
@@ -228,7 +231,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             if (mapScreen.isPlacingPin()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 mapScreen.placePinAt(pos);
-                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.7F, 2f));
             } else if (mapScreen.canTeleport()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 Slice slice = mapScreen.getSelectedSlice();

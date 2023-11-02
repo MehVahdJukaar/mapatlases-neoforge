@@ -18,6 +18,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -224,6 +225,8 @@ public abstract class AbstractAtlasWidget {
 
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
+
+        light = MapAtlasesClient.debugIsMapUpdated(light, state.stringId);
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(
