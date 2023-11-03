@@ -275,7 +275,7 @@ public class AtlasOverviewScreen extends Screen {
         if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || editBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
             return true;
         }
-        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (!editBox.active && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
             this.onClose();
             return true;
         }
@@ -705,7 +705,7 @@ public class AtlasOverviewScreen extends Screen {
         editBox.setCanLoseFocus(!on);
         editBox.setFocused(on);
         this.setFocused(on ? editBox : mapWidget);
-        if (isPinOnly) this.onClose();
+        if (!on && isPinOnly) this.onClose();
     }
 
     private void addNewPin() {

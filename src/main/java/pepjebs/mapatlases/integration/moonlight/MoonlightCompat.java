@@ -3,14 +3,21 @@ package pepjebs.mapatlases.integration.moonlight;
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -25,7 +32,7 @@ public class MoonlightCompat {
         MapDataRegistry.registerCustomType(CUSTOM_TYPE_ID, () -> CustomDecorationType.simple(PinMarker::new, PinDecoration::new));
 
         if (PlatHelper.getPhysicalSide().isClient()) {
-            MapDataRegistry.addDynamicClientMarkersEvent(ClientMarker::send);
+            MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
             MapDecorationClientManager.registerCustomRenderer(CUSTOM_TYPE_ID, PinDecorationRenderer::new);
         }
     }
@@ -52,4 +59,11 @@ public class MoonlightCompat {
     }
 
 
+    public static boolean maybePlacePinInFront(Player player, ItemStack atlas) {
+        var hit = Utils.rayTrace(player, player.level(), ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY);
+        if (hit instanceof BlockHitResult bi && hit.getType() == HitResult.Type.BLOCK) {
+            return MapHelper.toggleMarkersAtPos(player.level(), bi.getBlockPos(), atlas, player);
+        }
+        return false;
+    }
 }

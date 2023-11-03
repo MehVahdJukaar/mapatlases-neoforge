@@ -4,11 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
@@ -51,6 +54,7 @@ public class C2S2COpenAtlasScreenPacket {
                 // sends all atlas and then send this but to client
                 ServerPlayer player = context.get().getSender();
                 if (player == null) return;
+
                 ItemStack atlas = ItemStack.EMPTY;
                 if (lecternPos != null) {
                     if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity le) {
@@ -60,6 +64,10 @@ public class C2S2COpenAtlasScreenPacket {
                     atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
                 }
                 if (atlas.getItem() instanceof MapAtlasItem) {
+                    if(pinOnly && MapAtlasesMod.MOONLIGHT && MoonlightCompat.maybePlacePinInFront(player, atlas)){
+                        return;
+                    }
+
                     MapAtlasItem.syncAndOpenGui(player, atlas, lecternPos, pinOnly);
                 }
             }

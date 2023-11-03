@@ -81,7 +81,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     protected void focusMarker() {
-        ClientMarker.focusMarker(mapData, decoration, !ClientMarker.isDecorationFocused(mapData, decoration));
+        ClientMarkers.focusMarker(mapData, decoration, !ClientMarkers.isDecorationFocused(mapData, decoration));
     }
 
     @Override
@@ -97,7 +97,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             if (deco == decoration) {
                 MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
                 decorations.remove(d.getKey());
-                ClientMarker.removeDeco(mapData.stringId, d.getKey());
+                ClientMarkers.removeDeco(mapData.stringId, d.getKey());
                 return;
             }
         }

@@ -9,7 +9,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.integration.moonlight.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -66,7 +66,7 @@ public class MapAtlasesClientEvents {
 
     @SubscribeEvent
     public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        if (MapAtlasesMod.MOONLIGHT) ClientMarker.saveClientMarkers();
+        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
     }
 
 

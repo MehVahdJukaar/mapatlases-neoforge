@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
-import pepjebs.mapatlases.integration.moonlight.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -32,7 +32,7 @@ public class S2CWorldHashPacket {
 
     public void apply(Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
-            ClientMarker.loadClientMarkers(this.hash);
+            ClientMarkers.loadClientMarkers(this.hash);
         });
         context.get().setPacketHandled(true);
     }

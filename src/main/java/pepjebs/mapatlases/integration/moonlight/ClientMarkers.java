@@ -49,7 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class ClientMarker {
+public class ClientMarkers {
 
     public static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static int currentWorldHash = 0;

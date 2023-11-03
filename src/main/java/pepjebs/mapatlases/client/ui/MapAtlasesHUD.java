@@ -32,7 +32,7 @@ import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.integration.moonlight.ClientMarker;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -261,7 +261,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
-            ClientMarker.drawSmallPins(graphics, font, currentMapKey, mapBlocksSize * zoomLevel, player);
+            ClientMarkers.drawSmallPins(graphics, font, currentMapKey, mapBlocksSize * zoomLevel, player);
             poseStack.popPose();
         }
 
