@@ -60,10 +60,10 @@ public class MapDataHolder {
     public void updateMap(ServerPlayer player) {
         if(MapAtlasesConfig.mapUpdateMultithreaded.get()){
             EXECUTORS.submit(()-> {
-                ((MapItem) type.filled).update(player.level(), player, data);
+                ((MapItem) type.filled).update(player.level, player, data);
             });
         }else{
-            ((MapItem) type.filled).update(player.level(), player, data);
+            ((MapItem) type.filled).update(player.level, player, data);
         }
     }
 
