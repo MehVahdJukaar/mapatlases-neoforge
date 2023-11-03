@@ -67,12 +67,18 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
                 0, false);
     }
 
-
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
         if (control || button == 1) {
             focusMarker();
-        } else onClick(mouseX, mouseY);
+        } else super.onClick(mouseX, mouseY);
+    }
+
+    @Override
+    public void onClick(double mouseX, double mouseY) {
+        if (control) {
+            focusMarker();
+        } else super.onClick(mouseX, mouseY);
     }
 
     @Override
