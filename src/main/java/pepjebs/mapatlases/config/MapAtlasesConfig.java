@@ -15,7 +15,8 @@ public class MapAtlasesConfig {
         maxMapCount = builder
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
                 .define("max_map_count", 512);
-
+        mapUpdateMultithreaded = builder.comment("Makes maps updates multithreaded. Can substantially improve atlas performance." +
+                "Disable incase it causes concurrency issues with other mods").define("multithreaded_updates", true);
 
         acceptPaperForEmptyMaps = builder
                 .comment("If enabled, you can increase the Empty Map count by inserting Paper")
@@ -66,6 +67,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Integer> pityActivationMapCount;
     public static final Supplier<Boolean> requireEmptyMapsToExpand;
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
+    public static final Supplier<Boolean> mapUpdateMultithreaded;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<Boolean> creativeTeleport;
     public static final Supplier<String> pinMarkerId;

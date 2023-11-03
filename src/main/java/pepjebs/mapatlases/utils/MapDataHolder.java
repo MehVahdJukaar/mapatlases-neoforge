@@ -4,8 +4,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.capabilities.MapKey;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapDataHolder {
     public final int id;
@@ -52,9 +58,16 @@ public class MapDataHolder {
     }
 
     public void updateMap(ServerPlayer player) {
-        ((MapItem) type.filled).update(player.level, player, data);
+        if(MapAtlasesConfig.mapUpdateMultithreaded.get()){
+            EXECUTORS.submit(()-> {
+                ((MapItem) type.filled).update(player.level(), player, data);
+            });
+        }else{
+            ((MapItem) type.filled).update(player.level(), player, data);
+        }
     }
 
+    private static final ExecutorService EXECUTORS = Executors.newFixedThreadPool(6);
     //utility methods. merge with slice TODO
 
 }
