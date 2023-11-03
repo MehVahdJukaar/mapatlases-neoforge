@@ -9,17 +9,17 @@
     "FriendlyByteBufMixin",
     "LecternBlockEntityMixin",
     "LecternBlockMixin",
-    "MapItemMixin",
     "MapDataAccessor",
     "MapDataMixin",
+    "MapItemMixin",
     "MixinCartographyTableAbstractContainerMenuSecondSlot",
     "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
     "MixinCartographyTableHandlerFirstSlot"
   ],
   "client": [
     "CartographyTableScreenMixin",
-    "ItemInHandRendererMixin",
     "ClientPacketListenerMixin",
+    "ItemInHandRendererMixin",
     "LecternRendererMixin",
     "MapRendererMixin"
   ],
