@@ -90,6 +90,13 @@ public class MapAtlasesMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MapAtlasesConfig.spec);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, MapAtlasesClientConfig.spec);
 
+        // Register messages
+        MapAtlasesNetworking.register();
+
+        MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
+    }
+
+    static{
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RECIPES.register("crafting_atlas", MapAtlasCreateRecipe.Serializer::new);
         MAP_ATLAS_ADD_RECIPE = RECIPES.register("adding_atlas",
@@ -100,11 +107,6 @@ public class MapAtlasesMod {
         // Register items
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties()
                 .tab(CreativeModeTab.TAB_TOOLS).stacksTo(16)));
-
-        // Register messages
-        MapAtlasesNetworking.register();
-
-        MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
     }
 
 
