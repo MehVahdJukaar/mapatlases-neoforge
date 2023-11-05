@@ -67,7 +67,7 @@ public class MapAtlasesMod {
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
     public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
 
-    static {
+    public MapAtlasesMod() {
         // Register config
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MapAtlasesConfig.spec);
         if(FMLEnvironment.dist == Dist.CLIENT) {
@@ -104,11 +104,17 @@ public class MapAtlasesMod {
         // Register items
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
 
-        // Register messages
+             ;
+    }
+
+    static{
+// Register messages
         MapAtlasesNetworking.register();
 
-        MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
+MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class)
+
     }
+       
 
     public static void addItemsToTabs(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey().equals(CreativeModeTabs.TOOLS_AND_UTILITIES)) {
