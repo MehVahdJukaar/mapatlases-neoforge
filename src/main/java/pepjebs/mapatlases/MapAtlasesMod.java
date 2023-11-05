@@ -68,7 +68,7 @@ public class MapAtlasesMod {
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
     public static final boolean TWILIGHTFOREST = false;// ModList.get().isLoaded("twilightforest");
 
-    static {
+    public MapAtlasesMod(){
         //lectern marker
         //sound
         //spyglass zoom
