@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.integration.supplementaries.SupplementariesCompat;
 import pepjebs.mapatlases.integration.TwilightForestCompat;
 
 import java.util.*;
@@ -124,7 +124,7 @@ public enum MapType {
         }
     }
 
-    public ItemStack createNewMapItem(int destX, int destZ, byte scale, Level level, @Nullable Integer height) {
+    public ItemStack createNewMapItem(int destX, int destZ, byte scale, Level level, @Nullable Integer height, ItemStack atlas) {
         ItemStack newMap = ItemStack.EMPTY;
         if (this == MapType.VANILLA) {
             if (height != null && MapAtlasesMod.SUPPLEMENTARIES) {
@@ -143,6 +143,9 @@ public enum MapType {
                         scale,
                         true,
                         false);
+                if(MapAtlasesMod.SUPPLEMENTARIES){
+                    SupplementariesCompat.maybeSetAntique(newMap, level, atlas);
+                }
             }
         } else if (this == MapType.MAZE && MapAtlasesMod.TWILIGHTFOREST) {
             if (height == null) return ItemStack.EMPTY;

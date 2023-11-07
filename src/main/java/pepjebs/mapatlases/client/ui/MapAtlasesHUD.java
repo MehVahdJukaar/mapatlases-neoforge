@@ -35,6 +35,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
@@ -45,7 +46,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
     private static final int BACKGROUND_SIZE = 128;
-    protected final int BG_SIZE = 64;
+    protected  final int BG_SIZE = 64;
 
     private final Minecraft mc;
 
@@ -83,7 +84,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
 
         this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps(currentAtlas, mc.level).hasOneSlice();
-        this.drawBigPlayerMarker = MapAtlasesClientConfig.miniMapFollowPlayer.get();
+        this.drawBigPlayerMarker = followingPlayer;
 
     }
 
@@ -178,7 +179,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         poseStack.pushPose();
 
-        if (followingPlayer) {
+
+        //rounds up if following player
+        if (!followingPlayer) {
+            currentXCenter = currentXCenter%mapBlocksSize + Math.round(player.getX()/mapBlocksSize)*mapBlocksSize;
+            currentZCenter = currentZCenter%mapBlocksSize + Math.round(player.getZ()/mapBlocksSize)*mapBlocksSize;
+        }else{
             currentXCenter = player.getX();
             currentZCenter = player.getZ();
         }
@@ -208,11 +214,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         if (!rotatesWithPlayer) {
             poseStack.mulPose(Axis.ZN.rotationDegrees(180 - yRot));
         }
-        poseStack.translate(-4.5f, -4f, 0);
-        graphics.blit(MAP_ICON_TEXTURE, 0,
-                0,
-                0, 0, 8, 8, 128, 128);
-
+        if (drawBigPlayerMarker) {
+            poseStack.translate(-4.5f, -4f, 0);
+            graphics.blit(MAP_ICON_TEXTURE, 0,
+                    0,
+                    0, 0, 8, 8, 128, 128);
+        }
         poseStack.popPose();
 
         poseStack.popPose();
@@ -261,7 +268,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
-            ClientMarkers.drawSmallPins(graphics, font, currentMapKey, mapBlocksSize * zoomLevel, player);
+            ClientMarkers.drawSmallPins(graphics, font, currentXCenter+mapBlocksSize/2f, currentZCenter+mapBlocksSize/2f, currentMapKey.slice(),
+                    mapBlocksSize * zoomLevel, player, rotatesWithPlayer);
             poseStack.popPose();
         }
 
@@ -386,11 +394,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     }
 
     public void decreaseZoom() {
-        zoomLevel = Math.max(1, zoomLevel - 0.5f);
+        zoomLevel = Math.max(1, zoomLevel + 0.5f);
     }
 
     public void increaseZoom() {
-        zoomLevel = Math.min(10, zoomLevel + 0.5f);
+        zoomLevel = Math.min(10, zoomLevel - 0.5f);
 
     }
 }

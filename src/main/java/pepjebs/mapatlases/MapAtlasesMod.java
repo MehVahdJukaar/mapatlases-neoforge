@@ -1,6 +1,9 @@
 package pepjebs.mapatlases;
 
 
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.data.models.ItemModelGenerators;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -28,6 +31,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.integration.supplementaries.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -54,6 +58,7 @@ public class MapAtlasesMod {
     public static final Supplier<RecipeSerializer<MapAtlasCreateRecipe>> MAP_ATLAS_CREATE_RECIPE;
     public static final Supplier<RecipeSerializer<MapAtlasesAddRecipe>> MAP_ATLAS_ADD_RECIPE;
     public static final Supplier<RecipeSerializer<MapAtlasesCutExistingRecipe>> MAP_ATLAS_CUT_RECIPE;
+    public static final Supplier<RecipeSerializer<AntiqueAtlasRecipe>> MAP_ANTIQUE_RECIPE;
 
     public static final Supplier<SoundEvent> ATLAS_OPEN_SOUND_EVENT = regSound("atlas_open");
     public static final Supplier<SoundEvent> ATLAS_PAGE_TURN_SOUND_EVENT = regSound("atlas_page_turn");
@@ -95,7 +100,6 @@ public class MapAtlasesMod {
 
         // Register messages
         MapAtlasesNetworking.register();
-
         MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
     }
 
@@ -106,7 +110,8 @@ public class MapAtlasesMod {
                 () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
         MAP_ATLAS_CUT_RECIPE = RECIPES.register("cutting_atlas",
                 () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
-
+        MAP_ANTIQUE_RECIPE = RECIPES.register("antique_atlas",
+                () -> new SimpleCraftingRecipeSerializer<>(AntiqueAtlasRecipe::new));
         // Register items
         MAP_ATLAS = ITEMS.register("atlas", () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
 

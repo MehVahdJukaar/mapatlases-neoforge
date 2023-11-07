@@ -94,7 +94,7 @@ public final class Slice {
         return type.getDiscoveryReach(height);
     }
 
-    public ItemStack createNewMap(int destX, int destZ, byte scale, Level level) {
-        return type.createNewMapItem(destX, destZ, scale, level, height);
+    public ItemStack createNewMap(int destX, int destZ, byte scale, Level level, ItemStack atlas) {
+        return type.createNewMapItem(destX, destZ, scale, level, height, atlas);
     }
 }

@@ -1,9 +1,11 @@
-package pepjebs.mapatlases.integration;
+package pepjebs.mapatlases.integration.supplementaries;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
+import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
+import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
@@ -40,5 +42,15 @@ public class SupplementariesCompat {
 
     public static boolean canPlayerSeeDeathMarker(Player p){
         return false;// TODO  !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
+    }
+
+    public static boolean isAntiqueInk(ItemStack itemstack) {
+        return AntiqueInkHelper.hasAntiqueInk(itemstack);
+    }
+
+    public static void maybeSetAntique(ItemStack newMap, Level level, ItemStack atlas) {
+        if(isAntiqueInk(atlas)){
+            WeatheredMap.setAntique(level, newMap, true);
+        }
     }
 }

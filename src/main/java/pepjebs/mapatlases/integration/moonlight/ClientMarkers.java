@@ -36,7 +36,6 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -195,26 +194,25 @@ public class ClientMarkers {
             CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
         } catch (Exception ignored) {
         }
-        ;
     }
 
-    public static void drawSmallPins(GuiGraphics graphics, Font font, MapKey center, float widgetWorldLen, Player player) {
+    public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
+                                     float widgetWorldLen, Player player, boolean rotateWithPlayer) {
 
-        var slice = center.slice();
         var pins = markersPerSlice.get(slice);
 
         if (pins != null) {
             PoseStack matrixStack = graphics.pose();
             int i = 0;
             VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
-            float yRot = player.getYRot();
-
-            for (var p : pins) {
-                if (p instanceof PinMarker mp && mp.isFocused() && !isOffscreen(p, widgetWorldLen, player)) {
+            float yRot = rotateWithPlayer ? player.getYRot() : 180;
+            BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
+            for (var marker : pins) {
+                BlockPos pos = marker.getPos();
+                Vec3 dist = playerPos.getCenter().subtract(pos.getCenter());
+                if (marker instanceof PinMarker mp && mp.isFocused() && !isOffscreen(widgetWorldLen, yRot, dist)) {
                     matrixStack.pushPose();
-                    BlockPos pos = p.getPos();
-                    Vec3 v = player.position().subtract(pos.getCenter());
-                    double angle = Mth.RAD_TO_DEG * (Math.atan2(v.x, v.z)) + yRot;
+                    double angle = Mth.RAD_TO_DEG * (Math.atan2(dist.x, dist.z)) + yRot;
                     var pp = MapAtlasesHUD.getDirectionPos(29F, (float) angle);
                     float a = pp.getFirst();
                     float b = pp.getSecond();
@@ -222,7 +220,7 @@ public class ClientMarkers {
                     matrixStack.translate(a, b, 5);
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
-                    ResourceLocation id = Utils.getID(p.getType());
+                    ResourceLocation id = Utils.getID(marker.getType());
                     ResourceLocation texture = id.withPath(k -> "map_marker/" + k + "_small");
                     TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
@@ -238,9 +236,8 @@ public class ClientMarkers {
 
     //TODO: register custom marker type to allow for fancier renderer on maps when focused
 
-    private static boolean isOffscreen(MapBlockMarker<?> p, float maxSize, Player player) {
-        BlockPos pos = p.getPos().subtract(player.blockPosition());
-        var c = pos.getCenter().yRot(player.getYRot() * Mth.DEG_TO_RAD);
+    private static boolean isOffscreen( float maxSize, float playerYRot, Vec3 dist) {
+        var c =  dist.yRot(playerYRot * Mth.DEG_TO_RAD);
         float l = maxSize / 2 + 5;
         return (c.z <= l) && (c.z >= -l) && (c.x <= l) && (c.x >= -l);
     }
