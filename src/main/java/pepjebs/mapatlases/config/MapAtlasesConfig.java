@@ -60,6 +60,8 @@ public class MapAtlasesConfig {
                 .defineInRange("map_updates_per_tick", 1, 0, 9);
 
 
+        lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
+                        .define("light_map", false);
         builder.pop();
 
         spec = builder.build();
@@ -75,6 +77,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<Boolean> creativeTeleport;
     public static final Supplier<Boolean> roundRobinUpdate;
+    public static final Supplier<Boolean> lightMap;
     public static final Supplier<String> pinMarkerId;
     public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<ActivationLocation> activationLocation;

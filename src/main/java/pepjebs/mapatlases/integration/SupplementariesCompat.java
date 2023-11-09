@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.integration.supplementaries;
+package pepjebs.mapatlases.integration;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;

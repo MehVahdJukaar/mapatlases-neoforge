@@ -624,6 +624,7 @@ public class AtlasOverviewScreen extends Screen {
         return updateSlice(Slice.of(type, newHeight, dim));
     }
 
+    //TODO: make static
     public boolean increaseSlice() {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();

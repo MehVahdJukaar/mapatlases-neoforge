@@ -15,5 +15,8 @@ public enum ActivationLocation {
     public boolean scanAll(){
         return this == INVENTORY;
     }
+
+
+
 }
 

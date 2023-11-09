@@ -237,7 +237,26 @@ public class MapAtlasItem extends Item {
             tag.put(dimension.location().toString(), slice.save());
         }
     }
+    //TODO:
+/*
+    public static boolean decreaseSlice(ItemStack atlas, Level level) {
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        int current = selectedSlice.heightOrTop();
+        MapType type = selectedSlice.type();
+        ResourceKey<Level> dim = selectedSlice.dimension();
+        Integer newHeight = maps.getHeightTree(dim, type).floor(current - 1);
+        return updateSlice(Slice.of(type, newHeight, dim));
+    }
 
+    //TODO: make static
+    public static boolean increaseSlice(ItemStack atlas, Level level) {
+        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        int current = selectedSlice.heightOrTop();
+        MapType type = selectedSlice.type();
+        ResourceKey<Level> dim = selectedSlice.dimension();
+        Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
+        return updateSlice(Slice.of(type, newHeight, dim));
+    }*/
     public static MapCollectionCap getMaps(ItemStack stack, Level level) {
         Optional<MapCollectionCap> resolve = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve();
         if (resolve.isEmpty()) {

@@ -104,6 +104,18 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
+    public static final KeyMapping INCREASE_SLICE = new KeyMapping(
+            "key.map_atlases.increase_slice",
+            InputConstants.UNKNOWN.getValue(),
+            "category.map_atlases.minimap"
+    );
+
+    public static final KeyMapping DECREASE_SLICE = new KeyMapping(
+            "key.map_atlases.decrease_slice",
+            InputConstants.UNKNOWN.getValue(),
+            "category.map_atlases.minimap"
+    );
+
     public static void cachePlayerState(Player player) {
         if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
@@ -178,6 +190,10 @@ public class MapAtlasesClient {
         event.register(DECREASE_MINIMAP_ZOOM);
         event.register(INCREASE_MINIMAP_ZOOM);
         event.register(PLACE_PIN_KEYBIND);
+        if (MapAtlasesMod.TWILIGHTFOREST || MapAtlasesMod.SUPPLEMENTARIES) {
+            event.register(INCREASE_SLICE);
+            event.register(DECREASE_SLICE);
+        }
     }
 
 
@@ -285,19 +301,18 @@ public class MapAtlasesClient {
     }
 
 
-
-
     //debug stuff
     private static final int DUR = 10;
-    public static void debugMapUpdated( String mapId) {
+
+    public static void debugMapUpdated(String mapId) {
         CACHE.put(mapId, DUR);
     }
 
     public static int debugIsMapUpdated(int light, String stringId) {
         Integer value = getValue(stringId);
-        if(value != null) {
-            int pBlockLight = Mth.clamp((int) (value/ (float) DUR * 15f), 0, 15);
-            return LightTexture.pack(pBlockLight,pBlockLight);
+        if (value != null) {
+            int pBlockLight = Mth.clamp((int) (value / (float) DUR * 15f), 0, 15);
+            return LightTexture.pack(pBlockLight, pBlockLight);
         }
         return light;
     }

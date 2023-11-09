@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.supplementaries.SupplementariesCompat;
+import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.TwilightForestCompat;
 
 import java.util.*;

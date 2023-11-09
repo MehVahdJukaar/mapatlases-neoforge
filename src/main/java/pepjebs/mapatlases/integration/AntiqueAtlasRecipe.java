@@ -1,7 +1,6 @@
-package pepjebs.mapatlases.integration.supplementaries;
+package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
-import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
@@ -27,6 +26,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
     @Override
     public boolean matches(CraftingContainer inv, Level level) {
+        if (!MapAtlasesMod.SUPPLEMENTARIES) return false;
         ItemStack atlas = ItemStack.EMPTY;
         ItemStack ink = ItemStack.EMPTY;
         // ensure 1 and one only atlas
@@ -68,7 +68,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         MapCollectionCap maps = MapAtlasItem.getMaps(newAtlas, level);
         MapCollectionCap oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
         for (var i : maps.getAll()) {
-            int newId =0;// WeatheredMap.createAntique();
+            int newId = 0;// WeatheredMap.createAntique();
             oldMaps.remove(i);
             oldMaps.add(newId, level);
         }

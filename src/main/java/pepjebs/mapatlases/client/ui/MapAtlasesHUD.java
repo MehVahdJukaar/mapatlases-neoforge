@@ -264,7 +264,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.popPose();
         }
 
-        if (MapAtlasesClientConfig.moonlightSmallPins.get()) {
+        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightSmallPins.get()) {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
@@ -401,4 +401,5 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         zoomLevel = Math.min(10, zoomLevel - 0.5f);
 
     }
+
 }

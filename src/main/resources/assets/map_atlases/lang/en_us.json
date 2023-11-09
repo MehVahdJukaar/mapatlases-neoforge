@@ -14,10 +14,9 @@
   "key.map_atlases.open_minimap": "Open Minimap GUI",
   "key.map_atlases.zoom_in_minimap": "Zoom in Minimap",
   "key.map_atlases.zoom_out_minimap": "Zoom out Minimap",
+  "key.map_atlases.increase_slice": "Increase selected Slice",
+  "key.map_atlases.decrease_slice": "Decrease selected Slice",
   "key.map_atlases.place_pin": "Place pin",
-  "item.map_atlases.dummy_filled_map": "Map",
-  "item.map_atlases.dummy_filled_map.dummy": "Dummy",
-  "item.map_atlases.dummy_filled_map.desc": "Use any filled Map",
   "category.map_atlases.minimap": "Map Atlases Keybinds",
   "subtitles.map_atlases.atlas_open": "Atlas opens",
   "subtitles.map_atlases.atlas_page_turn": "Atlas page turns",
@@ -30,6 +29,6 @@
   "trinkets.slot.hand.atlas": "Atlas",
   "message.map_atlases.pin": "Place a pin",
   "message.map_atlases.marker_name": "Marker Name",
-  "message.map_atlases.map_scale": "1:%d",
+  "message.map_atlases.map_scale": "1:%dx",
   "message.map_atlases.map_index": "#: %s"
 }

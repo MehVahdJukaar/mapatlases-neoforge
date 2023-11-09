@@ -21,10 +21,9 @@ public class MapAtlasesClientEvents {
     public static void onKeyPressed(InputEvent.Key event) {
 
         if (Minecraft.getInstance().screen != null || event.getAction() != InputConstants.PRESS) return;
-
-        if (!MapAtlasesClient.OPEN_ATLAS_KEYBIND.isUnbound() &&
-                event.getKey() == MapAtlasesClient.OPEN_ATLAS_KEYBIND.getKey().getValue()
-        ) {
+        int key = event.getKey();
+        int code = event.getScanCode();
+        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
             Minecraft client = Minecraft.getInstance();
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
@@ -34,9 +33,7 @@ public class MapAtlasesClientEvents {
             }
         }
 
-        if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() &&
-                event.getKey() == MapAtlasesClient.PLACE_PIN_KEYBIND.getKey().getValue()
-        ) {
+        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code)) {
             if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
                 Minecraft client = Minecraft.getInstance();
                 if (client.level == null || client.player == null) return;
@@ -47,19 +44,18 @@ public class MapAtlasesClientEvents {
             }
         }
 
-        if (!MapAtlasesClient.getCurrentActiveAtlas().isEmpty()) {
-            if (!MapAtlasesClient.DECREASE_MINIMAP_ZOOM.isUnbound() &&
-                    event.getKey() == MapAtlasesClient.DECREASE_MINIMAP_ZOOM.getKey().getValue()
-            ) {
+        ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
+        if (!atlas.isEmpty()) {
+            if (MapAtlasesClient.DECREASE_MINIMAP_ZOOM.matches(key, code)) {
                 MapAtlasesClient.HUD.decreaseZoom();
             }
-        }
 
-        if (!MapAtlasesClient.getCurrentActiveAtlas().isEmpty()) {
-            if (!MapAtlasesClient.INCREASE_MINIMAP_ZOOM.isUnbound() &&
-                    event.getKey() == MapAtlasesClient.INCREASE_MINIMAP_ZOOM.getKey().getValue()
-            ) {
+            if (MapAtlasesClient.INCREASE_MINIMAP_ZOOM.matches(key, code)) {
                 MapAtlasesClient.HUD.increaseZoom();
+            }
+
+            if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
+                //MapAtlasItem.setSelectedSlice();
             }
         }
     }

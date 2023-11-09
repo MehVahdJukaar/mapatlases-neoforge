@@ -1,9 +1,6 @@
 package pepjebs.mapatlases;
 
 
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -31,7 +28,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
-import pepjebs.mapatlases.integration.supplementaries.AntiqueAtlasRecipe;
+import pepjebs.mapatlases.integration.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
