@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
@@ -18,7 +19,6 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -29,7 +29,7 @@ import java.util.Map;
 
 public abstract class AbstractAtlasWidget {
 
-    public static final Material MAP_BORDER = new Material(InventoryMenu.BLOCK_ATLAS,
+    public static final Material MAP_BORDER = new Material(Sheets.SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final int MAP_DIMENSION = 128;
@@ -38,7 +38,7 @@ public abstract class AbstractAtlasWidget {
     //internally controls how many maps are displayed
     protected final int atlasesCount;
     protected int mapBlocksSize;
-    private MapItemSavedData mapWherePlayerIs;
+    protected MapItemSavedData mapWherePlayerIs;
 
     protected boolean followingPlayer = true;
     protected double currentXCenter;
@@ -116,6 +116,7 @@ public abstract class AbstractAtlasWidget {
         double maxDist = rotatesWithPlayer ?
                 Mth.square(radius + (sideLength * 0.71)) :
                 (o + 1) * sideLength * 0.5;
+
         for (int i = o; i >= -o; i--) {
             for (int j = o; j >= -o; j--) {
                 double gridCenterI = i * sideLength;
@@ -218,7 +219,7 @@ public abstract class AbstractAtlasWidget {
                             d.getX(), d.getY(), getPlayerMarkerRot(player), d.getName())));
                 } else removed.add(e);
 
-            } else if (type == MapDecoration.Type.PLAYER && !drawPlayerIcons) {
+            } else if (type == MapDecoration.Type.PLAYER && (!drawPlayerIcons || data != mapWherePlayerIs)) {
                 removed.add(e);
             }
         }

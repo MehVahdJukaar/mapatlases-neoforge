@@ -11,6 +11,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,7 +27,7 @@ public class MapDataHolder {
     public final Integer height;
 
     public MapDataHolder(String name, MapItemSavedData data) {
-        this(findMapIntFromString(name), name, data);
+        this(MapAtlasesAccessUtils. findMapIntFromString(name), name, data);
     }
 
     private MapDataHolder(int id, String stringId, MapItemSavedData data) {
@@ -36,10 +37,6 @@ public class MapDataHolder {
         this.type = MapType.fromKey(stringId, data);
         this.height = type.getHeight(data);
         this.slice = Slice.of(type, height, data.dimension);
-    }
-
-    private static int findMapIntFromString(String id) {
-        return Integer.parseInt(id.split("_")[1]);
     }
 
     @Nullable
@@ -74,4 +71,16 @@ public class MapDataHolder {
     private static final ExecutorService EXECUTORS = Executors.newFixedThreadPool(6);
 
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MapDataHolder holder = (MapDataHolder) o;
+        return Objects.equals(data, holder.data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(data);
+    }
 }

@@ -59,10 +59,10 @@ public class MapAtlasesConfig {
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
                 .defineInRange("map_updates_per_tick", 1, 0, 9);
 
+        builder.pop();
 
         lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
                         .define("light_map", false);
-        builder.pop();
 
         spec = builder.build();
     }

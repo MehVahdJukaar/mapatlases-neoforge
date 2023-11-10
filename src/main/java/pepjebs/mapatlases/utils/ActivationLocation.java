@@ -8,11 +8,11 @@ public enum ActivationLocation {
         return this == HANDS || this == HOTBAR_AND_HANDS || this == INVENTORY;
     }
 
-    public boolean hasHotbar(){
+    public boolean hasHotbar() {
         return this == INVENTORY || this == HOTBAR || this == HOTBAR_AND_HANDS;
     }
 
-    public boolean scanAll(){
+    public boolean scanAll() {
         return this == INVENTORY;
     }
 

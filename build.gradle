@@ -189,7 +189,7 @@ dependencies {
     //implementation fg.deobf("curse.maven:supplementaries-412082:4707417")
     //implementation fg.deobf("curse.maven:selene-499980:4833001")
     compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:4401136")
-    compileOnly fg.deobf("curse.maven:supplementaries-412082:4816174")
+    implementation fg.deobf("curse.maven:supplementaries-412082:4816174")
     //implementation fg.deobf("curse.maven:selene-499980:4833478")
     compileOnly fg.deobf("curse.maven:config-menus-forge-544048:4672356")
     implementation fg.deobf("curse.maven:the-twilight-forest-227639:4802174")
@@ -199,7 +199,7 @@ dependencies {
     implementation fg.deobf("curse.maven:citadel-331936:4786380")
     runtimeOnly fg.deobf("curse.maven:spark-361579:4738952")
 
-    compileOnly fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
+    implementation fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
 
     // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")

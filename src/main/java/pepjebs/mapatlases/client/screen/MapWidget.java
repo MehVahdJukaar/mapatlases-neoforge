@@ -96,6 +96,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         // Handle zooming markers hack
         MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
 
+        //mapWherePlayerIs = getMapWithCenter(player.);
+
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
                 MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type(), LightTexture.FULL_BRIGHT);
 

@@ -1,10 +1,12 @@
 package pepjebs.mapatlases;
 
 
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -137,15 +139,15 @@ public class MapAtlasesMod {
         return new ResourceLocation(MOD_ID, name);
     }
 
-    public static boolean containsHack() {
+    public static InteractionResult containsHack() {
         return hack;
     }
 
-    public static void setMapInInventoryHack(boolean value) {
+    public static void setMapInInventoryHack(InteractionResult value) {
         hack = value;
     }
 
-    private static boolean hack = false;
+    private static InteractionResult hack = InteractionResult.PASS;
 
 
 }

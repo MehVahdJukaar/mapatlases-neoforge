@@ -12,7 +12,7 @@
     "LecternBlockMixin",
     "MapItemMixin",
     "MapItemSavedDataAccessor",
-    "MapStateCuriosMixin",
+    "MapItemSavedDataMixin",
     "MixinCartographyTableAbstractContainerMenuSecondSlot",
     "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
     "MixinCartographyTableHandlerFirstSlot"

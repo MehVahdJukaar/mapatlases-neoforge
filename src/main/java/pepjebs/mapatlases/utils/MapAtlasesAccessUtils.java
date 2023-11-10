@@ -3,6 +3,7 @@ package pepjebs.mapatlases.utils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +35,10 @@ public class MapAtlasesAccessUtils {
 
     public static MapDataHolder findMapFromItemStack(Level level, ItemStack item) {
         return MapDataHolder.findFromId(level, MapItem.getMapId(item));
+    }
+
+    public static int findMapIntFromString(String id) {
+        return Integer.parseInt(id.split("_")[1]);
     }
 
     public static ItemStack createMapItemStackFromId(int id) {
@@ -108,12 +113,14 @@ public class MapAtlasesAccessUtils {
     public static void updateMapDataAndSync(
             MapDataHolder holder,
             ServerPlayer player,
-            ItemStack atlas
+            ItemStack atlas,
+            boolean isBeingCarried
     ) {
-        MapAtlasesMod.setMapInInventoryHack(true);
-        holder.data.tickCarriedBy(player, atlas);
+        MapAtlasesMod.setMapInInventoryHack(isBeingCarried ? InteractionResult.SUCCESS : InteractionResult.FAIL);
+        //hack. just to be sure so contains will fail
+        holder.data.tickCarriedBy(player, isBeingCarried ? atlas : Items.MAP.getDefaultInstance());
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
-        MapAtlasesMod.setMapInInventoryHack(false);
+        if (isBeingCarried) MapAtlasesMod.setMapInInventoryHack(InteractionResult.PASS);
     }
 
     public static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {

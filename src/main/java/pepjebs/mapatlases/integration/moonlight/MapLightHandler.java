@@ -1,24 +1,38 @@
 package pepjebs.mapatlases.integration.moonlight;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
+import net.mehvahdjukaar.moonlight.api.resources.textures.TextureImage;
 import net.mehvahdjukaar.moonlight.api.util.math.colors.RGBColor;
-import net.mehvahdjukaar.supplementaries.configs.ClientConfigs;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.MapRenderer;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.utils.ActivationLocation;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 
 public class MapLightHandler {
 
     public static void init() {
+        ClientHelper.addClientReloadListener(R::new, MapAtlasesMod.res("test"));
     }
 
     protected static int DITHERING = 1;
@@ -174,11 +188,12 @@ public class MapLightHandler {
             return new Counter();
         }
 
-        public void setLightLevel(int x, int z, int packedLight, MapItemSavedData data) {
-            if (packedLight != 0) {
+        public void setLightLevel(int x, int z, int blockLight, int skyLight, MapItemSavedData data) {
+            int packed = (blockLight << 4) | (15 - skyLight);
+            if (packed != 0) {
                 //dither biomes
-                if (!Objects.equals(this.getEntry(x, z), packedLight)) {
-                    this.addEntry(data, x, z, packedLight);
+                if (!Objects.equals(this.getEntry(x, z), packed)) {
+                    this.addEntry(data, x, z, packed);
                 }
             } else {
                 //remove unneded stufff
@@ -196,26 +211,78 @@ public class MapLightHandler {
 
         @OnlyIn(Dist.CLIENT)
         public void processTexture(NativeImage texture, int startX, int startY) {
-             if (!MapAtlasesConfig.lightMap .get()) return;
+            if (!MapAtlasesConfig.lightMap.get()) return;
             for (int x = 0; x < 128; ++x) {
                 for (int z = 0; z < 128; ++z) {
                     int light = getEntry(x, z);
-                    if (light == 0) continue;
+                    //  if (light == 0) continue;
+
+                    int skyDarkness = light & 0b1111; // Extract the lower 4 bits
+                    int blockLight = (light >> 4) & 0b1111; // Extract the higher 4 bits
 
                     int pX = startX + x;
                     int pY = startY + z;
-                    var c = getLitUp(texture.getPixelRGBA(pX, pY), light);
-                    texture.setPixelRGBA(pX, pY, c.toInt());
+                    int c = getLitUp(texture.getPixelRGBA(pX, pY), blockLight, skyDarkness);
+                    texture.setPixelRGBA(pX, pY, c);
                 }
             }
         }
     }
 
-    public static RGBColor getLitUp(int color, int light) {
-        float v = (light / 15f) * 0.7f;
-        RGBColor rgbColor = new RGBColor(0xffc0e2ee);
-        float r = 1;
-        return new RGBColor(color).multiply((r + rgbColor.red() * v), (r + rgbColor.green() * v), (r + rgbColor.green() * v), r);
+    private static int getLitUp(int color, int blockLight, int skyDarkness) {
+        int skyLight = 15 - skyDarkness;
+
+        var lightColor = new RGBColor(MapLightHandler.getLightMapTexture().getPixelRGBA(blockLight, skyLight));
+        float intensity = 1;
+        return new RGBColor(color).multiply(
+                (lightColor.red() * intensity),
+                (lightColor.green() * intensity),
+                (lightColor.green() * intensity),
+                1).toInt();
+    }
+
+
+    public static class R extends SimpleJsonResourceReloadListener {
+
+        public R() {
+            super(new Gson().newBuilder().create(), "test");
+        }
+
+        @Override
+        protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+            try {
+                dayTexture = TextureImage.open(pResourceManager, MapAtlasesMod.res("item/lightmap_day")).getImage();
+                nightTexture = TextureImage.open(pResourceManager, MapAtlasesMod.res("item/lightmap_night")).getImage();
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static NativeImage dayTexture;
+    private static NativeImage nightTexture;
+
+    private static boolean lastTickWasDay = true;
+
+    public static NativeImage getLightMapTexture() {
+        return lastTickWasDay ? dayTexture : nightTexture;
+    }
+
+    public static void onClientTick(ClientLevel level) {
+        float timeOfDay = level.getTimeOfDay(0);
+        boolean isDay = timeOfDay < 0.26 || timeOfDay > 0.8;
+        if (isDay != lastTickWasDay) {
+            lastTickWasDay = isDay;
+            MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
+            for (var e : level.mapData.entrySet()) {
+                String keyId = e.getKey();
+                if (e.getKey().startsWith("map_")) {
+                    MapItemSavedData data = e.getValue();
+                    mapRenderer.update(MapAtlasesAccessUtils.findMapIntFromString(keyId), data);
+                }
+            }
+        }
     }
 
 }

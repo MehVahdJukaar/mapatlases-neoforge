@@ -55,10 +55,12 @@ public class MapItemMixin {
                              @Local Level l,
                              @Local(ordinal = 6) int k1,
                              @Local(ordinal = 7) int l1,
-                             @Share("customLightMap") LocalRef<Map<Vector2i, List<Integer>>> lightMap) {
+                             @Share("customLightMap") LocalRef<Map<Vector2i, List<Vector2i>>> lightMap) {
         if (lightMap.get() != null) {
+            int brightness = l.getBrightness(LightLayer.BLOCK, pos.above());
+            int sky = l.getBrightness(LightLayer.SKY, pos.above());
             lightMap.get().computeIfAbsent(new Vector2i(k1, l1), p -> new ArrayList<>())
-                    .add(l.getBrightness(LightLayer.BLOCK, pos.above()));
+                    .add(new Vector2i(brightness,sky));
         }
 
         return operation.call(instance, level, pos);
@@ -68,18 +70,21 @@ public class MapItemMixin {
     @ModifyExpressionValue(method = "update", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/level/saveddata/maps/MapItemSavedData;updateColor(IIB)Z"
     ))
-    public boolean updateCustomColor(boolean original,
+    public boolean updateLightmap(boolean original,
                                      Level level, Entity viewer, MapItemSavedData data,
                                      @Local(ordinal = 6) int x,
                                      @Local(ordinal = 7) int z,
-                                     @Share("customLightMap") LocalRef<Map<Vector2i, List<Integer>>> lightMap) {
+                                     @Share("customLightMap") LocalRef<Map<Vector2i, List<Vector2i>>> lightMap) {
 
-        if (lightMap.get() == null && MapAtlasesConfig.lightMap.get()) lightMap.set(new HashMap<>());
-        var l = lightMap.get().get(new Vector2i(x, z));
-        if (l != null) {
-            int light = (int) l.stream().mapToDouble(Integer::doubleValue).average().orElse(0);
-            var c = MapLightHandler.getLightData(data);
-            c.setLightLevel(x, z, light, data);
+        if(MapAtlasesConfig.lightMap.get()) {
+            if (lightMap.get() == null) lightMap.set(new HashMap<>());
+            var l = lightMap.get().get(new Vector2i(x, z));
+            if (l != null) {
+                int blockLight = (int) l.stream().mapToDouble(v->v.x).average().orElse(0);
+                int skyLight = (int) l.stream().mapToDouble(v->v.y).average().orElse(0);
+                var c = MapLightHandler.getLightData(data);
+                c.setLightLevel(x, z, blockLight, skyLight, data);
+            }
         }
 
         return original;

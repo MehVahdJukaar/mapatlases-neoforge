@@ -20,6 +20,8 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
+import pepjebs.mapatlases.integration.moonlight.MapLightHandler;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
@@ -36,6 +38,7 @@ public class MapAtlasesServerEvents {
     private static final ReentrantLock mutex = new ReentrantLock();
 
     private static final WeakHashMap<Player, HashMap<String, MapUpdateTicket>> updateQueue = new WeakHashMap<>();
+    private static final WeakHashMap<Player, MapDataHolder> lastMapData = new WeakHashMap<>();
 
     //TODO: improve and make multithreaded
     private static class MapUpdateTicket {
@@ -116,6 +119,7 @@ public class MapAtlasesServerEvents {
             if (activeInfo == null) {
                 // no map. we try creating a new one for this dimension
                 maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
+                activeInfo = maps.select(activeKey);
             }
 
             // updateColors is *easily* the most expensive function in the entire server tick
@@ -142,9 +146,15 @@ public class MapAtlasesServerEvents {
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             // this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
-                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas);
+                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, true);
                 //if data has changed, a packet will be sent
             }
+            // for far away maps so we remove player marker
+            MapDataHolder lastData = lastMapData.get(player);
+            if(lastData != null && !nearbyExistentMaps.contains(lastData)){
+                MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, false);
+            }
+            lastMapData.put(player, activeInfo);
 
             // Create new Map entries
             if (!MapAtlasesConfig.enableEmptyMapEntryAndFill.get() ||
@@ -188,22 +198,25 @@ public class MapAtlasesServerEvents {
     }
 
     private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
-        var m = updateQueue.computeIfAbsent(player, a -> new HashMap<>());
+        Map<String, MapUpdateTicket> mapsToUpdate = updateQueue.computeIfAbsent(player, a -> new HashMap<>());
         Set<String> nearbyIds = new HashSet<>();
         for (var holder : nearbyExistentMaps) {
             nearbyIds.add(holder.stringId);
-            m.computeIfAbsent(holder.stringId, a -> new MapUpdateTicket(holder));
+            mapsToUpdate.computeIfAbsent(holder.stringId, a -> new MapUpdateTicket(holder));
         }
         int px = player.getBlockX();
         int pz = player.getBlockZ();
-        var it = m.entrySet().iterator();
-        while (it.hasNext()) {
-            var t = it.next();
-            if (!nearbyIds.contains(t.getKey())) {
-                it.remove();
-            } else t.getValue().updatePriority(px, pz);
+        var iterator = mapsToUpdate.entrySet().iterator();
+        //remove invalid tickets and update their priority
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            if (!nearbyIds.contains(entry.getKey())) {
+                iterator.remove();
+            } else {
+                entry.getValue().updatePriority(px, pz);
+            }
         }
-        MapUpdateTicket selected = m.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
+        MapUpdateTicket selected = mapsToUpdate.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
         selected.waitTime = 0;
         return selected.holder;
     }
@@ -259,7 +272,7 @@ public class MapAtlasesServerEvents {
                 MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, true);
                 }
                 addedMap = maps.add(mapId, level);
             }
