@@ -79,6 +79,12 @@ public class MapAtlasesClientConfig {
 
         minimapSkyLight = builder.comment("Use sky color for minimap")
                         .define("darken_at_night", false);
+
+        mapChangeSound = builder.comment("Plays page turn sound when current active map changes. Works best when paired with no rotation and no player follow")
+                        .define("map_change_sound", false);
+
+        automaticSlice = builder.comment("Automatically switches to the nearest slice when possible")
+                        .define("automatic_slice_change", false);
         builder.pop();
 
         builder.push("world_map");
@@ -92,6 +98,7 @@ public class MapAtlasesClientConfig {
                 .define("smooth_panning", true);
         worldMapSmoothZooming = builder.comment("Makes zooming work smoothly instead of in 2 maps increments")
                 .define("smooth_zooming", true);
+        worldMapZoomScrollSpeed = builder.define("zoom_scroll_speed", 1d);
 
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
@@ -155,6 +162,8 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> miniMapOnlyNorth;
     public static final Supplier<Boolean> miniMapBorder;
     public static final Supplier<Boolean> minimapSkyLight;
+    public static final Supplier<Boolean> mapChangeSound;
+    public static final Supplier<Boolean> automaticSlice;
     public static final Supplier<Boolean> worldMapBorder;
     public static final Supplier<Double> miniMapCardinalsScale;
     public static final Supplier<Double> minimapCoordsAndBiomeScale;
@@ -170,6 +179,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> yOnlyWithSlice;
     public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Boolean> worldMapSmoothZooming;
+    public static final Supplier<Double> worldMapZoomScrollSpeed;
     public static final Supplier<Boolean> worldMapBigTexture;
     public static final Supplier<Boolean> worldMapCrossair;
     public static final Supplier<Boolean> hideWhenInHand;

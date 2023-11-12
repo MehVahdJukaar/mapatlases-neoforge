@@ -29,6 +29,7 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.integration.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -91,6 +92,7 @@ public class MapAtlasesMod {
         }
 
         if (MOONLIGHT) MoonlightCompat.init();
+        if (SUPPLEMENTARIES) SupplementariesCompat.init();
 
         RECIPES.register(bus);
         MENU_TYPES.register(bus);
@@ -134,6 +136,7 @@ public class MapAtlasesMod {
     private static Supplier<SoundEvent> regSound(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(res(name)));
     }
+
 
     public static ResourceLocation res(String name) {
         return new ResourceLocation(MOD_ID, name);

@@ -1,7 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -14,7 +12,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
@@ -213,8 +210,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
             float c = (float) (pDelta);
-            float v = -c / 10;
-            targetZoomLevel = Math.max(0.5f, targetZoomLevel + v);
+            double v = -c / 20 * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
+            targetZoomLevel = Math.max(0.5f, targetZoomLevel + targetZoomLevel * (float) v);
             zoomLevel = targetZoomLevel - 0.001f;
         } else {
             cumulativeZoomValue -= pDelta;

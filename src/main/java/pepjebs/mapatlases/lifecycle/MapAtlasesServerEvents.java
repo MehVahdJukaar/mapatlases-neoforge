@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.lifecycle;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -7,26 +9,29 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.IMapCollection;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.integration.moonlight.MapLightHandler;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
@@ -40,7 +45,7 @@ public class MapAtlasesServerEvents {
     private static final WeakHashMap<Player, HashMap<String, MapUpdateTicket>> updateQueue = new WeakHashMap<>();
     private static final WeakHashMap<Player, MapDataHolder> lastMapData = new WeakHashMap<>();
 
-    //TODO: improve and make multithreaded
+    //TODO: improve . lower updates when stationary
     private static class MapUpdateTicket {
         private static final Comparator<MapUpdateTicket> COMPARATOR = Comparator.comparingDouble(MapUpdateTicket::getPriority);
 
@@ -50,13 +55,17 @@ public class MapAtlasesServerEvents {
         // we start with lowest for newly added entries
         private double lastDistance = 1000000;
         private double currentPriority; //bigger the better
+        private boolean hasBlankPixels = true;
+        private int lastI = 0;
+        private int lastJ = 0;
 
         private MapUpdateTicket(MapDataHolder data) {
             this.holder = data;
+            this.updateHasBlankPixels();
         }
 
         public double getPriority() {
-            return currentPriority;
+            return hasBlankPixels ? currentPriority : currentPriority * 0.15f;
         }
 
         public void updatePriority(int px, int pz) {
@@ -70,6 +79,21 @@ public class MapAtlasesServerEvents {
             double deltaDist = distanceWeight * (lastDistance - distSquared); //for maps getting closer
             this.currentPriority = deltaDist + (waitTimeWeight * this.waitTime * this.waitTime);
             this.lastDistance = distSquared;
+        }
+
+        public void updateHasBlankPixels() {
+            if (hasBlankPixels) {
+                for (lastI = 0; lastI < 128; lastI++) {
+                    int k = lastI % 2 == 0 ? lastI : 127 - lastI;
+                    for (lastJ = 0; lastJ < 128; lastJ++) {
+                        int m = lastJ % 2 == 0 ? lastJ : 127 - lastJ;
+                        if (this.holder.data.colors[k + m * 128] == 0) {
+                            return;
+                        }
+                    }
+                }
+                hasBlankPixels = false;
+            }
         }
     }
 
@@ -89,6 +113,7 @@ public class MapAtlasesServerEvents {
             if (atlas.isEmpty()) return;
             Level level = player.level();
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
 
             // sets new center map
@@ -122,6 +147,8 @@ public class MapAtlasesServerEvents {
                 activeInfo = maps.select(activeKey);
             }
 
+            // adds center map
+            if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
             // updateColors is *easily* the most expensive function in the entire server tick
             // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
             if (!nearbyExistentMaps.isEmpty()) {
@@ -137,11 +164,7 @@ public class MapAtlasesServerEvents {
                     }
                 }
             }
-            // update center one too but not each tick
-            if (activeInfo != null && isTimeToUpdate(activeInfo.data, player, slice, 5, 20)) {
-                activeInfo.updateMap(player);
-            }
-            if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
+
 
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             // this also update banners and decorations so wen dont want to update stuff we cant see
@@ -151,7 +174,7 @@ public class MapAtlasesServerEvents {
             }
             // for far away maps so we remove player marker
             MapDataHolder lastData = lastMapData.get(player);
-            if(lastData != null && !nearbyExistentMaps.contains(lastData)){
+            if (lastData != null && !nearbyExistentMaps.contains(lastData)) {
                 MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, false);
             }
             lastMapData.put(player, activeInfo);
@@ -174,6 +197,7 @@ public class MapAtlasesServerEvents {
 
         }
     }
+
 
     //checks if pixel of this map has been filled at this position with random offset
     private static boolean isTimeToUpdate(MapItemSavedData data, Player player,
@@ -218,6 +242,7 @@ public class MapAtlasesServerEvents {
         }
         MapUpdateTicket selected = mapsToUpdate.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
         selected.waitTime = 0;
+        selected.updateHasBlankPixels();
         return selected.holder;
     }
 
@@ -330,4 +355,7 @@ public class MapAtlasesServerEvents {
             MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
         }
     }
+
+
+
 }

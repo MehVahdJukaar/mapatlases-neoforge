@@ -53,14 +53,6 @@ import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
 
-    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
-    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
-
-    @Nullable
-    private static MapKey currentActiveMapKey = null;
-    private static Integer lastActiveId = 0;
-    private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
-
     public static final Material OVERWORLD_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas"));
     public static final Material NETHER_TEXTURE =
@@ -116,6 +108,19 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
+
+    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
+    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
+
+    @Nullable
+    private static MapKey currentActiveMapKey = null;
+    private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
+    private static boolean isDrawingAtlas = false;
+
+    public static MapAtlasesHUD HUD;
+    public static ShaderInstance TEXT_ALPHA_SHADER;
+
+
     public static void cachePlayerState(Player player) {
         if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
@@ -144,11 +149,16 @@ public class MapAtlasesClient {
         return currentActiveMapKey;
     }
 
+    public static void setIsDrawingAtlas(boolean state){
+        isDrawingAtlas = state;
+    }
+
+    public static boolean isDrawingAtlas() {
+        return isDrawingAtlas;
+    }
 
     public static void init() {
-
         FMLJavaModLoadingContext.get().getModEventBus().register(MapAtlasesClient.class);
-
         MinecraftForge.EVENT_BUS.register(MapAtlasesClientEvents.class);
     }
 
@@ -157,12 +167,7 @@ public class MapAtlasesClient {
         // Register ModelPredicate
         ItemProperties.register(MapAtlasesMod.MAP_ATLAS.get(), MapAtlasesMod.res("atlas"),
                 MapAtlasesClient::getPredicateForAtlas);
-
-        //MenuScreens.register(MapAtlasesMod.ATLAS_OVERVIEW_HANDLER.get(), MapAtlasesAtlasOverviewScreen::new);
-
     }
-
-    public static ShaderInstance TEXT_ALPHA_SHADER;
 
     @SubscribeEvent
     public static void registerShaders(RegisterShadersEvent event) {
@@ -176,7 +181,6 @@ public class MapAtlasesClient {
         }
     }
 
-    public static MapAtlasesHUD HUD;
 
     @SubscribeEvent
     public static void registerOverlay(RegisterGuiOverlaysEvent event) {
@@ -301,17 +305,17 @@ public class MapAtlasesClient {
     }
 
 
-    //debug stuff
-    private static final int DUR = 10;
 
+
+    //debug stuff
     public static void debugMapUpdated(String mapId) {
-        CACHE.put(mapId, DUR);
+        CACHE.put(mapId, 10);
     }
 
     public static int debugIsMapUpdated(int light, String stringId) {
         Integer value = getValue(stringId);
         if (value != null) {
-            int pBlockLight = Mth.clamp((int) (value / (float) DUR * 15f), 0, 15);
+            int pBlockLight = Mth.clamp((int) (value / (float) 10 * 15f), 0, 15);
             return LightTexture.pack(pBlockLight, pBlockLight);
         }
         return light;
@@ -336,4 +340,5 @@ public class MapAtlasesClient {
             .maximumSize(100) // Set your desired maximum size
             .expireAfterAccess(10, TimeUnit.SECONDS) // Set your desired time for validity
             .build();
+
 }

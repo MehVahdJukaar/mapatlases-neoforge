@@ -25,6 +25,7 @@ public class PinDecorationRenderer extends DecorationRenderer<PinDecoration> {
 
     @Override
     public boolean render(PinDecoration decoration, PoseStack matrixStack, VertexConsumer vertexBuilder, MultiBufferSource buffer, @Nullable MapItemSavedData mapData, boolean isOnFrame, int light, int index, boolean rendersText) {
+        if(!MapAtlasesClient.isDrawingAtlas())return false;
         return super.render(decoration, matrixStack, vertexBuilder, buffer, mapData, isOnFrame, light, index, rendersText);
     }
 

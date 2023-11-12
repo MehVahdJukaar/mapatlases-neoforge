@@ -32,6 +32,7 @@ public class AtlasInHandRenderer {
     public static void render(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, ItemStack pStack, Minecraft mc) {
         if (mc.screen instanceof AtlasOverviewScreen) return;
 
+        MapAtlasesClient.setIsDrawingAtlas(true);
         pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         pPoseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
         pPoseStack.scale(MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE);
@@ -40,17 +41,19 @@ public class AtlasInHandRenderer {
 
         MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
         MapDataHolder state = MapAtlasItem.getMaps(pStack, mc.level).select(activeMapKey);
-        if (state == null) return;
-        MapItemSavedData data = state.data;
-        VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
-        Matrix4f matrix4f = pPoseStack.last().pose();
-        vertexconsumer.vertex(matrix4f, -MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(pCombinedLight).endVertex();
-        vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(pCombinedLight).endVertex();
-        vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(pCombinedLight).endVertex();
-        vertexconsumer.vertex(matrix4f, -MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(pCombinedLight).endVertex();
-        if (data != null) {
-            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
+        if (state != null) {
+            MapItemSavedData data = state.data;
+            VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
+            Matrix4f matrix4f = pPoseStack.last().pose();
+            vertexconsumer.vertex(matrix4f, -MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 1.0F).uv2(pCombinedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 1.0F).uv2(pCombinedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, MAP_WIDTH + MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(1.0F, 0.0F).uv2(pCombinedLight).endVertex();
+            vertexconsumer.vertex(matrix4f, -MAP_BORDER, -MAP_BORDER, 0.0F).color(255, 255, 255, 255).uv(0.0F, 0.0F).uv2(pCombinedLight).endVertex();
+            if (data != null) {
+                mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
+            }
         }
+        MapAtlasesClient.setIsDrawingAtlas(false);
 
     }
 }

@@ -35,8 +35,6 @@ public class MoonlightCompat {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
             MapDecorationClientManager.registerCustomRenderer(CUSTOM_TYPE_ID, PinDecorationRenderer::new);
         }
-
-        MapLightHandler.init();
     }
 
     public static Collection<Pair<Object, MapDataHolder>> getCustomDecorations(MapDataHolder map) {

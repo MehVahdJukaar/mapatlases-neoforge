@@ -21,8 +21,7 @@
     "CartographyTableScreenMixin",
     "ItemInHandRendererMixin",
     "LecternRendererMixin",
-    "MapRendererMixin",
-    "MapTextureMixin"
+    "MapRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

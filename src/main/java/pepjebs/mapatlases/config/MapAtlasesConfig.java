@@ -16,11 +16,6 @@ public class MapAtlasesConfig {
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
                 .define("max_map_count", 512);
 
-        mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues")
-                .define("multithreaded_update", true);
-        debugUpdate = builder.comment("Visually shows map updates")
-                .define("debug_map_updates", false);
-
         acceptPaperForEmptyMaps = builder
                 .comment("If enabled, you can increase the Empty Map count by inserting Paper")
                 .define("accept_paper_for_empty_maps", false);
@@ -58,6 +53,11 @@ public class MapAtlasesConfig {
                 .define("round_robin", false);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
                 .defineInRange("map_updates_per_tick", 1, 0, 9);
+
+        mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues")
+                .define("multithreaded_update", true);
+        debugUpdate = builder.comment("Visually shows map updates")
+                .define("debug_map_updates", false);
 
         builder.pop();
 

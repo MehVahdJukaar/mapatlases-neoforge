@@ -65,6 +65,8 @@ public abstract class AbstractAtlasWidget {
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
                           Player player, float zoomLevelDim, boolean showBorders, MapType type, int light) {
 
+        MapAtlasesClient.setIsDrawingAtlas(true);
+
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
 
@@ -161,6 +163,8 @@ public abstract class AbstractAtlasWidget {
 
         poseStack.popPose();
         graphics.disableScissor();
+
+        MapAtlasesClient.setIsDrawingAtlas(false);
     }
 
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {

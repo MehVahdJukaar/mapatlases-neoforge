@@ -35,7 +35,6 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
@@ -46,7 +45,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
     private static final int BACKGROUND_SIZE = 128;
-    protected  final int BG_SIZE = 64;
+    protected final int BG_SIZE = 64;
 
     private final Minecraft mc;
 
@@ -54,6 +53,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     private boolean needsInit = true;
     private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapKey currentMapKey = null;
+    private MapKey lastMapKey = null;
 
 
     private float globalScale = 1;
@@ -132,6 +132,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             needsInit = false;
             initialize(activeMap);
         }
+        mapWherePlayerIs = activeMap.data;
 
         PoseStack poseStack = graphics.pose();
 
@@ -140,9 +141,14 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         //scaling on 0,0
         poseStack.scale(globalScale, globalScale, 1);
 
-        // Update client current map id
-        // TODO: dont like this sound here. should be in tick instead
-        // playSoundIfMapChanged(curMapId, height, player);
+        // play sound
+        if (lastMapKey != currentMapKey) {
+            lastMapKey = currentMapKey;
+            if (MapAtlasesClientConfig.mapChangeSound.get()) {
+                player.playSound(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(),
+                        (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+            }
+        }
 
         int mapWidgetSize = (int) (BG_SIZE * (116 / 128f));
         // Draw map background
@@ -182,9 +188,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
 
         //rounds up if following player
         if (!followingPlayer) {
-            currentXCenter = currentXCenter%mapBlocksSize + Math.round(player.getX()/mapBlocksSize)*mapBlocksSize;
-            currentZCenter = currentZCenter%mapBlocksSize + Math.round(player.getZ()/mapBlocksSize)*mapBlocksSize;
-        }else{
+            currentXCenter = currentXCenter % mapBlocksSize + Math.round(player.getX() / mapBlocksSize) * mapBlocksSize;
+            currentZCenter = currentZCenter % mapBlocksSize + Math.round(player.getZ() / mapBlocksSize) * mapBlocksSize;
+        } else {
             currentXCenter = player.getX();
             currentZCenter = player.getZ();
         }
@@ -226,7 +232,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         //  graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
         // Draw text data
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
-        int textHeightOffset = 0;
+        int textHeightOffset = 2;
         int actualBgSize = (int) (BG_SIZE * globalScale);
         if (!anchorLocation.isUp) {
             //textHeightOffset = -actualBgSize + ;
@@ -268,7 +274,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
-            ClientMarkers.drawSmallPins(graphics, font, currentXCenter+mapBlocksSize/2f, currentZCenter+mapBlocksSize/2f, currentMapKey.slice(),
+            ClientMarkers.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f, currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
                     mapBlocksSize * zoomLevel, player, rotatesWithPlayer);
             poseStack.popPose();
         }
@@ -285,18 +291,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
                 b / scale - font.lineHeight / 2f);
 
         pose.popPose();
-    }
-
-    private static void playSoundIfMapChanged(String curMapId, ClientLevel level, LocalPlayer player) {
-        /*
-        if (!curMapId.equals(localPlayerCurrentMapId)) {
-            if (localPlayerCurrentMapId != null) {
-                height.playLocalSound(player.getX(), player.getY(), player.getZ(),
-                        MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), SoundSource.PLAYERS,
-                        (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F, false);
-            }
-            localPlayerCurrentMapId = curMapId;
-        }*/
     }
 
     private static int towardsZero(double d) {

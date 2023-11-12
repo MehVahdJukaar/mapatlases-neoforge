@@ -11,6 +11,7 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 public interface IMapCollection {
@@ -31,7 +32,7 @@ public interface IMapCollection {
 
     Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension);
 
-    Collection<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type);
+    TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type);
 
     List<MapDataHolder> selectSection(Slice slice);
 

@@ -11,6 +11,7 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 
 // For fabric.
@@ -61,7 +62,7 @@ public class NBTMapCollection implements IMapCollection {
     }
 
     @Override
-    public Collection<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type) {
+    public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type) {
         return null;
     }
 
