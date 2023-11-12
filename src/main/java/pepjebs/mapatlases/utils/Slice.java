@@ -97,4 +97,8 @@ public final class Slice {
     public ItemStack createNewMap(int destX, int destZ, byte scale, Level level, ItemStack atlas) {
         return type.createNewMapItem(destX, destZ, scale, level, height, atlas);
     }
+
+    public boolean isSameGroup(Slice slice) {
+        return slice.dimension.equals(this.dimension) && slice.type == this.type;
+    }
 }

@@ -37,6 +37,8 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.Objects;
+
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
 public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
@@ -132,7 +134,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             needsInit = false;
             initialize(activeMap);
         }
-        mapWherePlayerIs = activeMap.data;
+        mapWherePlayerIs = activeMap;
 
         PoseStack poseStack = graphics.pose();
 
@@ -142,9 +144,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.scale(globalScale, globalScale, 1);
 
         // play sound
-        if (lastMapKey != currentMapKey) {
+        if (!Objects.equals(lastMapKey,currentMapKey)) {
             lastMapKey = currentMapKey;
-            if (MapAtlasesClientConfig.mapChangeSound.get()) {
+            if (mc.screen == null && MapAtlasesClientConfig.mapChangeSound.get()) {
                 player.playSound(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(),
                         (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
             }
@@ -270,7 +272,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             poseStack.popPose();
         }
 
-        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightSmallPins.get()) {
+        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightPinTracking.get()) {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
@@ -387,12 +389,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         return Pair.of(x, y);
     }
 
-    public void decreaseZoom() {
-        zoomLevel = Math.max(1, zoomLevel + 0.5f);
+    public void increaseZoom() {
+        zoomLevel = Math.max(1, zoomLevel - 0.5f);
     }
 
-    public void increaseZoom() {
-        zoomLevel = Math.min(10, zoomLevel - 0.5f);
+    public void decreaseZoom() {
+        zoomLevel = Math.min(10, zoomLevel + 0.5f);
 
     }
 

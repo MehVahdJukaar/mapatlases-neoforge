@@ -13,7 +13,6 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +37,7 @@ public abstract class AbstractAtlasWidget {
     //internally controls how many maps are displayed
     protected final int atlasesCount;
     protected int mapBlocksSize;
-    protected MapItemSavedData mapWherePlayerIs;
+    protected MapDataHolder mapWherePlayerIs;
 
     protected boolean followingPlayer = true;
     protected double currentXCenter;
@@ -52,14 +51,15 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize(MapDataHolder originalCenter) {
-        this.mapWherePlayerIs = originalCenter.data;
-        this.mapBlocksSize = (1 << mapWherePlayerIs.scale) * MAP_DIMENSION;
+    protected void initialize(MapDataHolder newCenter) {
+        if(mapWherePlayerIs != null && !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
+            this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
+        }
+        this.mapWherePlayerIs = newCenter;
+        this.mapBlocksSize = (1 << mapWherePlayerIs.data.scale) * MAP_DIMENSION;
 
-        this.currentXCenter = mapWherePlayerIs.centerX;
-        this.currentZCenter = mapWherePlayerIs.centerZ;
-
-        this.zoomLevel = atlasesCount * originalCenter.type.getDefaultZoomFactor();
+        this.currentXCenter = mapWherePlayerIs.data.centerX;
+        this.currentZCenter = mapWherePlayerIs.data.centerZ;
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
@@ -216,14 +216,14 @@ public abstract class AbstractAtlasWidget {
             MapDecoration decoration = e.getValue();
             MapDecoration.Type type = decoration.getType();
             if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
-                if (data == mapWherePlayerIs && drawPlayerIcons) {
+                if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     var d = e.getValue();
                     removed.add(e);
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
                             d.getX(), d.getY(), getPlayerMarkerRot(player), d.getName())));
                 } else removed.add(e);
 
-            } else if (type == MapDecoration.Type.PLAYER && (!drawPlayerIcons || data != mapWherePlayerIs)) {
+            } else if (type == MapDecoration.Type.PLAYER && (!drawPlayerIcons || data != mapWherePlayerIs.data)) {
                 removed.add(e);
             }
         }

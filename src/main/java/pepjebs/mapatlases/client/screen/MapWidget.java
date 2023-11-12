@@ -9,6 +9,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -205,20 +206,26 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-        if ((pDelta < 0 && targetZoomLevel > 20) || (pDelta > 0 && zoomLevel == 0.5)) return false;
+        float minZoom = 0.5f;
+        float maxZoom = 20;
+        if ((pDelta < 0 && targetZoomLevel >= maxZoom) || (pDelta > 0 && targetZoomLevel <= minZoom)) {
+            cumulativeZoomValue = 0;
+            return false;
+        }
 
         float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
             float c = (float) (pDelta);
-            double v = -c / 20 * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
-            targetZoomLevel = Math.max(0.5f, targetZoomLevel + targetZoomLevel * (float) v);
+            double v = -c / 25d * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
+            if (Screen.hasShiftDown() || Screen.hasControlDown()) v *= 3;
+            targetZoomLevel = Mth.clamp(targetZoomLevel + targetZoomLevel * (float) v, minZoom, maxZoom);
             zoomLevel = targetZoomLevel - 0.001f;
         } else {
             cumulativeZoomValue -= pDelta;
             cumulativeZoomValue = Math.max(cumulativeZoomValue, 0);
             zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
             zl = Math.max(zl, 0);
-            targetZoomLevel = startZoom + (2 * zl) + 1f;
+            targetZoomLevel = Mth.clamp(startZoom + (2 * zl) + 1f, minZoom, maxZoom);
         }
 
         return true;

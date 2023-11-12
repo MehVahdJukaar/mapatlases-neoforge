@@ -1,16 +1,13 @@
 package pepjebs.mapatlases.lifecycle;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -19,7 +16,6 @@ import net.minecraftforge.fml.LogicalSide;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.IMapCollection;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -42,7 +38,7 @@ public class MapAtlasesServerEvents {
     // Used to prevent Map creation spam consuming all Empty Maps on auto-create
     private static final ReentrantLock mutex = new ReentrantLock();
 
-    private static final WeakHashMap<Player, HashMap<String, MapUpdateTicket>> updateQueue = new WeakHashMap<>();
+    private static final WeakHashMap<Player, Tuple<Float, HashMap<String, MapUpdateTicket>>> updateQueue = new WeakHashMap<>();
     private static final WeakHashMap<Player, MapDataHolder> lastMapData = new WeakHashMap<>();
 
     //TODO: improve . lower updates when stationary
@@ -62,6 +58,9 @@ public class MapAtlasesServerEvents {
         private MapUpdateTicket(MapDataHolder data) {
             this.holder = data;
             this.updateHasBlankPixels();
+            if(data.type == MapType.VANILLA && data.slice.height() != null){
+                hasBlankPixels = false; //hack since these can have blank pixels when populated
+            }
         }
 
         public double getPriority() {
@@ -72,12 +71,13 @@ public class MapAtlasesServerEvents {
             this.waitTime++;
             double distSquared = Mth.lengthSquared(px - holder.data.centerX, pz - holder.data.centerZ);
             // Define weights for distance and waitTime
-            double distanceWeight = 20; // Adjust this based on your preference
+            double movingDistanceWeight = 10; // Adjust this based on your preference
+            double staticDistanceWeight = 10000; // Adjust this based on your preference
             double waitTimeWeight = 1; // Adjust this based on your preference
 
             // Calculate the priority using a weighted sum
-            double deltaDist = distanceWeight * (lastDistance - distSquared); //for maps getting closer
-            this.currentPriority = deltaDist + (waitTimeWeight * this.waitTime * this.waitTime);
+            double deltaDist = (lastDistance - distSquared); //for maps getting closer
+            this.currentPriority = (movingDistanceWeight * deltaDist) + (waitTimeWeight * this.waitTime * this.waitTime) + (staticDistanceWeight * Mth.fastInvSqrt(distSquared));
             this.lastDistance = distSquared;
         }
 
@@ -88,12 +88,17 @@ public class MapAtlasesServerEvents {
                     for (lastJ = 0; lastJ < 128; lastJ++) {
                         int m = lastJ % 2 == 0 ? lastJ : 127 - lastJ;
                         if (this.holder.data.colors[k + m * 128] == 0) {
+                            //for slice maps...
                             return;
                         }
                     }
                 }
                 hasBlankPixels = false;
             }
+        }
+
+        public float getUpdateFrequencyWeight() {
+            return hasBlankPixels ? 1 : 0.15f;
         }
     }
 
@@ -160,7 +165,7 @@ public class MapAtlasesServerEvents {
                 } else {
                     for (int j = 0; j < MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
                         selected = getMapToUpdate(nearbyExistentMaps, player);
-                        selected.updateMap(player);
+                        if (selected != null) selected.updateMap(player);
                     }
                 }
             }
@@ -221,8 +226,10 @@ public class MapAtlasesServerEvents {
         return level.getGameTime() % interval == 0;
     }
 
+    @Nullable
     private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
-        Map<String, MapUpdateTicket> mapsToUpdate = updateQueue.computeIfAbsent(player, a -> new HashMap<>());
+        var tup = updateQueue.computeIfAbsent(player, a -> new Tuple<>(0f, new HashMap<>()));
+        var mapsToUpdate = tup.getB();
         Set<String> nearbyIds = new HashSet<>();
         for (var holder : nearbyExistentMaps) {
             nearbyIds.add(holder.stringId);
@@ -232,18 +239,33 @@ public class MapAtlasesServerEvents {
         int pz = player.getBlockZ();
         var iterator = mapsToUpdate.entrySet().iterator();
         //remove invalid tickets and update their priority
+        float totalWeight = 0;
         while (iterator.hasNext()) {
             var entry = iterator.next();
             if (!nearbyIds.contains(entry.getKey())) {
                 iterator.remove();
             } else {
-                entry.getValue().updatePriority(px, pz);
+                MapUpdateTicket ticket = entry.getValue();
+                ticket.updatePriority(px, pz);
+                totalWeight += ticket.getUpdateFrequencyWeight();
             }
         }
-        MapUpdateTicket selected = mapsToUpdate.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
-        selected.waitTime = 0;
-        selected.updateHasBlankPixels();
-        return selected.holder;
+        float callsPerTick = totalWeight / 9; // default with nine empty maps around
+        float counter = tup.getA() + callsPerTick;
+        boolean shouldUpdate = false;
+        if (counter >= 1) {
+            shouldUpdate = true;
+            counter -= 1;
+        }
+        tup.setA(counter);
+
+        if (shouldUpdate) {
+            MapUpdateTicket selected = mapsToUpdate.values().stream().max(MapUpdateTicket.COMPARATOR).orElseThrow();
+            selected.waitTime = 0;
+            selected.updateHasBlankPixels();
+            return selected.holder;
+        }
+        return null;
     }
 
 
@@ -355,7 +377,6 @@ public class MapAtlasesServerEvents {
             MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
         }
     }
-
 
 
 }
