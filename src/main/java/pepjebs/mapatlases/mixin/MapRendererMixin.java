@@ -32,9 +32,4 @@ public class MapRendererMixin {
         MapAtlasesClient.modifyTextDecorationTransform(poseStack, width, scale);
     }
 
-    @ModifyVariable(method = "draw", at = @At(value = "STORE", ordinal = 0))
-    private VertexConsumer wrapVertexConsumer(VertexConsumer original){
-        return new MapVertexConsumer(original, 128);
-    }
-
 }

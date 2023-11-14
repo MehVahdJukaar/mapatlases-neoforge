@@ -17,16 +17,10 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-public class PinDecorationRenderer extends DecorationRenderer<PinDecoration> {
+public class PinDecorationRenderer extends AtlasOnlyDecorationRenderer<PinDecoration> {
 
     public PinDecorationRenderer(ResourceLocation texture) {
         super(texture);
-    }
-
-    @Override
-    public boolean render(PinDecoration decoration, PoseStack matrixStack, VertexConsumer vertexBuilder, MultiBufferSource buffer, @Nullable MapItemSavedData mapData, boolean isOnFrame, int light, int index, boolean rendersText) {
-        if(!MapAtlasesClient.isDrawingAtlas())return false;
-        return super.render(decoration, matrixStack, vertexBuilder, buffer, mapData, isOnFrame, light, index, rendersText);
     }
 
     @Override

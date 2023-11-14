@@ -54,13 +54,15 @@ public class MapAtlasesServerEvents {
         private boolean hasBlankPixels = true;
         private int lastI = 0;
         private int lastJ = 0;
+        private final float lowUpdateWeight;
 
         private MapUpdateTicket(MapDataHolder data) {
             this.holder = data;
             this.updateHasBlankPixels();
             if(data.type == MapType.VANILLA && data.slice.height() != null){
                 hasBlankPixels = false; //hack since these can have blank pixels when populated
-            }
+                lowUpdateWeight = 0.6f;
+            }else lowUpdateWeight = 0.15f;
         }
 
         public double getPriority() {
@@ -98,7 +100,7 @@ public class MapAtlasesServerEvents {
         }
 
         public float getUpdateFrequencyWeight() {
-            return hasBlankPixels ? 1 : 0.15f;
+            return hasBlankPixels ? 1 : lowUpdateWeight;
         }
     }
 

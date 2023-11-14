@@ -53,10 +53,40 @@ import java.util.*;
 public class ClientMarkers {
 
     public static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
-    private static int currentWorldHash = 0;
+
+
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
+    private static int currentWorldHash = 0;
+
+
+    @NotNull
+    private static Path getPath() {
+        return FMLPaths.GAMEDIR.get().resolve("map_atlases/" + currentWorldHash + ".nbt");
+    }
+
+
+    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
+        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
+        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
+        if (!text.isEmpty()) marker.setName(Component.translatable(text));
+        ClientLevel level = Minecraft.getInstance().level;
+        Integer h = holder.height;
+        if (h == null) h = level.dimension().equals(holder.data.dimension) ?
+                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
+        marker.setPos(new BlockPos(pos.x(), h, pos.z()));
+        markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
+        markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>()).add(marker);
+        //add immediately
+        ((ExpandedMapData) holder.data).addCustomMarker(marker);
+    }
+
+    @NotNull
+    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
+        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+                .getTag(PINS).get().stream().toList();
+    }
 
 
     public static void saveClientMarkers() {
@@ -85,36 +115,6 @@ public class ClientMarkers {
             load(NbtIo.readCompressed(inputStream));
         } catch (Exception ignored) {
         }
-    }
-
-    @NotNull
-    private static Path getPath() {
-        return FMLPaths.GAMEDIR.get().resolve("map_atlases/" + currentWorldHash + ".nbt");
-    }
-
-    private static final DataObjectReference<MapDecorationType<?, ?>> PIN = new DataObjectReference<>(
-            MapAtlasesMod.res("pin"), MapDataRegistry.REGISTRY_KEY);
-
-
-    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
-        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
-        if (!text.isEmpty()) marker.setName(Component.translatable(text));
-        ClientLevel level = Minecraft.getInstance().level;
-        Integer h = holder.height;
-        if (h == null) h = level.dimension().equals(holder.data.dimension) ?
-                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
-        marker.setPos(new BlockPos(pos.x(), h, pos.z()));
-        markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
-        markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>()).add(marker);
-        //add immediately
-        ((ExpandedMapData) holder.data).addCustomMarker(marker);
-    }
-
-    @NotNull
-    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
-        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                .getTag(PINS).get().stream().toList();
     }
 
     private static void load(CompoundTag tag) {

@@ -139,7 +139,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
         Component mapIconComponent = getDecorationName();
         // draw text
-        MutableComponent coordsComponent = Component.literal("X: " + getWorldX() + ", Z: " + getWorldZ());
+        MutableComponent coordsComponent = Component.literal("X: " + (int)getWorldX() + ", Z: " + (int)getWorldZ());
         MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
         var t = Tooltip.create(mapIconComponent);
         var t2 = Tooltip.create(formattedCoords);

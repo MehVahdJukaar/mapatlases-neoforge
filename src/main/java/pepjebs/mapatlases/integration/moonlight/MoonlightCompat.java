@@ -1,11 +1,13 @@
 package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
+import net.mehvahdjukaar.moonlight.api.map.markers.SimpleMapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
@@ -26,19 +28,24 @@ import java.util.Collection;
 
 public class MoonlightCompat {
 
-    private static final ResourceLocation CUSTOM_TYPE_ID = MapAtlasesMod.res("pin");
+    private static final ResourceLocation PIN_TYPE_ID = MapAtlasesMod.res("pin");
+    private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
 
     public static void init() {
-        MapDataRegistry.registerCustomType(CUSTOM_TYPE_ID, () -> CustomDecorationType.simple(PinMarker::new, PinDecoration::new));
+        MapDataRegistry.registerCustomType(PIN_TYPE_ID, () -> CustomDecorationType.simple(PinMarker::new, PinDecoration::new));
+        MapDataRegistry.registerCustomType(PIN_ENTITY_TYPE_ID, () -> CustomDecorationType.simple(EntityPinMarker::new, EntityPinDecoration::new));
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
-            MapDecorationClientManager.registerCustomRenderer(CUSTOM_TYPE_ID, PinDecorationRenderer::new);
+            MapDataRegistry.addDynamicClientMarkersEvent(EntityRadar::send);
+            MapDecorationClientManager.registerCustomRenderer(PIN_TYPE_ID, PinDecorationRenderer::new);
+            MapDecorationClientManager.registerCustomRenderer(PIN_ENTITY_TYPE_ID, EntityPinDecorationRenderer::new);
         }
     }
 
     public static Collection<Pair<Object, MapDataHolder>> getCustomDecorations(MapDataHolder map) {
         return ((ExpandedMapData) map.data).getCustomDecorations().values().stream()
+                .filter(customMapDecoration -> !customMapDecoration.getType().getCustomFactoryID().equals(PIN_ENTITY_TYPE_ID))
                 .map(a -> Pair.of((Object) a, map)).toList();
     }
 

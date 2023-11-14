@@ -22,6 +22,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.SupplementariesClientCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
+import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
@@ -42,9 +43,10 @@ public class MapAtlasesClientEvents {
         if (MapAtlasesMod.SUPPLEMENTARIES && event.phase == TickEvent.Phase.END) {
             SupplementariesClientCompat.onClientTick(level);
         }
+        Player player = client.player;
 
-        if (client.screen == null && (level.getGameTime() + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
-            Player player = client.player;
+        long gameTime = level.getGameTime();
+        if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
                 MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
@@ -52,6 +54,9 @@ public class MapAtlasesClientEvents {
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
                 maybeChangeSlice(player, level, maps, s, atlas);
             }
+        }
+        if(gameTime+7%40==0&&MapAtlasesClientConfig.entityRadar.get() ||true) {
+            EntityRadar.onClientTick(player);
         }
     }
 

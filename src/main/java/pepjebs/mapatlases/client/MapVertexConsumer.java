@@ -6,7 +6,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public record MapVertexConsumer(VertexConsumer original, int textureSize) implements VertexConsumer {
 
-    private static final float RATIO = (float) (double) MapAtlasesClientConfig.mapTextureShrink.get();
+    private static final float RATIO = 0;//(float) (double) MapAtlasesClientConfig.mapTextureShrink.get();
 
     @Override
     public VertexConsumer vertex(double pX, double pY, double pZ) {

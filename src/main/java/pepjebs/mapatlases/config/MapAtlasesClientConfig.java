@@ -133,10 +133,6 @@ public class MapAtlasesClientConfig {
                 .comment("Multiplier for all the Atlases sound float")
                 .defineInRange("soundScalar", 1, 0, 10d);
 
-        mapTextureShrink = builder
-                .comment("Proportional to how much map up will be stretched. Useful if you notice gaps appearing in the worldmap screen")
-                .defineInRange("shrink_ratio", 0f, 0, 10);
-
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
 
@@ -146,6 +142,13 @@ public class MapAtlasesClientConfig {
                 .define("enabled", true);
         moonlightPinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
                 .define("pin_tracking", true);
+        entityRadar = builder.comment("Show nearby mobs on minimap")
+                .define("mob_radar", false);
+        radarRadius = builder.defineInRange("radar_radius", 64, 0 , 256);
+        radarRotation = builder.comment("Entities on radar will have their icon rotate")
+                .define("radar_pins_rotate", false);
+        radarColor = builder.comment("Uses yellow markers for all mobs")
+                .define("radar_single_color", false);
         spec = builder.build();
     }
 
@@ -171,7 +174,6 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapDecorationScale;
     public static final Supplier<Double> worldMapDecorationScale;
     public static final Supplier<Double> soundScalar;
-    public static final Supplier<Double> mapTextureShrink;
     public static final Supplier<Boolean> worldMapCompactSliceIndicator;
     public static final Supplier<Boolean> miniMapRotate;
     public static final Supplier<Boolean> miniMapFollowPlayer;
@@ -189,6 +191,10 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> lecternWorldMapScale;
     public static final Supplier<Boolean> moonlightCompat;
     public static final Supplier<Boolean> moonlightPinTracking;
+    public static final Supplier<Boolean> entityRadar;
+    public static final Supplier<Integer> radarRadius;
+    public static final Supplier<Boolean> radarColor;
+    public static final Supplier<Boolean> radarRotation;
 
     public static final ForgeConfigSpec spec;
 
