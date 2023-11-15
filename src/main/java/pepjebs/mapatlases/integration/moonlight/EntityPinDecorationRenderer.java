@@ -20,7 +20,7 @@ public class EntityPinDecorationRenderer extends AtlasOnlyDecorationRenderer<Ent
     public boolean render(EntityPinDecoration decoration, PoseStack matrixStack, VertexConsumer vertexBuilder,
                           MultiBufferSource buffer, @Nullable MapItemSavedData data, boolean isOnFrame, int light, int index, boolean rendersText) {
         Entity entity = decoration.getEntity();
-        if (entity == null || data == null) return false;
+        if (entity == null || data == null || entity.isRemoved()) return false;
         double worldX = entity.getX();
         double worldZ = entity.getZ();
         double rotation = entity.getYRot();

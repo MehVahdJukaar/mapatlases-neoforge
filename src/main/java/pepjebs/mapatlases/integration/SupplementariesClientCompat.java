@@ -15,6 +15,7 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.io.IOException;
@@ -49,17 +50,19 @@ public class SupplementariesClientCompat {
     private static boolean lastTickWasDay = true;
 
     public static void onClientTick(ClientLevel level) {
-        float timeOfDay = level.getTimeOfDay(0);
-        boolean isDay = timeOfDay < 0.26 || timeOfDay > 0.8;
-        if (isDay != lastTickWasDay) {
-            lastTickWasDay = isDay;
-            MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
-            MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
-            for (var e : level.mapData.entrySet()) {
-                String keyId = e.getKey();
-                if (e.getKey().startsWith("map_")) {
-                    MapItemSavedData data = e.getValue();
-                    mapRenderer.update(MapAtlasesAccessUtils.findMapIntFromString(keyId), data);
+        if(MapAtlasesClientConfig.nightLightMap.get()) {
+            float timeOfDay = level.getTimeOfDay(0);
+            boolean isDay = timeOfDay < 0.26 || timeOfDay > 0.8;
+            if (isDay != lastTickWasDay) {
+                lastTickWasDay = isDay;
+                MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
+                MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
+                for (var e : level.mapData.entrySet()) {
+                    String keyId = e.getKey();
+                    if (e.getKey().startsWith("map_")) {
+                        MapItemSavedData data = e.getValue();
+                        mapRenderer.update(MapAtlasesAccessUtils.findMapIntFromString(keyId), data);
+                    }
                 }
             }
         }

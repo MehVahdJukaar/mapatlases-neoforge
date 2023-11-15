@@ -143,9 +143,9 @@ public enum MapType {
                         scale,
                         true,
                         false);
-                if(MapAtlasesMod.SUPPLEMENTARIES){
-                    SupplementariesCompat.maybeSetAntique(newMap, level, atlas);
-                }
+            }
+            if(MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)){
+                SupplementariesCompat.setMapAntique(newMap, level);
             }
         } else if (this == MapType.MAZE && MapAtlasesMod.TWILIGHTFOREST) {
             if (height == null) return ItemStack.EMPTY;

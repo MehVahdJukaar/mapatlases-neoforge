@@ -7,6 +7,7 @@
   "item.map_atlases.atlas.tooltip_scale": "Scale: 1:%s",
   "item.map_atlases.atlas.tooltip_slice": "Slice: %s",
   "item.map_atlases.atlas.tooltip_type": "Type: %s",
+  "item.map_atlases.atlas.supplementaries_antique": "Antique",
   "item.map_atlases.atlas.tooltip_slice_default": "Slice: Top",
   "item.map_atlases.atlas.tooltip_err": "Inactive",
   "item.map_atlases.atlas.tooltip_full": "Full!",

@@ -1,7 +1,5 @@
-package pepjebs.mapatlases.integration;
+package pepjebs.mapatlases.recipe;
 
-import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
-import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -12,7 +10,9 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
 
@@ -34,14 +34,14 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 if (!atlas.isEmpty()) return false;
-                if (AntiqueInkHelper.hasAntiqueInk(itemstack)) return false;
+                if (SupplementariesCompat.hasAntiqueInk(itemstack)) return false;
                 atlas = itemstack;
-            } else if (itemstack.is(ModRegistry.ANTIQUE_INK.get())) {
+            } else if (SupplementariesCompat.isAntiqueInk(itemstack)) {
                 if (!ink.isEmpty()) return false;
                 ink = itemstack;
             } else if (!itemstack.isEmpty()) return false;
         }
-        if (!atlas.isEmpty() && ink.isEmpty()) {
+        if (!atlas.isEmpty() && !ink.isEmpty()) {
             levelRef = new WeakReference<>(level);
             return true;
         }
@@ -67,12 +67,12 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         // Set NBT Data
         MapCollectionCap maps = MapAtlasItem.getMaps(newAtlas, level);
         MapCollectionCap oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
-        for (var i : maps.getAll()) {
-            int newId = 0;// WeatheredMap.createAntique();
-            oldMaps.remove(i);
-            oldMaps.add(newId, level);
+        for (MapDataHolder holder : maps.getAll()) {
+            oldMaps.remove(holder);
+            Integer newId = SupplementariesCompat.createAntiqueMapData(holder.data,level,true, false);
+            if(newId != null) oldMaps.add(newId, level);
         }
-        AntiqueInkHelper.setAntiqueInk(newAtlas, true);
+        SupplementariesCompat.setAntiqueInk(newAtlas);
         return newAtlas;
     }
 

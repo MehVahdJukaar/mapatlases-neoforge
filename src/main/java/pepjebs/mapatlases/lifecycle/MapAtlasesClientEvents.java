@@ -55,7 +55,7 @@ public class MapAtlasesClientEvents {
                 maybeChangeSlice(player, level, maps, s, atlas);
             }
         }
-        if(gameTime+7%40==0&&MapAtlasesClientConfig.entityRadar.get() ||true) {
+        if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
             EntityRadar.onClientTick(player);
         }
     }

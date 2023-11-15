@@ -26,9 +26,11 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.*;
@@ -112,6 +114,9 @@ public class MapAtlasItem extends Item {
             var type = selected.type();
             if (type != MapType.VANILLA) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", type.getName()).withStyle(ChatFormatting.GRAY));
+            }
+            if(MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)){
+                tooltip.add(Component.translatable("item.map_atlases.atlas.supplementaries_antique").withStyle(ChatFormatting.GRAY));
             }
         }
     }

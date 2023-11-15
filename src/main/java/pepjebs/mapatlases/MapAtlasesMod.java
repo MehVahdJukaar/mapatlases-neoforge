@@ -1,7 +1,6 @@
 package pepjebs.mapatlases;
 
 
-import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.ItemTags;
@@ -31,7 +30,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
-import pepjebs.mapatlases.integration.AntiqueAtlasRecipe;
+import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -83,6 +82,7 @@ public class MapAtlasesMod {
         //sound
         //spyglass zoom in curio with keybind
         //auto waystone marker
+        //antique in cart table
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(MapAtlasesMod::addItemsToTabs);
         bus.addListener(MapCollectionCap::register);

@@ -1,0 +1,9 @@
+{
+  "type": "map_atlases:antique_atlas",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "supplementaries"
+    }
+  ]
+}
