@@ -23,7 +23,8 @@ public class MapItemSavedDataMixin {
     private boolean containsProxy(Inventory instance, ItemStack stack, Operation<Boolean> contains, @Local Player player) {
         InteractionResult interactionResult = MapAtlasesMod.containsHack();
         if (interactionResult == InteractionResult.FAIL) return false;
-        else if (interactionResult.consumesAction()) return true;
-        return contains.call(instance, stack) || (MapAtlasesMod.CURIOS && CuriosCompat.getAtlasInCurio(player) == stack);
+        //needs to call these for some reason... before the rest
+        return interactionResult.consumesAction() || contains.call(instance, stack) || (MapAtlasesMod.CURIOS && CuriosCompat.getAtlasInCurio(player) == stack);
+
     }
 }

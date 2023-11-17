@@ -24,14 +24,15 @@ import java.util.Map;
 
 public class CustomDecorationButton extends DecorationBookmarkButton {
 
-    public static DecorationBookmarkButton create(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration) {
-        return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration);
+    public static DecorationBookmarkButton create(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration, String id) {
+        return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration, id);
     }
 
-    private final CustomMapDecoration decoration;
+    private final CustomMapDecoration decoration; // could not match whats in maps
 
-    private CustomDecorationButton(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, CustomMapDecoration mapDecoration) {
-        super(px, py, screen, data);
+    private CustomDecorationButton(int px, int py, AtlasOverviewScreen screen,
+                                   MapDataHolder data, CustomMapDecoration mapDecoration, String id) {
+        super(px, py, screen, data, id);
         this.decoration = mapDecoration;
         this.setTooltip(createTooltip());
     }
@@ -99,9 +100,9 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     protected void deleteMarker() {
         Map<String, CustomMapDecoration> decorations = ((ExpandedMapData) mapData.data).getCustomDecorations();
         for (var d : decorations.entrySet()) {
-            CustomMapDecoration deco = d.getValue();
-            if (deco == decoration) {
-                MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
+            String targetKey = d.getKey();
+            if (targetKey.equals(decorationId)) {
+                MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, targetKey));
                 decorations.remove(d.getKey());
                 ClientMarkers.removeDeco(mapData.stringId, d.getKey());
                 return;

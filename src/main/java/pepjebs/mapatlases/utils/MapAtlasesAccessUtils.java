@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.eventbus.api.Event;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapCollectionCap;
@@ -114,13 +115,13 @@ public class MapAtlasesAccessUtils {
             MapDataHolder holder,
             ServerPlayer player,
             ItemStack atlas,
-            boolean isBeingCarried
+            InteractionResult forceBeingCarried
     ) {
-        MapAtlasesMod.setMapInInventoryHack(isBeingCarried ? InteractionResult.SUCCESS : InteractionResult.FAIL);
+        MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
         //hack. just to be sure so contains will fail
-        holder.data.tickCarriedBy(player, isBeingCarried ? atlas : Items.MAP.getDefaultInstance());
+        holder.data.tickCarriedBy(player, atlas);
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
-        if (isBeingCarried) MapAtlasesMod.setMapInInventoryHack(InteractionResult.PASS);
+        MapAtlasesMod.setMapInInventoryHack(InteractionResult.PASS);
     }
 
     public static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {

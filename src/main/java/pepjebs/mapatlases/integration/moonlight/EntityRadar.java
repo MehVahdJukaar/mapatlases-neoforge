@@ -42,6 +42,7 @@ public class EntityRadar {
 
     public static void onClientTick(Player player) {
         nearbyEntityMarkers.clear();
+
         Level level = player.level();
         Integer pValue = MapAtlasesClientConfig.radarRadius.get();
         var entities = level.getEntitiesOfClass(LivingEntity.class, new AABB(player.blockPosition())

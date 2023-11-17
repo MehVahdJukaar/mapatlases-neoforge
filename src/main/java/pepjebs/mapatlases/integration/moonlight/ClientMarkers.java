@@ -9,14 +9,13 @@ import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
-import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.MipmapGenerator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -37,8 +36,9 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.integration.XaeroMinimapCompat;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -54,67 +54,55 @@ public class ClientMarkers {
 
     public static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
 
-
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
-    private static int currentWorldHash = 0;
+    private static String lastFolderName = null;
+    private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
+    private static Path currentPath = null;
 
-
-    @NotNull
-    private static Path getPath() {
-        return FMLPaths.GAMEDIR.get().resolve("map_atlases/" + currentWorldHash + ".nbt");
+    public static void setWorldFolder(String pId, QuickPlayLog.Type type) {
+        lastFolderName = pId;
+        lastType = type;
     }
 
+    public static void loadClientMarkers(long seed, String levelName) {
+        markers.clear();
+        markersPerSlice.clear();
+        mapLookup.clear();
 
-    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
-        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
-        if (!text.isEmpty()) marker.setName(Component.translatable(text));
-        ClientLevel level = Minecraft.getInstance().level;
-        Integer h = holder.height;
-        if (h == null) h = level.dimension().equals(holder.data.dimension) ?
-                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
-        marker.setPos(new BlockPos(pos.x(), h, pos.z()));
-        markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
-        markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>()).add(marker);
-        //add immediately
-        ((ExpandedMapData) holder.data).addCustomMarker(marker);
+        //if not in multiplayer we have folder name here
+        String fileName = lastFolderName == null ? levelName : lastFolderName;
+        currentPath = FMLPaths.GAMEDIR.get()
+                .resolve("map_atlases/" + lastType.getSerializedName()
+                        + "/" + fileName + ".nbt");
+
+        try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
+            load(NbtIo.readCompressed(inputStream));
+        } catch (Exception ignored) {
+        }
+
+        if (MapAtlasesClientConfig.convertXaero.get()) {
+            XaeroMinimapCompat.parseXaeroWaypoints(lastFolderName);
+        }
+
+        lastFolderName = null;
+        lastType = QuickPlayLog.Type.SINGLEPLAYER;
     }
-
-    @NotNull
-    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
-        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                .getTag(PINS).get().stream().toList();
-    }
-
 
     public static void saveClientMarkers() {
         if (markers.isEmpty()) return;
         try {
-            Path path = getPath();
-            if (!Files.exists(path)) {
-                Files.createDirectories(path.getParent());
+            if (currentPath != null &&  !Files.exists(currentPath)) {
+                Files.createDirectories(currentPath.getParent());
             }
-            try (OutputStream outputstream = new FileOutputStream(path.toFile())) {
+            try (OutputStream outputstream = new FileOutputStream(currentPath.toFile())) {
                 NbtIo.writeCompressed(save(), outputstream);
             }
 
         } catch (Exception ignored) {
         }
         markers.clear();
-    }
-
-    public static void loadClientMarkers(int hash) {
-        markers.clear();
-        mapLookup.clear();
-        currentWorldHash = hash;
-
-        Path path = getPath();
-        try (InputStream inputStream = new FileInputStream(path.toFile())) {
-            load(NbtIo.readCompressed(inputStream));
-        } catch (Exception ignored) {
-        }
     }
 
     private static void load(CompoundTag tag) {
@@ -138,7 +126,7 @@ public class ClientMarkers {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
                 CompoundTag c = new CompoundTag();
-                c.put(marker.getTypeId(), marker.saveToNBT(new CompoundTag()));
+                c.put(marker.getTypeId(), marker.saveToNBT());
                 listNBT.add(c);
             }
             tag.put(v.getKey(), listNBT);
@@ -171,6 +159,29 @@ public class ClientMarkers {
         }
         return Set.of();
     }
+
+    public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
+        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
+        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
+        if (!text.isEmpty()) marker.setName(Component.translatable(text));
+        ClientLevel level = Minecraft.getInstance().level;
+        Integer h = holder.height;
+        if (h == null) h = level.dimension().equals(holder.data.dimension) ?
+                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
+        marker.setPos(new BlockPos(pos.x(), h, pos.z()));
+        markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
+        markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>()).add(marker);
+        //add immediately
+        ((ExpandedMapData) holder.data).addCustomMarker(marker);
+    }
+
+    @NotNull
+    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
+        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+                .getTag(PINS).get().stream().sorted(Comparator.comparing(h->h.unwrapKey().get())).toList();
+    }
+
+
 
     public static void removeDeco(String mapId, String key) {
         var mr = markers.get(mapId);
@@ -238,12 +249,13 @@ public class ClientMarkers {
 
     //TODO: register custom marker type to allow for fancier renderer on maps when focused
 
-    private static boolean isOffscreen( float maxSize, float playerYRot, Vec3 dist) {
-        var c =  dist.yRot(playerYRot * Mth.DEG_TO_RAD);
+    private static boolean isOffscreen(float maxSize, float playerYRot, Vec3 dist) {
+        var c = dist.yRot(playerYRot * Mth.DEG_TO_RAD);
         float l = maxSize / 2 + 5;
         return (c.z <= l) && (c.z >= -l) && (c.x <= l) && (c.x >= -l);
     }
 
+    //TODO: change
     public static void focusMarker(MapDataHolder map, CustomMapDecoration deco, boolean focused) {
         MapBlockMarker<?> found = decoToMarker(map, deco);
         if (found instanceof PinMarker mp) {
@@ -278,5 +290,6 @@ public class ClientMarkers {
     }
 
     private static final WeakHashMap<CustomMapDecoration, MapBlockMarker<?>> DECO_TO_MARKER = new WeakHashMap<>();
+
 
 }

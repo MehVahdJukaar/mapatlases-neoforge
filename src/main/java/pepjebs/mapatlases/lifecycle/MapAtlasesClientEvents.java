@@ -13,6 +13,8 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -21,8 +23,10 @@ import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.SupplementariesClientCompat;
+import pepjebs.mapatlases.integration.XaeroMinimapCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
@@ -39,24 +43,23 @@ public class MapAtlasesClientEvents {
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft client = Minecraft.getInstance();
         ClientLevel level = client.level;
-        if (level == null) return;
-        if (MapAtlasesMod.SUPPLEMENTARIES && event.phase == TickEvent.Phase.END) {
+        if (level == null || event.phase != TickEvent.Phase.END) return;
+        long gameTime = level.getGameTime();
+
+        if (MapAtlasesMod.SUPPLEMENTARIES && (gameTime + 27) % 40 == 0) {
             SupplementariesClientCompat.onClientTick(level);
         }
-        Player player = client.player;
-
-        long gameTime = level.getGameTime();
-        if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
+        else if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
                 MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
 
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-                maybeChangeSlice(player, level, maps, s, atlas);
+                maybeChangeSlice(client.player, level, maps, s, atlas);
             }
         }
-        if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
-            EntityRadar.onClientTick(player);
+        else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
+            EntityRadar.onClientTick(client.player);
         }
     }
 
@@ -131,7 +134,6 @@ public class MapAtlasesClientEvents {
     public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
         if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
     }
-
 
     //make this client sided
     private static void maybeChangeSlice(Player player, Level level, IMapCollection maps, Slice lastSlice, ItemStack atlas) {

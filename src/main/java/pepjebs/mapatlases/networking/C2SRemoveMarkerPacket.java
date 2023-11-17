@@ -12,22 +12,22 @@ import java.util.function.Supplier;
 
 public class C2SRemoveMarkerPacket {
 
-    private final int hash;
+    private final String decoId;
     private final String mapId;
 
     public C2SRemoveMarkerPacket(FriendlyByteBuf buf) {
-        this.hash = buf.readVarInt();
+        this.decoId = buf.readUtf();
         this.mapId = buf.readUtf();
 
     }
 
-    public C2SRemoveMarkerPacket(String map, int hash) { //sending hash. hacky
-        this.hash = hash;
+    public C2SRemoveMarkerPacket(String map, String decoId) { //sending hash. hacky
+        this.decoId = decoId;
         this.mapId = map;
     }
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeVarInt(hash);
+        buf.writeUtf(decoId);
         buf.writeUtf(mapId);
     }
 
@@ -39,10 +39,10 @@ public class C2SRemoveMarkerPacket {
             MapItemSavedData data = level.getMapData(mapId);
 
             if (data != null) {
-                data.decorations.entrySet().removeIf(e -> e.getValue().hashCode() == hash);
+                data.decorations.remove(decoId);
             }
             if(MapAtlasesMod.MOONLIGHT){
-                MoonlightCompat.removeCustomDecoration(data, hash);
+                MoonlightCompat.removeCustomDecoration(data, decoId);
             }
 
         });

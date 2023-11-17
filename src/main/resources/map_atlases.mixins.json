@@ -19,9 +19,11 @@
   ],
   "client": [
     "CartographyTableScreenMixin",
+    "ClientBoundMapPacketMixin",
     "ItemInHandRendererMixin",
     "LecternRendererMixin",
-    "MapRendererMixin"
+    "MapRendererMixin",
+    "QuickPlayLogHackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

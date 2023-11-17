@@ -223,7 +223,7 @@ public class MapAtlasItem extends Item {
         MapCollectionCap maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, true);
+            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
         }
         MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }

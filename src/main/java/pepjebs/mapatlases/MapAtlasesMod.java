@@ -150,6 +150,7 @@ public class MapAtlasesMod {
         hack = value;
     }
 
+
     private static InteractionResult hack = InteractionResult.PASS;
 
 

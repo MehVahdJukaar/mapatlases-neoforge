@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;

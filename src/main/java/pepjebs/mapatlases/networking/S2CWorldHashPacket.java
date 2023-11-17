@@ -10,29 +10,32 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public class S2CWorldHashPacket {
-    public final int hash;
+    public final long seed;
+    private final String name;
 
     public S2CWorldHashPacket(ServerPlayer player) {
         Level level = player.level();
         String name = level.getServer().getWorldData().getLevelName();
         long seed = level.getServer().overworld().getSeed();
-        int hash = Objects.hash(name, seed);
-        this.hash = hash;
+        this.seed = seed;
+        this.name = name;
     }
 
     public S2CWorldHashPacket(FriendlyByteBuf buf) {
-        this.hash = buf.readVarInt();
+        this.seed = buf.readVarLong();
+        this.name = buf.readUtf();
 
     }
 
     public void write(FriendlyByteBuf buf) {
-        buf.writeVarInt(hash);
-
+        buf.writeVarLong(seed);
+        buf.writeUtf(name);
     }
 
     public void apply(Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
-            ClientMarkers.loadClientMarkers(this.hash);
+            ClientMarkers.loadClientMarkers(this.seed, this.name);
+
         });
         context.get().setPacketHandled(true);
     }

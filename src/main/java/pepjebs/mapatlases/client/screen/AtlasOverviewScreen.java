@@ -37,6 +37,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -52,7 +53,7 @@ public class AtlasOverviewScreen extends Screen {
     public static final ResourceLocation GUI_ICONS = new ResourceLocation("textures/gui/icons.png");
 
     private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
-    public final ResourceLocation texture = bigTexture ? ATLAS_TEXTURE_BIG : ATLAS_TEXTURE;
+    private final ResourceLocation texture = bigTexture ? ATLAS_TEXTURE_BIG : ATLAS_TEXTURE;
 
     private final int BOOK_WIDTH = bigTexture ? 290 : 162;
     private final int BOOK_HEIGHT = bigTexture ? 231 : 167;
@@ -577,7 +578,7 @@ public class AtlasOverviewScreen extends Screen {
 
     private void addDecorationWidgets() {
         if (!this.selectedSlice.hasMarkers()) return;
-        List<Pair<Object, MapDataHolder>> mapIcons = new ArrayList<>();
+        List<DecorationHolder> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
         for (MapDataHolder holder : MapAtlasItem.getMaps(atlas, level).selectSection(selectedSlice)) {
@@ -585,7 +586,7 @@ public class AtlasOverviewScreen extends Screen {
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame()) {
-                    mapIcons.add(Pair.of(deco, holder));
+                    mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
                 }
             }
             if (ml) {
@@ -599,7 +600,7 @@ public class AtlasOverviewScreen extends Screen {
         for (var e : mapIcons) {
             DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
                     (width - BOOK_WIDTH) / 2 + 10,
-                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e.getFirst(), e.getSecond(), this);
+                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e, this);
             pWidget.setIndex(i);
             widgets.add(pWidget);
             this.decorationBookmarks.add(pWidget);
@@ -608,7 +609,6 @@ public class AtlasOverviewScreen extends Screen {
         //add widget in order so they render optimized without unneded texture swaps
         widgets.sort(Comparator.comparingInt(DecorationBookmarkButton::getBatchGroup));
         widgets.forEach(this::addRenderableWidget);
-
     }
 
     public void focusDecoration(DecorationBookmarkButton button) {
@@ -711,12 +711,15 @@ public class AtlasOverviewScreen extends Screen {
         if (!on && isPinOnly) this.onClose();
     }
 
+    // Actually places pin and update screen accordingly
     private void addNewPin() {
         if (partialPin != null) {
             String text = editBox.getValue();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
             focusEditBox(false);
             partialPin = null;
+
+            this.recalculateDecorationWidgets();
         }
     }
 

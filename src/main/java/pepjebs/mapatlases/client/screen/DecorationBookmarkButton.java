@@ -17,6 +17,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
+import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.ArrayList;
@@ -32,20 +33,22 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
     protected final MapDataHolder mapData;
+    protected final String decorationId;
 
     protected int index = 0;
     protected boolean shfting = false;
     protected boolean control = false;
 
-    protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data) {
+    protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data, String id) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
         this.mapData = data;
+        this.decorationId = id;
     }
 
-    public static DecorationBookmarkButton of(int px, int py, Object mapDecoration, MapDataHolder data, AtlasOverviewScreen screen) {
-        if (mapDecoration instanceof MapDecoration md) return new Vanilla(px, py, screen, data, md);
+    public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
+        if (holder.deco() instanceof MapDecoration md) return new Vanilla(px, py, screen,holder.data(),  md, holder.id());
         else {
-            return CustomDecorationButton.create(px, py, screen, data, mapDecoration);
+            return CustomDecorationButton.create(px, py, screen, holder.data(), holder.deco(), holder.id());
         }
     }
 
@@ -157,10 +160,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     public static class Vanilla extends DecorationBookmarkButton {
 
-        private final MapDecoration decoration;
+        private final MapDecoration decoration; // might not match what on map
 
-        public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration) {
-            super(px, py, screen, data);
+        public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration, String decoId) {
+            super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
             this.setTooltip(createTooltip());
         }
@@ -206,10 +209,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         protected void deleteMarker() {
             Map<String, MapDecoration> decorations = mapData.data.decorations;
             for (var d : decorations.entrySet()) {
-                var deco = d.getValue();
-                if (deco == decoration) {
+                String targetId = d.getKey();
+                if (targetId.equals(decorationId)) {
                     //we cant use string id because server has them diferent...
-                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, deco.hashCode()));
+                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, targetId));
                     decorations.remove(d.getKey());
                     return;
                 }

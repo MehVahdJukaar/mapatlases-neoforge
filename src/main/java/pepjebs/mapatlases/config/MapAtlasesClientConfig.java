@@ -136,6 +136,8 @@ public class MapAtlasesClientConfig {
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
 
+
+
         builder.push("moonlight_integration");
         moonlightCompat = builder
                 .comment("Enables moonlight compat, which allows to place map markers on map via a special pin button")
@@ -151,6 +153,11 @@ public class MapAtlasesClientConfig {
                 .define("radar_single_color", false);
         nightLightMap = builder.comment("Recolors map texture at night to make them use night lightmap. Requires light_map config in common configs")
                 .define("night_lightmap", true);
+        convertXaero = builder.comment("Turn on to convert Xaeros minimap waypoints. Conversion will happen on world boot. Remember to turn back off")
+                .define("convert_xaeros_waypoints", false);
+
+        builder.pop();
+
         spec = builder.build();
     }
 
@@ -198,6 +205,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> radarColor;
     public static final Supplier<Boolean> nightLightMap;
     public static final Supplier<Boolean> radarRotation;
+    public static final Supplier<Boolean> convertXaero;
 
     public static final ForgeConfigSpec spec;
 

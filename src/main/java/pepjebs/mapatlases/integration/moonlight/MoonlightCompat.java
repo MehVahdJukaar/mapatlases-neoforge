@@ -1,13 +1,10 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import com.mojang.datafixers.util.Pair;
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.markers.SimpleMapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
@@ -22,6 +19,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Collection;
@@ -43,10 +41,10 @@ public class MoonlightCompat {
         }
     }
 
-    public static Collection<Pair<Object, MapDataHolder>> getCustomDecorations(MapDataHolder map) {
-        return ((ExpandedMapData) map.data).getCustomDecorations().values().stream()
-                .filter(customMapDecoration -> !customMapDecoration.getType().getCustomFactoryID().equals(PIN_ENTITY_TYPE_ID))
-                .map(a -> Pair.of((Object) a, map)).toList();
+    public static Collection<DecorationHolder> getCustomDecorations(MapDataHolder map) {
+        return ((ExpandedMapData) map.data).getCustomDecorations().entrySet().stream()
+                .filter(e -> !e.getValue().getType().getCustomFactoryID().equals(PIN_ENTITY_TYPE_ID))
+                .map(a -> new DecorationHolder(a.getValue(), a.getKey(), map)).toList();
     }
 
     public static void addDecoration(MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
@@ -59,9 +57,9 @@ public class MoonlightCompat {
         }
     }
 
-    public static void removeCustomDecoration(MapItemSavedData data, int hash) {
+    public static void removeCustomDecoration(MapItemSavedData data, String decoId) {
         if (data instanceof ExpandedMapData d) {
-            d.getCustomDecorations().entrySet().removeIf(e -> e.getValue().hashCode() == hash);
+            d.getCustomDecorations().remove(decoId);
         }
     }
 

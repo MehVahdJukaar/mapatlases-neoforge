@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
@@ -176,13 +177,13 @@ public class MapAtlasesServerEvents {
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             // this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
-                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, true);
+                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, InteractionResult.PASS);
                 //if data has changed, a packet will be sent
             }
             // for far away maps so we remove player marker
             MapDataHolder lastData = lastMapData.get(player);
             if (lastData != null && !nearbyExistentMaps.contains(lastData)) {
-                MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, false);
+                MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, InteractionResult.FAIL);
             }
             lastMapData.put(player, activeInfo);
 
@@ -321,7 +322,7 @@ public class MapAtlasesServerEvents {
                 MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, true);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, InteractionResult.SUCCESS);
                 }
                 addedMap = maps.add(mapId, level);
             }
