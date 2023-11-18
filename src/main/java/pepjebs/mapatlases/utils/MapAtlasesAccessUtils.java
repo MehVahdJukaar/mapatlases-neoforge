@@ -106,12 +106,6 @@ public class MapAtlasesAccessUtils {
         return amountToAdd;
     }
 
-    public static MapDataHolder getActiveStateServer(ItemStack stack, Player player) {
-        var slice = MapAtlasItem.getSelectedSlice(stack, player.level().dimension());
-        MapCollectionCap maps = MapAtlasItem.getMaps(stack, player.level());
-        return maps.select(MapKey.at(maps.getScale(), player, slice));
-    }
-
     public static void updateMapDataAndSync(
             MapDataHolder holder,
             ServerPlayer player,
@@ -125,7 +119,9 @@ public class MapAtlasesAccessUtils {
         MapAtlasesMod.setMapInInventoryHack(InteractionResult.PASS);
     }
 
-    public static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {
+
+    // will fail if tickCarriedBy isnt sent
+    private static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {
         //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
         // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
         //TODO: maybe use isComplex  update packet and inventory tick

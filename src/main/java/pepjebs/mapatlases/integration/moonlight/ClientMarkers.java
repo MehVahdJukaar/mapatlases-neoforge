@@ -192,10 +192,10 @@ public class ClientMarkers {
         }
     }
 
-    public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
+    public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {
         var p = getPins();
-        var t = p.get(index % p.size());
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, t.value(), null, x, y, 1, outline);
+        var t = p.get((p.size()+index) % p.size());
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, t.value(), x, y, 1, outline, alpha);
     }
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,

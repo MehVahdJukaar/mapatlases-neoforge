@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
@@ -8,19 +7,16 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
@@ -46,7 +42,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
-        if (holder.deco() instanceof MapDecoration md) return new Vanilla(px, py, screen,holder.data(),  md, holder.id());
+        if (holder.deco() instanceof MapDecoration md)
+            return new Vanilla(px, py, screen, holder.data(), md, holder.id());
         else {
             return CustomDecorationButton.create(px, py, screen, holder.data(), holder.deco(), holder.id());
         }
@@ -113,11 +110,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         matrices.translate(0, 0, 0.01 * this.index);
         super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
-             if (this.control && canFocusMarker()) {
+            if (this.control && canFocusMarker()) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 173, 5, 5);
-            }
-            else if (this.shfting) {
+            } else if (this.shfting) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 167, 5, 5);
             }
@@ -141,16 +137,11 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
         Component mapIconComponent = getDecorationName();
-        // draw text
-        MutableComponent coordsComponent = Component.literal("X: " + (int)getWorldX() + ", Z: " + (int)getWorldZ());
-        MutableComponent formattedCoords = coordsComponent.setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY));
+        Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())
+                .withStyle(ChatFormatting.GRAY);
         var t = Tooltip.create(mapIconComponent);
-        var t2 = Tooltip.create(formattedCoords);
-        ArrayList<FormattedCharSequence> merged =
-                new ArrayList<>(t.toCharSequence(parentScreen.getMinecraft()));
-        merged.addAll(t2.toCharSequence(parentScreen.getMinecraft()));
-        t.cachedTooltip = ImmutableList.copyOf(merged);
-        return t;
+        var t2 = Tooltip.create(coordsComponent);
+        return CompoundTooltip.create(t, t2);
     }
 
     protected boolean canFocusMarker() {

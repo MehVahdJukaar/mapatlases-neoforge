@@ -29,6 +29,7 @@
   "tooltip.map_atlases.focus_marker": "Focus Marker",
   "trinkets.slot.hand.atlas": "Atlas",
   "message.map_atlases.pin": "Place a pin",
+  "message.map_atlases.pin.info": "Hold Shift to edit pin",
   "message.map_atlases.marker_name": "Marker Name",
   "message.map_atlases.map_scale": "1:%dx",
   "message.map_atlases.map_index": "#: %s"

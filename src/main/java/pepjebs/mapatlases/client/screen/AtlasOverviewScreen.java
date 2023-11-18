@@ -398,26 +398,10 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        // Handle dim selector scroll
-/*
-        int scaledWidth = calcScaledWidth(100);
-        int targetX = leftPos + (int) (29.5 / 32.0 * atlasBgScaledSize);
-        if (mouseX >= targetX && mouseX <= targetX + scaledWidth) {
-            dimSelectorOffset =
-                    Math.max(0, Math.min(dimensions.size() - MAX_TAB_DISP, dimSelectorOffset + (amount > 0 ? -1 : 1)));
-            return true;
+        if (!editBox.active) {
+            return super.mouseScrolled(mouseX, mouseY, amount);
         }
-        // Handle map icon selector scroll
-        List<Pair<MapItemSavedData, MapDecoration>> decorationList = getMapDecorationList();
-        targetX = leftPos - (int) (1.0 / 16 * atlasBgScaledSize);
-        if (mouseX >= targetX && mouseX <= targetX + scaledWidth) {
-            mapIconSelectorOffset =
-                    Math.max(0, Math.min(decorationList.size() - MAX_TAB_DISP, mapIconSelectorOffset + (amount > 0 ? -1 : 1)));
-            return true;
-        }
-
-        */
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return editBox.mouseScrolled(mouseX, mouseY, amount);
     }
 
     @Override

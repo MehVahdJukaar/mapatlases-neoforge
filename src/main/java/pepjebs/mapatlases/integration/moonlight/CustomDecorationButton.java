@@ -66,8 +66,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration.getType(), mapData.data, getX() + width / 2f, getY() + height / 2f,
-                2, decoration instanceof PinDecoration p && p.isFocused());
+        renderStaticMarker(pGuiGraphics, decoration.getType(), getX() + width / 2f, getY() + height / 2f,
+                2, decoration instanceof PinDecoration p && p.isFocused(), 255);
     }
 
     @Override
@@ -115,8 +115,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     public static void renderStaticMarker(GuiGraphics pGuiGraphics,
                                           MapDecorationType<?, ?> type,
-                                          MapItemSavedData data, float x, float y,
-                                          int index, boolean outline) {
+                                          float x, float y,
+                                          int index, boolean outline, int alpha) {
         DecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);
 
         if (renderer != null) {
@@ -132,7 +132,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
             renderer.renderDecorationSprite(poseStack,
                     buffer, vertexBuilder, LightTexture.FULL_BRIGHT, index,
-                    -1, 255, outline);
+                    -1, alpha, outline);
 
             poseStack.popPose();
         }

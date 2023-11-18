@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -11,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -124,14 +124,26 @@ public class MapAtlasesServerEvents {
             var server = player.server;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             if (atlas.isEmpty()) return;
+
             Level level = player.level();
+            ResourceKey<Level> dimension = level.dimension();
             MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
 
-            Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
             // sets new center map
-
             MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
+
+            //sync the slice below and above so we can update slice automatically
+            if ((level.getGameTime() + 13) % 40 == 0) {
+                var tree = maps.getHeightTree(dimension, slice.type());
+                for (Integer hh : tree) {
+                    if (hh != slice.heightOrTop()) {
+                        var below = maps.select(activeKey.mapX(), activeKey.mapZ(), Slice.of(slice.type(), hh, dimension));
+                        if (below != null)
+                            MapAtlasesAccessUtils.updateMapDataAndSync(below, player, atlas, InteractionResult.SUCCESS);
+                    }
+                }
+            }
 
             int playX = player.blockPosition().getX();
             int playZ = player.blockPosition().getZ();
@@ -182,7 +194,7 @@ public class MapAtlasesServerEvents {
             //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
             // this also update banners and decorations so wen dont want to update stuff we cant see
             for (var mapInfo : nearbyExistentMaps) {
-                 MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, InteractionResult.PASS);
+                MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, InteractionResult.SUCCESS);
                 //if data has changed, a packet will be sent
             }
             // for far away maps so we remove player marker
@@ -381,8 +393,10 @@ public class MapAtlasesServerEvents {
 
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer sp && MapAtlasesMod.MOONLIGHT) {
-            MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            if (MapAtlasesMod.MOONLIGHT) {
+                MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
+            }
         }
     }
 
@@ -390,7 +404,7 @@ public class MapAtlasesServerEvents {
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onDimensionUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel)
-            if(MapAtlasesMod.MOONLIGHT) EntityRadar.unloadLevel();
+            if (MapAtlasesMod.MOONLIGHT) EntityRadar.unloadLevel();
     }
 
 }
