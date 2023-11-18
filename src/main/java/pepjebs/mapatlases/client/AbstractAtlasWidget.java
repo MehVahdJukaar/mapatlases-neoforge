@@ -13,6 +13,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
@@ -213,18 +214,28 @@ public abstract class AbstractAtlasWidget {
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
         for (var e : data.decorations.entrySet()) {
-            MapDecoration decoration = e.getValue();
-            MapDecoration.Type type = decoration.getType();
+            MapDecoration dec = e.getValue();
+            MapDecoration.Type type = dec.getType();
             if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
-                    var d = e.getValue();
                     removed.add(e);
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
-                            d.getX(), d.getY(), getPlayerMarkerRot(player), d.getName())));
+                            dec.getX(), dec.getY(), getPlayerMarkerRot(player), dec.getName())));
                 } else removed.add(e);
 
-            } else if (type == MapDecoration.Type.PLAYER && (!drawPlayerIcons || data != mapWherePlayerIs.data)) {
-                removed.add(e);
+            } else if (type == MapDecoration.Type.PLAYER) {
+                if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
+                    removed.add(e);
+                }else{
+                    int i = 1 << data.scale;
+                    float f = (float)(player.getX() - data.centerX) / i;
+                    float f1 = (float)(player.getZ() - data.centerZ) / i;
+                    byte b0 = (byte)((int)((f * 2.0F) + 0.5D));
+                    byte b1 = (byte)((int)((f1 * 2.0F) + 0.5D));
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
+                            b0, b1, getPlayerMarkerRot(player), dec.getName())));
+                    //add accurate player
+                }
             }
         }
 

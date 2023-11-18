@@ -63,7 +63,7 @@ public class MapDataHolder {
         }else{
             ((MapItem) type.filled).update(player.level(), player, data);
         }
-        if(!FMLEnvironment.production || MapAtlasesConfig.debugUpdate.get()){
+        if( MapAtlasesConfig.debugUpdate.get()){
             MapAtlasesNetworking.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
         }
     }

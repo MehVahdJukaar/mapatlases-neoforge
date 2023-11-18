@@ -6,6 +6,7 @@ import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,6 +24,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 public class EntityRadar {
 
@@ -35,18 +37,20 @@ public class EntityRadar {
     private static final DataObjectReference<MapDecorationType<?, ?>> BOSS_PIN =
             new DataObjectReference<>(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
 
-    private static final Set<MapBlockMarker<?>> nearbyEntityMarkers = new HashSet<>();
+    private static final WeakHashMap<Level, Set<MapBlockMarker<?>>> nearbyEntityMarkers = new WeakHashMap<>();
 
     // we dont clear as just bosses use tags...too bad
     private static final Map<Class<? extends LivingEntity>, DataObjectReference<MapDecorationType<?, ?>>> entityTypeMap = new Object2ObjectOpenHashMap<>();
 
     public static void onClientTick(Player player) {
-        nearbyEntityMarkers.clear();
-
         Level level = player.level();
+
+        var set = nearbyEntityMarkers.computeIfAbsent(level, k -> new HashSet<>());
+        set.clear();
+
         Integer pValue = MapAtlasesClientConfig.radarRadius.get();
         var entities = level.getEntitiesOfClass(LivingEntity.class, new AABB(player.blockPosition())
-                .inflate(pValue,30,pValue).move(0,2,0));
+                .inflate(pValue, 30, pValue).move(0, 2, 0));
         for (var e : entities) {
             if (e == player) continue;
             var type = getMarkerForType(e);
@@ -55,7 +59,7 @@ public class EntityRadar {
                 if (marker instanceof EntityPinMarker m) {
                     m.setPos(new BlockPos(e.getBlockX(), e.getBlockY(), e.getBlockZ()));
                     m.setEntity(e);
-                    nearbyEntityMarkers.add(marker);
+                    set.add(marker);
                 }
             }
         }
@@ -79,9 +83,14 @@ public class EntityRadar {
     }
 
     public static Set<MapBlockMarker<?>> send(Integer integer, MapItemSavedData data) {
-        if (data.dimension.equals(Minecraft.getInstance().level.dimension())) {
-            return nearbyEntityMarkers;
+        ClientLevel level = Minecraft.getInstance().level;
+        if (data.dimension.equals(level.dimension())) {
+            return nearbyEntityMarkers.computeIfAbsent(level, j->new HashSet<>());
         }
         return Set.of();
+    }
+
+    public static void unloadLevel() {
+        nearbyEntityMarkers.clear();
     }
 }

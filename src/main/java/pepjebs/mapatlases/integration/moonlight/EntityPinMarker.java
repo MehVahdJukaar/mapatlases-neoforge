@@ -7,26 +7,32 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
+
 public class EntityPinMarker extends MapBlockMarker<EntityPinDecoration> {
 
-    private Entity entity;
+    private WeakReference<Entity> entity;
 
     protected EntityPinMarker(MapDecorationType<EntityPinDecoration, ?> type) {
         super(type);
     }
 
     public void setEntity(Entity entity) {
-        this.entity = entity;
+        this.entity = new WeakReference<>(entity);
     }
 
     @Override
     public EntityPinDecoration doCreateDecoration(byte mapX, byte mapY, byte rot) {
-        return new EntityPinDecoration(this.getType(), mapX, mapY, entity);
+        var en = entity.get();
+        if(en != null) {
+            return new EntityPinDecoration(this.getType(), mapX, mapY, en);
+        }
+        return null;
     }
 
     @Override
-    public CompoundTag saveToNBT(CompoundTag compound) {
-        return compound;
+    public CompoundTag saveToNBT() {
+        return new CompoundTag();
     }
 
     @Override

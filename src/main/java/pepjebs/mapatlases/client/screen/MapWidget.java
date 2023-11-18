@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -37,19 +38,19 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     private final AtlasOverviewScreen mapScreen;
 
-    protected final int x;
-    protected final int y;
-    protected final int width;
-    protected final int height;
+    private final int x;
+    private final int y;
+    private final int width;
+    private final int height;
 
     private float cumulativeZoomValue;
     private float startZoom = 1;
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
-    protected double targetXCenter;
-    protected double targetZCenter;
-    protected float targetZoomLevel;
+    private double targetXCenter;
+    private double targetZCenter;
+    private float targetZoomLevel;
 
     private boolean isHovered;
     private float animationProgress = 0; //from zero to 1
@@ -242,6 +243,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 Slice slice = mapScreen.getSelectedSlice();
                 MapAtlasesNetworking.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
+                if (FMLLoader.isProduction()) mapScreen.onClose();
                 return true;
             }
             return !mapScreen.isEditingText();
@@ -251,14 +253,16 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @NotNull
     private ColumnPos getHoveredPos(double mouseX, double mouseY) {
+        double wSize = zoomLevel;
+        double hSize = zoomLevel * height / width;
         double atlasMapsRelativeMouseX = Mth.map(
-                mouseX, x, x + width, -1.0, 1.0);
+                mouseX, x, x + width, -wSize, wSize);
         double atlasMapsRelativeMouseZ = Mth.map(
-                mouseY, y, y + height, -1.0, 1.0);
+                mouseY, y, y + height, -hSize, hSize);
         int hackOffset = +3;
         return new ColumnPos(
-                (int) (Math.floor(atlasMapsRelativeMouseX * zoomLevel * (mapBlocksSize / 2.0)) + currentXCenter) + hackOffset,
-                (int) (Math.floor(atlasMapsRelativeMouseZ * zoomLevel * (mapBlocksSize / 2.0)) + currentZCenter) + hackOffset);
+                (int) (Math.floor(atlasMapsRelativeMouseX * (mapBlocksSize / 2.0)) + currentXCenter) + hackOffset,
+                (int) (Math.floor(atlasMapsRelativeMouseZ * (mapBlocksSize / 2.0)) + currentZCenter) + hackOffset);
     }
 
     @Override

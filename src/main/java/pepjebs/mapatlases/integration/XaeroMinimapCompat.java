@@ -3,18 +3,15 @@ package pepjebs.mapatlases.integration;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraftforge.fml.loading.FMLPaths;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.io.IOException;
@@ -28,7 +25,7 @@ public class XaeroMinimapCompat {
 
     private static final Map<String, List<Waypoint>> WAYPOINTS_MAP = new HashMap<>();
 
-    public static void parseXaeroWaypoints(String worldFolderName ) {
+    public static void parseXaeroWaypoints(String worldFolderName) {
         WAYPOINTS_MAP.clear();
         //just parses local ones
         Path path = FMLPaths.GAMEDIR.get().resolve("XaeroWaypoints/" + worldFolderName + "/");
@@ -72,12 +69,13 @@ public class XaeroMinimapCompat {
             if (waypoints != null) {
                 MapDataHolder holder = new MapDataHolder(pMapName, data);
                 for (var w : waypoints) {
+                    if (w.y > holder.slice.heightOrTop()) continue;
                     //hack to see if it will be contained
                     MapBlockMarker<?> marker = MapDataRegistry.getDefaultType().createEmptyMarker();
                     marker.setPos(new BlockPos(w.x, w.y, w.z));
                     if (marker.createDecorationFromMarker(data) != null) {
                         ClientMarkers.addMarker(holder, new ColumnPos(w.x, w.z), w.name, w.color);
-                        toRemove.add(w);
+                        //toRemove.add(w);
                     }
                 }
                 waypoints.removeAll(toRemove);

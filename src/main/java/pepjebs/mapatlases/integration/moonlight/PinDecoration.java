@@ -7,16 +7,26 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 public class PinDecoration extends CustomMapDecoration {
-    boolean focused;
-    public PinDecoration(MapDecorationType<?, ?> type, byte x, byte y, byte rot, @Nullable Component displayName) {
-        super(type, x, y, rot, displayName);
+    public final PinMarker marker;
+    private boolean focused;
+
+    public PinDecoration(PinMarker marker, byte x, byte y, byte rot, @Nullable Component displayName) {
+        super(marker.getType(), x, y, rot, displayName);
+        this.marker = marker;
     }
 
+    //unused TODO:improve
     public PinDecoration(MapDecorationType<?, ?> type, FriendlyByteBuf buffer) {
         super(type, buffer);
+        this.marker = null;
     }
 
-    public void setFocused(boolean focused) {
+    public boolean isFocused() {
+        return focused;
+    }
+
+    public void forceFocused(boolean focused) {
         this.focused = focused;
+        this.marker.setFocused(focused);
     }
 }

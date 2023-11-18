@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.utils;
 
+import net.mehvahdjukaar.moonlight.core.mixins.HoldingPlayerMixin;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;

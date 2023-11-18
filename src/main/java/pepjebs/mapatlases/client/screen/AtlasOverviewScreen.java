@@ -4,8 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -543,6 +541,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
+        if (decorationBookmarks.isEmpty()) return;
         float minX = currentXCenter - radius;
         float maxX = currentXCenter + radius;
         float minZ = currentZCenter - radius;
@@ -564,7 +563,8 @@ public class AtlasOverviewScreen extends Screen {
         //TODO: maybe this isnt needed
         if (followingPlayer) {
             int index = 0;
-            int separation = Math.min(17, (int) (143f / byDistance.size()));
+            int maxW = BOOK_HEIGHT - 24;
+            int separation = Math.min(17, maxW / byDistance.size());
 
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
             for (var e : byDistance) {

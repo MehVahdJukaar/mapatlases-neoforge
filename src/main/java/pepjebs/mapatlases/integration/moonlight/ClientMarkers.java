@@ -34,7 +34,6 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -93,7 +92,7 @@ public class ClientMarkers {
     public static void saveClientMarkers() {
         if (markers.isEmpty()) return;
         try {
-            if (currentPath != null &&  !Files.exists(currentPath)) {
+            if (currentPath != null && !Files.exists(currentPath)) {
                 Files.createDirectories(currentPath.getParent());
             }
             try (OutputStream outputstream = new FileOutputStream(currentPath.toFile())) {
@@ -178,9 +177,8 @@ public class ClientMarkers {
     @NotNull
     private static List<Holder<MapDecorationType<?, ?>>> getPins() {
         return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                .getTag(PINS).get().stream().sorted(Comparator.comparing(h->h.unwrapKey().get())).toList();
+                .getTag(PINS).get().stream().sorted(Comparator.comparing(h -> h.unwrapKey().get())).toList();
     }
-
 
 
     public static void removeDeco(String mapId, String key) {
@@ -197,16 +195,7 @@ public class ClientMarkers {
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline) {
         var p = getPins();
         var t = p.get(index % p.size());
-        CustomMapDecoration d;
-
-        if (MapDecorationClientManager.getRenderer(t.get()) instanceof PinDecorationRenderer) {
-            d = new PinDecoration(t.value(), (byte) 0, (byte) 0, (byte) 0, null);
-        } else d = new CustomMapDecoration(t.value(), (byte) 0, (byte) 0, (byte) 0, null);
-        try {
-            //this will fail with custom types... TODO: fix
-            CustomDecorationButton.renderStaticMarker(pGuiGraphics, d, null, x, y, 1, outline);
-        } catch (Exception ignored) {
-        }
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, t.value(), null, x, y, 1, outline);
     }
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
@@ -257,39 +246,17 @@ public class ClientMarkers {
 
     //TODO: change
     public static void focusMarker(MapDataHolder map, CustomMapDecoration deco, boolean focused) {
-        MapBlockMarker<?> found = decoToMarker(map, deco);
-        if (found instanceof PinMarker mp) {
-            //hack. this is used for somehting else...
-            mp.setFocused(focused);
-            //Bad code
-            if (deco instanceof PinDecoration pd) pd.focused = focused;
+        if (deco instanceof PinDecoration mp) {
+            mp.forceFocused(focused);
         }
     }
 
-    @Nullable
-    private static MapBlockMarker<?> decoToMarker(MapDataHolder map, CustomMapDecoration deco) {
-        return DECO_TO_MARKER.computeIfAbsent(deco, d -> {
-            Set<MapBlockMarker<?>> mar = markers.get(map.stringId);
-            if (mar != null) {
-                for (var m : mar) {
-                    if (d.equals(m.createDecorationFromMarker(map.data))) {
-                        return m;
-                    }
-                }
-            }
-            return null;
-        });
-    }
-
     public static boolean isDecorationFocused(MapDataHolder map, CustomMapDecoration deco) {
-        MapBlockMarker<?> found = decoToMarker(map, deco);
-        if (found instanceof PinMarker mp) {
+        if (deco instanceof PinDecoration mp) {
             return mp.isFocused();
         }
         return false;
     }
-
-    private static final WeakHashMap<CustomMapDecoration, MapBlockMarker<?>> DECO_TO_MARKER = new WeakHashMap<>();
 
 
 }

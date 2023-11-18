@@ -118,8 +118,6 @@ public class MapAtlasesClient {
     private static boolean isDrawingAtlas = false;
 
     public static MapAtlasesHUD HUD;
-    public static ShaderInstance TEXT_ALPHA_SHADER;
-
 
     public static void cachePlayerState(Player player) {
         if (player != Minecraft.getInstance().player) return;
@@ -168,19 +166,6 @@ public class MapAtlasesClient {
         ItemProperties.register(MapAtlasesMod.MAP_ATLAS.get(), MapAtlasesMod.res("atlas"),
                 MapAtlasesClient::getPredicateForAtlas);
     }
-
-    @SubscribeEvent
-    public static void registerShaders(RegisterShadersEvent event) {
-        try {
-            ShaderInstance shader = new ShaderInstance(event.getResourceProvider(),
-                    MapAtlasesMod.res("text_alpha_color"), DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP);
-
-            event.registerShader(shader, s -> TEXT_ALPHA_SHADER = s);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 
     @SubscribeEvent
     public static void registerOverlay(RegisterGuiOverlaysEvent event) {
@@ -303,8 +288,6 @@ public class MapAtlasesClient {
         Float scale = globalDecorationScale.get();
         if (scale != null) poseStack.scale(scale, scale, 1);
     }
-
-
 
 
     //debug stuff
