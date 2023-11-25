@@ -135,14 +135,7 @@ public class MapAtlasesServerEvents {
 
             //sync the slice below and above so we can update slice automatically
             if ((level.getGameTime() + 13) % 40 == 0) {
-                var tree = maps.getHeightTree(dimension, slice.type());
-                for (Integer hh : tree) {
-                    if (hh != slice.heightOrTop()) {
-                        var below = maps.select(activeKey.mapX(), activeKey.mapZ(), Slice.of(slice.type(), hh, dimension));
-                        if (below != null)
-                            MapAtlasesAccessUtils.updateMapDataAndSync(below, player, atlas, InteractionResult.SUCCESS);
-                    }
-                }
+                sendSlicesAboveAndBelow(player, atlas, maps,  activeKey);
             }
 
             int playX = player.blockPosition().getX();
@@ -223,6 +216,18 @@ public class MapAtlasesServerEvents {
         }
     }
 
+    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, MapCollectionCap maps, MapKey activeKey) {
+        Slice slice = activeKey.slice();
+       var dimension =  activeKey.slice().dimension();
+        var tree = maps.getHeightTree(dimension, slice.type());
+        for (Integer hh : tree) {
+            if (hh != slice.heightOrTop()) {
+                var below = maps.select(activeKey.mapX(), activeKey.mapZ(), Slice.of(slice.type(), hh, dimension));
+                if (below != null)
+                    MapAtlasesAccessUtils.updateMapDataAndSync(below, player, atlas, InteractionResult.SUCCESS);
+            }
+        }
+    }
 
     //checks if pixel of this map has been filled at this position with random offset
     private static boolean isTimeToUpdate(MapItemSavedData data, Player player,
@@ -397,6 +402,17 @@ public class MapAtlasesServerEvents {
             if (MapAtlasesMod.MOONLIGHT) {
                 MapAtlasesNetworking.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
             }
+            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(sp);
+            if (atlas.isEmpty()) return;
+
+            Level level = sp.level();
+            ResourceKey<Level> dimension = level.dimension();
+            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
+            // sets new center map
+            MapKey activeKey = MapKey.at(maps.getScale(), sp, slice);
+            sendSlicesAboveAndBelow(sp, atlas, maps, activeKey);
         }
     }
 

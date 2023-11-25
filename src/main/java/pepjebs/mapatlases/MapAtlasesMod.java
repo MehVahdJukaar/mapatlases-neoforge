@@ -82,6 +82,7 @@ public class MapAtlasesMod {
         //sound
         //spyglass zoom in curio with keybind
         //auto waystone marker
+        //interdimensional marker
         //antique in cart table
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
         bus.addListener(MapAtlasesMod::addItemsToTabs);

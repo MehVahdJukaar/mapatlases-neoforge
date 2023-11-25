@@ -50,6 +50,9 @@ public class MapAtlasesClientConfig {
         drawMinimapCoords = builder
                 .comment("When enabled, the player's current Coords will be displayed")
                 .define("coordinate_text", true);
+        drawMinimapChunkCoords = builder
+                .comment("Displays chunk coordinates")
+                .define("chunk_coordinate_text", false);
 
         drawMinimapBiome = builder
                 .comment("When enabled, the player's current Biome will be displayed")
@@ -112,7 +115,6 @@ public class MapAtlasesClientConfig {
         drawWorldMapCoords = builder
                 .comment("When enabled, the Atlas world map coordinates will be displayed")
                 .define("draw_coordinates", true);
-
         worldMapCoordsScale = builder
                 .comment("Sets the scale of the text rendered for Coords world-map data")
                 .defineInRange("coordinates_scale", 1, 0, 10d);
@@ -168,6 +170,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Integer> miniMapVerticalOffset;
     public static final Supplier<Integer> activePotionVerticalOffset;
     public static final Supplier<Boolean> drawMinimapCoords;
+    public static final Supplier<Boolean> drawMinimapChunkCoords;
     public static final Supplier<Boolean> drawMinimapBiome;
     public static final Supplier<Boolean> drawWorldMapCoords;
     public static final Supplier<Boolean> drawMinimapCardinals;

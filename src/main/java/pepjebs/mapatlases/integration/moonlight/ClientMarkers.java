@@ -51,7 +51,8 @@ import java.util.*;
 
 public class ClientMarkers {
 
-    public static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
+    private static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
+    private static final WeakHashMap<MapDecorationType<?,?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
@@ -160,8 +161,7 @@ public class ClientMarkers {
     }
 
     public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        List<Holder<MapDecorationType<?, ?>>> pins = getPins();
-        MapBlockMarker<?> marker = pins.get(index % pins.size()).get().createEmptyMarker();
+        MapBlockMarker<?> marker = getPinAt(index).createEmptyMarker();
         if (!text.isEmpty()) marker.setName(Component.translatable(text));
         ClientLevel level = Minecraft.getInstance().level;
         Integer h = holder.height;
@@ -174,12 +174,11 @@ public class ClientMarkers {
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
 
-    @NotNull
-    private static List<Holder<MapDecorationType<?, ?>>> getPins() {
-        return MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+    private static MapDecorationType<?, ?> getPinAt(int index) {
+        var pins = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
                 .getTag(PINS).get().stream().sorted(Comparator.comparing(h -> h.unwrapKey().get())).toList();
+        return pins.get(Math.floorMod(index, pins.size())).value();
     }
-
 
     public static void removeDeco(String mapId, String key) {
         var mr = markers.get(mapId);
@@ -193,10 +192,9 @@ public class ClientMarkers {
     }
 
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {
-        var p = getPins();
-        var t = p.get((p.size()+index) % p.size());
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, t.value(), x, y, 1, outline, alpha);
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, getPinAt(index), x, y, 1, outline, alpha);
     }
+
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
                                      float widgetWorldLen, Player player, boolean rotateWithPlayer) {
@@ -222,19 +220,17 @@ public class ClientMarkers {
                     matrixStack.translate(a, b, 5);
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
-                    ResourceLocation id = Utils.getID(marker.getType());
-                    ResourceLocation texture = id.withPath(k -> "map_marker/" + k + "_small");
+                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType(), t->
+                            Utils.getID(t).withPath(k -> "map_marker/" + k + "_small"));
                     TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
                     matrixStack.popPose();
                 }
             }
         }
-        //so we can use local coordinates
-        //idk wy wrap doesnt work, it does the same as here
-        //vertexBuilder = sprite.wrap(vertexBuilder);
-
     }
+
+
 
     //TODO: register custom marker type to allow for fancier renderer on maps when focused
 

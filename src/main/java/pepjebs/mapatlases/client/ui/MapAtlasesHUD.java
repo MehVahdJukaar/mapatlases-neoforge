@@ -144,7 +144,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         poseStack.scale(globalScale, globalScale, 1);
 
         // play sound
-        if (!Objects.equals(lastMapKey,currentMapKey)) {
+        if (!Objects.equals(lastMapKey, currentMapKey)) {
             lastMapKey = currentMapKey;
             if (mc.screen == null && MapAtlasesClientConfig.mapChangeSound.get()) {
                 player.playSound(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(),
@@ -240,15 +240,27 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             //textHeightOffset = -actualBgSize + ;
         }
         Font font = mc.font;
-        if (MapAtlasesClientConfig.drawMinimapCoords.get()) {
-            drawMapComponentCoords(
-                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
-                    textScaling, new BlockPos(new Vec3i(
-                            towardsZero(player.position().x),
-                            towardsZero(player.position().y),
-                            towardsZero(player.position().z))));
-            textHeightOffset += (10 * textScaling);
+        boolean global = MapAtlasesClientConfig.drawMinimapCoords.get();
+        boolean local = MapAtlasesClientConfig.drawMinimapChunkCoords.get();
+        if (global || local) {
+            BlockPos pos = new BlockPos(new Vec3i(
+                    towardsZero(player.position().x),
+                    towardsZero(player.position().y),
+                    towardsZero(player.position().z)));
+            if(global) {
+                drawMapComponentCoords(
+                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
+                        textScaling, pos, false);
+                textHeightOffset += (10 * textScaling);
+            }
+            if(local) {
+                drawMapComponentCoords(
+                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
+                        textScaling, pos, true);
+                textHeightOffset += (10 * textScaling);
+            }
         }
+
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
                     graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
@@ -308,9 +320,18 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
             int x, int y,
             int targetWidth,
             float textScaling,
-            BlockPos pos
+            BlockPos pos,
+            boolean chunk
     ) {
-        String coordsToDisplay = displaysY ? pos.toShortString() : pos.getX() + ", " + pos.getZ();
+
+        String coordsToDisplay;
+        if (chunk) {
+            coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
+                    pos.getX() / 16, pos.getZ() / 16, pos.getX() % 16, pos.getZ() % 16).getString();
+        } else {
+            coordsToDisplay = displaysY ? pos.toShortString() : Component.translatable("message.map_atlases.coordinates",
+                    pos.getX() + ", " + pos.getZ()).getString();
+        }
         drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 

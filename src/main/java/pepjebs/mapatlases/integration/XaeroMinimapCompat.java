@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class XaeroMinimapCompat {
 
@@ -29,14 +30,17 @@ public class XaeroMinimapCompat {
         WAYPOINTS_MAP.clear();
         //just parses local ones
         Path path = FMLPaths.GAMEDIR.get().resolve("XaeroWaypoints/" + worldFolderName + "/");
+        //Pattern pattern = Pattern.compile("waypoint:[^#\\n]*");
 
         try (DirectoryStream<Path> directories = Files.newDirectoryStream(path, Files::isDirectory);) {
             for (Path directory : directories) {
                 Path waypointsFile = Paths.get(directory.toString(), "waypoints.txt");
 
                 if (Files.exists(waypointsFile)) {
+                    MapAtlasesMod.LOGGER.info("Loaded XaeroMinimap waypoint data for world {}", worldFolderName);
                     List<String> lines = Files.readAllLines(waypointsFile);
                     for (String line : lines) {
+
                         if (line.startsWith("waypoint:")) {
                             String[] parts = line.split(":");
                             if (parts.length >= 8) {
@@ -76,6 +80,7 @@ public class XaeroMinimapCompat {
                     if (marker.createDecorationFromMarker(data) != null) {
                         ClientMarkers.addMarker(holder, new ColumnPos(w.x, w.z), w.name, w.color);
                         //toRemove.add(w);
+                        //MapAtlasesMod.LOGGER.info("Added converted Xaero waypoint {} to pins ", w);
                     }
                 }
                 waypoints.removeAll(toRemove);

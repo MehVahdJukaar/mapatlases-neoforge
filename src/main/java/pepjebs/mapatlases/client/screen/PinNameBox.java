@@ -20,7 +20,7 @@ public class PinNameBox extends EditBox {
     private float displayIndex = 0;
     private float displayIndexO = 0;
     private float currentIndex = 0;
-    private boolean markerHovered;
+    private boolean markerHovered = false;
 
     private int scrollVisibleCounter = 0;
 
@@ -74,25 +74,26 @@ public class PinNameBox extends EditBox {
             ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, 0,
                     closestInd, this.markerHovered, aa);
 
-            p.pushPose();
-            for (int j = 1; j < 4; j++) {
-                int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
-                p.translate(0, 0, -0.01);
-                if (al <= 0) break;
-                ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
-                        false, al);
+            if(popIn!=0) {
+                p.pushPose();
+                for (int j = 1; j < 4; j++) {
+                    int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
+                    p.translate(0, 0, -0.01);
+                    if (al <= 0) break;
+                    ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
+                            false, al);
+                }
+                p.popPose();
+                p.pushPose();
+                for (int j = 1; j < 4; j++) {
+                    int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
+                    p.translate(0, 0, -0.01);
+                    if (al <= 0) break;
+                    ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
+                            false, al);
+                }
+                p.popPose();
             }
-            p.popPose();
-            p.pushPose();
-            for (int j = 1; j < 4; j++) {
-                int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
-                p.translate(0, 0, -0.01);
-                if (al <= 0) break;
-                ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
-                        false, al);
-            }
-            p.popPose();
-
             p.popPose();
         }
         p.popPose();
@@ -113,7 +114,8 @@ public class PinNameBox extends EditBox {
         }
         float popInSpeed = 0.2f;
         float popOutSpeed = 0.4f;
-        if (scrollVisibleCounter > 0) scrollVisibleCounter--;
+        if (scrollVisibleCounter < 10 && index != displayIndex) {
+        } else if (scrollVisibleCounter > 0) scrollVisibleCounter--;
         if (scrollVisibleCounter == 0 && scrollPopInAnimation > 0) {
             scrollPopInAnimation = smoothStep(scrollPopInAnimation, 0, popInSpeed); // Smoothly interpolate towards 0
         } else if (scrollVisibleCounter != 0 && scrollPopInAnimation < 1) {
@@ -125,6 +127,11 @@ public class PinNameBox extends EditBox {
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if ((pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
             onDone.run();
+            scrollVisibleCounter = 0;
+            displayIndex = currentIndex;
+            displayIndexO = currentIndex;
+            scrollPopInAnimation = 0;
+            scrollPopInAnimationO = 0;
             return true;
         }
         return super.keyPressed(pKeyCode, pScanCode, pModifiers);
@@ -135,6 +142,7 @@ public class PinNameBox extends EditBox {
         if (this.markerHovered) {
             this.currentIndex++;
             this.displayIndex = (int) currentIndex;
+            this.displayIndexO = displayIndex;
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return false;
         }
