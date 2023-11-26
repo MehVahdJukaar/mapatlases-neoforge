@@ -196,11 +196,16 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     var maps = MapAtlasItem.getMaps(atlas, l.get());
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
                             + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
-                    MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
-                    if(map != null) {
-                        this.mapatlases$selectedSliceHeight = map.height;
-                    }else{
-                        this.mapatlases$selectedSliceHeight = null;
+                    try {
+                        MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
+                        if (map != null) {
+                            this.mapatlases$selectedSliceHeight = map.height;
+                        } else {
+                            this.mapatlases$selectedSliceHeight = null;
+                        }
+                    }catch (Exception e){
+                        //aa ERROR
+                        int a = 1;
                     }
                 }
             }

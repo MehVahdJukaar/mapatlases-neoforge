@@ -54,8 +54,8 @@ public class CartographyTableAtlasButton extends AbstractWidget {
             } else {
                 Integer height = at.mapatlases$getSelectedSliceHeight();
                 if (height != null) {
-                    pGuiGraphics.drawString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index", height),
-                            this.getX() - 30, this.getY() - 40, -1);
+                    pGuiGraphics.drawString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.slice_height", height),
+                            this.getX() - 52, this.getY() - 50, -1);
                 }
             }
         }
