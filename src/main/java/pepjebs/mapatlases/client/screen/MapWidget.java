@@ -158,7 +158,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
-        String coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates", pos.x(), pos.z()).getString();
+        String coordsToDisplay = Component.translatable("message.map_atlases.coordinates", pos.x(), pos.z()).getString();
         MapAtlasesHUD.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width, width);
     }

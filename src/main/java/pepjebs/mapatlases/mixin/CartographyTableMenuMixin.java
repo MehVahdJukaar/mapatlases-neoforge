@@ -52,8 +52,11 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Shadow
     @Final
     public Container container;
+
     @Unique
     private int mapatlases$selectedMapIndex;
+    @Unique
+    private Integer mapatlases$selectedSliceHeight;
 
     protected CartographyTableMenuMixin(@Nullable MenuType<?> arg, int i) {
         super(arg, i);
@@ -73,7 +76,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 }
                 MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
                 ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.id);
-
+                this.mapatlases$selectedSliceHeight = map.height;
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();
                 info.cancel();
@@ -162,6 +165,11 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     }
 
     @Override
+    public @Nullable Integer mapatlases$getSelectedSliceHeight() {
+        return mapatlases$selectedSliceHeight;
+    }
+
+    @Override
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
             var maps = MapAtlasItem.getMaps(atlas, level);
@@ -188,6 +196,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     var maps = MapAtlasItem.getMaps(atlas, l.get());
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
                             + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
+                    MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
+                    if(map != null) {
+                        this.mapatlases$selectedSliceHeight = map.height;
+                    }else{
+                        this.mapatlases$selectedSliceHeight = null;
+                    }
                 }
             }
             this.slotsChanged(this.container);

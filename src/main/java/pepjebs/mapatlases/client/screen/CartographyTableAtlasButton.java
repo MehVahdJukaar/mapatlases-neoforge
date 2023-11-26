@@ -46,10 +46,18 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                 this.getX(), this.getY(), left ? 9 : 0, isHovered ? height : 0,
                 this.width, this.height, 32, 32);
 
-        if(left){
-            pGuiGraphics.drawCenteredString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index",
-                            ((AtlasCartographyTable) this.menu).mapatlases$getSelectedMapIndex()),
-                    this.getX() + 30, this.getY()+2, -1);
+        if(this.menu instanceof AtlasCartographyTable at) {
+            if (left) {
+                pGuiGraphics.drawCenteredString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index",
+                                at.mapatlases$getSelectedMapIndex()),
+                        this.getX() + 30, this.getY() + 2, -1);
+            } else {
+                Integer height = at.mapatlases$getSelectedSliceHeight();
+                if (height != null) {
+                    pGuiGraphics.drawString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index", height),
+                            this.getX() - 30, this.getY() - 40, -1);
+                }
+            }
         }
         pose.popPose();
     }

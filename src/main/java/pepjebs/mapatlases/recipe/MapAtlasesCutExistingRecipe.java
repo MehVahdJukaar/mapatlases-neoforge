@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -82,6 +83,11 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             try {
                 if (tc.menu instanceof CraftingMenu cm) {
                     MapDataHolder c = maps.getClosest(cm.player, slice);
+                    if (c != null) {
+                        return c;
+                    }
+                }else if(tc.menu instanceof InventoryMenu im){
+                    MapDataHolder c = maps.getClosest(im.owner, slice);
                     if (c != null) {
                         return c;
                     }
