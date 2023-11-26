@@ -270,7 +270,7 @@ public class MapAtlasesServerEvents {
             // Play the sound
             player.level.playSound(null, player.blockPosition(),
                     MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
-                    SoundSource.PLAYERS, (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
+                    SoundSource.PLAYERS,  1, 1.0F);
         }
     }
 
