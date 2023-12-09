@@ -135,7 +135,7 @@ public class MapAtlasesServerEvents {
 
             //sync the slice below and above so we can update slice automatically
             if ((level.getGameTime() + 13) % 40 == 0) {
-                sendSlicesAboveAndBelow(player, atlas, maps,  activeKey);
+                sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
             }
 
             int playX = player.blockPosition().getX();
@@ -159,7 +159,7 @@ public class MapAtlasesServerEvents {
                                     && edge.y == e.centerZ));
 
             MapDataHolder activeInfo = maps.select(activeKey);
-            if (activeInfo == null) {
+            if (activeInfo == null && !MapAtlasItem.isLocked(atlas)) {
                 // no map. we try creating a new one for this dimension
                 maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
                 activeInfo = maps.select(activeKey);
@@ -218,7 +218,7 @@ public class MapAtlasesServerEvents {
 
     private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, MapCollectionCap maps, MapKey activeKey) {
         Slice slice = activeKey.slice();
-       var dimension =  activeKey.slice().dimension();
+        var dimension = activeKey.slice().dimension();
         var tree = maps.getHeightTree(dimension, slice.type());
         for (Integer hh : tree) {
             if (hh != slice.heightOrTop()) {

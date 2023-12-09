@@ -40,6 +40,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
+import twilightforest.client.OptifineWarningScreen;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -70,7 +71,6 @@ public class ClientMarkers {
         markers.clear();
         markersPerSlice.clear();
         mapLookup.clear();
-
         //if not in multiplayer we have folder name here
         String fileName = lastFolderName == null ? levelName : lastFolderName;
         currentPath = FMLPaths.GAMEDIR.get()

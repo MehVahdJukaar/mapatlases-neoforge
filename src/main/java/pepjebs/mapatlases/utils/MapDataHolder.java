@@ -1,13 +1,17 @@
 package pepjebs.mapatlases.utils;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapBanner;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
@@ -27,7 +31,7 @@ public class MapDataHolder {
     public final Integer height;
 
     public MapDataHolder(String name, MapItemSavedData data) {
-        this(MapAtlasesAccessUtils. findMapIntFromString(name), name, data);
+        this(MapAtlasesAccessUtils.findMapIntFromString(name), name, data);
     }
 
     private MapDataHolder(int id, String stringId, MapItemSavedData data) {
@@ -56,15 +60,43 @@ public class MapDataHolder {
     }
 
     public void updateMap(ServerPlayer player) {
-        if(MapAtlasesConfig.mapUpdateMultithreaded.get()){
-            EXECUTORS.submit(()-> {
+        if (MapAtlasesConfig.mapUpdateMultithreaded.get()) {
+            EXECUTORS.submit(() -> {
                 ((MapItem) type.filled).update(player.level(), player, data);
             });
-        }else{
+            //update markers on the main thread. has to be done because block entities cant be accessed off thread
+            updateMarkers(player);
+
+        } else {
             ((MapItem) type.filled).update(player.level(), player, data);
         }
-        if( MapAtlasesConfig.debugUpdate.get()){
+        if (MapAtlasesConfig.debugUpdate.get()) {
             MapAtlasesNetworking.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
+        }
+    }
+
+    private void updateMarkers(Player player) {
+        int step = data.getHoldingPlayer(player).step;
+        if (step % 10 == 0) {
+            int i = step / 10;
+
+            int j = 0;
+            MapItemSavedDataAccessor accessor = (MapItemSavedDataAccessor) data;
+            var markers = accessor.getBannerMarkers();
+            //get nth element
+            for (var m : markers.entrySet()) {
+                if (j++ == i) {
+                    var banner = m.getValue();
+                    MapBanner mapbanner1 = MapBanner.fromWorld(player.level(), banner.getPos());
+                    if (!banner.equals(mapbanner1)) {
+                        markers.remove(m.getKey());
+                        accessor.invokeRemoveDecoration(banner.getId());
+                    }
+                    break;
+                }
+            }
+            if (MapAtlasesMod.MOONLIGHT) MoonlightCompat.updateMarkers(data, player.level(), i);
+
         }
     }
 

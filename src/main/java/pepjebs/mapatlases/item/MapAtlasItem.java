@@ -134,9 +134,8 @@ public class MapAtlasItem extends Item {
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
-        if (player instanceof ServerPlayer) {
-            MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket());
-        } else {
+        if (player instanceof ServerPlayer sp) {
+            syncAndOpenGui(sp, stack, null, false);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }

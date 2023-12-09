@@ -23,6 +23,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
@@ -113,6 +114,15 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 if (!maps.isEmpty()) {
                     var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));
+                    var tree = maps.getHeightTree(slice.dimension(),slice.type());
+                    if(!tree.contains(slice.heightOrTop())){
+                        Optional<Integer> first = tree.stream().findFirst();
+                        if(first.isPresent()) {
+                            Integer newH = first.get();
+                            MapAtlasItem.setSelectedSlice(stack, Slice.of(slice.type(),
+                                    newH, slice.dimension()));
+                        }
+                    }
                     didRemoveFilled = true;
                 }
                 int emptyMaps = MapAtlasItem.getEmptyMaps(stack);

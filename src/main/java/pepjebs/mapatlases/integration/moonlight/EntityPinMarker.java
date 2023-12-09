@@ -22,6 +22,11 @@ public class EntityPinMarker extends MapBlockMarker<EntityPinDecoration> {
     }
 
     @Override
+    public boolean shouldRefresh() {
+        return false;
+    }
+
+    @Override
     public EntityPinDecoration doCreateDecoration(byte mapX, byte mapY, byte rot) {
         var en = entity.get();
         if(en != null) {

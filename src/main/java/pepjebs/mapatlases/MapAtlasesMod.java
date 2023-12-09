@@ -80,6 +80,7 @@ public class MapAtlasesMod {
 
         //lectern marker
         //sound
+        //soap clear recipe
         //spyglass zoom in curio with keybind
         //auto waystone marker
         //interdimensional marker
