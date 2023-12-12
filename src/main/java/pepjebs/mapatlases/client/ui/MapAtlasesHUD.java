@@ -32,6 +32,7 @@ import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -126,10 +127,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (currentMapKey == null) return;
         MapDataHolder activeMap = maps.select(currentMapKey);
-        if (activeMap == null) {
-            return;
-        }
+        if (activeMap == null) return;
 
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
         if (needsInit) {
             needsInit = false;
             initialize(activeMap);
@@ -247,13 +248,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
                     towardsZero(player.position().x),
                     towardsZero(player.position().y),
                     towardsZero(player.position().z)));
-            if(global) {
+            if (global) {
                 drawMapComponentCoords(
                         graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                         textScaling, pos, false);
                 textHeightOffset += (10 * textScaling);
             }
-            if(local) {
+            if (local) {
                 drawMapComponentCoords(
                         graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                         textScaling, pos, true);
@@ -294,6 +295,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         }
 
         poseStack.popPose();
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
     }
 
     private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {

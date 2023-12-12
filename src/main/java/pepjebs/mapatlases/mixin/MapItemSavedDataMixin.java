@@ -32,7 +32,7 @@ public class MapItemSavedDataMixin {
 
     }
 
-    @Inject(method = "checkBanners", at = @At("TAIL"), cancellable = true)
+    @Inject(method = "checkBanners", at = @At("HEAD"), cancellable = true)
     public void preventCheckingOffThread(BlockGetter world, int x, int z, CallbackInfo ci) {
         if (world instanceof ServerLevel l && !l.getServer().isSameThread()) {
             ci.cancel();

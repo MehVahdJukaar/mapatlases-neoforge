@@ -23,10 +23,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class MoonlightCompat {
 
@@ -78,15 +75,18 @@ public class MoonlightCompat {
     }
 
     public static void updateMarkers(MapItemSavedData data, BlockGetter world, int i) {
-        List<String> toRemove = new ArrayList<>();
-        List<MapBlockMarker<?>> toAdd = new ArrayList<>();
-        ExpandedMapData d = ((ExpandedMapData) data);
-        int j = 0;
 
-        for (var m : d.getCustomMarkers().entrySet()) {
-            if (j++ == i) {
-                var marker = m.getValue();
-                if (marker.shouldRefresh()) {
+        ExpandedMapData d = ((ExpandedMapData) data);
+        Map<String, MapBlockMarker<?>> markers = new HashMap<>(d.getCustomMarkers());
+        if (!markers.isEmpty()) {
+            markers.entrySet().removeIf(m -> !m.getValue().shouldRefresh());
+            List<String> toRemove = new ArrayList<>();
+            List<MapBlockMarker<?>> toAdd = new ArrayList<>();
+            int j = 0;
+            int k = i % markers.size();
+            for (var m : markers.entrySet()) {
+                if (j++ == k) {
+                    var marker = m.getValue();
                     MapBlockMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(world, marker.getPos());
                     String id = m.getKey();
                     if (newMarker == null) {
@@ -96,9 +96,9 @@ public class MoonlightCompat {
                         toAdd.add(newMarker);
                     }
                 }
+                toRemove.forEach(d::removeCustomMarker);
+                toAdd.forEach(d::addCustomMarker);
             }
-            toRemove.forEach(d::removeCustomMarker);
-            toAdd.forEach(d::addCustomMarker);
         }
     }
 }

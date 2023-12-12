@@ -167,9 +167,7 @@ repositories {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/"
     }
-    repositories {
-        maven { url "https://api.modrinth.com/maven" }
-    }
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 dependencies {
@@ -203,10 +201,11 @@ dependencies {
     //implementation fg.deobf("curse.maven:citadel-331936:4786380")
     runtimeOnly fg.deobf("curse.maven:spark-361579:4738952")
 
-   // implementation fg.deobf("maven.modrinth:immediatelyfast:1.2.0+1.20.1") // Get latest version from releases
+    compileOnly("maven.modrinth:immediatelyfast:1.2.8+1.20.4-forge") // Get latest version from releases
+    // implementation fg.deobf("curse.maven:immediatelyfast-686911:4937545")
 
     implementation fg.deobf("net.mehvahdjukaar:moonlight-forge:${moonlight_version}")
-   // implementation fg.deobf("net.mehvahdjukaar:supplementaries-forge:${supplementaries_version}")
+    // implementation fg.deobf("net.mehvahdjukaar:supplementaries-forge:${supplementaries_version}")
 
     // compileOnly fg.deobf("dev.emi:trinkets:3.7.0")
     //compileOnly fg.deobf("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1")

@@ -70,6 +70,7 @@ public class MapAtlasesMod {
     public static final boolean SUPPLEMENTARIES = ModList.get().isLoaded("supplementaries");
     public static final boolean MOONLIGHT = ModList.get().isLoaded("moonlight");
     public static final boolean TWILIGHTFOREST = ModList.get().isLoaded("twilightforest");
+    public static final boolean IMMEDIATELY_FAST = ModList.get().isLoaded("immediatelyfast");
 
     public MapAtlasesMod() {
         // Register config

@@ -77,15 +77,18 @@ public class MapDataHolder {
 
     private void updateMarkers(Player player) {
         int step = data.getHoldingPlayer(player).step;
-        if (step % 10 == 0) {
-            int i = step / 10;
+        int frenquency = 5;
+        if (step % frenquency == 0) {
+            int i = step / frenquency;
 
             int j = 0;
             MapItemSavedDataAccessor accessor = (MapItemSavedDataAccessor) data;
             var markers = accessor.getBannerMarkers();
+            int k = i;
+            if (!markers.isEmpty()) k = k % markers.size();
             //get nth element
             for (var m : markers.entrySet()) {
-                if (j++ == i) {
+                if (j++ == k) {
                     var banner = m.getValue();
                     MapBanner mapbanner1 = MapBanner.fromWorld(player.level(), banner.getPos());
                     if (!banner.equals(mapbanner1)) {
