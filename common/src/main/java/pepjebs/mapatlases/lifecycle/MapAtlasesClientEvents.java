@@ -10,9 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -34,11 +32,7 @@ import java.util.TreeSet;
 
 public class MapAtlasesClientEvents {
 
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        Minecraft client = Minecraft.getInstance();
-        ClientLevel level = client.level;
-        if (level == null || event.phase != TickEvent.Phase.END) return;
+    public static void onClientTick(Minecraft client, ClientLevel level) {
         long gameTime = level.getGameTime();
 
         if (MapAtlasesMod.SUPPLEMENTARIES && (gameTime + 27) % 40 == 0) {
@@ -70,7 +64,7 @@ public class MapAtlasesClientEvents {
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
                 // needed as we might not have all mas needed
-                MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket());
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
             }
         }
 
@@ -79,7 +73,7 @@ public class MapAtlasesClientEvents {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {
-                    MapAtlasesNetworking.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
+                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
                 }
             }
         }
@@ -87,11 +81,11 @@ public class MapAtlasesClientEvents {
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (!atlas.isEmpty()) {
             if (MapAtlasesClient.DECREASE_MINIMAP_ZOOM.matches(key, code)) {
-                MapAtlasesClient.HUD.decreaseZoom();
+                MapAtlasesClient.decreaseHoodZoom();
             }
 
             if (MapAtlasesClient.INCREASE_MINIMAP_ZOOM.matches(key, code)) {
-                MapAtlasesClient.HUD.increaseZoom();
+                MapAtlasesClient.increaseHoodZoom();
             }
 
             if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
@@ -119,14 +113,13 @@ public class MapAtlasesClientEvents {
     private static void maybeSyncNewSlice(ItemStack atlas, Slice oldSlice, Integer newHeight) {
         Slice newSlice = Slice.of(oldSlice.type(), newHeight, oldSlice.dimension());
         if (!newSlice.equals(oldSlice)) {
-            MapAtlasesNetworking.sendToServer(new C2SSelectSlicePacket(newSlice, null));
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SSelectSlicePacket(newSlice, null));
         }
         //update the client immediately
         MapAtlasItem.setSelectedSlice(atlas, newSlice);
     }
 
-    @SubscribeEvent
-    public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void onLoggedOut() {
         if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
     }
 

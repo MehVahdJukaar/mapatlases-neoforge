@@ -2,6 +2,7 @@ package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -9,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.fml.loading.FMLPaths;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -20,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class XaeroMinimapCompat {
 
@@ -29,7 +28,7 @@ public class XaeroMinimapCompat {
     public static void parseXaeroWaypoints(String worldFolderName) {
         WAYPOINTS_MAP.clear();
         //just parses local ones
-        Path path = FMLPaths.GAMEDIR.get().resolve("XaeroWaypoints/" + worldFolderName + "/");
+        Path path = PlatHelper.getGamePath().resolve("XaeroWaypoints/" + worldFolderName + "/");
         //Pattern pattern = Pattern.compile("waypoint:[^#\\n]*");
 
         try (DirectoryStream<Path> directories = Files.newDirectoryStream(path, Files::isDirectory);) {

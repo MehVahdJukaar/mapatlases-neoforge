@@ -7,6 +7,7 @@ import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -22,8 +23,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
@@ -42,7 +41,7 @@ import java.util.Objects;
 
 import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
 
-public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
+public class MapAtlasesHUD extends AbstractAtlasWidget   {
 
     public static final ResourceLocation MAP_BACKGROUND = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
@@ -96,8 +95,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
-    @Override
-    public void render(ForgeGui forgeGui, GuiGraphics graphics, float partialTick,
+    public void render(Gui forgeGui, GuiGraphics graphics, float partialTick,
                        int screenWidth, int screenHeight) {
         // Handle early returns
         if (mc.level == null || mc.player == null) {

@@ -16,10 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "pepjebs.mehvahdjukaar.fabric.MapAtlasesFabric"
-    ],
-    "client": [
-      "pepjebs.mehvahdjukaar.fabric.SupplementariesFabricClient"
+      "pepjebs.mapatlases.fabric.MapAtlasesFabric"
     ],
     "modmenu": [
       "pepjebs.mehvahdjukaar.supplementaries.integration.fabric.ModMenuCompat"

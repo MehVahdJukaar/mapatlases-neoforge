@@ -13,8 +13,6 @@ public class MapAtlasesFabric implements ModInitializer {
         if (PlatHelper.getPhysicalSide().isClient()) {
 
         }
-        PlatHelper.addCommonSetup(ModSetup::setup);
-        PlatHelper.addCommonSetup(ModSetup::asyncSetup);
 
     }
 }

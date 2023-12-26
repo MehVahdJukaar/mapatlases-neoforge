@@ -64,4 +64,5 @@ public interface IMapCollection {
     List<MapDataHolder> getAll();
 
 
+    default void fixDuplicates(Level level){};
 }

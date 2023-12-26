@@ -13,7 +13,6 @@ import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.Tags;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -42,7 +42,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
     boolean mapAtlasCanInsert(boolean original, ItemStack stack) {
         return original || stack.is(MapAtlasesMod.MAP_ATLAS.get()) ||
                 MapAtlasesAccessUtils.isValidFilledMap(stack) ||
-                stack.is(Tags.Items.SHEARS);
+                PlatStuff.isShear(stack);
     }
 }
 
@@ -59,7 +59,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
         Slot slotOne = this$0.slots.get(1);
         if (atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack slotOneItem = slotOne.getItem();
-            if (slotOneItem.is(Tags.Items.SHEARS)) {
+            if (PlatStuff.isShear(slotOneItem)) {
                 AtlasCartographyTable menu = (AtlasCartographyTable) this.this$0;
                 menu.mapatlases$removeSelectedMap(atlas);
                 atlas.grow(1);

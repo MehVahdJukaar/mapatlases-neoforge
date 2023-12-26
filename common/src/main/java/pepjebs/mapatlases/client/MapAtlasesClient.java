@@ -5,6 +5,8 @@ import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -23,20 +25,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
-import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
@@ -114,7 +107,6 @@ public class MapAtlasesClient {
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
     private static boolean isDrawingAtlas = false;
 
-    public static MapAtlasesHUD HUD;
 
     public static void cachePlayerState(Player player) {
         if (player != Minecraft.getInstance().player) return;
@@ -144,7 +136,7 @@ public class MapAtlasesClient {
         return currentActiveMapKey;
     }
 
-    public static void setIsDrawingAtlas(boolean state){
+    public static void setIsDrawingAtlas(boolean state) {
         isDrawingAtlas = state;
     }
 
@@ -153,25 +145,17 @@ public class MapAtlasesClient {
     }
 
     public static void init() {
-        FMLJavaModLoadingContext.get().getModEventBus().register(MapAtlasesClient.class);
-        MinecraftForge.EVENT_BUS.register(MapAtlasesClientEvents.class);
+        ClientHelper.addKeyBindRegistration(MapAtlasesClient::registerKeyBinding);
+        ClientHelper.addClientSetup(MapAtlasesClient::clientSetup);
     }
 
-    @SubscribeEvent
-    public static void clientSetup(FMLClientSetupEvent event) {
+    public static void clientSetup() {
         // Register ModelPredicate
         ItemProperties.register(MapAtlasesMod.MAP_ATLAS.get(), MapAtlasesMod.res("atlas"),
                 MapAtlasesClient::getPredicateForAtlas);
     }
 
-    @SubscribeEvent
-    public static void registerOverlay(RegisterGuiOverlaysEvent event) {
-        HUD = new MapAtlasesHUD();
-        event.registerBelow(VanillaGuiOverlay.DEBUG_TEXT.id(), "atlas", HUD);
-    }
-
-    @SubscribeEvent
-    public static void registerKeyBinding(RegisterKeyMappingsEvent event) {
+    public static void registerKeyBinding(ClientHelper.KeyBindEvent event) {
         event.register(OPEN_ATLAS_KEYBIND);
         event.register(DECREASE_MINIMAP_ZOOM);
         event.register(INCREASE_MINIMAP_ZOOM);
@@ -321,4 +305,13 @@ public class MapAtlasesClient {
             .expireAfterAccess(10, TimeUnit.SECONDS) // Set your desired time for validity
             .build();
 
+    @ExpectPlatform
+    public static void decreaseHoodZoom() {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static void increaseHoodZoom() {
+        throw new AssertionError();
+    }
 }
