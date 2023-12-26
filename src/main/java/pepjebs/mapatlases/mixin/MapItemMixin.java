@@ -17,10 +17,8 @@ public class MapItemMixin {
             cancellable = true)
     public void reduceUpdateNonGeneratedChunks(Level pLevel, Entity pViewer, MapItemSavedData pData, CallbackInfo ci,
                                                @Local(ordinal = 9) int worldX, @Local(ordinal = 10) int worldZ) {
-        if (worldZ % 16 == 0 && worldX % 16 == 0) {
-            if (!pLevel.hasChunkAt(worldX, worldZ)) {
-                ci.cancel();
-            }
+        if (!pLevel.hasChunkAt(worldX, worldZ)) {
+            ci.cancel();
         }
     }
 

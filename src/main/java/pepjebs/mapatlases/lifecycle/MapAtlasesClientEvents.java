@@ -2,6 +2,7 @@ package pepjebs.mapatlases.lifecycle;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -70,6 +71,9 @@ public class MapAtlasesClientEvents {
 
         Minecraft client = Minecraft.getInstance();
         if (client.screen != null || event.getAction() != InputConstants.PRESS) return;
+        if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), InputConstants.KEY_F3)){
+            return;
+        }
         int key = event.getKey();
         int code = event.getScanCode();
         if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
