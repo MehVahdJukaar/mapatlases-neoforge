@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.lifecycle;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -10,8 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -52,13 +49,10 @@ public class MapAtlasesClientEvents {
         }
     }
 
-    @SubscribeEvent
-    public static void onKeyPressed(InputEvent.Key event) {
+    public static void onKeyPressed(int key, int code) {
 
         Minecraft client = Minecraft.getInstance();
-        if (client.screen != null || event.getAction() != InputConstants.PRESS) return;
-        int key = event.getKey();
-        int code = event.getScanCode();
+        if (client.screen != null ) return;
         if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);

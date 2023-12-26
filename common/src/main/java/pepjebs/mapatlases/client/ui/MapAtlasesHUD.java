@@ -7,7 +7,6 @@ import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -95,7 +94,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
-    public void render(Gui forgeGui, GuiGraphics graphics, float partialTick,
+    public void render(GuiGraphics graphics, float partialTick,
                        int screenWidth, int screenHeight) {
         // Handle early returns
         if (mc.level == null || mc.player == null) {

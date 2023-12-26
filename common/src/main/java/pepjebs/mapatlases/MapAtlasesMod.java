@@ -10,11 +10,9 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
-import net.minecraft.world.level.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -23,7 +21,6 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
@@ -59,8 +56,6 @@ public class MapAtlasesMod {
     public static final boolean IMMEDIATELY_FAST = PlatHelper.isModLoaded("immediatelyfast");
 
     public static void init() {
-        // Register config
-
         MapAtlasesNetworking.init();
 
         MapAtlasesConfig.init();
@@ -70,6 +65,7 @@ public class MapAtlasesMod {
         }
         RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
 
+        //TODO
         //lectern marker
         //sound
         //soap clear recipe
@@ -79,14 +75,8 @@ public class MapAtlasesMod {
         //antique in cart table
 
 
-
         if (MOONLIGHT) MoonlightCompat.init();
         if (SUPPLEMENTARIES) SupplementariesCompat.init();
-
-
-        // Register messages
-        MapAtlasesNetworking.register();
-        MinecraftForge.EVENT_BUS.register(MapAtlasesServerEvents.class);
     }
 
     static {
@@ -125,7 +115,4 @@ public class MapAtlasesMod {
 
     private static InteractionResult hack = InteractionResult.PASS;
 
-
-    public static void getMapCollection(ItemStack stack, Level level) {
-    }
 }
