@@ -1,7 +1,8 @@
-package pepjebs.mapatlases.capabilities;
+package pepjebs.mapatlases.map_collection.forge;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.Util;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -10,12 +11,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.capabilities.CapabilityToken;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -25,13 +27,46 @@ import java.util.*;
 import java.util.function.Predicate;
 
 // The porpoise of this object is to save a datastructures with all available maps so we dont have to keep deserializing nbt
-public class MapCollectionCap implements IMapCollection, INBTSerializable<CompoundTag> {
+public class IMapCollectionImpl implements IMapCollection, INBTSerializable<CompoundTag> {
 
-    public static final Capability<MapCollectionCap> ATLAS_CAP_TOKEN = CapabilityManager.get(new CapabilityToken<>() {
+    public static IMapCollection get(ItemStack stack, Level level) {
+        Optional<IMapCollectionImpl> resolve = stack.getCapability(IMapCollectionImpl.ATLAS_CAP_TOKEN, null).resolve();
+        if (resolve.isEmpty()) {
+            throw new AssertionError("Map Atlas capability was empty. How is this possible? Culprit itemstack " + stack);
+        }
+        IMapCollectionImpl cap = resolve.get();
+        if (!cap.isInitialized()) cap.initialize(level);
+        return cap;
+    }
+
+    // maybe not needed, could be in cap itself
+    public record Provider(
+            LazyOptional<IMapCollectionImpl> capInstance) implements ICapabilitySerializable<CompoundTag> {
+
+        public Provider(){
+            this(LazyOptional.of(IMapCollectionImpl::new));
+        }
+        @Override
+        public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+            return IMapCollectionImpl.ATLAS_CAP_TOKEN.orEmpty(cap, capInstance);
+        }
+
+        @Override
+        public CompoundTag serializeNBT() {
+            return capInstance.resolve().get().serializeNBT();
+        }
+
+        @Override
+        public void deserializeNBT(CompoundTag nbt) {
+            capInstance.resolve().get().deserializeNBT(nbt);
+        }
+    }
+
+    public static final Capability<IMapCollectionImpl> ATLAS_CAP_TOKEN = CapabilityManager.get(new CapabilityToken<>() {
     });
 
     public static void register(RegisterCapabilitiesEvent event) {
-        event.register(MapCollectionCap.class);
+        event.register(IMapCollectionImpl.class);
     }
 
     public static final String MAP_LIST_NBT = "maps";
@@ -44,7 +79,7 @@ public class MapCollectionCap implements IMapCollection, INBTSerializable<Compou
     private CompoundTag lazyNbt = null;
     private final Set<Integer> duplicates = new HashSet<>();
 
-    public MapCollectionCap() {
+    public IMapCollectionImpl() {
     }
 
     public boolean isInitialized() {

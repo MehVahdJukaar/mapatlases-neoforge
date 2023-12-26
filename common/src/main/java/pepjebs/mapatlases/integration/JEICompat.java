@@ -4,8 +4,8 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.ModList;
 import pepjebs.mapatlases.MapAtlasesMod;
 
 @JeiPlugin
@@ -20,7 +20,7 @@ public class JEICompat implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registry) {
-        if (!ModList.get().isLoaded("roughly_enough_items")) {
+        if (!PlatHelper.isModLoaded("roughly_enough_items")) {
             SpecialRecipeDisplays.registerCraftingRecipes(r -> registry.addRecipes(RecipeTypes.CRAFTING, r));
         }
     }

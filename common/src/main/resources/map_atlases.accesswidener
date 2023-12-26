@@ -1,2 +1,7 @@
 accessWidener   v2  named
 
+accessible class net/minecraft/client/gui/MapRenderer$MapInstance
+
+accessible field net/minecraft/world/level/saveddata/maps/MapItemSavedData decorations Ljava/util/Map;
+
+accessible field net/minecraft/client/multiplayer/ClientLevel mapData Ljava/util/Map;

@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.mixin;
+package pepjebs.mapatlases.mixin.forge;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;

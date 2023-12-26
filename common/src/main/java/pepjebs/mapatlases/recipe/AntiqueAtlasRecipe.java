@@ -9,9 +9,9 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
@@ -65,8 +65,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
         // Get the Map Ids in the Grid
         // Set NBT Data
-        MapCollectionCap maps = MapAtlasItem.getMaps(newAtlas, level);
-        MapCollectionCap oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
+        IMapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
         for (MapDataHolder holder : maps.getAll()) {
             oldMaps.remove(holder);
             Integer newId = SupplementariesCompat.createAntiqueMapData(holder.data,level,true, false);

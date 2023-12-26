@@ -101,7 +101,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         for (var d : decorations.entrySet()) {
             String targetKey = d.getKey();
             if (targetKey.equals(decorationId)) {
-                MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
                 decorations.remove(d.getKey());
                 ClientMarkers.removeDeco(mapData.stringId, d.getKey());
                 return;

@@ -10,9 +10,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class AtlasInHandRenderer {

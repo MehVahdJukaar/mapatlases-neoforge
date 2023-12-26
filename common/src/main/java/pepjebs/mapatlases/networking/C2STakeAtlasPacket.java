@@ -1,15 +1,14 @@
 package pepjebs.mapatlases.networking;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
+import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.utils.AtlasLectern;
 
-import java.util.function.Supplier;
-
-public class C2STakeAtlasPacket {
+public class C2STakeAtlasPacket implements Message {
 
 
     private final BlockPos pos;
@@ -22,24 +21,23 @@ public class C2STakeAtlasPacket {
         this.pos = pos;
     }
 
-    public void write(FriendlyByteBuf buf) {
+    @Override
+    public void writeToBuffer(FriendlyByteBuf buf) {
         buf.writeBlockPos(pos);
     }
 
-    public void apply(Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            ServerPlayer player = context.get().getSender();
-            if (player == null) return;
-            if(player.level().getBlockEntity(pos) instanceof AtlasLectern lectern){
-                if (!player.mayBuild()) {
-                    return;
-                }
-                ItemStack itemstack = lectern.mapatlases$removeAtlas();
-                if (!player.getInventory().add(itemstack)) {
-                    player.drop(itemstack, false);
-                }
+    @Override
+    public void handle(ChannelHandler.Context context) {
+        if (!(context.getSender() instanceof ServerPlayer player)) return;
+
+        if(player.level().getBlockEntity(pos) instanceof AtlasLectern lectern){
+            if (!player.mayBuild()) {
+                return;
             }
-        });
-        context.get().setPacketHandled(true);
+            ItemStack itemstack = lectern.mapatlases$removeAtlas();
+            if (!player.getInventory().add(itemstack)) {
+                player.drop(itemstack, false);
+            }
+        }
     }
 }

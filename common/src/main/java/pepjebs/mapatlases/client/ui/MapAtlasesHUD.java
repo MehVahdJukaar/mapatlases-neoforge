@@ -26,8 +26,6 @@ import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -35,6 +33,8 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -74,7 +74,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        MapCollectionCap maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
+        IMapCollection maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
         return maps.select(centerX, centerZ, slice);
     }
 
@@ -123,7 +123,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements IGuiOverlay {
         ClientLevel level = mc.level;
         LocalPlayer player = mc.player;
 
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (currentMapKey == null) return;
         MapDataHolder activeMap = maps.select(currentMapKey);

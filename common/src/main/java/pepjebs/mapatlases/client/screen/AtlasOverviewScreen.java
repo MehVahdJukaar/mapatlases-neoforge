@@ -25,13 +25,13 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -115,7 +115,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @NotNull
     private MapDataHolder getMapClosestToPlayer() {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
         MapDataHolder closest = maps.getClosest(player, selectedSlice);
         if (closest == null) {
@@ -160,7 +160,7 @@ public class AtlasOverviewScreen extends Screen {
         this.addRenderableWidget(sliceDown);
 
         int i = 0;
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         Collection<ResourceKey<Level>> dimensions = maps.getAvailableDimensions();
         int separation = (int) Math.min(22, (BOOK_HEIGHT - 50f) / dimensions.size());
         for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
@@ -442,7 +442,7 @@ public class AtlasOverviewScreen extends Screen {
         if (selectedSlice.dimension().equals(level.dimension())) {
             return getMapClosestToPlayer().data;
         } else {
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
             MapItemSavedData best = null;
             float averageX = 0;
             float averageZ = 0;
@@ -602,7 +602,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean decreaseSlice() {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
@@ -612,7 +612,7 @@ public class AtlasOverviewScreen extends Screen {
 
     //TODO: make static
     public boolean increaseSlice() {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
@@ -621,7 +621,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void cycleSliceType() {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         ResourceKey<Level> dim = selectedSlice.dimension();
         var slices = new ArrayList<>(maps.getAvailableTypes(dim));
         int index = slices.indexOf(selectedSlice.type());
@@ -647,7 +647,7 @@ public class AtlasOverviewScreen extends Screen {
             changed = true;
         }
         //update button regardless
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         var dim = selectedSlice.dimension();
         boolean manySlices = maps.getHeightTree(dim, selectedSlice.type()).size() > 1;
         boolean manyTypes = maps.getAvailableTypes(dim).size() != 1;
@@ -671,7 +671,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void placePinAt(ColumnPos pos) {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapKey key = MapKey.at(maps.getScale(), pos.x(), pos.z(), selectedSlice);
         MapDataHolder selected = maps.select(key);
         if (selected != null) {

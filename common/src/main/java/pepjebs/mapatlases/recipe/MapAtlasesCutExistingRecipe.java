@@ -15,9 +15,9 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -65,7 +65,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, levelRef.get());
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         if (maps.getCount() > 1) {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
@@ -79,7 +79,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static MapDataHolder getMapToRemove(CraftingContainer inv, MapCollectionCap maps, Slice slice) {
+    private static MapDataHolder getMapToRemove(CraftingContainer inv, IMapCollection maps, Slice slice) {
         if (inv instanceof TransientCraftingContainer tc) {
             try {
                 if (tc.menu instanceof CraftingMenu cm) {
@@ -110,7 +110,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 stack.hurt(1, RandomSource.create(), null);
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
-                MapCollectionCap maps = MapAtlasItem.getMaps(stack, levelRef.get());
+                IMapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
                     var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));

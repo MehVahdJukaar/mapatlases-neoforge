@@ -1,15 +1,15 @@
 package pepjebs.mapatlases.networking;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
+import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraftforge.network.NetworkEvent;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-import java.util.function.Supplier;
 
-public class S2CMapPacketWrapper {
+public class S2CMapPacketWrapper implements Message {
     public final ClientboundMapItemDataPacket packet;
     public final ResourceLocation dimension;
     public final int centerX;
@@ -30,17 +30,16 @@ public class S2CMapPacketWrapper {
 
     }
 
-    public void write(FriendlyByteBuf buf) {
+    @Override
+    public void writeToBuffer(FriendlyByteBuf buf) {
         buf.writeResourceLocation(dimension);
         buf.writeVarInt(centerX);
         buf.writeVarInt(centerZ);
         packet.write(buf);
     }
 
-    public void apply(Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            MapAtlasesClient.handleMapPacketWrapperPacket(this);
-        });
-        context.get().setPacketHandled(true);
+    @Override
+    public void handle(ChannelHandler.Context context) {
+        MapAtlasesClient.handleMapPacketWrapperPacket(this);
     }
 }

@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.networking;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
+import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,23 +12,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
-import net.minecraftforge.network.NetworkEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Supplier;
 
-public class C2STeleportPacket {
+public class C2STeleportPacket implements Message {
 
 
     private final int x;
     private final int z;
     private final Integer y;
-    private ResourceKey<Level> dimension;
+    private final ResourceKey<Level> dimension;
 
     public C2STeleportPacket(FriendlyByteBuf buf) {
         this.x = buf.readVarInt();
@@ -41,42 +39,6 @@ public class C2STeleportPacket {
         this.y = y;
         this.dimension = dimension;
     }
-
-    public void write(FriendlyByteBuf buf) {
-        buf.writeVarInt(x);
-        buf.writeVarInt(z);
-        buf.writeOptional(Optional.ofNullable(y), FriendlyByteBuf::writeVarInt);
-        buf.writeResourceKey(dimension);
-    }
-
-    public void apply(Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-            ServerPlayer player = context.get().getSender();
-            if (player == null) return;
-
-            ServerLevel level = player.getServer().getLevel(dimension);
-
-            int y = this.y == null ? (
-                   level != player.level() ? level.getMaxBuildHeight() :
-                           level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z)
-            ) : this.y;
-
-
-            if (performTeleport(player, level, x, y, z)) {
-                player.sendSystemMessage(Component.translatable("commands.teleport.success.location.single",
-                        player.getDisplayName(),
-                        formatDouble(x),
-                        formatDouble(y),
-                        formatDouble(z)));
-            } else {
-                player.sendSystemMessage(Component.translatable("commands.teleport.invalidPosition"));
-            }
-
-
-        });
-        context.get().setPacketHandled(true);
-    }
-
 
     private static boolean performTeleport(ServerPlayer player, ServerLevel pLevel,
                                            double pX, double pY, double pZ
@@ -93,7 +55,7 @@ public class C2STeleportPacket {
                     player.getYRot(), player.getXRot())) {
 
                 if (!player.isFallFlying()) {
-                    player.setDeltaMovement(player.getDeltaMovement().multiply(1.0D, 0, 1.0D).add(0,-5,0));
+                    player.setDeltaMovement(player.getDeltaMovement().multiply(1.0D, 0, 1.0D).add(0, -5, 0));
                     player.setOnGround(true);
                 }
                 return true;
@@ -106,4 +68,35 @@ public class C2STeleportPacket {
         return String.format(Locale.ROOT, "%f", pValue);
     }
 
+    @Override
+    public void writeToBuffer(FriendlyByteBuf buf) {
+        buf.writeVarInt(x);
+        buf.writeVarInt(z);
+        buf.writeOptional(Optional.ofNullable(y), FriendlyByteBuf::writeVarInt);
+        buf.writeResourceKey(dimension);
+    }
+
+    @Override
+    public void handle(ChannelHandler.Context context) {
+        if (!(context.getSender() instanceof ServerPlayer player)) return;
+
+        ServerLevel level = player.getServer().getLevel(dimension);
+
+        int y = this.y == null ? (
+                level != player.level() ? level.getMaxBuildHeight() :
+                        level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z)
+        ) : this.y;
+
+
+        if (performTeleport(player, level, x, y, z)) {
+            player.sendSystemMessage(Component.translatable("commands.teleport.success.location.single",
+                    player.getDisplayName(),
+                    formatDouble(x),
+                    formatDouble(y),
+                    formatDouble(z)));
+        } else {
+            player.sendSystemMessage(Component.translatable("commands.teleport.invalidPosition"));
+        }
+
+    }
 }

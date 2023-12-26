@@ -1,11 +1,11 @@
 package pepjebs.mapatlases.networking;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
+import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
 
-import java.util.function.Supplier;
-
-public class S2CSetActiveMapPacket {
+@Deprecated
+public class S2CSetActiveMapPacket implements Message {
 
     private final String mapId;
 
@@ -17,15 +17,13 @@ public class S2CSetActiveMapPacket {
         this.mapId = mapId;
     }
 
-    public void write(FriendlyByteBuf buf) {
+    @Override
+    public void writeToBuffer(FriendlyByteBuf buf) {
         buf.writeUtf(mapId);
     }
 
-    public void apply(Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> {
-           // MapAtlasesClient.setActiveMap(mapId.equals("null") ? null : mapId);
-        });
-        context.get().setPacketHandled(true);
+    @Override
+    public void handle(ChannelHandler.Context context) {
+            // MapAtlasesClient.setActiveMap(mapId.equals("null") ? null : mapId);
     }
-
 }

@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.capabilities;
+package pepjebs.mapatlases.map_collection;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;

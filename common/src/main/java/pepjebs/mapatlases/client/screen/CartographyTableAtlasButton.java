@@ -12,9 +12,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CartographyTableMenu;
-import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 
 public class CartographyTableAtlasButton extends AbstractWidget {
@@ -33,7 +33,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        if( !menu.getSlot(CartographyTableMenu.ADDITIONAL_SLOT).getItem().is(Tags.Items.SHEARS) ||
+        if( !PlatStuff.isShear( menu.getSlot(CartographyTableMenu.ADDITIONAL_SLOT).getItem()) ||
         !menu.getSlot(CartographyTableMenu.MAP_SLOT).getItem().is(MapAtlasesMod.MAP_ATLAS.get()))return;
         RenderSystem.enableDepthTest();
         if (!visible) return;
@@ -80,7 +80,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
        }
     }
 
-    @Override
+    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }

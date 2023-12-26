@@ -7,7 +7,6 @@
   "mixins": [
     "CartographyTableMenuMixin",
     "CompatTFMapRendererMixin",
-    "FriendlyByteBufMixin",
     "LecternBlockEntityMixin",
     "LecternBlockMixin",
     "MapItemMixin",
@@ -15,7 +14,8 @@
     "MapItemSavedDataMixin",
     "MixinCartographyTableAbstractContainerMenuSecondSlot",
     "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
-    "MixinCartographyTableHandlerFirstSlot"
+    "MixinCartographyTableHandlerFirstSlot",
+    "forge.FriendlyByteBufMixin"
   ],
   "client": [
     "CartographyTableScreenMixin",

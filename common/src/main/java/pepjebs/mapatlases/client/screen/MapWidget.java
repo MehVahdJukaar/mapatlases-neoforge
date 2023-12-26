@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -18,7 +19,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -242,8 +242,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             } else if (mapScreen.canTeleport()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 Slice slice = mapScreen.getSelectedSlice();
-                MapAtlasesNetworking.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
-                if (FMLLoader.isProduction()) mapScreen.onClose();
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
+                if (!PlatHelper.isDev()) mapScreen.onClose();
                 return true;
             }
             return !mapScreen.isEditingText();

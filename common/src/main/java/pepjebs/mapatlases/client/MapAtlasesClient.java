@@ -33,12 +33,12 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -247,7 +247,7 @@ public class MapAtlasesClient {
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
         ClientLevel level = Minecraft.getInstance().level;
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         //we arent ticking these so we have to fix duplicates
         maps.fixDuplicates(level);
         if (!maps.isEmpty()) {

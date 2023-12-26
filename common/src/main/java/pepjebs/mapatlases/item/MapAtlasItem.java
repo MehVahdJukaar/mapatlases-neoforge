@@ -2,7 +2,6 @@ package pepjebs.mapatlases.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -19,23 +18,18 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.List;
-import java.util.Optional;
 
 public class MapAtlasItem extends Item {
 
@@ -44,36 +38,9 @@ public class MapAtlasItem extends Item {
     protected static final String SELECTED_NBT = "selected";
     public static final String HEIGHT_NBT = "height";
     public static final String TYPE_NBT = "type";
-    private static final String SHARE_TAG = "map_cap";
 
     public MapAtlasItem(Properties settings) {
         super(settings);
-    }
-
-
-    @Nullable
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        return new Provider(LazyOptional.of(MapCollectionCap::new));
-    }
-
-    // maybe not needed, could be in cap itself
-    private record Provider(
-            LazyOptional<MapCollectionCap> capInstance) implements ICapabilitySerializable<CompoundTag> {
-        @Override
-        public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-            return MapCollectionCap.ATLAS_CAP_TOKEN.orEmpty(cap, capInstance);
-        }
-
-        @Override
-        public CompoundTag serializeNBT() {
-            return capInstance.resolve().get().serializeNBT();
-        }
-
-        @Override
-        public void deserializeNBT(CompoundTag nbt) {
-            capInstance.resolve().get().deserializeNBT(nbt);
-        }
     }
 
 
@@ -82,7 +49,7 @@ public class MapAtlasItem extends Item {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
         if (level != null && stack.hasTag()) {
-            MapCollectionCap maps = getMaps(stack, level);
+            IMapCollection maps = getMaps(stack, level);
             int mapSize = maps.getCount();
             int empties = getEmptyMaps(stack);
             if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
@@ -143,35 +110,12 @@ public class MapAtlasItem extends Item {
         CompoundTag tag = stack.getOrCreateTag();
         //convert old atlas
         if (tag.contains("maps")) {
-            MapCollectionCap maps = getMaps(stack, level);
+            IMapCollection maps = getMaps(stack, level);
             for (var i : tag.getIntArray("maps")) {
                 maps.add(i, level);
             }
             tag.remove("maps");
         }
-    }
-
-    // I hate this
-    @Nullable
-    @Override
-    public CompoundTag getShareTag(ItemStack stack) {
-        CompoundTag baseTag = stack.getTag();
-        var cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
-        if (baseTag == null) baseTag = new CompoundTag();
-        baseTag = baseTag.copy();
-        baseTag.put(SHARE_TAG, cap.serializeNBT());
-        return baseTag;
-    }
-
-    @Override
-    public void readShareTag(ItemStack stack, @Nullable CompoundTag tag) {
-        if (tag != null && tag.contains(SHARE_TAG)) {
-            CompoundTag capTag = tag.getCompound(SHARE_TAG);
-            tag.remove(SHARE_TAG);
-            var cap = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve().get();
-            cap.deserializeNBT(capTag);
-        }
-        stack.setTag(tag);
     }
 
     // convert lectern
@@ -196,7 +140,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                MapCollectionCap maps = getMaps(stack, level);
+                IMapCollection maps = getMaps(stack, level);
                 MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
@@ -218,7 +162,7 @@ public class MapAtlasItem extends Item {
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, player.level());
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
@@ -244,7 +188,7 @@ public class MapAtlasItem extends Item {
     //TODO:
 /*
     public static boolean decreaseSlice(ItemStack atlas, Level level) {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
@@ -254,21 +198,15 @@ public class MapAtlasItem extends Item {
 
     //TODO: make static
     public static boolean increaseSlice(ItemStack atlas, Level level) {
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
         Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }*/
-    public static MapCollectionCap getMaps(ItemStack stack, Level level) {
-        Optional<MapCollectionCap> resolve = stack.getCapability(MapCollectionCap.ATLAS_CAP_TOKEN, null).resolve();
-        if (resolve.isEmpty()) {
-            throw new AssertionError("Map Atlas capability was empty. How is this possible? Culprit itemstack " + stack);
-        }
-        MapCollectionCap cap = resolve.get();
-        if (!cap.isInitialized()) cap.initialize(level);
-        return cap;
+    public static IMapCollection getMaps(ItemStack stack, Level level) {
+       return IMapCollection.get(stack, level);
     }
 
     public static int getMaxMapCount() {

@@ -1,6 +1,9 @@
 package pepjebs.mapatlases.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigSpec;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.InHandMode;
 
@@ -9,9 +12,8 @@ import java.util.function.Supplier;
 public class MapAtlasesClientConfig {
 
 
-
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.CLIENT);
 
 
         builder.push("minimap");
@@ -23,29 +25,29 @@ public class MapAtlasesClientConfig {
 
         miniMapScale = builder
                 .comment("Global scale of entire minimap HUD. Keep at 1 for pixel perfect consistency")
-                .defineInRange("scale", 1f, 0, 20);
+                .define("scale", 1f, 0, 20);
         drawMiniMapHUD = builder
                 .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
                 .define("enabled", true);
 
         miniMapZoomMultiplier = builder.comment("How many maps to display in a single minimap. Essentially zoom. Can be a fraction")
-                .defineInRange("zoom_multiplier", 1, 0.001, 100);
+                .define("zoom_multiplier", 1, 0.001, 100);
 
         miniMapAnchoring = builder
                 .comment("Controls anchor position of mini-map")
-                .defineEnum("anchoring", Anchoring.UPPER_LEFT);
+                .define("anchoring", Anchoring.UPPER_LEFT);
 
         miniMapHorizontalOffset = builder
                 .comment("An integer which will offset the mini-map horizontally")
-                .defineInRange("horizontal_offset", 5, -4000, 4000);
+                .define("horizontal_offset", 5, -4000, 4000);
 
         miniMapVerticalOffset = builder
                 .comment("An integer which will offset the mini-map vertically")
-                .defineInRange("vertical_offset", 5, -4000, 4000);
+                .define("vertical_offset", 5, -4000, 4000);
 
         activePotionVerticalOffset = builder
                 .comment("The number of pixels to shift vertically when there's an active effect")
-                .defineInRange("active_potion_effects_vertical_offset", 26, -4000, 4000);
+                .define("active_potion_effects_vertical_offset", 26, -4000, 4000);
 
         drawMinimapCoords = builder
                 .comment("When enabled, the player's current Coords will be displayed")
@@ -60,11 +62,11 @@ public class MapAtlasesClientConfig {
 
         minimapCoordsAndBiomeScale = builder
                 .comment("Sets the scale of the text rendered for Coords and Biome mini-map data")
-                .defineInRange("coords_and_biome_scale", 1, 0, 10d);
+                .define("coords_and_biome_scale", 1, 0, 10d);
 
         miniMapDecorationScale = builder
                 .comment("Sets the scale of the map icons rendered in the mini-map")
-                .defineInRange("decoration_scale", 1, 0, 10d);
+                .define("decoration_scale", 1, 0, 10d);
 
         miniMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
                 .define("follow_player", true);
@@ -74,7 +76,7 @@ public class MapAtlasesClientConfig {
         drawMinimapCardinals = builder.comment("Draw cardinal directions on minimap")
                 .define("cardinal_directions", true);
         miniMapCardinalsScale = builder.comment("Scale of cardinal directions on minimap")
-                        .defineInRange("cardinal_scale", 1f, 0, 2);
+                        .define("cardinal_scale", 1f, 0, 2);
         miniMapOnlyNorth = builder.comment("Only shows north cardinal direction")
                         .define("only_show_north_cardinal", false);
         miniMapBorder = builder.comment("Shows map separation borders")
@@ -101,14 +103,14 @@ public class MapAtlasesClientConfig {
                 .define("smooth_panning", true);
         worldMapSmoothZooming = builder.comment("Makes zooming work smoothly instead of in 2 maps increments")
                 .define("smooth_zooming", true);
-        worldMapZoomScrollSpeed = builder.define("zoom_scroll_speed", 1d);
+        worldMapZoomScrollSpeed = builder.define("zoom_scroll_speed", 1d, 0, 10);
 
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
-                .defineInRange("scale", 1.25f, 0, 20);
+                .define("scale", 1.25f, 0, 20);
         lecternWorldMapScale = builder
                 .comment("Global scale of the entire world map GUI when opening from lectern. Keep at 1 for pixel perfect consistency")
-                .defineInRange("lectern_scale", 1f, 0, 20);
+                .define("lectern_scale", 1f, 0, 20);
 
         worldMapBorder = builder.comment("Shows map separation borders")
                 .define("map_borders", true);
@@ -117,11 +119,11 @@ public class MapAtlasesClientConfig {
                 .define("draw_coordinates", true);
         worldMapCoordsScale = builder
                 .comment("Sets the scale of the text rendered for Coords world-map data")
-                .defineInRange("coordinates_scale", 1, 0, 10d);
+                .define("coordinates_scale", 1, 0, 10d);
 
         worldMapDecorationScale = builder
                 .comment("Sets the scale of the map icons rendered in the world-map")
-                .defineInRange("decoration_scale", 1, 0, 10d);
+                .define("decoration_scale", 1, 0, 10d);
 
         worldMapCompactSliceIndicator = builder
                 .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
@@ -133,10 +135,10 @@ public class MapAtlasesClientConfig {
 
         soundScalar = builder
                 .comment("Multiplier for all the Atlases sound float")
-                .defineInRange("soundScalar", 1, 0, 10d);
+                .define("soundScalar", 1, 0, 10d);
 
         inHandMode = builder.comment("Render atlas like normal map when in hand")
-                .defineEnum("in_hand_renderer", InHandMode.NOT_LOCKED);
+                .define("in_hand_renderer", InHandMode.NOT_LOCKED);
 
 
 
@@ -148,7 +150,7 @@ public class MapAtlasesClientConfig {
                 .define("pin_tracking", true);
         entityRadar = builder.comment("Show nearby mobs on minimap")
                 .define("mob_radar", false);
-        radarRadius = builder.defineInRange("radar_radius", 64, 0 , 256);
+        radarRadius = builder.define("radar_radius", 64, 0 , 256);
         radarRotation = builder.comment("Entities on radar will have their icon rotate")
                 .define("radar_pins_rotate", false);
         radarColor = builder.comment("Uses yellow markers for all mobs")
@@ -160,7 +162,7 @@ public class MapAtlasesClientConfig {
 
         builder.pop();
 
-        spec = builder.build();
+        SPEC = builder.buildAndRegister();
     }
 
     public static final Supplier<Boolean> drawMiniMapHUD;
@@ -210,7 +212,9 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
 
-    public static final ForgeConfigSpec spec;
+    public static final ConfigSpec SPEC;
 
 
+    public static void init() {
+    }
 }

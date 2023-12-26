@@ -11,9 +11,9 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -51,7 +51,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = emptyMaps + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
             int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
@@ -104,7 +104,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         for (var i : mapIds) {
             maps.add(i, level);
         }

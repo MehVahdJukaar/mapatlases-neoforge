@@ -1,19 +1,22 @@
 package pepjebs.mapatlases.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigSpec;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.ActivationLocation;
 
 import java.util.function.Supplier;
 
 public class MapAtlasesConfig {
 
-
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON);
+
 
         maxMapCount = builder
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
-                .define("max_map_count", 512);
+                .define("max_map_count", 512, 0, 10000);
 
         acceptPaperForEmptyMaps = builder
                 .comment("If enabled, you can increase the Empty Map count by inserting Paper")
@@ -25,11 +28,11 @@ public class MapAtlasesConfig {
 
         mapEntryValueMultiplier = builder
                 .comment("Controls how many usable Maps are added when you add a single Map to the Atlas")
-                .defineInRange("map_entry_value_multiplier", 1, 0, 64);
+                .define("map_entry_value_multiplier", 1, 0, 64);
 
         pityActivationMapCount = builder
                 .comment("Controls how many free Empty Maps you get for 'activating' an Inactive Atlas")
-                .defineInRange("pity_activation_map_count", 9, 0, 64);
+                .define("pity_activation_map_count", 9, 0, 64);
 
 
         enableEmptyMapEntryAndFill = builder
@@ -38,7 +41,7 @@ public class MapAtlasesConfig {
 
         activationLocation = builder
                 .comment("Locations of where an atlas will be scanned for. By default only hotbar will be scanned")
-                .defineEnum("activation_locations", ActivationLocation.HOTBAR_AND_HANDS);
+                .define("activation_locations", ActivationLocation.HOTBAR_AND_HANDS);
 
         creativeTeleport = builder
                 .comment("Allows players in creative to teleport using the atlas. Hold shift and press anywhere")
@@ -51,7 +54,7 @@ public class MapAtlasesConfig {
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
                 .define("round_robin", false);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
-                .defineInRange("map_updates_per_tick", 1, 0, 9);
+                .define("map_updates_per_tick", 1, 0, 9);
 
         mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues")
                 .define("multithreaded_update", true);
@@ -63,7 +66,7 @@ public class MapAtlasesConfig {
         lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
                         .define("light_map", false);
 
-        spec = builder.build();
+        SPEC = builder.buildAndRegister();
     }
 
     public static final Supplier<Boolean> debugUpdate;
@@ -80,7 +83,11 @@ public class MapAtlasesConfig {
     public static final Supplier<String> pinMarkerId;
     public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<ActivationLocation> activationLocation;
-    public static final ForgeConfigSpec spec;
+
+    public static final ConfigSpec SPEC;
 
 
+    public static void init(){
+
+    }
 }

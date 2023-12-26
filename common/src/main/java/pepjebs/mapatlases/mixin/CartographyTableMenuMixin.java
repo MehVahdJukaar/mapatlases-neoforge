@@ -13,7 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,10 +23,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -67,7 +67,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     void mapAtlasUpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
         if (!topItem.is(MapAtlasesMod.MAP_ATLAS.get())) return;
         // cut map
-        if (bottomItem.is(Tags.Items.SHEARS)) {
+        if (PlatStuff.isShear(bottomItem)) {
             this.access.execute((world, blockPos) -> {
                 var maps = MapAtlasItem.getMaps(topItem, world);
                 if (maps.isEmpty()) return;
@@ -86,8 +86,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                MapCollectionCap resultMaps = MapAtlasItem.getMaps(result, world);
-                MapCollectionCap bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
+                IMapCollection resultMaps = MapAtlasItem.getMaps(result, world);
+                IMapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
                 if (resultMaps.getScale() != bottomMaps.getScale()) return;
                 int[] idsToADd = bottomMaps.getAllIds();
                 for (var i : idsToADd) {
@@ -119,7 +119,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
                 Integer mapId = MapItem.getMapId(bottomItem);
-                MapCollectionCap maps = MapAtlasItem.getMaps(result, world);
+                IMapCollection maps = MapAtlasItem.getMaps(result, world);
                 if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();

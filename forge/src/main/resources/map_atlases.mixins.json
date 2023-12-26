@@ -6,7 +6,8 @@
   "client": [
   ],
   "mixins": [
-
+    "FriendlyByteBufMixin",
+    "SelfMapAtlasItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

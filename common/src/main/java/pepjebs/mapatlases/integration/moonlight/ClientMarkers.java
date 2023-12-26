@@ -9,6 +9,7 @@ import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -31,7 +32,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fml.loading.FMLPaths;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -70,7 +70,7 @@ public class ClientMarkers {
         mapLookup.clear();
         //if not in multiplayer we have folder name here
         String fileName = lastFolderName == null ? levelName : lastFolderName;
-        currentPath = FMLPaths.GAMEDIR.get()
+        currentPath = PlatHelper.getGamePath()
                 .resolve("map_atlases/" + lastType.getSerializedName()
                         + "/" + fileName + ".nbt");
 

@@ -16,9 +16,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 import java.util.HashSet;
@@ -72,7 +72,7 @@ public class EntityRadar {
             EntityType<?> type = entity.getType();
             if (type == EntityType.PLAYER)
                 return null;
-            if (type.is(Tags.EntityTypes.BOSSES))
+            if (PlatStuff.isBoss(type))
                 return BOSS_PIN;
             if (entity instanceof Enemy)
                 return HOSTILE_PIN;
@@ -81,6 +81,7 @@ public class EntityRadar {
             return PASSIVE_PIN;
         });
     }
+
 
     public static Set<MapBlockMarker<?>> send(Integer integer, MapItemSavedData data) {
         ClientLevel level = Minecraft.getInstance().level;

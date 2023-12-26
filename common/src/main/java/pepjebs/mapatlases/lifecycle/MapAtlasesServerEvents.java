@@ -21,14 +21,14 @@ import net.minecraftforge.fml.LogicalSide;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
-import pepjebs.mapatlases.capabilities.MapKey;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -127,7 +127,7 @@ public class MapAtlasesServerEvents {
 
             Level level = player.level();
             ResourceKey<Level> dimension = level.dimension();
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
             // sets new center map
@@ -216,7 +216,7 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, MapCollectionCap maps, MapKey activeKey) {
+    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, IMapCollection maps, MapKey activeKey) {
         Slice slice = activeKey.slice();
         var dimension = activeKey.slice().dimension();
         var tree = maps.getHeightTree(dimension, slice.type());
@@ -305,7 +305,7 @@ public class MapAtlasesServerEvents {
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
-            MapCollectionCap maps,
+            IMapCollection maps,
             Slice slice,
             int destX,
             int destZ
@@ -407,7 +407,7 @@ public class MapAtlasesServerEvents {
 
             Level level = sp.level();
             ResourceKey<Level> dimension = level.dimension();
-            MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
             // sets new center map

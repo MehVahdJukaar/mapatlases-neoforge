@@ -16,10 +16,9 @@ import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.RecipeMatcher;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -102,7 +101,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         atlas.getOrCreateTag();
-        MapCollectionCap maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapAtlasItem.setSelectedSlice(atlas, holder.slice);
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
