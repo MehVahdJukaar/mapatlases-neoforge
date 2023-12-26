@@ -1,0 +1,43 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+
+license = "${mod_license}"
+issueTrackerURL = "${mod_github}/issues"
+
+[[mods]]
+    modId = "supplementaries"
+    version = "${mod_version}"
+    displayName = "${mod_name}"
+    logoFile = "icon.png"
+    authors = "${mod_authors}"
+    credits = "${mod_credits}"
+    description = '''${mod_description}'''
+    modUrl = "${mod_homepage}"
+
+
+[modproperties.supplementaries]
+    catalogueItemIcon = "map_atlases:atlas" #catalogue icon
+    configuredBackground = "minecraft:textures/block/cartography_table_side3.png"
+
+[[dependencies.supplementaries]]
+    modId = "forge"
+    mandatory = true
+    versionRange = "${neo_version_range}"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.supplementaries]]
+    modId = "minecraft"
+    mandatory = true
+    versionRange = "[${minecraft_min_version},${minecraft_max_version})"
+    ordering = "NONE"
+    side = "BOTH"
+
+[[dependencies.supplementaries]]
+    modId = "moonlight"
+    mandatory = true
+    versionRange = "[${required_moonlight_version},]"
+    ordering = "NONE"
+    side = "BOTH"
+
+

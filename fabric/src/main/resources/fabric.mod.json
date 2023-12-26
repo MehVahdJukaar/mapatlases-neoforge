@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contact": {
+    "homepage": "${mod_homepage}",
+    "sources": "${mod_github}"
+  },
+  "license": "${mod_license}",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "pepjebs.mehvahdjukaar.fabric.MapAtlasesFabric"
+    ],
+    "client": [
+      "pepjebs.mehvahdjukaar.fabric.SupplementariesFabricClient"
+    ],
+    "modmenu": [
+      "pepjebs.mehvahdjukaar.supplementaries.integration.fabric.ModMenuCompat"
+    ],
+    "rei_client": [
+      "net.mehvahdjukaar.supplementaries.integration.REICompat"
+    ],
+    "jei_mod_plugin": [
+      "net.mehvahdjukaar.supplementaries.integration.JEICompat"
+    ],
+    "emi": [
+      "pepjebs.mehvahdjukaar.supplementaries.integration.fabric.EMICompat"
+    ]
+  },
+  "mixins": [
+    "${mod_id}.mixins.json",
+    "${mod_id}-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}",
+    "moonlight": ">=${required_moonlight_version}"
+  },
+  "suggests": {
+    "sleep_tight": "*"
+  }
+}
