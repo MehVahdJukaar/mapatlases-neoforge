@@ -55,7 +55,7 @@ public class SliceArrowButton extends BookmarkButton {
         else this.parentScreen.increaseSlice();
     }
 
-    @Override
+    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }

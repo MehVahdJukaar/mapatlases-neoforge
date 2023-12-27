@@ -201,7 +201,7 @@ public class AtlasOverviewScreen extends Screen {
                     this.onClose();
                 }).bounds(this.width / 2 - 100, pY, 98, 20).build());
                 this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), (button) -> {
-                    MapAtlasesNetworking.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
+                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
                     this.onClose();
                 }).bounds(this.width / 2 + 2, pY, 98, 20).build());
             } else {
@@ -639,7 +639,7 @@ public class AtlasOverviewScreen extends Screen {
             selectedSlice = newSlice;
             sliceButton.setSlice(selectedSlice);
             //notify server
-            MapAtlasesNetworking.sendToServer(new C2SSelectSlicePacket(selectedSlice,
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SSelectSlicePacket(selectedSlice,
                     lectern == null ? null : lectern.getBlockPos()));
             //update the client immediately
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice);
@@ -738,4 +738,7 @@ public class AtlasOverviewScreen extends Screen {
         return v;
     }
 
+    public Minecraft getMinecraft() {
+        return minecraft;
+    }
 }

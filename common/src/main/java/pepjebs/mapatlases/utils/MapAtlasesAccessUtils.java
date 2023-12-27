@@ -127,7 +127,7 @@ public class MapAtlasesAccessUtils {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-                MapAtlasesNetworking.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
+                MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
             }
         }
     }

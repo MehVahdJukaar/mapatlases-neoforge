@@ -173,7 +173,7 @@ public class ClientMarkers {
 
     private static MapDecorationType<?, ?> getPinAt(int index) {
         var pins = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                .getTag(PINS).get().stream().sorted(Comparator.comparing(h -> h.unwrapKey().get())).toList();
+                .getTag(PINS).get().stream().sorted(Comparator.comparing(h -> h.unwrapKey().get().toString())).toList();
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.PlatStuff;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -44,11 +45,11 @@ public class C2STeleportPacket implements Message {
                                            double pX, double pY, double pZ
 
     ) {
-        EntityTeleportEvent event = ForgeEventFactory.onEntityTeleportCommand(player, pX, pY, pZ);
-        if (event.isCanceled()) return false;
-        pX = event.getTargetX();
-        pY = event.getTargetY();
-        pZ = event.getTargetZ();
+        var result = PlatStuff.fireTeleportEvent(player, pX, pY, pZ);
+        if (result.getFirst()) return false;
+        pX = result.getSecond().x;
+        pY = result.getSecond().y;
+        pZ = result.getSecond().z;
         BlockPos blockpos = BlockPos.containing(pX, pY, pZ);
         if (Level.isInSpawnableBounds(blockpos)) {
             if (player.teleportTo(pLevel, pX, pY, pZ, EnumSet.noneOf(RelativeMovement.class),

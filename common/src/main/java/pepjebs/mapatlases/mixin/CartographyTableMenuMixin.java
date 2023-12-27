@@ -138,7 +138,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         if (slot.hasItem()) {
             ItemStack stack = slot.getItem();
 
-            if (stack.is(Tags.Items.SHEARS)) {
+            if (PlatStuff.isShear(stack)) {
                 if (!this.moveItemStackTo(stack, 1, 1, false)) {
                     info.setReturnValue(ItemStack.EMPTY);
                     return;

@@ -17,6 +17,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -38,7 +39,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     public MapAtlasCreateRecipe(ResourceLocation id, CraftingBookCategory category, NonNullList<Ingredient> ingredients) {
         super(id, category);
         this.ingredients = ingredients;
-        this.isSimple = ingredients.stream().allMatch(Ingredient::isSimple);
+        this.isSimple = PlatStuff.isSimple(ingredients);
     }
 
     @Override
@@ -66,10 +67,9 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
                 else inputs.add(itemstack);
             }
         }
-
         boolean matches = i == this.ingredients.size() && hasMap &&
                 (isSimple ? stackedcontents.canCraft(this, null) :
-                        RecipeMatcher.findMatches(inputs, this.ingredients) != null);
+                        PlatStuff.findMatches(inputs, ingredients));
 
         if (matches) {
             levelReference = new WeakReference<>(level);

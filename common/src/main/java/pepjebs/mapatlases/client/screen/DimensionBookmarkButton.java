@@ -64,7 +64,7 @@ public class DimensionBookmarkButton extends BookmarkButton {
         parentScreen.selectDimension(dimension);
     }
 
-    @Override
+    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }

@@ -34,8 +34,8 @@ public class MapAtlasesClientImpl {
     private static class MapAtlasesHUDImpl extends MapAtlasesHUD implements IGuiOverlay {
 
         @Override
-        public void render(ForgeGui forgeGui, GuiGraphics arg, float f, int i, int j) {
-            super.render(forgeGui, arg, f, i, j);
+        public void render(ForgeGui forgeGui, GuiGraphics graphics, float f, int i, int j) {
+            super.render(graphics, f, i, j);
         }
     }
 

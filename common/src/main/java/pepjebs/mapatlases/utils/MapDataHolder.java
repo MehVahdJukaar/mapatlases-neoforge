@@ -71,7 +71,7 @@ public class MapDataHolder {
             ((MapItem) type.filled).update(player.level(), player, data);
         }
         if (MapAtlasesConfig.debugUpdate.get()) {
-            MapAtlasesNetworking.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
+            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
         }
     }
 

@@ -65,4 +65,6 @@ public interface IMapCollection {
 
 
     default void fixDuplicates(Level level){};
+
+    boolean hasOneSlice();
 }

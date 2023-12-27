@@ -76,7 +76,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
     }
 
-    @Override
+    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }
@@ -203,7 +203,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
                 String targetId = d.getKey();
                 if (targetId.equals(decorationId)) {
                     //we cant use string id because server has them diferent...
-                    MapAtlasesNetworking.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
+                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
                     decorations.remove(d.getKey());
                     return;
                 }

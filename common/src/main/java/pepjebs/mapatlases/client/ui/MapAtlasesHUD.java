@@ -24,6 +24,7 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -380,8 +381,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     }
 
     private static void drawStringWithLighterShadow(GuiGraphics context, Font font, String text, float x, float y) {
-        context.drawString(font, text, x + 1, y + 1, 0x595959, false);
-        context.drawString(font, text, x, y, 0xE0E0E0, false);
+        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0x595959, false);
+        PlatStuff.drawString(context, font, text, x, y, 0xE0E0E0, false);
     }
 
     public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {

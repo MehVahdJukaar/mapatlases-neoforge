@@ -20,7 +20,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.forge.MapAtlasesClientImpl;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
-import pepjebs.mapatlases.map_collection.forge.IMapCollectionImpl;
+import pepjebs.mapatlases.map_collection.forge.CapStuff;
 
 @Mod(MapAtlasesMod.MOD_ID)
 public class MapAtlasesForge {
@@ -30,7 +30,7 @@ public class MapAtlasesForge {
 
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        bus.addListener(IMapCollectionImpl::register);
+        bus.addListener(CapStuff::register);
 
         MinecraftForge.EVENT_BUS.register(this);
 

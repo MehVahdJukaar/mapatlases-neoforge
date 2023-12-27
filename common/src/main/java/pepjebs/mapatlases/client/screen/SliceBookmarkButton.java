@@ -69,7 +69,7 @@ public class SliceBookmarkButton extends BookmarkButton {
         pose.popPose();
     }
 
-    @Override
+    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         parentScreen.cycleSliceType();
     }

@@ -167,7 +167,7 @@ public class MapAtlasItem extends Item {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
         }
-        MapAtlasesNetworking.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
+        MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {

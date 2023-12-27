@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.forge.IMapCollectionImpl;
+import pepjebs.mapatlases.map_collection.forge.CapStuff;
 
 @Mixin(MapAtlasItem.class)
 public abstract class SelfMapAtlasItemMixin extends Item {
@@ -23,7 +23,7 @@ public abstract class SelfMapAtlasItemMixin extends Item {
     @Nullable
     @Override
     public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        return new IMapCollectionImpl. Provider();
+        return new CapStuff.Provider();
     }
 
 
@@ -32,7 +32,7 @@ public abstract class SelfMapAtlasItemMixin extends Item {
     @Override
     public CompoundTag getShareTag(ItemStack stack) {
         CompoundTag baseTag = stack.getTag();
-        var cap = stack.getCapability(IMapCollectionImpl.ATLAS_CAP_TOKEN, null).resolve().get();
+        var cap = stack.getCapability(CapStuff.ATLAS_CAP_TOKEN, null).resolve().get();
         if (baseTag == null) baseTag = new CompoundTag();
         baseTag = baseTag.copy();
         baseTag.put(SHARE_TAG, cap.serializeNBT());
@@ -44,7 +44,7 @@ public abstract class SelfMapAtlasItemMixin extends Item {
         if (tag != null && tag.contains(SHARE_TAG)) {
             CompoundTag capTag = tag.getCompound(SHARE_TAG);
             tag.remove(SHARE_TAG);
-            var cap = stack.getCapability(IMapCollectionImpl.ATLAS_CAP_TOKEN, null).resolve().get();
+            var cap = stack.getCapability(CapStuff.ATLAS_CAP_TOKEN, null).resolve().get();
             cap.deserializeNBT(capTag);
         }
         stack.setTag(tag);

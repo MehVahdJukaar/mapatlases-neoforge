@@ -5,3 +5,12 @@ accessible class net/minecraft/client/gui/MapRenderer$MapInstance
 accessible field net/minecraft/world/level/saveddata/maps/MapItemSavedData decorations Ljava/util/Map;
 
 accessible field net/minecraft/client/multiplayer/ClientLevel mapData Ljava/util/Map;
+
+accessible field net/minecraft/client/gui/components/Tooltip cachedTooltip Ljava/util/List;
+
+accessible field net/minecraft/world/inventory/TransientCraftingContainer menu Lnet/minecraft/world/inventory/AbstractContainerMenu;
+accessible field net/minecraft/world/inventory/CraftingMenu player Lnet/minecraft/world/entity/player/Player;
+accessible field net/minecraft/world/inventory/InventoryMenu owner Lnet/minecraft/world/entity/player/Player;
+
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen leftPos I
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen topPos I

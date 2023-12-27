@@ -1,106 +1,47 @@
 package pepjebs.mapatlases.map_collection.fabric;
 
-import net.minecraft.resources.ResourceKey;
+import dev.onyxstudios.cca.api.v3.item.ItemComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.map_collection.IMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.map_collection.MapCollection;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.function.Predicate;
+import java.util.Optional;
 
 // For fabric.
 // Or use cardinal components.
 // Less optimized as it deserializes the stuff every time but at least doesn't have syncing issues
-public class IMapCollectionImpl implements IMapCollection {
+public class IMapCollectionImpl extends ItemComponent {
 
+    @Nullable
+    private MapCollection instance = null;
+
+    public IMapCollectionImpl(ItemStack stack) {
+        super(stack);
+    }
 
     public static IMapCollection get(ItemStack stack, Level level) {
-        return new IMapCollectionImpl(stack, level);
+        Optional<IMapCollectionImpl> resolve = CCStuff.MAP_COLLECTION_COMPONENT.maybeGet(stack);
+        if (resolve.isEmpty()) {
+            throw new AssertionError("Map Atlas cca was empty. How is this possible? Culprit itemstack " + stack);
+        }
+        IMapCollectionImpl cap = resolve.get();
+        return cap.getOrCreateInstance(level);
     }
 
-    private final ItemStack atlas;
-    private final Level level;
-
-    public IMapCollectionImpl(ItemStack stack, Level level) {
-        this.atlas = stack;
-        this.level = level;
-    }
-    @Override
-    public boolean add(int mapId, Level level) {
-        return false;
-    }
-
-    @Override
-    public boolean remove(MapDataHolder obj) {
-        return false;
+    public MapCollection getOrCreateInstance(Level level) {
+        if (instance == null) {
+            instance = new MapCollection() {
+                @Override
+                public boolean isInitialized() {
+                    return super.isInitialized();
+                }
+            };
+            instance.initialize(level);
+        }
+        return instance;
     }
 
 
-    @Override
-    public int getCount() {
-        return 0;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return false;
-    }
-
-    @Override
-    public byte getScale() {
-        return 0;
-    }
-
-    @Override
-    public int[] getAllIds() {
-        return new int[0];
-    }
-
-    @Override
-    public Collection<ResourceKey<Level>> getAvailableDimensions() {
-        return null;
-    }
-
-    @Override
-    public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
-        return null;
-    }
-
-    @Override
-    public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type) {
-        return null;
-    }
-
-    @Override
-    public List<MapDataHolder> selectSection(Slice slice) {
-        return null;
-    }
-
-    @Override
-    public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
-        return null;
-    }
-
-    @Override
-    public MapDataHolder select(MapKey key) {
-        return null;
-    }
-
-    @Override
-    public @Nullable MapDataHolder getClosest(double x, double z, Slice slice) {
-        return null;
-    }
-
-    @Override
-    public List<MapDataHolder> getAll() {
-        return null;
-    }
 }
