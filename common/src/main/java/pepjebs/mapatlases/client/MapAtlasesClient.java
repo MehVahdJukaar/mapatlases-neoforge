@@ -123,11 +123,11 @@ public class MapAtlasesClient {
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
-                MapDataHolder closest = maps.getClosest(player, slice);
-                if (closest != null) {
-                    currentActiveMapKey = closest.makeKey();
-                    currentActiveMap = closest;
-                }
+                select = maps.getClosest(player, slice);
+            }
+            if(select != null){
+                currentActiveMapKey = select.makeKey();
+                currentActiveMap = select;
             }
         }
     }

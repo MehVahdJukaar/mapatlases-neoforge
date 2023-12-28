@@ -66,6 +66,7 @@ public class MapAtlasesMod {
         RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
 
         //TODO
+        //make update faster for small radius maps
         //lectern marker
         //sound
         //soap clear recipe

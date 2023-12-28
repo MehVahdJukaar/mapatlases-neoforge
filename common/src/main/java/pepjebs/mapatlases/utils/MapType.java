@@ -49,7 +49,7 @@ public enum MapType {
         this.keyPrefix = keyPrefix;
         this.filled = filled;
         this.empty = empty;
-        this.translationKey = filled == null ? "missing" : filled.getDescriptionId();
+        this.translationKey = filled == null ? "Missing" : filled.getDescriptionId();
     }
 
     public static MapType fromKey(String mapString, MapItemSavedData data) {

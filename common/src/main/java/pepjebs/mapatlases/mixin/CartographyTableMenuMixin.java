@@ -31,6 +31,7 @@ import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -55,8 +56,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
 
     @Unique
     private int mapatlases$selectedMapIndex;
+    @Nullable
     @Unique
-    private Integer mapatlases$selectedSliceHeight;
+    private Slice mapatlases$selectedSlice;
 
     protected CartographyTableMenuMixin(@Nullable MenuType<?> arg, int i) {
         super(arg, i);
@@ -76,7 +78,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 }
                 MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
                 ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.id);
-                this.mapatlases$selectedSliceHeight = map.height;
+                this.mapatlases$selectedSlice = map.slice;
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();
                 info.cancel();
@@ -164,9 +166,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         return mapatlases$selectedMapIndex;
     }
 
+    @Nullable
     @Override
-    public @Nullable Integer mapatlases$getSelectedSliceHeight() {
-        return mapatlases$selectedSliceHeight;
+    public Slice mapatlases$getSelectedSlice() {
+        return mapatlases$selectedSlice;
     }
 
     @Override
@@ -199,9 +202,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     try {
                         MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
                         if (map != null) {
-                            this.mapatlases$selectedSliceHeight = map.height;
+                            this.mapatlases$selectedSlice = map.slice;
                         } else {
-                            this.mapatlases$selectedSliceHeight = null;
+                            this.mapatlases$selectedSlice = null;
                         }
                     }catch (Exception e){
                         //aa ERROR

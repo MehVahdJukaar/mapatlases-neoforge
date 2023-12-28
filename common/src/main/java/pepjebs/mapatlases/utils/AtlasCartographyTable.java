@@ -12,5 +12,5 @@ public interface AtlasCartographyTable {
     void mapatlases$removeSelectedMap(ItemStack atlas);
 
     @Nullable
-    Integer mapatlases$getSelectedSliceHeight();
+    Slice mapatlases$getSelectedSlice();
 }
