@@ -14,12 +14,18 @@ import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 
+import java.util.Random;
+
 public class PinNameBox extends EditBox {
 
+    //static so they persist on new screen
+    private static float currentIndex = new Random().nextInt(10);
+    private static float displayIndex = currentIndex;
+    private static float displayIndexO = displayIndex;
+
+
     private final Runnable onDone;
-    private float displayIndex = 0;
-    private float displayIndexO = 0;
-    private float currentIndex = 0;
+
     private boolean markerHovered = false;
 
     private int scrollVisibleCounter = 0;
@@ -74,7 +80,7 @@ public class PinNameBox extends EditBox {
             ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, 0,
                     closestInd, this.markerHovered, aa);
 
-            if(popIn!=0) {
+            if (popIn != 0) {
                 p.pushPose();
                 for (int j = 1; j < 4; j++) {
                     int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
@@ -140,13 +146,17 @@ public class PinNameBox extends EditBox {
     @Override
     protected boolean clicked(double pMouseX, double pMouseY) {
         if (this.markerHovered) {
-            this.currentIndex++;
-            this.displayIndex = (int) currentIndex;
-            this.displayIndexO = displayIndex;
+            increasePinIndex();
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return false;
         }
         return super.clicked(pMouseX, pMouseY);
+    }
+
+    public void increasePinIndex() {
+        this.currentIndex++;
+        this.displayIndex = (int) currentIndex;
+        this.displayIndexO = displayIndex;
     }
 
     @Override

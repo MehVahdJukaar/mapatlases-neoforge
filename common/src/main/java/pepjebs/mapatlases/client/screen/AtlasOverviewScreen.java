@@ -700,6 +700,7 @@ public class AtlasOverviewScreen extends Screen {
         if (partialPin != null) {
             String text = editBox.getValue();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
+            editBox.increasePinIndex();
             focusEditBox(false);
             partialPin = null;
 
