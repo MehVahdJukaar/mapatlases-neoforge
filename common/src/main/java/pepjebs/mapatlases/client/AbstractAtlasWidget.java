@@ -52,8 +52,8 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize(MapDataHolder newCenter) {
-        if (mapWherePlayerIs != null && !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
+    protected void initialize( MapDataHolder newCenter) {
+        if (mapWherePlayerIs == null || !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
             this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
         }
         this.mapWherePlayerIs = newCenter;

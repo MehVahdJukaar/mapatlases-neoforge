@@ -44,7 +44,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     private final int height;
 
     private float cumulativeZoomValue;
-    private float startZoom = 1;
     private float cumulativeMouseX = 0;
     private float cumulativeMouseY = 0;
 
@@ -226,6 +225,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             cumulativeZoomValue = Math.max(cumulativeZoomValue, 0);
             zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
             zl = Math.max(zl, 0);
+            float startZoom = 1;
             targetZoomLevel = Mth.clamp(startZoom + (2 * zl) + 1f, minZoom, maxZoom);
         }
 

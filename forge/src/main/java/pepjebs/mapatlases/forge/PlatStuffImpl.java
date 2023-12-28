@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.forge;
 
-import com.ibm.icu.impl.Pair;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.NonNullList;
@@ -39,6 +39,6 @@ public class PlatStuffImpl {
 
     public static Pair<Boolean, Vec3> fireTeleportEvent(ServerPlayer player, double pX, double pY, double pZ) {
         EntityTeleportEvent event = ForgeEventFactory.onEntityTeleportCommand(player, pX, pY, pZ);
-        return Pair.of(event.isCanceled(), new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
+        return  Pair.of(event.isCanceled(), new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
     }
 }

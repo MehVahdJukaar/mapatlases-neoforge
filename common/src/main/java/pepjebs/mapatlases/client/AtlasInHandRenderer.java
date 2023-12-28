@@ -11,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
-import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class AtlasInHandRenderer {
@@ -31,16 +29,17 @@ public class AtlasInHandRenderer {
     public static void render(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, ItemStack pStack, Minecraft mc) {
         if (mc.screen instanceof AtlasOverviewScreen) return;
 
-        MapAtlasesClient.setIsDrawingAtlas(true);
-        pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        pPoseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-        pPoseStack.scale(MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE);
-        pPoseStack.translate(MAP_GLOBAL_X_POS, MAP_GLOBAL_Y_POS, MAP_GLOBAL_Z_POS);
-        pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
 
-        MapKey activeMapKey = MapAtlasesClient.getActiveMapKey();
-        MapDataHolder state = MapAtlasItem.getMaps(pStack, mc.level).select(activeMapKey);
+        MapDataHolder state = MapAtlasesClient.getActiveMap();
         if (state != null) {
+            MapAtlasesClient.setIsDrawingAtlas(true);
+            pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            pPoseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+            pPoseStack.scale(MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE, MAP_PRE_ROT_SCALE);
+            pPoseStack.translate(MAP_GLOBAL_X_POS, MAP_GLOBAL_Y_POS, MAP_GLOBAL_Z_POS);
+            pPoseStack.scale(MAP_FINAL_SCALE, MAP_FINAL_SCALE, MAP_FINAL_SCALE);
+
+
             MapItemSavedData data = state.data;
             VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
             Matrix4f matrix4f = pPoseStack.last().pose();
@@ -51,8 +50,8 @@ public class AtlasInHandRenderer {
             if (data != null) {
                 mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
             }
-        }
-        MapAtlasesClient.setIsDrawingAtlas(false);
 
+            MapAtlasesClient.setIsDrawingAtlas(false);
+        }
     }
 }

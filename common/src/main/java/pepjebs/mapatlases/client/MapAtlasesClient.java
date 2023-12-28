@@ -104,6 +104,7 @@ public class MapAtlasesClient {
 
     @Nullable
     private static MapKey currentActiveMapKey = null;
+    private static MapDataHolder currentActiveMap = null;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
     private static boolean isDrawingAtlas = false;
 
@@ -112,6 +113,8 @@ public class MapAtlasesClient {
         if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
+        currentActiveMap = null;
+        currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
             var maps = MapAtlasItem.getMaps(atlas, player.level());
             maps.fixDuplicates(player.level());
@@ -123,9 +126,10 @@ public class MapAtlasesClient {
                 MapDataHolder closest = maps.getClosest(player, slice);
                 if (closest != null) {
                     currentActiveMapKey = closest.makeKey();
+                    currentActiveMap = closest;
                 }
             }
-        } else currentActiveMapKey = null;
+        }
     }
 
     public static ItemStack getCurrentActiveAtlas() {
@@ -134,6 +138,10 @@ public class MapAtlasesClient {
 
     public static MapKey getActiveMapKey() {
         return currentActiveMapKey;
+    }
+
+    public static MapDataHolder getActiveMap() {
+        return currentActiveMap;
     }
 
     public static void setIsDrawingAtlas(boolean state) {
