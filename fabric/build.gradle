@@ -50,8 +50,8 @@ dependencies {
     //modImplementation("curse.maven:twigs-496913:3943447")
     //modImplementation("curse.maven:frame-api-580137:3943404")
     modCompileOnly("dev.emi:emi:${project.emi_version}+1.19.4:api")
-    //modImplementation("curse.maven:selene-499980:4656566")
-    modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
+    modImplementation("curse.maven:selene-499980:4989110")
+    //modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
 
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixin_extras_version}")))
 
@@ -75,7 +75,8 @@ processResources {
             mod_homepage         : mod_homepage,
             mod_github           : mod_github,
 
-            required_moonlight_version : required_moonlight_version
+            required_moonlight_version : required_moonlight_version,
+            cca_version : cca_version
     ]
     // setting them as input
     inputs.properties replaceProperties
@@ -89,18 +90,20 @@ shadowJar {
     exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    classifier "dev-shadow"
+    archiveClassifier = "dev-shadow"
+
+    zip64 = true
 }
 
 remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    classifier "fabric"
+    archiveClassifier = "fabric"
 }
 
 jar {
-    classifier "dev"
+    archiveClassifier = "dev"
 }
 
 sourcesJar {

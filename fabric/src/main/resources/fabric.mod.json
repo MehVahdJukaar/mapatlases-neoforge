@@ -19,16 +19,24 @@
       "pepjebs.mapatlases.fabric.MapAtlasesFabric"
     ],
     "modmenu": [
-      "pepjebs.mehvahdjukaar.supplementaries.integration.fabric.ModMenuCompat"
+      "pepjebs.mapatlases.integration.fabric.ModMenuCompat"
     ],
     "rei_client": [
-      "net.mehvahdjukaar.supplementaries.integration.REICompat"
+      "pepjebs.mapatlases.integration.REICompat"
     ],
     "jei_mod_plugin": [
-      "net.mehvahdjukaar.supplementaries.integration.JEICompat"
+      "pepjebs.mapatlases.integration.JEICompat"
     ],
     "emi": [
-      "pepjebs.mehvahdjukaar.supplementaries.integration.fabric.EMICompat"
+      "pepjebs.mapatlases.integration.fabric.EMICompat"
+    ],
+    "cardinal-components-item": [
+      "pepjebs.mapatlases.map_collection.fabric.CCStuff"
+    ]
+  },
+  "custom": {
+    "cardinal-components": [
+      "${mod_id}:map_collection"
     ]
   },
   "mixins": [
@@ -38,9 +46,10 @@
   "depends": {
     "fabric": "*",
     "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}",
-    "moonlight": ">=${required_moonlight_version}"
+    "moonlight": ">=${required_moonlight_version}",
+    "cardinal-components-item": ">=${cca_version}"
   },
   "suggests": {
-    "sleep_tight": "*"
+    "supplementaries": "*"
   }
 }

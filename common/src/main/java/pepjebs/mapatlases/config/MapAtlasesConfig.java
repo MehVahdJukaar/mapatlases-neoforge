@@ -14,6 +14,7 @@ public class MapAtlasesConfig {
         ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON);
 
 
+        builder.push("general");
         maxMapCount = builder
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas (-1 to disable).")
                 .define("max_map_count", 512, 0, 10000);
@@ -50,6 +51,10 @@ public class MapAtlasesConfig {
         pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
                 .define("pin_marked_id", "map_atlases:pin");
 
+        lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
+                .define("light_map", false);
+
+        builder.pop();
         builder.push("update_logic");
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
                 .define("round_robin", false);
@@ -63,8 +68,7 @@ public class MapAtlasesConfig {
 
         builder.pop();
 
-        lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
-                        .define("light_map", false);
+
 
         SPEC = builder.buildAndRegister();
     }

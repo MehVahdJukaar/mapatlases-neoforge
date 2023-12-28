@@ -8,8 +8,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.Material;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +28,8 @@ import java.util.Map;
 
 public abstract class AbstractAtlasWidget {
 
-    public static final Material MAP_BORDER = new Material(Sheets.SHULKER_SHEET, //so we have mipmap here too
+    public static final Material MAP_BORDER = new Material(
+            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final int MAP_DIMENSION = 128;
@@ -52,7 +53,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     protected void initialize(MapDataHolder newCenter) {
-        if(mapWherePlayerIs != null && !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
+        if (mapWherePlayerIs != null && !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
             this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
         }
         this.mapWherePlayerIs = newCenter;
@@ -149,13 +150,18 @@ public abstract class AbstractAtlasWidget {
             //using this so we use mipmap
             int a = 50;
             for (var matrix4f : outlineHack) {
-                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 1.0F)
+                //cause of vertex consumer chaining bug...
+                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.uv(0.0F, 1.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 1.0F)
+                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.uv(1.0F, 1.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(1.0F, 0.0F)
+                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.uv(1.0F, 0.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a).uv(0.0F, 0.0F)
+                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.uv(0.0F, 0.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
             }
             vcp.endBatch();
@@ -225,12 +231,12 @@ public abstract class AbstractAtlasWidget {
             } else if (type == MapDecoration.Type.PLAYER) {
                 if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
                     removed.add(e);
-                }else{
+                } else {
                     int i = 1 << data.scale;
-                    float f = (float)(player.getX() - data.centerX) / i;
-                    float f1 = (float)(player.getZ() - data.centerZ) / i;
-                    byte b0 = (byte)((int)((f * 2.0F) + 0.5D));
-                    byte b1 = (byte)((int)((f1 * 2.0F) + 0.5D));
+                    float f = (float) (player.getX() - data.centerX) / i;
+                    float f1 = (float) (player.getZ() - data.centerZ) / i;
+                    byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
+                    byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
                             b0, b1, getPlayerMarkerRot(player), dec.getName())));
                     //add accurate player

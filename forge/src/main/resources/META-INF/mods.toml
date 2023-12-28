@@ -1,43 +1,56 @@
-modLoader = "javafml"
-loaderVersion = "${loader_version_range}"
+modLoader="javafml" #mandatory
+loaderVersion="${loader_version_range}" #mandatory
 
-license = "${mod_license}"
-issueTrackerURL = "${mod_github}/issues"
+license="${mod_license}"
+#issueTrackerURL="${mod_github}"
 
-[[mods]]
-    modId = "supplementaries"
-    version = "${mod_version}"
-    displayName = "${mod_name}"
-    logoFile = "icon.png"
-    authors = "${mod_authors}"
-    credits = "${mod_credits}"
-    description = '''${mod_description}'''
-    modUrl = "${mod_homepage}"
+[[mods]] #mandatory
 
+modId="${mod_id}" #mandatory
+version="${mod_version}" #mandatory
+displayName="${mod_name}" #mandatory
+#displayURL="${mod_homepage}"
 
-[modproperties.supplementaries]
-    catalogueItemIcon = "map_atlases:atlas" #catalogue icon
-    configuredBackground = "minecraft:textures/block/cartography_table_side3.png"
+logoFile= "icon.png"
+#credits="${mod_credits}"
+authors="${mod_authors}" #optional
+description='''${mod_description}'''
 
-[[dependencies.supplementaries]]
-    modId = "forge"
-    mandatory = true
-    versionRange = "${neo_version_range}"
-    ordering = "NONE"
-    side = "BOTH"
+[[dependencies.${mod_id}]] #optional
+# the modid of the dependency
+modId="forge" #mandatory
+# Does this dependency have to exist - if not, ordering below must be specified
+mandatory=true #mandatory
+# The version range of the dependency
+versionRange="${neo_version_range}" #mandatory
+# An ordering relationship for the dependency - BEFORE or AFTER required if the dependency is not mandatory
+# BEFORE - This mod is loaded BEFORE the dependency
+# AFTER - This mod is loaded AFTER the dependency
+ordering="NONE"
+# Side this dependency is applied on - BOTH, CLIENT, or SERVER
+side="BOTH"
+# Here's another dependency
+[[dependencies.${mod_id}]]
+modId="minecraft"
+mandatory=true
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange="[${minecraft_min_version},${minecraft_max_version})"
+ordering="NONE"
+side="BOTH"
 
-[[dependencies.supplementaries]]
-    modId = "minecraft"
-    mandatory = true
-    versionRange = "[${minecraft_min_version},${minecraft_max_version})"
-    ordering = "NONE"
-    side = "BOTH"
+[[dependencies.${mod_id}]]
+modId="moonlight"
+mandatory=false
+# This version range declares a minimum of the current minecraft version up to but not including the next major version
+versionRange="[${required_moonlight_version},]"
+ordering="NONE"
+side="BOTH"
 
-[[dependencies.supplementaries]]
-    modId = "moonlight"
-    mandatory = true
-    versionRange = "[${required_moonlight_version},]"
-    ordering = "NONE"
-    side = "BOTH"
+[modproperties.${mod_id}]
+    catalogueItemIcon = "${mod_id}:map_atlas" #catalogue icon
 
-
+# Features are specific properties of the game environment, that you may want to declare you require. This example declares
+# that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
+# stop your mod loading on the server for example.
+#[features.${mod_id}]
+#openGLVersion="[3.2,)"

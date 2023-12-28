@@ -50,6 +50,7 @@ public interface IMapCollection {
         return select(new MapKey(x, z, slice));
     }
 
+    @Nullable
     MapDataHolder select(MapKey key);
 
 

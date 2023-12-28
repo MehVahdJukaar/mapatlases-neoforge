@@ -133,6 +133,8 @@ public class MapAtlasesClientConfig {
                 .define("follow_player", true);
         builder.pop();
 
+        builder.push("misc");
+
         soundScalar = builder
                 .comment("Multiplier for all the Atlases sound float")
                 .define("soundScalar", 1, 0, 10d);
@@ -141,6 +143,7 @@ public class MapAtlasesClientConfig {
                 .define("in_hand_renderer", InHandMode.NOT_LOCKED);
 
 
+        builder.pop();
 
         builder.push("moonlight_integration");
         moonlightCompat = builder

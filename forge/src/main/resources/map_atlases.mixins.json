@@ -1,8 +1,8 @@
 {
-  "required": true,
   "minVersion": "0.8",
-  "package": "pepjebs.mapatlases.mixin.forge",
+  "required": true,
   "compatibilityLevel": "JAVA_17",
+  "package": "pepjebs.mapatlases.mixin.forge",
   "client": [
   ],
   "mixins": [

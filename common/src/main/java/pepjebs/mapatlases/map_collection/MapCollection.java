@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 // The porpoise of this object is to save a datastructures with all available maps so we dont have to keep deserializing nbt
-public abstract class MapCollection implements IMapCollection{
+public class MapCollection implements IMapCollection{
 
 
     public static final String MAP_LIST_NBT = "maps";
