@@ -136,8 +136,8 @@ dependencies {
 
     modImplementation("net.mehvahdjukaar:moonlight-forge:${rootProject.moonlight_version}")
 
-
-    modImplementation("curse.maven:supplementaries-412082:4865567")
+    modImplementation("net.mehvahdjukaar:supplementaries:${rootProject.supplementaries_version}")
+    // modImplementation("curse.maven:supplementaries-412082:4865567")
     modImplementation("curse.maven:config-menus-forge-544048:4672356")
     modImplementation("curse.maven:the-twilight-forest-227639:4802174")
     modCompileOnly("curse.maven:xaeros-world-map-317780:4749572")

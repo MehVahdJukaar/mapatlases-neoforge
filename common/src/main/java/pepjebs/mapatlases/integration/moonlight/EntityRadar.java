@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -78,7 +79,11 @@ public class EntityRadar {
                 return HOSTILE_PIN;
             if (entity instanceof NeutralMob)
                 return NEUTRAL_PIN;
-            return PASSIVE_PIN;
+            if(entity instanceof Animal){
+                return PASSIVE_PIN;
+            }
+            //excludes armor stands and such
+            return null;
         });
     }
 

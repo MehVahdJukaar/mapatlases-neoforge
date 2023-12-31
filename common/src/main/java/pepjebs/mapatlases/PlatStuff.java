@@ -40,6 +40,7 @@ public class PlatStuff {
     public static boolean findMatches(List<ItemStack> inputs, NonNullList<Ingredient> ingredients) {
         throw new AssertionError();
     }
+
     @ExpectPlatform
     public static Pair<Boolean, Vec3> fireTeleportEvent(ServerPlayer player, double pX, double pY, double pZ) {
         throw new AssertionError();

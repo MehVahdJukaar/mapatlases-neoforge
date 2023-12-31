@@ -3,14 +3,19 @@ package pepjebs.mapatlases.networking;
 import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.PlatStuff;
@@ -83,10 +88,22 @@ public class C2STeleportPacket implements Message {
 
         ServerLevel level = player.getServer().getLevel(dimension);
 
-        int y = this.y == null ? (
-                level != player.level() ? level.getMaxBuildHeight() :
-                        level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z)
-        ) : this.y;
+        int y;
+        if (this.y == null) {
+           var chunk = level.getChunk(SectionPos.blockToSectionCoord(x),SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
+            if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
+                y = level.getMaxBuildHeight();
+                MinecraftServer server = level.getServer();
+                server.tell(new TickTask(server.getTickCount(), () -> {
+                    performTeleport(player, level, x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);
+                }));
+            } else {
+                y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+
+            }
+        } else {
+            y = this.y;
+        }
 
 
         if (performTeleport(player, level, x, y, z)) {

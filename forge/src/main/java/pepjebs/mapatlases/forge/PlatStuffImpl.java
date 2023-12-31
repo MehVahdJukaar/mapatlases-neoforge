@@ -22,11 +22,11 @@ public class PlatStuffImpl {
     }
 
     public static boolean isBoss(EntityType<?> type) {
-        return         type.is( Tags.EntityTypes.BOSSES);
+        return type.is(Tags.EntityTypes.BOSSES);
     }
 
     public static void drawString(GuiGraphics g, Font font, String text, float x, float y, int i, boolean b) {
-        g.drawString(font,text,x,y,i,b);
+        g.drawString(font, text, x, y, i, b);
     }
 
     public static boolean isSimple(NonNullList<Ingredient> ingredients) {
@@ -39,6 +39,6 @@ public class PlatStuffImpl {
 
     public static Pair<Boolean, Vec3> fireTeleportEvent(ServerPlayer player, double pX, double pY, double pZ) {
         EntityTeleportEvent event = ForgeEventFactory.onEntityTeleportCommand(player, pX, pY, pZ);
-        return  Pair.of(event.isCanceled(), new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
+        return Pair.of(event.isCanceled(), new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
     }
 }

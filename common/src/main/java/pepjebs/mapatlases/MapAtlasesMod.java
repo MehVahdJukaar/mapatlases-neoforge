@@ -66,7 +66,7 @@ public class MapAtlasesMod {
         RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
 
         //TODO
-        //make update faster for small radius maps
+        //make map texture updates happen way less frequently. Delay upload maybe
         //lectern marker
         //sound
         //soap clear recipe
@@ -115,5 +115,6 @@ public class MapAtlasesMod {
 
 
     private static InteractionResult hack = InteractionResult.PASS;
+
 
 }

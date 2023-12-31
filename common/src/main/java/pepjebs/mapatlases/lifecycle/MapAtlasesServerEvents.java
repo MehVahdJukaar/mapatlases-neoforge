@@ -51,7 +51,6 @@ public class MapAtlasesServerEvents {
         private double currentPriority; //bigger the better
         private boolean hasBlankPixels = true;
         private int lastI = 0;
-        private int lastJ = 0;
         private final float lowUpdateWeight;
 
         private MapUpdateTicket(MapDataHolder data) {
@@ -71,8 +70,8 @@ public class MapAtlasesServerEvents {
             this.waitTime++;
             double distSquared = Mth.lengthSquared(px - holder.data.centerX, pz - holder.data.centerZ);
             // Define weights for distance and waitTime
-            double movingDistanceWeight = 10; // Adjust this based on your preference
-            double staticDistanceWeight = 10000; // Adjust this based on your preference
+            double movingDistanceWeight = 1; // Adjust this based on your preference
+            double staticDistanceWeight = 5000; // Adjust this based on your preference
             double waitTimeWeight = 1; // Adjust this based on your preference
 
             // Calculate the priority using a weighted sum
@@ -83,14 +82,10 @@ public class MapAtlasesServerEvents {
 
         public void updateHasBlankPixels() {
             if (hasBlankPixels) {
-                for (lastI = 0; lastI < 128; lastI++) {
-                    int k = lastI % 2 == 0 ? lastI : 127 - lastI;
-                    for (lastJ = 0; lastJ < 128; lastJ++) {
-                        int m = lastJ % 2 == 0 ? lastJ : 127 - lastJ;
-                        if (this.holder.data.colors[k + m * 128] == 0) {
-                            //for slice maps...
-                            return;
-                        }
+                for (; lastI < this.holder.data.colors.length; lastI++) {
+                    if (this.holder.data.colors[lastI] == 0) {
+                        //for slice maps...
+                        return;
                     }
                 }
                 hasBlankPixels = false;
@@ -259,7 +254,7 @@ public class MapAtlasesServerEvents {
                 totalWeight += ticket.getUpdateFrequencyWeight();
             }
         }
-        float callsPerTick = totalWeight / 9; // default with nine empty maps around
+        float callsPerTick = totalWeight / (nearbyExistentMaps.size()); // default with nine empty maps around
         float counter = tup.getA() + callsPerTick;
         boolean shouldUpdate = false;
         if (counter >= 1) {
