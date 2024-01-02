@@ -322,4 +322,8 @@ public class MapAtlasesClient {
     public static void increaseHoodZoom() {
         throw new AssertionError();
     }
+
+    public static int uploadFrequency() {
+        return 500;
+    }
 }

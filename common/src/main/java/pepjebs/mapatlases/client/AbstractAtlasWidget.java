@@ -18,6 +18,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -90,9 +91,7 @@ public abstract class AbstractAtlasWidget {
 
         // Draw maps, putting active map in middle of grid
 
-        //MultiBufferSource.BufferSource vcp = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
         MultiBufferSource.BufferSource vcp = graphics.bufferSource();
-
 
         List<Matrix4f> outlineHack = new ArrayList<>();
 
@@ -146,6 +145,9 @@ public abstract class AbstractAtlasWidget {
         vcp.endBatch();
 
         if (showBorders) {
+
+            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
+
             VertexConsumer outlineVC = MAP_BORDER.buffer(vcp, RenderType::text); //its already on block atlas
             //using this so we use mipmap
             int a = 50;
@@ -165,12 +167,15 @@ public abstract class AbstractAtlasWidget {
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
             }
             vcp.endBatch();
+
+            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
         }
 
         poseStack.popPose();
         graphics.disableScissor();
 
         MapAtlasesClient.setIsDrawingAtlas(false);
+
     }
 
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {

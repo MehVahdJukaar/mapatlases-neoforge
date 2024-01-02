@@ -137,6 +137,7 @@ dependencies {
     modImplementation("net.mehvahdjukaar:moonlight-forge:${rootProject.moonlight_version}")
 
     modImplementation("net.mehvahdjukaar:supplementaries:${rootProject.supplementaries_version}")
+
     // modImplementation("curse.maven:supplementaries-412082:4865567")
     modImplementation("curse.maven:config-menus-forge-544048:4672356")
     modImplementation("curse.maven:the-twilight-forest-227639:4802174")
@@ -144,7 +145,7 @@ dependencies {
     modCompileOnly("curse.maven:xaeros-minimap-263420:4812568")
     modRuntimeOnly("curse.maven:spark-361579:4738952")
 
-    modCompileOnly("maven.modrinth:immediatelyfast:1.2.8+1.20.4-forge")
+    modImplementation("maven.modrinth:immediatelyfast:1.2.8+1.20.4-forge")
     modCompileOnly("curse.maven:modernfix-790626:4599348")
 
     modCompileOnly("curse.maven:jei-238222:3928388")

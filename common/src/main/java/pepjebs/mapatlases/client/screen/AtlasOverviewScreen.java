@@ -304,8 +304,10 @@ public class AtlasOverviewScreen extends Screen {
             poseStack.translate(width / 2f, height / 2f, 0);
             poseStack.scale(globalScale, globalScale, 1);
 
-            RenderSystem.enableDepthTest();
 
+            poseStack.pushPose();
+
+            RenderSystem.enableDepthTest();
             //background
             graphics.blit(
                     texture,
@@ -331,21 +333,8 @@ public class AtlasOverviewScreen extends Screen {
                     256
             );
 
-            poseStack.translate(-width / 2f, -height / 2f, 0);
-
-
-            //render widgets
-            poseStack.pushPose();
-            var v = transformMousePos(mouseX, mouseY);
-            super.render(graphics, (int) v.x, (int) v.y, delta);
-            poseStack.popPose();
-
-            RenderSystem.enableDepthTest();
-
-            poseStack.pushPose();
-
-            poseStack.translate(width / 2f, height / 2f, 1);
-
+            poseStack.translate(0,0,1);
+            //background overlay
             graphics.blit(
                     texture,
                     H_BOOK_WIDTH - 10,
@@ -368,6 +357,15 @@ public class AtlasOverviewScreen extends Screen {
                     TEXTURE_W,
                     256
             );
+            poseStack.popPose();
+
+            //render widgets
+            poseStack.pushPose();
+            RenderSystem.enableDepthTest();
+
+            poseStack.translate(-width / 2f, -height / 2f, 0.2);
+            var v = transformMousePos(mouseX, mouseY);
+            super.render(graphics, (int) v.x, (int) v.y, delta);
             poseStack.popPose();
 
             poseStack.popPose();

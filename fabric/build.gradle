@@ -34,6 +34,8 @@ dependencies {
     modCompileOnly("curse.maven:modmenu-308702:3920481") {
         exclude module: "fabric-api"
     }
+    modImplementation("maven.modrinth:immediatelyfast:1.2.8+1.20.4-fabric")
+    modRuntimeOnly("curse.maven:spark-361579:4738953")
 
     //modImplementation("curse.maven:roughly-enough-items-310111:4440734")
     modRuntimeOnly("curse.maven:architectury-419699:4581904")
@@ -50,7 +52,7 @@ dependencies {
     //modImplementation("curse.maven:twigs-496913:3943447")
     //modImplementation("curse.maven:frame-api-580137:3943404")
     modCompileOnly("dev.emi:emi:${project.emi_version}+1.19.4:api")
-    modImplementation("curse.maven:selene-499980:4989110")
+    modImplementation("curse.maven:selene-499980:5000806")
     //modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
 
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixin_extras_version}")))

@@ -98,15 +98,18 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     public void render(GuiGraphics graphics, float partialTick,
                        int screenWidth, int screenHeight) {
         // Handle early returns
-        if (mc.level == null || mc.player == null) {
+        // Check F3 menu displayed
+        if (mc.level == null || mc.player == null || mc.options.renderDebug) {
             return;
         }
-
-        // Check F3 menu displayed
-        if (mc.options.renderDebug) return;
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
+        if (atlas.isEmpty()) return;
+
+        MapDataHolder activeMap = MapAtlasesClient.getActiveMap();
+        currentMapKey = MapAtlasesClient.getActiveMapKey();
+        if (activeMap == null || currentMapKey == null) return;
 
         if (MapAtlasesClientConfig.hideWhenInHand.get() && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get()) ||
                 mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
@@ -116,19 +119,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         }
         currentAtlas = atlas;
 
-        if (atlas.isEmpty()) return;
-
         ClientLevel level = mc.level;
         LocalPlayer player = mc.player;
 
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        currentMapKey = MapAtlasesClient.getActiveMapKey();
-        if (currentMapKey == null) return;
-        MapDataHolder activeMap = maps.select(currentMapKey);
-        if (activeMap == null) return;
-
-
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
         if (needsInit) {
             needsInit = false;
             initialize(activeMap);
@@ -179,8 +172,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
             }
         }
 
-        graphics.blit(MAP_BACKGROUND, x, y, BG_SIZE, BG_SIZE, 0, 0,
-                BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE, BACKGROUND_SIZE);
+
+
 
         // Draw map data
 
@@ -205,10 +198,25 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? LightTexture.FULL_BRIGHT :
                 LightTexture.pack(0, level.getBrightness(LightLayer.SKY, player.getOnPos().above()));
         int borderSize = (BG_SIZE - mapWidgetSize) / 2;
+
+       // RenderSystem.enableDepthTest();
+
         drawAtlas(graphics, x + borderSize, y + borderSize,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light);
+
+
+
+        // Draws background, player icon, cardinal dir, pos and direction
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
+
+        RenderSystem.enableDepthTest();
+        graphics.blit(MAP_BACKGROUND, x, y,-2,0,0, BG_SIZE, BG_SIZE,
+                BG_SIZE, BG_SIZE);
+        RenderSystem.disableDepthTest();
+
 
         MapAtlasesClient.setDecorationsScale(1);
         if (rotatesWithPlayer) {
@@ -235,9 +243,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
         int textHeightOffset = 2;
         int actualBgSize = (int) (BG_SIZE * globalScale);
-        if (!anchorLocation.isUp) {
-            //textHeightOffset = -actualBgSize + ;
-        }
+
         Font font = mc.font;
         boolean global = MapAtlasesClientConfig.drawMinimapCoords.get();
         boolean local = MapAtlasesClientConfig.drawMinimapChunkCoords.get();
