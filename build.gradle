@@ -78,6 +78,7 @@ subprojects {
                     relations {
                         requiredDependency("fabric-api")
                         requiredDependency("selene")
+                        requiredDependency("cardinal-components-api")
 
                         optionalDependency("trinkets")
                         optionalDependency("supplementaries")

@@ -31,12 +31,19 @@ public class IMapCollectionImpl extends ItemComponent implements IMapCollection 
     }
 
     public static IMapCollection get(ItemStack stack, Level level) {
-        Optional<IMapCollectionImpl> resolve = CCStuff.MAP_COLLECTION_COMPONENT.maybeGet(stack);
-        if (resolve.isEmpty()) {
-            throw new AssertionError("Map Atlas cca was empty. How is this possible? Culprit itemstack " + stack);
+        try {
+            Optional<IMapCollectionImpl> resolve = CCStuff.MAP_COLLECTION_COMPONENT.maybeGet(stack);
+
+            if (resolve.isEmpty()) {
+                throw new AssertionError("Map Atlas cca was empty. How is this possible? Culprit itemstack " + stack);
+            }
+            IMapCollectionImpl cap = resolve.get();
+            return cap.getOrCreateInstance(level);
+        } catch (Exception e) {
+            throw new AssertionError("Cardinal Component for Map Atlases could not be gathered." +
+                    "This is a Cardinal Component bug! ", e);
         }
-        IMapCollectionImpl cap = resolve.get();
-        return cap.getOrCreateInstance(level);
+
     }
 
     protected IMapCollection getOrCreateInstance(Level level) {

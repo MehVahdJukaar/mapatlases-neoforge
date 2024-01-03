@@ -1,1 +1,1 @@
-fixed crash on fabric on server
+fixed server crash
