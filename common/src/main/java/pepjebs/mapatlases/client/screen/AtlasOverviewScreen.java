@@ -135,7 +135,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public void removeBookmark(DecorationBookmarkButton pListener) {
         this.removeWidget(pListener);
-        decorationBookmarks.remove(pListener);
+        recalculateDecorationWidgets();
     }
 
     @Override

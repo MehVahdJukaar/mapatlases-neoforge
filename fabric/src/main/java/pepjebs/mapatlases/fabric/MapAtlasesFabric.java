@@ -1,9 +1,12 @@
 package pepjebs.mapatlases.fabric;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 
 public class MapAtlasesFabric implements ModInitializer {
@@ -20,8 +23,13 @@ public class MapAtlasesFabric implements ModInitializer {
         });
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesFabricClient.clientInit();
+
+            ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->  MapAtlasesClientEvents.onLoggedOut());
         }
 
+        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
+            if(joined)MapAtlasesServerEvents.onPlayerJoin(player);
+        });
     }
 
 

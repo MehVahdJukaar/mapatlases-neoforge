@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -374,21 +375,29 @@ public class MapAtlasesServerEvents {
     }
 
 
-    public static void onPlayerJoin(ServerPlayer sp) {
+    public static void onPlayerJoin(ServerPlayer player) {
         if (MapAtlasesMod.MOONLIGHT) {
-            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(sp, new S2CWorldHashPacket(sp));
+            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
         }
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(sp);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
-        Level level = sp.level();
+        Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
-        MapKey activeKey = MapKey.at(maps.getScale(), sp, slice);
-        sendSlicesAboveAndBelow(sp, atlas, maps, activeKey);
+        MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
+        sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
+
+        //TODO: figure out why its not synced automatically
+        if (PlatHelper.getPlatform().isFabric()) {
+            for (var info : maps.getAll()) {
+                // update all maps and sends them to player, if needed
+                MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
+            }
+        }
     }
 
 

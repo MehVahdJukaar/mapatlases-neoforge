@@ -1,1 +1,1 @@
-fixed server crash
+fixed client markers not saving or loading at all

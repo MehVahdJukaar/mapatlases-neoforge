@@ -19,11 +19,13 @@ import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderSet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.tags.TagKey;
@@ -50,7 +52,7 @@ import java.util.*;
 public class ClientMarkers {
 
     private static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
-    private static final WeakHashMap<MapDecorationType<?,?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
+    private static final WeakHashMap<MapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
@@ -88,13 +90,14 @@ public class ClientMarkers {
     }
 
     public static void saveClientMarkers() {
-        if (markers.isEmpty()) return;
+        if (markers.isEmpty() || currentPath == null) return;
         try {
-            if (currentPath != null && !Files.exists(currentPath)) {
+            if (!Files.exists(currentPath)) {
                 Files.createDirectories(currentPath.getParent());
             }
             try (OutputStream outputstream = new FileOutputStream(currentPath.toFile())) {
                 NbtIo.writeCompressed(save(), outputstream);
+                MapAtlasesMod.LOGGER.info("Saved {} client map waypoints", markers.size());
             }
 
         } catch (Exception ignored) {
@@ -172,8 +175,15 @@ public class ClientMarkers {
     }
 
     private static MapDecorationType<?, ?> getPinAt(int index) {
-        var pins = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                .getTag(PINS).get().stream().sorted(Comparator.comparing(h -> h.unwrapKey().get().toString())).toList();
+        Optional<HolderSet.Named<MapDecorationType<?, ?>>> tag = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
+        if (tag.isEmpty()) {
+            throw new AssertionError("map_atlases:pins tag was empty or not found. How is this possible?");
+        }
+        var pins = tag.get().stream().sorted(Comparator.comparing(h -> {
+            Optional<ResourceKey<MapDecorationType<?, ?>>> key = h.unwrapKey();
+            if (key.isEmpty()) throw new AssertionError("Registry key for MapDecorationType was null. How?");
+            return key.get().toString();
+        })).toList();
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 
@@ -217,7 +227,7 @@ public class ClientMarkers {
                     matrixStack.translate(a, b, 5);
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
-                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType(), t->
+                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType(), t ->
                             Utils.getID(t).withPath(k -> "map_marker/" + k + "_small"));
                     TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
@@ -226,7 +236,6 @@ public class ClientMarkers {
             }
         }
     }
-
 
 
     //TODO: register custom marker type to allow for fancier renderer on maps when focused

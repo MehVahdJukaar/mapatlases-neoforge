@@ -64,7 +64,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
         renderStaticMarker(pGuiGraphics, decoration.getType(), getX() + width / 2f, getY() + height / 2f,
-                2, decoration instanceof PinDecoration p && p.isFocused(), 255);
+                1, decoration instanceof PinDecoration p && p.isFocused(), 255);
     }
 
     @Override
