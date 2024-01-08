@@ -14,44 +14,28 @@ public class C2SRemoveMarkerPacket implements Message {
 
     private final int decoHash;
     private final String mapId;
-    private final String customDeco;
+    private final boolean isCustom;
 
     public C2SRemoveMarkerPacket(FriendlyByteBuf buf) {
         this.mapId = buf.readUtf();
-        if(buf.readBoolean()){
-            customDeco = buf.readUtf();
-            decoHash = 0;
-        }else{
-            customDeco = "";
-            decoHash = buf.readVarInt();
-        }
+        this.decoHash = buf.readVarInt();
+        this.isCustom = buf.readBoolean();
     }
 
-    public C2SRemoveMarkerPacket(String map, int decoId) {
+    public C2SRemoveMarkerPacket(String map, int decoId, boolean custom) {
         // Sending hash, hacky.
         // Have to because client doesn't know deco id
         this.decoHash = decoId;
         this.mapId = map;
-        this.customDeco = "";
-    }
-
-    public C2SRemoveMarkerPacket(String map, String decoName) {
-        // Sending hash, hacky.
-        // Have to because client doesn't know deco id
-        this.decoHash = 0;
-        this.mapId = map;
-        this.customDeco = decoName;
+        this.isCustom = custom;
     }
 
     @Override
     public void writeToBuffer(FriendlyByteBuf buf) {
         buf.writeUtf(mapId);
-        buf.writeBoolean(!customDeco.isEmpty());
-        if(!customDeco.isEmpty()){
-            buf.writeUtf(customDeco);
-        }else{
-            buf.writeVarInt(decoHash);
-        }
+        buf.writeVarInt(decoHash);
+        buf.writeBoolean(isCustom);
+
     }
 
     @Override
@@ -62,10 +46,10 @@ public class C2SRemoveMarkerPacket implements Message {
         MapItemSavedData data = level.getMapData(mapId);
 
         if (data != null) {
-            if (customDeco.isEmpty()) {
+            if (!isCustom) {
                 removeBannerMarker(data, level, decoHash);
             } else if (MapAtlasesMod.MOONLIGHT) {
-                MoonlightCompat.removeCustomDecoration(data, customDeco);
+                MoonlightCompat.removeCustomDecoration(data, decoHash);
             }
         }
 

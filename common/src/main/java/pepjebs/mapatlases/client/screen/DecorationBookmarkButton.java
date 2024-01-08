@@ -148,7 +148,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         return false;
     }
 
-    protected boolean canDeleteMarker(){
+    protected boolean canDeleteMarker() {
         return true;
     }
 
@@ -156,7 +156,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public static class Vanilla extends DecorationBookmarkButton {
 
         private final MapDecoration decoration; // might not match what on map
-        private final boolean isBanner ;
+        private final boolean isBanner;
+
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration, String decoId) {
             super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
@@ -209,16 +210,16 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         @Override
         protected void deleteMarker() {
             Map<String, MapDecoration> decorations = mapData.data.decorations;
-            for (var d : decorations.entrySet()) {
-                String targetId = d.getKey();
-                if (targetId.equals(decorationId)) {
-                    //we cant use string id because server has them diferent...
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId,
-                            d.getValue().hashCode()));
-                    decorations.remove(d.getKey());
-                    return;
-                }
+            var d = decorations.get(decorationId);
+            if (d != null) {
+                //we cant use string id because server has them different...
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId,
+                        d.hashCode(), false));
+
+                //removes immediately from client so we update gui
+                decorations.remove(decorationId);
             }
+
         }
     }
 

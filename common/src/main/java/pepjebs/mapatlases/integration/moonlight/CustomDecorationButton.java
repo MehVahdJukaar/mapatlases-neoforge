@@ -18,7 +18,6 @@ import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Locale;
-import java.util.Map;
 
 
 public class CustomDecorationButton extends DecorationBookmarkButton {
@@ -97,17 +96,18 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void deleteMarker() {
-        Map<String, CustomMapDecoration> decorations = ((ExpandedMapData) mapData.data).getCustomDecorations();
-        for (var d : decorations.entrySet()) {
-            String targetKey = d.getKey();
-            if (targetKey.equals(decorationId)) {
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getKey()));
-                decorations.remove(d.getKey());
-                ClientMarkers.removeDeco(mapData.stringId, d.getKey());
-                return;
+        //in case this is is a pin
+        if (!ClientMarkers.removeDeco(mapData.stringId, decorationId)) {
+            //otherwise, tell server it got removed
+            var decorations = ((ExpandedMapData)mapData.data).getCustomDecorations();
+            var d = decorations.get(decorationId);
+            if (d != null) {
+                //we cant use string id because server has them diferent...
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.hashCode(), true));
+                //also removes immediately from client side
+                decorations.remove(decorationId);
             }
         }
-        int aa = 1;
     }
 
     public static void renderStaticMarker(GuiGraphics pGuiGraphics,

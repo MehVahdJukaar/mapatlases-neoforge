@@ -51,8 +51,10 @@ dependencies {
     //modImplementation("curse.maven:twigs-496913:3943447")
     //modImplementation("curse.maven:frame-api-580137:3943404")
     modCompileOnly("dev.emi:emi:${project.emi_version}+1.19.4:api")
-    modImplementation("curse.maven:selene-499980:5000806")
-    //modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
+    //modImplementation("curse.maven:selene-499980:5000806")
+    modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
+    modImplementation("net.mehvahdjukaar:supplementaries-fabric:${supplementaries_version}")
+    //modImplementation("curse.maven:supplementaries-412082:5011371")
 
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixin_extras_version}")))
 

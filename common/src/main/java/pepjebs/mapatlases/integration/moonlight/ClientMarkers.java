@@ -187,7 +187,7 @@ public class ClientMarkers {
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 
-    public static void removeDeco(String mapId, String key) {
+    public static boolean removeDeco(String mapId, String key) {
         var mr = markers.get(mapId);
         if (mr != null) {
             mr.removeIf(m -> m.getMarkerId().equals(key));
@@ -196,6 +196,7 @@ public class ClientMarkers {
         for (var v : markersPerSlice.values()) {
             v.removeIf(m -> m.getMarkerId().equals(key));
         }
+        return mr != null;
     }
 
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {

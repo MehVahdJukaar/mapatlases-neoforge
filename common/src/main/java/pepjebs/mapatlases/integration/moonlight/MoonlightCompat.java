@@ -59,9 +59,18 @@ public class MoonlightCompat {
     }
 
 
-    public static void removeCustomDecoration(MapItemSavedData data, String name) {
+    public static void removeCustomDecoration(MapItemSavedData data, int hash) {
         if (data instanceof ExpandedMapData d) {
-            d.removeCustomMarker(name);
+            String selected = null;
+            for (var v : d.getCustomDecorations().entrySet()) {
+                if (v.getValue().hashCode() == hash) {
+                    selected = v.getKey();
+                }
+            }
+            if (selected == null || !d.removeCustomMarker(selected)) {
+                MapAtlasesMod.LOGGER.warn("Tried to delete custom marker with name {} but none was found. Available were {}",
+                        hash, d.getCustomMarkers().keySet());
+            }
         }
     }
 
