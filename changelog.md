@@ -1,1 +1,1 @@
-fixed client markers not saving or loading at all
+fixed markers deletion from UI not working

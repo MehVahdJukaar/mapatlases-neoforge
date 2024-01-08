@@ -142,6 +142,10 @@ public class MapAtlasesClientConfig {
         inHandMode = builder.comment("Render atlas like normal map when in hand")
                 .define("in_hand_renderer", InHandMode.NOT_LOCKED);
 
+        markersScale = builder.comment("Scale multiplier for Map Markers on the atlas")
+                        .define("map_markers_scale", 1, 0, 10f);
+        markersTextScale = builder.comment("Scale multiplier for Map Markers text on the atlas")
+                .define("map_markers_text_scale", 1, 0, 10f);
 
         builder.pop();
 
@@ -203,6 +207,8 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapCrossair;
     public static final Supplier<Boolean> hideWhenInHand;
     public static final Supplier<InHandMode> inHandMode;
+    public static final Supplier<Double> markersScale;
+    public static final Supplier<Double> markersTextScale;
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;

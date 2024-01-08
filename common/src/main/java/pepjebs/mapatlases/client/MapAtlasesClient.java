@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
@@ -125,7 +126,7 @@ public class MapAtlasesClient {
             if (select == null) {
                 select = maps.getClosest(player, slice);
             }
-            if(select != null){
+            if (select != null) {
                 currentActiveMapKey = select.makeKey();
                 currentActiveMap = select;
             }
@@ -255,6 +256,7 @@ public class MapAtlasesClient {
     public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
         Float scale = globalDecorationScale.get();
         if (scale != null) {
+            scale *= (float) (double) MapAtlasesClientConfig.markersTextScale.get();
             float s = textWidth * textScale / 2.0F;
             poseStack.translate(s, -4, 0);
 
@@ -275,7 +277,10 @@ public class MapAtlasesClient {
             poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
         }
         Float scale = globalDecorationScale.get();
-        if (scale != null) poseStack.scale(scale, scale, 1);
+        if (scale != null) {
+            scale *= (float) (double) MapAtlasesClientConfig.markersScale.get();
+            poseStack.scale(scale, scale, 1);
+        }
     }
 
 
@@ -309,8 +314,8 @@ public class MapAtlasesClient {
     }
 
     private static final Cache<String, Integer> CACHE = CacheBuilder.newBuilder()
-            .maximumSize(100) // Set your desired maximum size
-            .expireAfterAccess(10, TimeUnit.SECONDS) // Set your desired time for validity
+            .maximumSize(100)
+            .expireAfterAccess(10, TimeUnit.SECONDS)
             .build();
 
     @ExpectPlatform
@@ -323,7 +328,4 @@ public class MapAtlasesClient {
         throw new AssertionError();
     }
 
-    public static int uploadFrequency() {
-        return 500;
-    }
 }

@@ -113,7 +113,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             if (this.control && canFocusMarker()) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 173, 5, 5);
-            } else if (this.shfting) {
+            } else if (this.shfting && canDeleteMarker()) {
                 graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
                         24, 167, 5, 5);
             }
@@ -133,7 +133,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         if (control && canFocusMarker()) {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
         }
-        if (shfting) {
+        if (shfting && canDeleteMarker()) {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
         Component mapIconComponent = getDecorationName();
@@ -148,15 +148,25 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         return false;
     }
 
+    protected boolean canDeleteMarker(){
+        return true;
+    }
+
 
     public static class Vanilla extends DecorationBookmarkButton {
 
         private final MapDecoration decoration; // might not match what on map
-
+        private final boolean isBanner ;
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration, String decoId) {
             super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
             this.setTooltip(createTooltip());
+            this.isBanner = decoration.getType().name().startsWith("BANNER");
+        }
+
+        @Override
+        protected boolean canDeleteMarker() {
+            return isBanner;
         }
 
         @Override
@@ -203,7 +213,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
                 String targetId = d.getKey();
                 if (targetId.equals(decorationId)) {
                     //we cant use string id because server has them diferent...
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
+                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId,
+                            d.getValue().hashCode()));
                     decorations.remove(d.getKey());
                     return;
                 }

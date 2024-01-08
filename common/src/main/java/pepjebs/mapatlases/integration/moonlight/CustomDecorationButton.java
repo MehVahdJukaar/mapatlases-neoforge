@@ -83,7 +83,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected boolean isValidClickButton(int pButton) {
-        return pButton == 0 || (pButton == 1 && canFocusMarker());
+        return (pButton == 0 && canDeleteMarker()) || (pButton == 1 && canFocusMarker());
     }
 
     protected void focusMarker() {
@@ -101,7 +101,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         for (var d : decorations.entrySet()) {
             String targetKey = d.getKey();
             if (targetKey.equals(decorationId)) {
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getValue().hashCode()));
+                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.getKey()));
                 decorations.remove(d.getKey());
                 ClientMarkers.removeDeco(mapData.stringId, d.getKey());
                 return;

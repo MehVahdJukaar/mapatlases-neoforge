@@ -59,9 +59,9 @@ public class MoonlightCompat {
     }
 
 
-    public static void removeCustomDecoration(MapItemSavedData data, int hash) {
+    public static void removeCustomDecoration(MapItemSavedData data, String name) {
         if (data instanceof ExpandedMapData d) {
-            d.getCustomDecorations().entrySet().removeIf(e -> e.getValue().hashCode() == hash);
+            d.removeCustomMarker(name);
         }
     }
 
