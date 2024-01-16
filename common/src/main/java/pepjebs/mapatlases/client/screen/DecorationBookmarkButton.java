@@ -39,6 +39,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
         this.mapData = data;
         this.decorationId = id;
+        this.shfting = Screen.hasShiftDown();
+        this.control = Screen.hasShiftDown();
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
@@ -70,9 +72,9 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         this.setSelected(true);
         if (shfting) {
             this.deleteMarker();
-            parentScreen.removeBookmark(this);
+            parentScreen.recalculateDecorationWidgets();
         } else {
-            parentScreen.focusDecoration(this);
+            parentScreen.centerOnDecoration(this);
         }
     }
 

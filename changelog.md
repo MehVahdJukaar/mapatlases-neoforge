@@ -1,1 +1,1 @@
-fixed markers deletion from UI not working
+fixed division by zero when atlas had 0 slices and one would try to switch it

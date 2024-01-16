@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.integration.moonlight;
 
+import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapHelper;
@@ -62,14 +63,14 @@ public class MoonlightCompat {
     public static void removeCustomDecoration(MapItemSavedData data, int hash) {
         if (data instanceof ExpandedMapData d) {
             String selected = null;
-            for (var v : d.getCustomDecorations().entrySet()) {
-                if (v.getValue().hashCode() == hash) {
+            for (var v : d.getCustomMarkers().entrySet()) {
+                CustomMapDecoration decorationFromMarker = v.getValue().createDecorationFromMarker(data);
+                if (decorationFromMarker != null && decorationFromMarker.hashCode() == hash) {
                     selected = v.getKey();
                 }
             }
             if (selected == null || !d.removeCustomMarker(selected)) {
-                MapAtlasesMod.LOGGER.warn("Tried to delete custom marker with name {} but none was found. Available were {}",
-                        hash, d.getCustomMarkers().keySet());
+                MapAtlasesMod.LOGGER.warn("Tried to delete custom marker but none was found");
             }
         }
     }

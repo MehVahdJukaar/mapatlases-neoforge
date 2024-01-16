@@ -153,16 +153,17 @@ public abstract class AbstractAtlasWidget {
             int a = 50;
             for (var matrix4f : outlineHack) {
                 //cause of vertex consumer chaining bug...
-                outlineVC.vertex(matrix4f, 0.0F, 128.0F, -0.02F).color(255, 255, 255, a);
+                float zOffset = -0.01F;
+                outlineVC.vertex(matrix4f, 0.0F, 128.0F, zOffset).color(255, 255, 255, a);
                 outlineVC.uv(0.0F, 1.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 128.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.vertex(matrix4f, 128.0F, 128.0F, zOffset).color(255, 255, 255, a);
                 outlineVC.uv(1.0F, 1.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 0.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.vertex(matrix4f, 128.0F, 0.0F, zOffset).color(255, 255, 255, a);
                 outlineVC.uv(1.0F, 0.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 0.0F, 0.0F, -0.02F).color(255, 255, 255, a);
+                outlineVC.vertex(matrix4f, 0.0F, 0.0F, zOffset).color(255, 255, 255, a);
                 outlineVC.uv(0.0F, 0.0F)
                         .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
             }

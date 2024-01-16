@@ -47,7 +47,9 @@ public class C2SRemoveMarkerPacket implements Message {
 
         if (data != null) {
             if (!isCustom) {
-                removeBannerMarker(data, level, decoHash);
+                if(!removeBannerMarker(data, level, decoHash)){
+                    MapAtlasesMod.LOGGER.warn("Tried to delete banner marker but none was found");
+                }
             } else if (MapAtlasesMod.MOONLIGHT) {
                 MoonlightCompat.removeCustomDecoration(data, decoHash);
             }
@@ -96,7 +98,7 @@ public class C2SRemoveMarkerPacket implements Message {
                     c = 127;
                 }
             }
-            MapDecoration mapDecoration = new MapDecoration(type, b, c, d, mapBanner.getName());
+            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b+1), (byte) (c+1), d, mapBanner.getName());
 
             if (mapDecoration.hashCode() == hash) {
                 data.toggleBanner(level, mapBanner.getPos());

@@ -133,11 +133,6 @@ public class AtlasOverviewScreen extends Screen {
         return selectedSlice;
     }
 
-    public void removeBookmark(DecorationBookmarkButton pListener) {
-        this.removeWidget(pListener);
-        decorationBookmarks.remove(pListener);
-        recalculateDecorationWidgets();
-    }
 
     @Override
     protected void init() {
@@ -515,7 +510,7 @@ public class AtlasOverviewScreen extends Screen {
         recalculateDecorationWidgets();
     }
 
-    private void recalculateDecorationWidgets() {
+    public void recalculateDecorationWidgets() {
         for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
@@ -594,7 +589,7 @@ public class AtlasOverviewScreen extends Screen {
         widgets.forEach(this::addRenderableWidget);
     }
 
-    public void focusDecoration(DecorationBookmarkButton button) {
+    public void centerOnDecoration(DecorationBookmarkButton button) {
         int x = (int) button.getWorldX();
         int z = (int) button.getWorldZ();
         this.mapWidget.resetAndCenter(x, z, false, true);
@@ -623,13 +618,15 @@ public class AtlasOverviewScreen extends Screen {
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         ResourceKey<Level> dim = selectedSlice.dimension();
         var slices = new ArrayList<>(maps.getAvailableTypes(dim));
-        int index = slices.indexOf(selectedSlice.type());
-        index = (index + 1) % slices.size();
-        MapType type = slices.get(index);
-        TreeSet<Integer> heightTree = maps.getHeightTree(dim, type);
-        Integer ceiling = heightTree.floor(selectedSlice.heightOrTop());
-        if (ceiling == null) ceiling = heightTree.first();
-        updateSlice(Slice.of(type, ceiling, dim));
+        if(slices.size != 0) {
+            int index = slices.indexOf(selectedSlice.type());
+            index = (index + 1) % slices.size();
+            MapType type = slices.get(index);
+            TreeSet<Integer> heightTree = maps.getHeightTree(dim, type);
+            Integer ceiling = heightTree.floor(selectedSlice.heightOrTop());
+            if (ceiling == null) ceiling = heightTree.first();
+            updateSlice(Slice.of(type, ceiling, dim));
+        }
     }
 
     private boolean updateSlice(Slice newSlice) {
