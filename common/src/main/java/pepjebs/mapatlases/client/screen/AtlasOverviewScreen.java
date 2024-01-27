@@ -618,7 +618,7 @@ public class AtlasOverviewScreen extends Screen {
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         ResourceKey<Level> dim = selectedSlice.dimension();
         var slices = new ArrayList<>(maps.getAvailableTypes(dim));
-        if(slices.size != 0) {
+        if(!slices.isEmpty()) {
             int index = slices.indexOf(selectedSlice.type());
             index = (index + 1) % slices.size();
             MapType type = slices.get(index);

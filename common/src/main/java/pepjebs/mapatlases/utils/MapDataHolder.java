@@ -62,6 +62,8 @@ public class MapDataHolder {
     public void updateMap(ServerPlayer player) {
         if (MapAtlasesConfig.mapUpdateMultithreaded.get()) {
             EXECUTORS.submit(() -> {
+                //the only unsafe operation that this does is data.getHoldingPlayer
+                //we need to redirect it.
                 ((MapItem) type.filled).update(player.level(), player, data);
             });
             //update markers on the main thread. has to be done because block entities cant be accessed off thread

@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -66,15 +67,22 @@ public class ClientMarkers {
         lastType = type;
     }
 
+    public static void deleteAllMarkersData(String levelName) {
+        try {
+            var path = getDataPath(levelName, QuickPlayLog.Type.SINGLEPLAYER);
+            Files.deleteIfExists(path);
+        } catch (Exception e) {
+            MapAtlasesMod.LOGGER.error("Could not delete client markers saved data of world " + levelName, e);
+        }
+    }
+
     public static void loadClientMarkers(long seed, String levelName) {
         markers.clear();
         markersPerSlice.clear();
         mapLookup.clear();
         //if not in multiplayer we have folder name here
         String fileName = lastFolderName == null ? levelName : lastFolderName;
-        currentPath = PlatHelper.getGamePath()
-                .resolve("map_atlases/" + lastType.getSerializedName()
-                        + "/" + fileName + ".nbt");
+        currentPath = getDataPath(fileName, lastType);
 
         try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
             load(NbtIo.readCompressed(inputStream));
@@ -89,6 +97,12 @@ public class ClientMarkers {
         lastType = QuickPlayLog.Type.SINGLEPLAYER;
     }
 
+    @NotNull
+    private static Path getDataPath(String fileName, QuickPlayLog.Type type) {
+        return PlatHelper.getGamePath()
+                .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
+    }
+
     public static void saveClientMarkers() {
         if (markers.isEmpty() || currentPath == null) return;
         try {
@@ -100,7 +114,8 @@ public class ClientMarkers {
                 MapAtlasesMod.LOGGER.info("Saved {} client map waypoints", markers.size());
             }
 
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            MapAtlasesMod.LOGGER.error("Could not save client markers saved data at " + currentPath, e);
         }
         markers.clear();
     }

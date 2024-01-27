@@ -29,6 +29,7 @@ public class PlatStuff {
     @Environment(EnvType.CLIENT)
     @ExpectPlatform
     public static void drawString(GuiGraphics g, Font font, String text, float x, float y, int i, boolean b) {
+
         throw new AssertionError();
     }
 

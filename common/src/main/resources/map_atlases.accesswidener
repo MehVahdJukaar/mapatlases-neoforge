@@ -14,3 +14,5 @@ accessible field net/minecraft/world/inventory/InventoryMenu owner Lnet/minecraf
 
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen leftPos I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen topPos I
+
+accessible method net/minecraft/world/level/saveddata/maps/MapItemSavedData$HoldingPlayer <init> (Lnet/minecraft/world/level/saveddata/maps/MapItemSavedData;Lnet/minecraft/world/entity/player/Player;)V

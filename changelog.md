@@ -1,1 +1,2 @@
-fixed division by zero when atlas had 0 slices and one would try to switch it
+fixed a rare race issue that could crash when multithreading map update was on
+client markers data will now be deleted when you delete a world

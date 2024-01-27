@@ -21,7 +21,8 @@
     "ItemInHandRendererMixin",
     "LecternRendererMixin",
     "MapRendererMixin",
-    "QuickPlayLogHackMixin"
+    "QuickPlayLogHackMixin",
+    "WorldSelectionListMixin"
   ],
   "injectors": {
     "defaultRequire": 1
