@@ -61,10 +61,12 @@ public class MapAtlasesConfig {
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
                 .define("map_updates_per_tick", 1, 0, 9);
 
-        mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues")
-                .define("multithreaded_update", true);
+        mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues. Especially on servers. Try turning on for a big performance improvement regarding map atlas update")
+                .define("multithreaded_update", UpdateType.SINGLE_PLAYER_ONLY);
         debugUpdate = builder.comment("Visually shows map updates")
                 .define("debug_map_updates", false);
+        markersUpdatePeriod = builder.comment("Every how many ticks should markers be updated")
+                        .define("markers_update_period", 10, 1, 200);
 
         builder.pop();
 
@@ -74,7 +76,8 @@ public class MapAtlasesConfig {
     }
 
     public static final Supplier<Boolean> debugUpdate;
-    public static final Supplier<Boolean> mapUpdateMultithreaded;
+    public static final Supplier<Integer> markersUpdatePeriod;
+    public static final Supplier<UpdateType> mapUpdateMultithreaded;
     public static final Supplier<Integer> maxMapCount;
     public static final Supplier<Integer> mapEntryValueMultiplier;
     public static final Supplier<Integer> pityActivationMapCount;
@@ -90,6 +93,9 @@ public class MapAtlasesConfig {
 
     public static final ConfigSpec SPEC;
 
+    public static enum UpdateType{
+        OFF, SINGLE_PLAYER_ONLY, ALWAYS_ON
+    }
 
     public static void init(){
 

@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.utils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.MapItem;
@@ -15,6 +16,7 @@ import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,14 +62,16 @@ public class MapDataHolder {
     }
 
     public void updateMap(ServerPlayer player) {
-        if (MapAtlasesConfig.mapUpdateMultithreaded.get()) {
+        if (canMultiThread(player.level())) {
             EXECUTORS.submit(() -> {
                 //the only unsafe operation that this does is data.getHoldingPlayer
                 //we need to redirect it.
                 ((MapItem) type.filled).update(player.level(), player, data);
             });
             //update markers on the main thread. has to be done because block entities cant be accessed off thread
-            updateMarkers(player);
+
+            //calculate range
+            updateMarkers(player, 128);
 
         } else {
             ((MapItem) type.filled).update(player.level(), player, data);
@@ -77,30 +81,39 @@ public class MapDataHolder {
         }
     }
 
-    private void updateMarkers(Player player) {
-        int step = data.getHoldingPlayer(player).step;
-        int frenquency = 5;
-        if (step % frenquency == 0) {
-            int i = step / frenquency;
+    private static boolean canMultiThread(Level level) {
+        MapAtlasesConfig.UpdateType updateType = MapAtlasesConfig.mapUpdateMultithreaded.get();
+        return switch (updateType) {
+            case OFF -> false;
+            case ALWAYS_ON -> true;
+            case SINGLE_PLAYER_ONLY -> !level.getServer().isPublished();
+        };
+    }
 
-            int j = 0;
+    private void updateMarkers(Player player, int maxRange) {
+        int step = data.getHoldingPlayer(player).step;
+        int frenquency = MapAtlasesConfig.markersUpdatePeriod.get();
+        if (step % frenquency == 0) {
             MapItemSavedDataAccessor accessor = (MapItemSavedDataAccessor) data;
             var markers = accessor.getBannerMarkers();
-            int k = i;
-            if (!markers.isEmpty()) k = k % markers.size();
-            //get nth element
-            for (var m : markers.entrySet()) {
-                if (j++ == k) {
-                    var banner = m.getValue();
-                    MapBanner mapbanner1 = MapBanner.fromWorld(player.level(), banner.getPos());
-                    if (!banner.equals(mapbanner1)) {
-                        markers.remove(m.getKey());
-                        accessor.invokeRemoveDecoration(banner.getId());
+            Iterator<MapBanner> iterator = markers.values().iterator();
+
+            Level level = player.level();
+            while (iterator.hasNext()) {
+                var banner = iterator.next();
+                BlockPos pos = banner.getPos();
+                //update all loaded in range
+                if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
+                    if (level.isLoaded(pos)) {
+                        MapBanner mapbanner1 = MapBanner.fromWorld(level, pos);
+                        if (!banner.equals(mapbanner1)) {
+                            iterator.remove();
+                            accessor.invokeRemoveDecoration(banner.getId());
+                        }
                     }
-                    break;
                 }
             }
-            if (MapAtlasesMod.MOONLIGHT) MoonlightCompat.updateMarkers(data, player.level(), i);
+            if (MapAtlasesMod.MOONLIGHT) MoonlightCompat.updateMarkers(data, player, maxRange);
 
         }
     }

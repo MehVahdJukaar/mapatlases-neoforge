@@ -14,8 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -84,7 +84,7 @@ public class MoonlightCompat {
         return false;
     }
 
-    public static void updateMarkers(MapItemSavedData data, BlockGetter world, int i) {
+    public static void updateMarkers(MapItemSavedData data, Player player, int maxRange) {
 
         ExpandedMapData d = ((ExpandedMapData) data);
         Map<String, MapBlockMarker<?>> markers = new HashMap<>(d.getCustomMarkers());
@@ -92,23 +92,25 @@ public class MoonlightCompat {
             markers.entrySet().removeIf(m -> !m.getValue().shouldRefresh());
             List<String> toRemove = new ArrayList<>();
             List<MapBlockMarker<?>> toAdd = new ArrayList<>();
-            int j = 0;
-            int k = i % markers.size();
+            Level level = player.level();
             for (var m : markers.entrySet()) {
-                if (j++ == k) {
-                    var marker = m.getValue();
-                    MapBlockMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(world, marker.getPos());
-                    String id = m.getKey();
-                    if (newMarker == null) {
-                        toRemove.add(id);
-                    } else if (!Objects.equals(marker, newMarker)) {
-                        toRemove.add(id);
-                        toAdd.add(newMarker);
+                var marker = m.getValue();
+                BlockPos pos = marker.getPos();
+                if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
+                    if (level.isLoaded(pos)) {
+                        MapBlockMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(level, marker.getPos());
+                        String id = m.getKey();
+                        if (newMarker == null) {
+                            toRemove.add(id);
+                        } else if (!Objects.equals(marker, newMarker)) {
+                            toRemove.add(id);
+                            toAdd.add(newMarker);
+                        }
                     }
                 }
-                toRemove.forEach(d::removeCustomMarker);
-                toAdd.forEach(d::addCustomMarker);
             }
+            toRemove.forEach(d::removeCustomMarker);
+            toAdd.forEach(d::addCustomMarker);
         }
     }
 }

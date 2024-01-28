@@ -34,6 +34,7 @@ public class MapItemMixin {
         if (distance <= (range + 1 + scale) * (range + 1 + scale)) {
             var c = instance.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
             if (c instanceof LevelChunk lc) {
+                //original
                 return lc;
             }
         }
