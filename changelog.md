@@ -1,1 +1,1 @@
-change banners update logic to only update ones near the player. Also now checking if chunk is loaded first
+updated supplementaries integration

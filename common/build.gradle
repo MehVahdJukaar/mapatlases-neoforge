@@ -25,7 +25,7 @@ dependencies {
     modCompileOnly("curse.maven:curios-309927:4581099")
 
 
-    modImplementation("curse.maven:supplementaries-412082:4865567")
+    modImplementation("curse.maven:supplementaries-412082:5066761")
     modImplementation("curse.maven:config-menus-forge-544048:4672356")
     modImplementation("curse.maven:the-twilight-forest-227639:4802174")
     modCompileOnly("curse.maven:xaeros-world-map-317780:4749572")

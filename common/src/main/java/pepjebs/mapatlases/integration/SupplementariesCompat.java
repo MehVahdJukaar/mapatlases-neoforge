@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.supplementaries.common.items.AntiqueInkItem;
 import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
-import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
 import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
 import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
@@ -40,11 +40,11 @@ public class SupplementariesCompat {
     }
 
     public static boolean hasAntiqueInk(ItemStack itemstack) {
-        return AntiqueInkHelper.hasAntiqueInk(itemstack);
+        return AntiqueInkItem.hasAntiqueInk(itemstack);
     }
 
     public static void setAntiqueInk(ItemStack stacks) {
-        AntiqueInkHelper.setAntiqueInk(stacks, true);
+        AntiqueInkItem.setAntiqueInk(stacks, true);
     }
 
     public static void setMapAntique(ItemStack newMap, Level level) {
