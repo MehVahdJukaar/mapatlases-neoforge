@@ -101,7 +101,7 @@ public class AtlasOverviewScreen extends Screen {
     @NotNull
     private MapDataHolder getMapClosestToPlayer() {
         IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
+        this.selectedSlice = MapAtlasItem.getSelectedSlice2(atlas, player.level.dimension());
         MapDataHolder closest = maps.getClosest(player, selectedSlice);
         if (closest == null) {
             //if it has no maps here, grab a random one
@@ -434,7 +434,7 @@ public class AtlasOverviewScreen extends Screen {
         boolean changedDim = selectedSlice.dimension().equals(dimension);
         if (changedDim) this.selectedSlice = Slice.of(selectedSlice.type(), selectedSlice.height(), dimension);
         //we dont change slice when calling this from init as we want to use the atlas initial slice
-        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
+        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice2(atlas, dimension));
         boolean isWherePlayerIs = level.dimension().equals(dimension);
 
         MapItemSavedData center = isWherePlayerIs ? getMapClosestToPlayer().data : this.getCenterMapForSelectedDim();

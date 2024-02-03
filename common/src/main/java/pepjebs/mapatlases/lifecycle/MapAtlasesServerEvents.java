@@ -107,7 +107,7 @@ public class MapAtlasesServerEvents {
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
 
-        Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
+        Slice slice = MapAtlasItem.getSelectedSlice2(atlas, dimension);
         // sets new center map
         MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
 
@@ -380,7 +380,7 @@ public class MapAtlasesServerEvents {
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
 
-        Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
+        Slice slice = MapAtlasItem.getSelectedSlice2(atlas, dimension);
         // sets new center map
         MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);

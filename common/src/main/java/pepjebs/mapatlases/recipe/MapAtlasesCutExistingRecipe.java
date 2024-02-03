@@ -66,7 +66,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         }
         IMapCollection maps = MapAtlasItem.getMaps2(atlas, levelRef.get());
         if (maps.getCount() > 1) {
-            var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
+            var slice = MapAtlasItem.getSelectedSlice2(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
             MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
             return MapAtlasesAccessUtils.createMapItemStackFromId(toRemove.id);
@@ -110,7 +110,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 boolean didRemoveFilled = false;
                 IMapCollection maps = MapAtlasItem.getMaps2(stack, levelRef.get());
                 if (!maps.isEmpty()) {
-                    var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
+                    var slice = MapAtlasItem.getSelectedSlice2(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());
                     if (!tree.contains(slice.heightOrTop())) {

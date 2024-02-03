@@ -33,7 +33,7 @@ public class MapAtlasesClientEvents {
             if (!atlas.isEmpty()) {
                 IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
 
-                Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+                Slice s = MapAtlasItem.getSelectedSlice2(atlas, level.dimension());
                 maybeChangeSlice(client.player, level, maps, s, atlas);
             }
         }
@@ -66,7 +66,7 @@ public class MapAtlasesClientEvents {
             if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
                 IMapCollection maps = MapAtlasItem.getMaps2(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
-                Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
+                Slice selectedSlice = MapAtlasItem.getSelectedSlice2(atlas, dim);
                 int current = selectedSlice.heightOrTop();
                 MapType type = selectedSlice.type();
                 Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
@@ -76,7 +76,7 @@ public class MapAtlasesClientEvents {
             if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
                 IMapCollection maps = MapAtlasItem.getMaps2(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
-                Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
+                Slice selectedSlice = MapAtlasItem.getSelectedSlice2(atlas, dim);
                 int current = selectedSlice.heightOrTop();
                 MapType type = selectedSlice.type();
                 Integer newHeight = maps.getHeightTree(dim, type).floor(current - 1);

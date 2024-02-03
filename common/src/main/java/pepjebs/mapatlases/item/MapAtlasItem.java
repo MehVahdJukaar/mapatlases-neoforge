@@ -73,7 +73,7 @@ public class MapAtlasItem extends Item {
             if (isLocked(stack)) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
             }
-            Slice selected = getSelectedSlice(stack, level.dimension());
+            Slice selected = getSelectedSlice2(stack, level.dimension());
             Integer slice = selected.height();
             if (slice != null) {
                 tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
@@ -142,7 +142,7 @@ public class MapAtlasItem extends Item {
             if (!level.isClientSide) {
 
                 IMapCollection maps = getMaps2(stack, level);
-                MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice2(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
                 if (!didAdd)
@@ -237,7 +237,7 @@ public class MapAtlasItem extends Item {
     }
 
     @NotNull
-    public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
+    public static Slice getSelectedSlice2(ItemStack stack, ResourceKey<Level> dimension) {
         CompoundTag tag = stack.getTagElement(SELECTED_NBT);
         if (tag != null) {
             String string = dimension.location().toString();
@@ -247,6 +247,10 @@ public class MapAtlasItem extends Item {
             }
         }
         return Slice.of(MapType.VANILLA, null, dimension);
+    }
+
+    public static Integer getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
+        return getSelectedSlice2(stack, dimension).height();
     }
 
     @Override
@@ -264,7 +268,7 @@ public class MapAtlasItem extends Item {
         for (var d : dim) {
             for (var k : maps.getAvailableTypes(d)) {
                 var av = maps.getHeightTree(d, k);
-                if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
+                if (!av.contains(getSelectedSlice2(pStack, d).heightOrTop())) {
                     setSelectedSlice(pStack, Slice.of(k, av.first(), d));
                 }
             }
