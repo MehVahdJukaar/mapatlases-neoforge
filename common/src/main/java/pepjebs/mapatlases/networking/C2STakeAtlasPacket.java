@@ -30,7 +30,7 @@ public class C2STakeAtlasPacket implements Message {
     public void handle(ChannelHandler.Context context) {
         if (!(context.getSender() instanceof ServerPlayer player)) return;
 
-        if(player.level().getBlockEntity(pos) instanceof AtlasLectern lectern){
+        if(player.level.getBlockEntity(pos) instanceof AtlasLectern lectern){
             if (!player.mayBuild()) {
                 return;
             }

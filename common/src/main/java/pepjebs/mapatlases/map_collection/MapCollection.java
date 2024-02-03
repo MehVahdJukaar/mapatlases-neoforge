@@ -247,7 +247,7 @@ public class MapCollection implements IMapCollection{
     }
 
     public static double distSquare(MapItemSavedData mapState, double x, double z) {
-        return Mth.square(mapState.centerX - x) + Mth.square(mapState.centerZ - z);
+        return Mth.square(mapState.x - x) + Mth.square(mapState.z - z);
     }
 
 

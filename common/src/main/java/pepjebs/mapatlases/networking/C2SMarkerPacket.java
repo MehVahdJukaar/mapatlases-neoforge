@@ -56,7 +56,7 @@ public class C2SMarkerPacket implements Message {
     public void handle(ChannelHandler.Context context) {
         if (!(context.getSender() instanceof ServerPlayer player)) return;
 
-        Level level = player.level();
+        Level level = player.level;
         MapItemSavedData data = level.getMapData(mapId);
 
         if (data instanceof MapItemSavedDataAccessor d) {

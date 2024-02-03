@@ -6,7 +6,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
@@ -37,7 +36,7 @@ public class SpecialRecipeDisplays {
 
             NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY, l.toArray(Ingredient[]::new));
             ResourceLocation id = new ResourceLocation(MapAtlasesMod.MOD_ID, "craft_atlas");
-            ShapelessRecipe recipe = new ShapelessRecipe(id, group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
+            ShapelessRecipe recipe = new ShapelessRecipe(id, group, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
             recipes.add(recipe);
         }
         return recipes;

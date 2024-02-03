@@ -5,7 +5,9 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.ChunkPos;
@@ -24,23 +26,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MapItemMixin {
 
     @WrapOperation(method = "update", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/level/Level;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;"))
-    public LevelChunk reduceUpdateNonGeneratedChunks(Level instance, int chunkX, int chunkZ,
-                                                     Operation<LevelChunk> original,
-                                                     @Local(ordinal = 8) int distance,
-                                                     @Local(ordinal = 5) int range,
-                                                     @Local(ordinal = 0) int scale) {
+            target = "Lnet/minecraft/world/level/Level;getChunkAt(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/chunk/LevelChunk;"))
+    public LevelChunk reduceUpdateNonGeneratedChunks(Level instance, BlockPos pos, Operation<LevelChunk> original) {
+        int chunkX = SectionPos.blockToSectionCoord(pos.getX());
+        int chunkZ = SectionPos.blockToSectionCoord(pos.getZ());
         //also checks the range early
-        if (distance <= (range + 1 + scale) * (range + 1 + scale)) {
-            var c = instance.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
-            if (c instanceof LevelChunk lc) {
-                //original
-                return lc;
-            }
+        var c = instance.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
+        if (c instanceof LevelChunk lc) {
+            //original
+            return lc;
         }
         //return empty
         return new EmptyLevelChunk(instance, new ChunkPos(chunkX, chunkZ),
-                instance.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
+                instance.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.FOREST));
     }
 
     // fixes issues with vanilla maps where first strips takes ages to update by incrementing step after map calculation

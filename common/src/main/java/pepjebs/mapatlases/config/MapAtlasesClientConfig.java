@@ -150,11 +150,6 @@ public class MapAtlasesClientConfig {
         builder.pop();
 
         builder.push("moonlight_integration");
-        moonlightCompat = builder
-                .comment("Enables moonlight compat, which allows to place map markers on map via a special pin button")
-                .define("enabled", true);
-        moonlightPinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
-                .define("pin_tracking", true);
         entityRadar = builder.comment("Show nearby mobs on minimap")
                 .define("mob_radar", false);
         radarRadius = builder.define("radar_radius", 64, 0 , 256);
@@ -212,8 +207,6 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;
-    public static final Supplier<Boolean> moonlightCompat;
-    public static final Supplier<Boolean> moonlightPinTracking;
     public static final Supplier<Boolean> entityRadar;
     public static final Supplier<Integer> radarRadius;
     public static final Supplier<Boolean> radarColor;

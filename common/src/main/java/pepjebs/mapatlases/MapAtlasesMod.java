@@ -1,25 +1,23 @@
 package pepjebs.mapatlases;
 
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
@@ -46,25 +44,23 @@ public class MapAtlasesMod {
     public static final Supplier<SoundEvent> ATLAS_PAGE_TURN_SOUND_EVENT = RegHelper.registerSound(res("atlas_page_turn"));
     public static final Supplier<SoundEvent> ATLAS_CREATE_MAP_SOUND_EVENT = RegHelper.registerSound(res("atlas_create_map"));
 
-    public static final TagKey<Item> STICKY_ITEMS = TagKey.create(Registries.ITEM, res("sticky_crafting_items"));
+    public static final TagKey<Item> STICKY_ITEMS = TagKey.create(Registry.ITEM_REGISTRY, res("sticky_crafting_items"));
 
-    public static final boolean CURIOS = PlatHelper.isModLoaded("curios");
-    public static final boolean TRINKETS = PlatHelper.isModLoaded("trinkets");
-    public static final boolean SUPPLEMENTARIES = PlatHelper.isModLoaded("supplementaries");
-    public static final boolean MOONLIGHT = PlatHelper.isModLoaded("moonlight");
-    public static final boolean TWILIGHTFOREST = PlatHelper.isModLoaded("twilightforest");
-    public static final boolean IMMEDIATELY_FAST = PlatHelper.isModLoaded("immediatelyfast");
+    public static final boolean CURIOS = PlatformHelper.isModLoaded("curios");
+    public static final boolean TRINKETS = PlatformHelper.isModLoaded("trinkets");
+    public static final boolean SUPPLEMENTARIES = PlatformHelper.isModLoaded("supplementaries");
+    public static final boolean TWILIGHTFOREST = PlatformHelper.isModLoaded("twilightforest");
+    public static final boolean IMMEDIATELY_FAST = PlatformHelper.isModLoaded("immediatelyfast");
+    public static final boolean MOONLIGHT = PlatformHelper.isModLoaded("moonlight");
 
     public static void init() {
         MapAtlasesNetworking.init();
 
         MapAtlasesConfig.init();
-        if (PlatHelper.getPhysicalSide().isClient()) {
+        if (PlatformHelper.getEnv().isClient()) {
             MapAtlasesClientConfig.init();
             MapAtlasesClient.init();
         }
-        RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
-
         //TODO
         //make map texture updates happen way less frequently. Delay upload maybe
         //lectern marker
@@ -76,7 +72,6 @@ public class MapAtlasesMod {
         //antique in cart table
 
 
-        if (MOONLIGHT) MoonlightCompat.init();
         if (SUPPLEMENTARIES) SupplementariesCompat.init();
     }
 
@@ -85,21 +80,18 @@ public class MapAtlasesMod {
         MAP_ATLAS_CREATE_RECIPE = RegHelper.registerRecipeSerializer(res("crafting_atlas"),
                 MapAtlasCreateRecipe.Serializer::new);
         MAP_ATLAS_ADD_RECIPE = RegHelper.registerRecipeSerializer(res("adding_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
+                () -> new SimpleRecipeSerializer<>(MapAtlasesAddRecipe::new));
         MAP_ATLAS_CUT_RECIPE = RegHelper.registerRecipeSerializer(res("cutting_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
+                () -> new SimpleRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
         MAP_ANTIQUE_RECIPE = RegHelper.registerRecipeSerializer(res("antique_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(AntiqueAtlasRecipe::new));
+                () -> new SimpleRecipeSerializer<>(AntiqueAtlasRecipe::new));
         // Register items
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
-                () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
+                () -> new MapAtlasItem(new Item.Properties().stacksTo(16)
+                        .tab(CreativeModeTab.TAB_TOOLS)));
 
     }
 
-
-    public static void addItemsToTabs(RegHelper.ItemToTabEvent event) {
-        event.addAfter(CreativeModeTabs.TOOLS_AND_UTILITIES, i -> i.is(Items.MAP), MAP_ATLAS.get());
-    }
 
     public static ResourceLocation res(String name) {
         return new ResourceLocation(MOD_ID, name);

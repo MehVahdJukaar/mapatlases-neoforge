@@ -3,7 +3,7 @@ package pepjebs.mapatlases.networking;
 import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +26,7 @@ public class C2SSelectSlicePacket implements Message {
     }
 
     public C2SSelectSlicePacket(FriendlyByteBuf buf) {
-        var dimension = buf.readResourceKey(Registries.DIMENSION);
+        var dimension = buf.readResourceKey(Registry.DIMENSION_REGISTRY);
 
         MapType type = MapType.values()[buf.readVarInt()];
 

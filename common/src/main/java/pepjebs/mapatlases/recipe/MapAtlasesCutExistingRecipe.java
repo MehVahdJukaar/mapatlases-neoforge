@@ -1,16 +1,13 @@
 package pepjebs.mapatlases.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -29,15 +26,16 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public MapAtlasesCutExistingRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public MapAtlasesCutExistingRecipe(ResourceLocation id) {
+        super(id);
     }
 
     @Override
     public boolean matches(CraftingContainer inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         ItemStack shears = ItemStack.EMPTY;
-        for (ItemStack i : inv.getItems()) {
+        for (int j = 0; j < inv.getContainerSize(); j++) {
+            var i = inv.getItem(j);
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
                         (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
@@ -57,9 +55,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingContainer inv) {
         ItemStack atlas = ItemStack.EMPTY;
-        for (ItemStack i : inv.getItems()) {
+        for (int j = 0; j < inv.getContainerSize(); j++) {
+            var i = inv.getItem(j);
             if (i.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 atlas = i;
                 break;
@@ -79,22 +78,20 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static MapDataHolder getMapToRemove(CraftingContainer inv, IMapCollection maps, Slice slice) {
-        if (inv instanceof TransientCraftingContainer tc) {
-            try {
-                if (tc.menu instanceof CraftingMenu cm) {
-                    MapDataHolder c = maps.getClosest(cm.player, slice);
-                    if (c != null) {
-                        return c;
-                    }
-                }else if(tc.menu instanceof InventoryMenu im){
-                    MapDataHolder c = maps.getClosest(im.owner, slice);
-                    if (c != null) {
-                        return c;
-                    }
+    private static MapDataHolder getMapToRemove(CraftingContainer tc, IMapCollection maps, Slice slice) {
+        try {
+            if (tc.menu instanceof CraftingMenu cm) {
+                MapDataHolder c = maps.getClosest(cm.player, slice);
+                if (c != null) {
+                    return c;
                 }
-            } catch (Exception ignored) {
+            } else if (tc.menu instanceof InventoryMenu im) {
+                MapDataHolder c = maps.getClosest(im.owner, slice);
+                if (c != null) {
+                    return c;
+                }
             }
+        } catch (Exception ignored) {
         }
         return maps.getAll().stream().findAny().get();
     }
@@ -103,7 +100,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     @Override
     public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
         NonNullList<ItemStack> list = NonNullList.create();
-        for (ItemStack i : inv.getItems()) {
+        for (int j = 0; j < inv.getContainerSize(); j++) {
+            var i = inv.getItem(j);
             ItemStack stack = i.copy();
 
             if (stack.getItem() == Items.SHEARS) {
@@ -114,10 +112,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 if (!maps.isEmpty()) {
                     var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));
-                    var tree = maps.getHeightTree(slice.dimension(),slice.type());
-                    if(!tree.contains(slice.heightOrTop())){
+                    var tree = maps.getHeightTree(slice.dimension(), slice.type());
+                    if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();
-                        if(first.isPresent()) {
+                        if (first.isPresent()) {
                             Integer newH = first.get();
                             MapAtlasItem.setSelectedSlice(stack, Slice.of(slice.type(),
                                     newH, slice.dimension()));

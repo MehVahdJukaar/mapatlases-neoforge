@@ -17,8 +17,8 @@ public class S2CMapPacketWrapper implements Message {
 
     public S2CMapPacketWrapper(MapItemSavedData data, ClientboundMapItemDataPacket packet) {
         this.packet = packet;
-        this.centerX = data.centerX;
-        this.centerZ = data.centerZ;
+        this.centerX = data.x;
+        this.centerZ = data.z;
         this.dimension = data.dimension.location();
     }
 

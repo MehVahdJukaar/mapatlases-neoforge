@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.integration;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.mehvahdjukaar.supplementaries.common.items.AntiqueInkItem;
+import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
 import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
+import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
 import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
 import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
@@ -14,7 +14,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 public class SupplementariesCompat {
 
     public static void init() {
-        if (PlatHelper.getPhysicalSide().isClient()) {
+        if (PlatformHelper.getEnv().isClient()) {
             SupplementariesClientCompat.init();
         }
         // turn on map light
@@ -40,11 +40,11 @@ public class SupplementariesCompat {
     }
 
     public static boolean hasAntiqueInk(ItemStack itemstack) {
-        return AntiqueInkItem.hasAntiqueInk(itemstack);
+        return AntiqueInkHelper.hasAntiqueInk(itemstack);
     }
 
     public static void setAntiqueInk(ItemStack stacks) {
-        AntiqueInkItem.setAntiqueInk(stacks, true);
+        AntiqueInkHelper.setAntiqueInk(stacks, true);
     }
 
     public static void setMapAntique(ItemStack newMap, Level level) {

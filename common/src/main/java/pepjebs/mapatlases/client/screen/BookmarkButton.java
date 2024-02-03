@@ -1,12 +1,13 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Optional;
 
 public abstract class BookmarkButton extends AbstractWidget {
 
@@ -14,6 +15,7 @@ public abstract class BookmarkButton extends AbstractWidget {
     private final int yOff;
     protected final AtlasOverviewScreen parentScreen;
     protected boolean selected = true;
+    protected List<Component> tooltip = List.of();
 
     protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff, AtlasOverviewScreen screen) {
         super(pX, pY,
@@ -33,36 +35,34 @@ public abstract class BookmarkButton extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void renderButton(PoseStack pose, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.enableDepthTest();
         if (!visible || !active) return;
-        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
-                this.getX(), this.getY(), xOff,
+        RenderSystem.setShaderTexture(0, AtlasOverviewScreen.ATLAS_TEXTURE);
+        this.blit(pose,
+                this.x, this.y, xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
-        if (parentScreen.isEditingText()) isHovered = false; //cancel tooltip
     }
 
-    @Nullable
     @Override
-    public Tooltip getTooltip() {
-        if (!visible || !active) return null;
-        return super.getTooltip();
-    }
-
+    public void renderToolTip(PoseStack pPoseStack, int pMouseX, int pMouseY) {
+        if(this.isHovered){
+            parentScreen.renderTooltip(pPoseStack, tooltip, Optional.empty(), pMouseX, pMouseY);
+        }}
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
 
     }
 
     public void setActive(boolean active) {
         this.active = active;
         this.visible = active;
-        this.setTooltip(active ? createTooltip() : null);
+        this.tooltip = (active ? createTooltip() : List.of());
     }
 
-    public Tooltip createTooltip() {
-        return getTooltip();
+    public List<Component> createTooltip() {
+        return List.of();
     }
 }

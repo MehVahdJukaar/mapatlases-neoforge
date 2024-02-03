@@ -19,11 +19,11 @@ import java.util.Map;
 public interface MapItemSavedDataAccessor {
 
     @Mutable
-    @Accessor("centerX")
+    @Accessor("x")
     void setCenterX(int center);
 
     @Mutable
-    @Accessor("centerZ")
+    @Accessor("z")
     void setCenterZ(int center);
 
     @Mutable

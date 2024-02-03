@@ -2,8 +2,8 @@ package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
 import net.minecraft.network.chat.Component;
@@ -35,7 +35,7 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
     }
 
     @Inject(method = "renderResultingMap", at = @At(value = "HEAD"))
-    void renderAtlasMap(GuiGraphics pGuiGraphics, Integer pMapId, MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper,
+    void renderAtlasMap(PoseStack pGuiGraphics, Integer pMapId, MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper,
                         boolean pHasGlassPane, boolean pIsMaxSize, CallbackInfo ci,
                         @Local LocalRef<Integer> mapid, @Local LocalRef<MapItemSavedData> data) {
 

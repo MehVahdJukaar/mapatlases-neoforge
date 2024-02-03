@@ -8,14 +8,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.MaterialColor;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.SupplementariesClientCompat;
-import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
@@ -44,9 +42,7 @@ public class MapAtlasesClientEvents {
                 maybeChangeSlice(client.player, level, maps, s, atlas);
             }
         }
-        else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
-            EntityRadar.onClientTick(client.player);
-        }
+
     }
 
     public static void onKeyPressed(int key, int code) {
@@ -59,16 +55,6 @@ public class MapAtlasesClientEvents {
             if (atlas.getItem() instanceof MapAtlasItem) {
                 // needed as we might not have all mas needed
                 MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
-            }
-        }
-
-        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code)) {
-            if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
-                if (client.level == null || client.player == null) return;
-                ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
-                if (atlas.getItem() instanceof MapAtlasItem) {
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
-                }
             }
         }
 
@@ -111,10 +97,6 @@ public class MapAtlasesClientEvents {
         }
         //update the client immediately
         MapAtlasItem.setSelectedSlice(atlas, newSlice);
-    }
-
-    public static void onLoggedOut() {
-        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
     }
 
     //make this client sided
@@ -166,13 +148,13 @@ public class MapAtlasesClientEvents {
                 }
                 if (canGoUp) {
                     pos.setY(startY + j);
-                    if (level.getBlockState(pos).getMapColor(level, pos) != MapColor.NONE) {
+                    if (level.getBlockState(pos).getMapColor(level, pos) != MaterialColor.NONE) {
                         canGoUp = false;
                     }
                 }
                 if (canGoDown) {
                     pos.setY(startY - j);
-                    if (level.getBlockState(pos).getMapColor(level, pos) != MapColor.NONE) {
+                    if (level.getBlockState(pos).getMapColor(level, pos) != MaterialColor.NONE) {
                         canGoDown = false;
                     }
                 }

@@ -3,11 +3,11 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
@@ -30,7 +30,6 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
-import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
@@ -91,11 +90,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     }
 
     @Override
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+    protected void applyScissors(PoseStack graphics, int x, int y, int x1, int y1) {
         super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
-    public void render(GuiGraphics graphics, float partialTick,
+    public void render(PoseStack poseStack, float partialTick,
                        int screenWidth, int screenHeight) {
         // Handle early returns
         // Check F3 menu displayed
@@ -127,8 +126,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
             initialize(activeMap);
         }
         mapWherePlayerIs = activeMap;
-
-        PoseStack poseStack = graphics.pose();
 
         poseStack.pushPose();
 
@@ -201,7 +198,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
 
        // RenderSystem.enableDepthTest();
 
-        drawAtlas(graphics, x + borderSize, y + borderSize,
+        drawAtlas(poseStack, x + borderSize, y + borderSize,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light);
@@ -213,7 +210,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 
         RenderSystem.enableDepthTest();
-        graphics.blit(MAP_BACKGROUND, x, y,-2,0,0, BG_SIZE, BG_SIZE,
+        RenderSystem.setShaderTexture(0,MAP_BACKGROUND);
+        GuiComponent.blit(poseStack, x, y,-2,0,0, BG_SIZE, BG_SIZE,
                 BG_SIZE, BG_SIZE);
         RenderSystem.disableDepthTest();
 
@@ -227,11 +225,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         poseStack.pushPose();
         poseStack.translate(x + mapWidgetSize / 2f + 3f, y + mapWidgetSize / 2f + 3, 0);
         if (!rotatesWithPlayer) {
-            poseStack.mulPose(Axis.ZN.rotationDegrees(180 - yRot));
+            poseStack.mulPose(Vector3f.ZN.rotationDegrees(180 - yRot));
         }
         if (drawBigPlayerMarker) {
             poseStack.translate(-4.5f, -4f, 0);
-            graphics.blit(MAP_ICON_TEXTURE, 0,
+            RenderSystem.setShaderTexture(0, MAP_ICON_TEXTURE);
+          GuiComponent. blit(poseStack, 0,
                     0,
                     0, 0, 8, 8, 128, 128);
         }
@@ -254,13 +253,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
                     towardsZero(player.position().z)));
             if (global) {
                 drawMapComponentCoords(
-                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
+                        poseStack, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                         textScaling, pos, false);
                 textHeightOffset += (10 * textScaling);
             }
             if (local) {
                 drawMapComponentCoords(
-                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
+                        poseStack, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                         textScaling, pos, true);
                 textHeightOffset += (10 * textScaling);
             }
@@ -268,7 +267,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
 
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
             drawMapComponentBiome(
-                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
+                    poseStack, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
                     textScaling, player.blockPosition(), level);
         }
 
@@ -279,22 +278,13 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
             var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
             float a = p.getFirst();
             float b = p.getSecond();
-            drawLetter(graphics, font, a, b, "N");
+            drawLetter(poseStack, font, a, b, "N");
             if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
-                drawLetter(graphics, font, -a, -b, "S");
-                drawLetter(graphics, font, -b, a, "E");
-                drawLetter(graphics, font, b, -a, "W");
+                drawLetter(poseStack, font, -a, -b, "S");
+                drawLetter(poseStack, font, -b, a, "E");
+                drawLetter(poseStack, font, b, -a, "W");
             }
 
-            poseStack.popPose();
-        }
-
-        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightPinTracking.get()) {
-            poseStack.pushPose();
-            RenderSystem.enableDepthTest();
-            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
-            ClientMarkers.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f, currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
-                    mapBlocksSize * zoomLevel, player, rotatesWithPlayer);
             poseStack.popPose();
         }
 
@@ -303,12 +293,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
     }
 
-    private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
-        PoseStack pose = graphics.pose();
+    private void drawLetter(PoseStack pose, Font font, float a, float b, String letter) {
         pose.pushPose();
         float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale, 1);
-        drawStringWithLighterShadow(graphics, font, letter, a / scale - font.width(letter) / 2f,
+        drawStringWithLighterShadow(pose, font, letter, a / scale - font.width(letter) / 2f,
                 b / scale - font.lineHeight / 2f);
 
         pose.popPose();
@@ -322,7 +311,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     }
 
     public void drawMapComponentCoords(
-            GuiGraphics context,
+            PoseStack context,
             Font font,
             int x, int y,
             int targetWidth,
@@ -343,7 +332,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     }
 
     public void drawMapComponentBiome(
-            GuiGraphics context,
+            PoseStack context,
             Font font,
             int x, int y,
             int targetWidth,
@@ -361,7 +350,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     }
 
     public static void drawScaledComponent(
-            GuiGraphics context,
+            PoseStack pose,
             Font font,
             int x, int y,
             String text,
@@ -369,7 +358,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
             int maxWidth,
             int targetWidth
     ) {
-        PoseStack pose = context.pose();
         float textWidth = font.width(text);
 
         float scale = Math.min(1, maxWidth * textScaling / textWidth);
@@ -382,11 +370,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         pose.scale(scale, scale, 1);
         pose.translate(-(textWidth) / 2f, -4, 0);
         // uses slightly lighter drop shadow
-        drawStringWithLighterShadow(context, font, text, 0, 0);
+        drawStringWithLighterShadow(pose, font, text, 0, 0);
         pose.popPose();
     }
 
-    private static void drawStringWithLighterShadow(GuiGraphics context, Font font, String text, float x, float y) {
+    private static void drawStringWithLighterShadow(PoseStack context, Font font, String text, float x, float y) {
         PlatStuff.drawString(context, font, text, x + 1, y + 1, 0x595959, false);
         PlatStuff.drawString(context, font, text, x, y, 0xE0E0E0, false);
     }

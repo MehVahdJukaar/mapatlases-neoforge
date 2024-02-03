@@ -1,10 +1,8 @@
 package pepjebs.mapatlases.recipe;
 
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -20,8 +18,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public AntiqueAtlasRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public AntiqueAtlasRecipe(ResourceLocation id) {
+        super(id);
     }
 
     @Override
@@ -49,7 +47,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingContainer inv) {
 
         Level level = levelRef.get();
         ItemStack newAtlas = ItemStack.EMPTY;
@@ -58,7 +56,9 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                newAtlas = itemstack.copyWithCount(1);
+                newAtlas = itemstack.copy();
+                newAtlas.setCount(1);
+
                 oldAtlas = itemstack;
             }
         }

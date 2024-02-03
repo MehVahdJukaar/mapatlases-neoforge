@@ -1,22 +1,21 @@
 package pepjebs.mapatlases.client.screen;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -55,7 +54,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
         this.shfting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
-        this.setTooltip(this.createTooltip());
+        this.tooltip = (this.createTooltip());
         return false;
     }
 
@@ -63,7 +62,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         this.shfting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
-        this.setTooltip(this.createTooltip());
+        this.tooltip = (this.createTooltip());
         return false;
     }
 
@@ -106,21 +105,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack matrices = graphics.pose();
+    public void renderButton(PoseStack matrices, int pMouseX, int pMouseY, float pPartialTick) {
         matrices.pushPose();
         matrices.translate(0, 0, 0.01 * this.index);
-        super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
-        if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
-            if (this.control && canFocusMarker()) {
-                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
-                        24, 173, 5, 5);
-            } else if (this.shfting && canDeleteMarker()) {
-                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
-                        24, 167, 5, 5);
-            }
+        super.renderButton(matrices, pMouseX, pMouseY, pPartialTick);
+        RenderSystem.setShaderTexture(0,AtlasOverviewScreen.ATLAS_TEXTURE);
+        if (this.control && canFocusMarker()) {
+            blit(matrices, x, y, 24, 173, 5, 5);
+        } else if (this.shfting && canDeleteMarker()) {
+            blit(matrices, x, y, 24, 167, 5, 5);
         }
-        renderDecoration(graphics, pMouseX, pMouseY);
+        renderDecoration(matrices, pMouseX, pMouseY);
 
         matrices.popPose();
 
@@ -128,22 +123,22 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         setSelected(false);
     }
 
-    protected abstract void renderDecoration(GuiGraphics graphics, int mouseX, int mouseY);
+    protected abstract void renderDecoration(PoseStack graphics, int mouseX, int mouseY);
 
     @Override
-    public Tooltip createTooltip() {
+    public List<Component> createTooltip() {
         if (control && canFocusMarker()) {
-            return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
+            return List.of(Component.translatable("tooltip.map_atlases.focus_marker"));
         }
         if (shfting && canDeleteMarker()) {
-            return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
+            return List.of(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
         Component mapIconComponent = getDecorationName();
         Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())
                 .withStyle(ChatFormatting.GRAY);
-        var t = Tooltip.create(mapIconComponent);
-        var t2 = Tooltip.create(coordsComponent);
-        return CompoundTooltip.create(t, t2);
+        var t = mapIconComponent;
+        var t2 = coordsComponent;
+        return List.of(t, t2);
     }
 
     protected boolean canFocusMarker() {
@@ -163,7 +158,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration, String decoId) {
             super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
-            this.setTooltip(createTooltip());
+            this.tooltip = (createTooltip());
             this.isBanner = decoration.getType().name().startsWith("BANNER");
         }
 
@@ -174,12 +169,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         public double getWorldX() {
-            return mapData.data.centerX - getDecorationPos(decoration.getX(), mapData.data);
+            return mapData.data.x - getDecorationPos(decoration.getX(), mapData.data);
         }
 
         @Override
         public double getWorldZ() {
-            return mapData.data.centerZ - getDecorationPos(decoration.getY(), mapData.data);
+            return mapData.data.z - getDecorationPos(decoration.getY(), mapData.data);
         }
 
 
@@ -193,18 +188,18 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
 
         @Override
-        protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-            PoseStack matrices = pGuiGraphics.pose();
+        protected void renderDecoration(PoseStack matrices, int pMouseX, int pMouseY) {
             byte b = decoration.getImage();
 
             int u = (b % 16) * 8;
             int v = (b / 16) * 8;
 
-            matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
-            matrices.mulPose(Axis.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
+            matrices.translate(x + width / 2f, y + height / 2f, 0.001);
+            matrices.mulPose(Vector3f.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
 
-            pGuiGraphics.blit(MAP_ICON_TEXTURE, -4, -4, u, v, 8, 8, 128, 128);
+            RenderSystem.setShaderTexture(0, MAP_ICON_TEXTURE);
+            blit(matrices, -4, -4, u, v, 8, 8, 128, 128);
 
         }
 

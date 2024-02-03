@@ -95,7 +95,7 @@ public class MapAtlasItem extends Item {
         if (player.isSecondaryUseActive()) {
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
-            if (player.level().isClientSide) {
+            if (player.level.isClientSide) {
                 player.displayClientMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
@@ -162,7 +162,7 @@ public class MapAtlasItem extends Item {
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level);
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);

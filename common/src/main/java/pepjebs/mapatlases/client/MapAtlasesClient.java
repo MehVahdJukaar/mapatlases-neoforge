@@ -4,9 +4,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import com.mojang.math.Vector3f;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
+import net.mehvahdjukaar.moonlight.api.platform.ClientPlatformHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -66,13 +66,6 @@ public class MapAtlasesClient {
             "category.map_atlases.minimap"
     );
 
-    public static final KeyMapping PLACE_PIN_KEYBIND = new KeyMapping(
-            "key.map_atlases.place_pin",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_B,
-            "category.map_atlases.minimap"
-    );
-
     public static final KeyMapping INCREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_in_minimap",
             InputConstants.Type.KEYSYM,
@@ -117,9 +110,9 @@ public class MapAtlasesClient {
         currentActiveMap = null;
         currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
-            var maps = MapAtlasItem.getMaps(atlas, player.level());
-            maps.fixDuplicates(player.level());
-            Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
+            var maps = MapAtlasItem.getMaps(atlas, player.level);
+            maps.fixDuplicates(player.level);
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             MapDataHolder select = maps.select(currentActiveMapKey);
@@ -154,8 +147,8 @@ public class MapAtlasesClient {
     }
 
     public static void init() {
-        ClientHelper.addKeyBindRegistration(MapAtlasesClient::registerKeyBinding);
-        ClientHelper.addClientSetup(MapAtlasesClient::clientSetup);
+        ClientPlatformHelper.addKeyBindRegistration(MapAtlasesClient::registerKeyBinding);
+        ClientPlatformHelper.addClientSetup(MapAtlasesClient::clientSetup);
     }
 
     public static void clientSetup() {
@@ -164,11 +157,10 @@ public class MapAtlasesClient {
                 MapAtlasesClient::getPredicateForAtlas);
     }
 
-    public static void registerKeyBinding(ClientHelper.KeyBindEvent event) {
+    public static void registerKeyBinding(ClientPlatformHelper.KeyBindEvent event) {
         event.register(OPEN_ATLAS_KEYBIND);
         event.register(DECREASE_MINIMAP_ZOOM);
         event.register(INCREASE_MINIMAP_ZOOM);
-        event.register(PLACE_PIN_KEYBIND);
         if (MapAtlasesMod.TWILIGHTFOREST || MapAtlasesMod.SUPPLEMENTARIES) {
             event.register(INCREASE_SLICE);
             event.register(DECREASE_SLICE);
@@ -192,7 +184,7 @@ public class MapAtlasesClient {
     public static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {
         // Using ClientLevel will render default Atlas in inventories
         if (world == null && entity != null)
-            world = (ClientLevel) entity.level();
+            world = (ClientLevel) entity.level;
         if (world == null) return 0.0f;
         boolean unlocked = !MapAtlasItem.isLocked(stack);
 
@@ -213,7 +205,7 @@ public class MapAtlasesClient {
             try {
                 d.setCenterX(packet.centerX);
                 d.setCenterZ(packet.centerZ);
-                d.setDimension(ResourceKey.create(Registries.DIMENSION, packet.dimension));
+                d.setDimension(ResourceKey.create(Registry.DIMENSION_REGISTRY, packet.dimension));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -228,7 +220,7 @@ public class MapAtlasesClient {
         if (lecternPos == null) {
             atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         } else {
-            if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lec) {
+            if (player.level.getBlockEntity(lecternPos) instanceof LecternBlockEntity lec) {
                 lectern = lec;
                 atlas = lec.getBook();
             }
@@ -262,7 +254,7 @@ public class MapAtlasesClient {
 
             Float rot = globalDecorationRotation.get();
             if (rot != null) {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+                poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
             }
             poseStack.translate(-s * scale, 4 * scale, 0);
 
@@ -274,7 +266,7 @@ public class MapAtlasesClient {
     public static void modifyDecorationTransform(PoseStack poseStack) {
         Float rot = globalDecorationRotation.get();
         if (rot != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
+            poseStack.mulPose(Vector3f.ZP.rotationDegrees(rot));
         }
         Float scale = globalDecorationScale.get();
         if (scale != null) {

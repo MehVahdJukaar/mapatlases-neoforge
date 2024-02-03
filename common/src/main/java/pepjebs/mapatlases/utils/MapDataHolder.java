@@ -58,15 +58,15 @@ public class MapDataHolder {
     }
 
     public MapKey makeKey() {
-        return MapKey.at(data.scale, data.centerX, data.centerZ, slice);
+        return MapKey.at(data.scale, data.x, data.z, slice);
     }
 
     public void updateMap(ServerPlayer player) {
-        if (canMultiThread(player.level())) {
+        if (canMultiThread(player.level)) {
             EXECUTORS.submit(() -> {
                 //the only unsafe operation that this does is data.getHoldingPlayer
                 //we need to redirect it.
-                ((MapItem) type.filled).update(player.level(), player, data);
+                ((MapItem) type.filled).update(player.level, player, data);
             });
             //update markers on the main thread. has to be done because block entities cant be accessed off thread
 
@@ -74,7 +74,7 @@ public class MapDataHolder {
             updateMarkers(player, 128);
 
         } else {
-            ((MapItem) type.filled).update(player.level(), player, data);
+            ((MapItem) type.filled).update(player.level, player, data);
         }
         if (MapAtlasesConfig.debugUpdate.get()) {
             MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
@@ -98,7 +98,7 @@ public class MapDataHolder {
             var markers = accessor.getBannerMarkers();
             Iterator<MapBanner> iterator = markers.values().iterator();
 
-            Level level = player.level();
+            Level level = player.level;
             while (iterator.hasNext()) {
                 var banner = iterator.next();
                 BlockPos pos = banner.getPos();

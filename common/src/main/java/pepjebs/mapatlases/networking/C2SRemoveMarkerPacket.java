@@ -42,7 +42,7 @@ public class C2SRemoveMarkerPacket implements Message {
     public void handle(ChannelHandler.Context context) {
         if (!(context.getSender() instanceof ServerPlayer player)) return;
 
-        Level level = player.level();
+        Level level = player.level;
         MapItemSavedData data = level.getMapData(mapId);
 
         if (data != null) {
@@ -67,8 +67,8 @@ public class C2SRemoveMarkerPacket implements Message {
             // recreates deco...
             float rotation = 180;
             int i = 1 << data.scale;
-            float f = (float) (mapBanner.getPos().getX() - (double) data.centerX) / i;
-            float g = (float) (mapBanner.getPos().getZ() - (double) data.centerZ) / i;
+            float f = (float) (mapBanner.getPos().getX() - (double) data.x) / i;
+            float g = (float) (mapBanner.getPos().getZ() - (double) data.z) / i;
             byte b = (byte) ((int) ((f * 2.0F) + 0.5));
             byte c = (byte) ((int) ((g * 2.0F) + 0.5));
 

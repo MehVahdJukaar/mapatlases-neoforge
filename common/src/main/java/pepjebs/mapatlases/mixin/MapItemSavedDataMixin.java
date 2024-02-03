@@ -51,7 +51,7 @@ public class MapItemSavedDataMixin {
     @Inject(method = "getHoldingPlayer", at = @At("HEAD"), cancellable = true)
     public void mapAtlases$preventModifyingOffThread(Player player,
                                                      CallbackInfoReturnable<MapItemSavedData.HoldingPlayer> cir) {
-        if (player.level() instanceof ServerLevel l && !l.getServer().isSameThread()) {
+        if (player.level instanceof ServerLevel l && !l.getServer().isSameThread()) {
             var value = this.carriedByPlayers.get(player);
             if (value == null) {
                 //we cant modify the map so we return a dummy. updateMarkers will update this properly on thread

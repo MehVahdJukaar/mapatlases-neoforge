@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.lifecycle;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
+import net.mehvahdjukaar.moonlight.api.util.math.Vec2i;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -13,16 +14,12 @@ import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
-import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -68,7 +65,7 @@ public class MapAtlasesServerEvents {
 
         public void updatePriority(int px, int pz) {
             this.waitTime++;
-            double distSquared = Mth.lengthSquared(px - holder.data.centerX, pz - holder.data.centerZ);
+            double distSquared = Mth.lengthSquared(px - holder.data.x, pz - holder.data.z);
             // Define weights for distance and waitTime
             double movingDistanceWeight = 1; // Adjust this based on your preference
             double staticDistanceWeight = 5000; // Adjust this based on your preference
@@ -106,7 +103,7 @@ public class MapAtlasesServerEvents {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
-        Level level = player.level();
+        Level level = player.level;
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
@@ -123,7 +120,7 @@ public class MapAtlasesServerEvents {
         int playZ = player.blockPosition().getZ();
         byte scale = maps.getScale();
         int scaleWidth = (1 << scale) * 128;
-        Set<Vector2i> discoveringEdges = getPlayerDiscoveringMapEdges(
+        Set<Vec2i> discoveringEdges = getPlayerDiscoveringMapEdges(
                 activeKey.mapX(),
                 activeKey.mapZ(),
                 scaleWidth,
@@ -136,8 +133,8 @@ public class MapAtlasesServerEvents {
         //these also include an active map
         List<MapDataHolder> nearbyExistentMaps =
                 maps.filterSection(slice, e -> discoveringEdges.stream()
-                        .anyMatch(edge -> edge.x == e.centerX
-                                && edge.y == e.centerZ));
+                        .anyMatch(edge -> edge.x() == e.x
+                                && edge.y() == e.z));
 
         MapDataHolder activeInfo = maps.select(activeKey);
         if (activeInfo == null && !MapAtlasItem.isLocked(atlas)) {
@@ -189,9 +186,9 @@ public class MapAtlasesServerEvents {
         }
         //remove existing maps and tries to fill in remaining nones
         discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
-                d -> d.data.centerX == e.x && d.data.centerZ == e.y));
+                d -> d.data.x == e.x() && d.data.z == e.y()));
         for (var edge : discoveringEdges) {
-            maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+            maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x(), edge.y());
         }
     }
 
@@ -218,11 +215,11 @@ public class MapAtlasesServerEvents {
         } else {
             range = 128 / i;
         }
-        Level level = player.level();
+        Level level = player.level;
         int rx = level.random.nextIntBetweenInclusive(-range, range);
         int rz = level.random.nextIntBetweenInclusive(-range, range);
-        int x = (int) Mth.clamp((player.getX() + rx - data.centerX) / i + 64, 0, 127);
-        int z = (int) Mth.clamp((player.getZ() + rz - data.centerZ) / i + 64, 0, 127);
+        int x = (int) Mth.clamp((player.getX() + rx - data.x) / i + 64, 0, 127);
+        int z = (int) Mth.clamp((player.getZ() + rz - data.z) / i + 64, 0, 127);
         boolean filled = data.colors[x + z * 128] != 0;
 
         int interval = filled ? max : min;
@@ -289,7 +286,7 @@ public class MapAtlasesServerEvents {
             int destX,
             int destZ
     ) {
-        Level level = player.level();
+        Level level = player.level;
         if (atlas.getTag() == null) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
@@ -308,7 +305,7 @@ public class MapAtlasesServerEvents {
             }
             //validate height
             Integer height = slice.height();
-            if (height != null && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height)) {
+            if (height != null && !maps.getHeightTree(player.level.dimension(), slice.type()).contains(height)) {
                 int error = 1;
             }
 
@@ -316,7 +313,7 @@ public class MapAtlasesServerEvents {
 
             //TODO: create custom ones
 
-            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
+            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level, atlas);
             Integer mapId = MapItem.getMapId(newMap);
 
             if (mapId != null) {
@@ -332,13 +329,13 @@ public class MapAtlasesServerEvents {
 
         if (addedMap) {
             // Play the sound
-            player.level().playSound(null, player.blockPosition(),
+            player.level.playSound(null, player.blockPosition(),
                     MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
                     SoundSource.PLAYERS, 1, 1.0F);
         }
     }
 
-    private static Set<Vector2i> getPlayerDiscoveringMapEdges(
+    private static Set<Vec2i> getPlayerDiscoveringMapEdges(
             int xCenter,
             int zCenter,
             int width,
@@ -348,7 +345,7 @@ public class MapAtlasesServerEvents {
 
 
         int halfWidth = width / 2;
-        Set<Vector2i> results = new HashSet<>();
+        Set<Vec2i> results = new HashSet<>();
         for (int i = -1; i < 2; i++) {
             for (int j = -1; j < 2; j++) {
                 if (i != 0 || j != 0) {
@@ -366,7 +363,7 @@ public class MapAtlasesServerEvents {
                     }
                     // does not add duplicates this way
                     if (!(qI == xCenter && qJ == zCenter)) {
-                        results.add(new Vector2i(qI, qJ));
+                        results.add(new Vec2i(qI, qJ));
                     }
                 }
             }
@@ -376,13 +373,10 @@ public class MapAtlasesServerEvents {
 
 
     public static void onPlayerJoin(ServerPlayer player) {
-        if (MapAtlasesMod.MOONLIGHT) {
-            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
-        }
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
-        Level level = player.level();
+        Level level = player.level;
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
@@ -392,17 +386,12 @@ public class MapAtlasesServerEvents {
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
 
         //TODO: figure out why its not synced automatically
-        if (PlatHelper.getPlatform().isFabric()) {
+        if (PlatformHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
                 // update all maps and sends them to player, if needed
                 MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
             }
         }
-    }
-
-
-    public static void onDimensionUnload() {
-        if (MapAtlasesMod.MOONLIGHT) EntityRadar.unloadLevel();
     }
 
 }

@@ -1,20 +1,21 @@
 package pepjebs.mapatlases.integration.moonlight;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
-import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientHandler;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
-import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Locale;
@@ -32,17 +33,17 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
                                    MapDataHolder data, CustomMapDecoration mapDecoration, String id) {
         super(px, py, screen, data, id);
         this.decoration = mapDecoration;
-        this.setTooltip(createTooltip());
+        this.tooltip = (createTooltip());
     }
 
     @Override
     public double getWorldX() {
-        return mapData.data.centerX - getDecorationPos(decoration.getX(), mapData.data);
+        return mapData.data.x - getDecorationPos(decoration.getX(), mapData.data);
     }
 
     @Override
     public double getWorldZ() {
-        return mapData.data.centerZ - getDecorationPos(decoration.getY(), mapData.data);
+        return mapData.data.z - getDecorationPos(decoration.getY(), mapData.data);
     }
 
     @Override
@@ -61,10 +62,10 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     @Override
-    protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration.getType(), getX() + width / 2f, getY() + height / 2f,
-                1, decoration instanceof PinDecoration p && p.isFocused(), 255);
+    protected void renderDecoration(PoseStack pGuiGraphics, int pMouseX, int pMouseY) {
+        renderStaticMarker(pGuiGraphics, decoration, mapData.data, x + width / 2f, y     + height / 2f, index, false);
     }
+
 
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
@@ -86,12 +87,11 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     protected void focusMarker() {
-        ClientMarkers.focusMarker(mapData, decoration, !ClientMarkers.isDecorationFocused(mapData, decoration));
     }
 
     @Override
     protected boolean canFocusMarker() {
-        return decoration instanceof PinDecoration;
+        return false;
     }
 
     @Override
@@ -100,39 +100,54 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         var d = decorations.get(decorationId);
         if (d != null) {
             //in case this is is a pin
-            if (!ClientMarkers.removeDeco(mapData.stringId, decorationId)) {
-                //we cant use string id because server has them diferent...
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.hashCode(), true));
-                //also removes immediately from client side
-            }
             decorations.remove(decorationId);
         }
     }
-
-    public static void renderStaticMarker(GuiGraphics pGuiGraphics,
-                                          MapDecorationType<?, ?> type,
-                                          float x, float y,
-                                          int index, boolean outline, int alpha) {
-        DecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);
+    public static void renderStaticMarker(PoseStack poseStack, CustomMapDecoration decoration,
+                                          MapItemSavedData data, float x, float y, int index, boolean outline) {
+        DecorationRenderer<CustomMapDecoration> renderer = MapDecorationClientHandler.getRenderer(decoration);
 
         if (renderer != null) {
-            PoseStack poseStack = pGuiGraphics.pose();
 
             poseStack.pushPose();
-            poseStack.translate(x, y, 0.005);
-            poseStack.scale(4, 4, -3);
+            poseStack.translate(x, y, 1.0D);
 
-            var buffer = pGuiGraphics.bufferSource();
+            // de translates by the amount the decoration renderer will translate
+            poseStack.translate(-(float) decoration.getX() / 2.0F - 64.0F,
+                    -(float) decoration.getY() / 2.0F - 64.0F, -0.02F);
 
-            VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
+            var buffer = Minecraft.getInstance().renderBuffers().bufferSource();
 
-            renderer.renderDecorationSprite(poseStack,
-                    buffer, vertexBuilder, LightTexture.FULL_BRIGHT, index,
-                    -1, alpha, outline);
+            renderer.rendersText = false;
+
+            if (outline) {
+                RenderSystem.setShaderColor(1, 1, 1, 1);
+                var id = Utils.getID(decoration.getType());
+                ResourceLocation texture = new ResourceLocation(id.getNamespace(), "map_markers/" + id.getPath());
+                VertexConsumer vb2 = buffer.getBuffer(RenderType.text(texture));
+                for(int j = -1; j <= 1; ++j) {
+                    for(int k = -1; k <= 1; ++k) {
+                        if (j != 0 || k != 0) {
+                            poseStack.pushPose();
+                            poseStack.translate(j*0.5,k*0.5, -0.01);
+                            renderer.render(decoration, poseStack,
+                                    buffer,vb2, data,
+                                    false, LightTexture.FULL_BRIGHT, index);
+                            poseStack.popPose();
+                        }
+                    }
+                }
+            }
+
+            renderer.render(decoration, poseStack
+                    , buffer, data,
+                    false, LightTexture.FULL_BRIGHT, index);
+            renderer.rendersText = true;
 
             poseStack.popPose();
         }
     }
+
 
 
 }

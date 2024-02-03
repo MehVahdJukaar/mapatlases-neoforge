@@ -56,7 +56,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
 
             ItemStack atlas = ItemStack.EMPTY;
             if (lecternPos != null) {
-                if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity le) {
+                if (player.level.getBlockEntity(lecternPos) instanceof LecternBlockEntity le) {
                     atlas = le.getBook();
                 }
             } else {

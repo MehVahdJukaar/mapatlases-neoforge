@@ -3,7 +3,7 @@ package pepjebs.mapatlases.integration;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.NativeImage;
-import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
+import net.mehvahdjukaar.moonlight.api.platform.ClientPlatformHelper;
 import net.mehvahdjukaar.moonlight.api.resources.textures.TextureImage;
 import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
 import net.minecraft.client.Minecraft;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class SupplementariesClientCompat {
 
     public static void init(){
-        ClientHelper.addClientReloadListener(R::new, MapAtlasesMod.res("lightmap"));
+        ClientPlatformHelper.addClientReloadListener(new R(), MapAtlasesMod.res("lightmap"));
     }
 
     public static class R extends SimpleJsonResourceReloadListener {

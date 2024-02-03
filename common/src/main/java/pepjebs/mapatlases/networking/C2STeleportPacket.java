@@ -3,8 +3,8 @@ package pepjebs.mapatlases.networking;
 import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -12,7 +12,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -20,7 +19,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.PlatStuff;
 
-import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -36,7 +34,7 @@ public class C2STeleportPacket implements Message {
         this.x = buf.readVarInt();
         this.z = buf.readVarInt();
         this.y = buf.readOptional(FriendlyByteBuf::readVarInt).orElse(null);
-        this.dimension = buf.readResourceKey(Registries.DIMENSION);
+        this.dimension = buf.readResourceKey(Registry.DIMENSION_REGISTRY);
     }
 
     public C2STeleportPacket(int x, int z, @Nullable Integer y, ResourceKey<Level> dimension) {
@@ -55,17 +53,15 @@ public class C2STeleportPacket implements Message {
         pX = result.getSecond().x;
         pY = result.getSecond().y;
         pZ = result.getSecond().z;
-        BlockPos blockpos = BlockPos.containing(pX, pY, pZ);
+        BlockPos blockpos = new BlockPos(pX, pY, pZ);
         if (Level.isInSpawnableBounds(blockpos)) {
-            if (player.teleportTo(pLevel, pX, pY, pZ, EnumSet.noneOf(RelativeMovement.class),
-                    player.getYRot(), player.getXRot())) {
+            player.teleportTo(pLevel, pX, pY, pZ, player.getYRot(), player.getXRot());
 
-                if (!player.isFallFlying()) {
-                    player.setDeltaMovement(player.getDeltaMovement().multiply(1.0D, 0, 1.0D).add(0, -5, 0));
-                    player.setOnGround(true);
-                }
-                return true;
+            if (!player.isFallFlying()) {
+                player.setDeltaMovement(player.getDeltaMovement().multiply(1.0D, 0, 1.0D).add(0, -5, 0));
+                player.setOnGround(true);
             }
+            return true;
         }
         return false;
     }
@@ -90,7 +86,7 @@ public class C2STeleportPacket implements Message {
 
         int y;
         if (this.y == null) {
-           var chunk = level.getChunk(SectionPos.blockToSectionCoord(x),SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
+            var chunk = level.getChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
             if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
                 y = level.getMaxBuildHeight();
                 MinecraftServer server = level.getServer();

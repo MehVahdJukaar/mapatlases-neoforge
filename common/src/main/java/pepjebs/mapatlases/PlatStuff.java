@@ -1,11 +1,11 @@
 package pepjebs.mapatlases;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -28,8 +28,7 @@ public class PlatStuff {
 
     @Environment(EnvType.CLIENT)
     @ExpectPlatform
-    public static void drawString(GuiGraphics g, Font font, String text, float x, float y, int i, boolean b) {
-
+    public static void drawString(PoseStack g, Font font, String text, float x, float y, int i, boolean b) {
         throw new AssertionError();
     }
 

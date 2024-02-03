@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.forge;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.client.event.InputEvent;
@@ -34,7 +34,7 @@ public class MapAtlasesForge {
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        if (PlatHelper.getPhysicalSide().isClient()) {
+        if (PlatformHelper.getPhysicalSide().isClient()) {
             MapAtlasesClientImpl.init();
         }
     }
