@@ -143,7 +143,7 @@ public abstract class AbstractAtlasWidget {
         }
         vcp.endBatch();
 
-        if (showBorders) {
+        if (showBorders && false) {
 
             if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 

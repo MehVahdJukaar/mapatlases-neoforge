@@ -65,8 +65,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
         // Get the Map Ids in the Grid
         // Set NBT Data
-        IMapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
-        IMapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(newAtlas, level);
+        IMapCollection oldMaps = MapAtlasItem.getMaps2(oldAtlas, level);
         for (MapDataHolder holder : maps.getAll()) {
             oldMaps.remove(holder);
             Integer newId = SupplementariesCompat.createAntiqueMapData(holder,level,true, false);

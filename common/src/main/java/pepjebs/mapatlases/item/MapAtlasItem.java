@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.capabilities.MapCollectionCap;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.IMapCollection;
@@ -49,7 +50,7 @@ public class MapAtlasItem extends Item {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
         if (level != null && stack.hasTag()) {
-            IMapCollection maps = getMaps(stack, level);
+            IMapCollection maps = getMaps2(stack, level);
             int mapSize = maps.getCount();
             int empties = getEmptyMaps(stack);
             if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
@@ -110,7 +111,7 @@ public class MapAtlasItem extends Item {
         CompoundTag tag = stack.getOrCreateTag();
         //convert old atlas
         if (tag.contains("maps")) {
-            IMapCollection maps = getMaps(stack, level);
+            IMapCollection maps = getMaps2(stack, level);
             for (var i : tag.getIntArray("maps")) {
                 maps.add(i, level);
             }
@@ -140,7 +141,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                IMapCollection maps = getMaps(stack, level);
+                IMapCollection maps = getMaps2(stack, level);
                 MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
@@ -162,7 +163,7 @@ public class MapAtlasItem extends Item {
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, player.level);
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
@@ -205,8 +206,12 @@ public class MapAtlasItem extends Item {
         Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }*/
-    public static IMapCollection getMaps(ItemStack stack, Level level) {
+    public static IMapCollection getMaps2(ItemStack stack, Level level) {
        return IMapCollection.get(stack, level);
+    }
+
+    public static MapCollectionCap getMaps(ItemStack stack, Level level){
+        return new MapCollectionCap(getMaps2(stack, level));
     }
 
     public static int getMaxMapCount() {
@@ -254,7 +259,7 @@ public class MapAtlasItem extends Item {
 
     private static void validateSelectedSlices(ItemStack pStack, Level level) {
         // Populate default slices
-        var maps = getMaps(pStack, level);
+        var maps = getMaps2(pStack, level);
         var dim = maps.getAvailableDimensions();
         for (var d : dim) {
             for (var k : maps.getAvailableTypes(d)) {

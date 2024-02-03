@@ -219,7 +219,7 @@ public class MapWidget extends AbstractAtlasWidget implements Widget, GuiEventLi
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
-        if (isHovered) {
+        if (isHovered && mapScreen.canTeleport()) {
             ColumnPos pos = getHoveredPos(mouseX, mouseY);
             Slice slice = mapScreen.getSelectedSlice();
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));

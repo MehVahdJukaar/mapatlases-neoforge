@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -18,6 +19,9 @@ import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MapAtlasesAccessUtils {
 
@@ -93,7 +97,7 @@ public class MapAtlasesAccessUtils {
 
     public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
         int amountToAdd = bottomItem.getCount();
-        int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas);
+        int existingMapCount = MapAtlasItem.getMaps2(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas);
         amountToAdd *= MapAtlasesConfig.mapEntryValueMultiplier.get();
         if (MapAtlasItem.getMaxMapCount() != -1
                 && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {
@@ -130,6 +134,19 @@ public class MapAtlasesAccessUtils {
                 MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
             }
         }
+    }
+
+    public static Map.Entry<String, MapItemSavedData> getActiveAtlasMapStateServer(Map<String, MapItemSavedData> allMaps, ServerPlayer player) {
+      return   allMaps.entrySet().stream().findAny().get();
+
+    }
+
+    public static int getMapIntFromString(String id) {
+        return findMapIntFromString(id);
+    }
+
+    public static Map<String, MapItemSavedData> getAllMapInfoFromAtlas(Level world, ItemStack atlas) {
+        return MapAtlasItem.getMaps(atlas, world).getAll().stream().collect(Collectors.toMap(h -> h.stringId, holder -> holder.data));
     }
 
 }

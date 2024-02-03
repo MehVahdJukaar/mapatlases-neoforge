@@ -71,7 +71,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         // cut map
         if (PlatStuff.isShear(bottomItem)) {
             this.access.execute((world, blockPos) -> {
-                var maps = MapAtlasItem.getMaps(topItem, world);
+                var maps = MapAtlasItem.getMaps2(topItem, world);
                 if (maps.isEmpty()) return;
                 if (mapatlases$selectedMapIndex > maps.getCount()) {
                     mapatlases$selectedMapIndex = 0;
@@ -88,8 +88,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                IMapCollection resultMaps = MapAtlasItem.getMaps(result, world);
-                IMapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
+                IMapCollection resultMaps = MapAtlasItem.getMaps2(result, world);
+                IMapCollection bottomMaps = MapAtlasItem.getMaps2(bottomItem, world);
                 if (resultMaps.getScale() != bottomMaps.getScale()) return;
                 int[] idsToADd = bottomMaps.getAllIds();
                 for (var i : idsToADd) {
@@ -121,7 +121,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
                 Integer mapId = MapItem.getMapId(bottomItem);
-                IMapCollection maps = MapAtlasItem.getMaps(result, world);
+                IMapCollection maps = MapAtlasItem.getMaps2(result, world);
                 if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
@@ -175,7 +175,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Override
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
-            var maps = MapAtlasItem.getMaps(atlas, level);
+            var maps = MapAtlasItem.getMaps2(atlas, level);
             MapDataHolder m = maps.getAll().get(mapatlases$selectedMapIndex);
             maps.remove(m);
         });
@@ -196,7 +196,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             }
             if(l.get() != null) {
                 if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
-                    var maps = MapAtlasItem.getMaps(atlas, l.get());
+                    var maps = MapAtlasItem.getMaps2(atlas, l.get());
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
                             + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
                     try {

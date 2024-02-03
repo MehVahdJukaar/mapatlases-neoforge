@@ -3,7 +3,6 @@ package pepjebs.mapatlases.forge;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -27,7 +26,8 @@ public class PlatStuffImpl {
     }
 
     public static void drawString(PoseStack g, Font font, String text, float x, float y, int i, boolean b) {
-        GuiComponent.drawString(g, font, text, (int) x, (int) y, i);
+        if(b) font.drawShadow(g,text,  x,  y,i);
+        else font.draw(g,text,  x,  y,i);
     }
 
     public static boolean isSimple(NonNullList<Ingredient> ingredients) {

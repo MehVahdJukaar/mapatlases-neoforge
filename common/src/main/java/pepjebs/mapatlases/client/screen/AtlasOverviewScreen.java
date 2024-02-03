@@ -100,7 +100,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @NotNull
     private MapDataHolder getMapClosestToPlayer() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
         MapDataHolder closest = maps.getClosest(player, selectedSlice);
         if (closest == null) {
@@ -135,7 +135,7 @@ public class AtlasOverviewScreen extends Screen {
         this.addRenderableWidget(sliceDown);
 
         int i = 0;
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         Collection<ResourceKey<Level>> dimensions = maps.getAvailableDimensions();
         int separation = (int) Math.min(22, (BOOK_HEIGHT - 50f) / dimensions.size());
         for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
@@ -215,7 +215,7 @@ public class AtlasOverviewScreen extends Screen {
         }
         //add lectern marker
         if (false && lectern != null && selectedSlice.dimension().equals(lectern.getLevel().dimension())) {
-            var data = MapAtlasItem.getMaps(atlas, level).getClosest(
+            var data = MapAtlasItem.getMaps2(atlas, level).getClosest(
                     lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
                     selectedSlice).data;
         }
@@ -375,7 +375,7 @@ public class AtlasOverviewScreen extends Screen {
         if (selectedSlice.dimension().equals(level.dimension())) {
             return getMapClosestToPlayer().data;
         } else {
-            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
             MapItemSavedData best = null;
             float averageX = 0;
             float averageZ = 0;
@@ -410,7 +410,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     protected MapDataHolder findMapEntryForCenter(int reqXCenter, int reqZCenter) {
-        return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, selectedSlice);
+        return MapAtlasItem.getMaps2(atlas, level).select(reqXCenter, reqZCenter, selectedSlice);
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -498,7 +498,7 @@ public class AtlasOverviewScreen extends Screen {
         List<DecorationHolder> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
-        for (MapDataHolder holder : MapAtlasItem.getMaps(atlas, level).selectSection(selectedSlice)) {
+        for (MapDataHolder holder : MapAtlasItem.getMaps2(atlas, level).selectSection(selectedSlice)) {
             MapItemSavedData data = holder.data;
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
@@ -535,7 +535,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean decreaseSlice() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
@@ -545,7 +545,7 @@ public class AtlasOverviewScreen extends Screen {
 
     //TODO: make static
     public boolean increaseSlice() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
@@ -554,7 +554,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void cycleSliceType() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         ResourceKey<Level> dim = selectedSlice.dimension();
         var slices = new ArrayList<>(maps.getAvailableTypes(dim));
         if (!slices.isEmpty()) {
@@ -582,7 +582,7 @@ public class AtlasOverviewScreen extends Screen {
             changed = true;
         }
         //update button regardless
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         var dim = selectedSlice.dimension();
         boolean manySlices = maps.getHeightTree(dim, selectedSlice.type()).size() > 1;
         boolean manyTypes = maps.getAvailableTypes(dim).size() != 1;

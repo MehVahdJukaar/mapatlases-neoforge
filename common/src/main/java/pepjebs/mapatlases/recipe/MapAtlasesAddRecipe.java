@@ -49,7 +49,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = emptyMaps + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
-            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+            IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
             int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
@@ -103,7 +103,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         for (var i : mapIds) {
             maps.add(i, level);
         }

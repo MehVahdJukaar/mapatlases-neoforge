@@ -110,7 +110,7 @@ public class MapAtlasesClient {
         currentActiveMap = null;
         currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
-            var maps = MapAtlasItem.getMaps(atlas, player.level);
+            var maps = MapAtlasItem.getMaps2(atlas, player.level);
             maps.fixDuplicates(player.level);
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level.dimension());
             // I hate this
@@ -232,7 +232,7 @@ public class MapAtlasesClient {
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
         ClientLevel level = Minecraft.getInstance().level;
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         //we arent ticking these so we have to fix duplicates
         maps.fixDuplicates(level);
         if (!maps.isEmpty()) {

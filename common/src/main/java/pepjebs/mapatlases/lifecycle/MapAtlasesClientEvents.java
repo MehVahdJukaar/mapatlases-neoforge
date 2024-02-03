@@ -31,7 +31,7 @@ public class MapAtlasesClientEvents {
         if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+                IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
 
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
                 maybeChangeSlice(client.player, level, maps, s, atlas);
@@ -64,7 +64,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                IMapCollection maps = MapAtlasItem.getMaps2(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();
@@ -74,7 +74,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                IMapCollection maps = MapAtlasItem.getMaps2(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();

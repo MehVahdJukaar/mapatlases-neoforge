@@ -100,7 +100,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         atlas.getOrCreateTag();
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, level);
         MapAtlasItem.setSelectedSlice(atlas, holder.slice);
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);

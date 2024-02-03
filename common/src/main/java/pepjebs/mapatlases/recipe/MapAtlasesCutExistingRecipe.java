@@ -38,7 +38,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             var i = inv.getItem(j);
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
-                        (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
+                        (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps2(i, level).getCount() > 0)) {
                     if (!atlas.isEmpty()) return false;
                     atlas = i;
                 } else if (i.is(Items.SHEARS) && i.getDamageValue() < i.getMaxDamage() - 1) {
@@ -64,7 +64,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
+        IMapCollection maps = MapAtlasItem.getMaps2(atlas, levelRef.get());
         if (maps.getCount() > 1) {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
@@ -108,7 +108,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 stack.hurt(1, RandomSource.create(), null);
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
-                IMapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
+                IMapCollection maps = MapAtlasItem.getMaps2(stack, levelRef.get());
                 if (!maps.isEmpty()) {
                     var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));

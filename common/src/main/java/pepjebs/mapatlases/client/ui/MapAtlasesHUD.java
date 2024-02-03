@@ -72,7 +72,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        IMapCollection maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
+        IMapCollection maps = MapAtlasItem.getMaps2(currentAtlas, mc.level);
         return maps.select(centerX, centerZ, slice);
     }
 
@@ -84,7 +84,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget   {
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
 
-        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps(currentAtlas, mc.level).hasOneSlice();
+        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps2(currentAtlas, mc.level).hasOneSlice();
         this.drawBigPlayerMarker = followingPlayer;
 
     }
