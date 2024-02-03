@@ -3,13 +3,15 @@ package pepjebs.mapatlases.integration;
 import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
 import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.mehvahdjukaar.supplementaries.common.misc.AntiqueInkHelper;
-import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
 import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class SupplementariesCompat {
 
@@ -18,7 +20,6 @@ public class SupplementariesCompat {
             SupplementariesClientCompat.init();
         }
         // turn on map light
-        MapLightHandler.setActive(true);
     }
 
     public static Integer getSlice(MapItemSavedData data) {
@@ -55,7 +56,11 @@ public class SupplementariesCompat {
         return itemstack.is(ModRegistry.ANTIQUE_INK.get());
     }
 
-    public static Integer createAntiqueMapData(MapItemSavedData data, Level level, boolean on, boolean replaceOld) {
-        return WeatheredMap.createAntiqueMapData(data, level, on, replaceOld);
+    public static Integer createAntiqueMapData(MapDataHolder holder, Level level, boolean on, boolean replaceOld) {
+        ItemStack dummy = Items.FILLED_MAP.getDefaultInstance();
+        dummy.getOrCreateTag().putInt("map", holder.id);
+        WeatheredMap.setAntique(level, dummy, on);
+        MapItem.getSavedData(dummy, level);
+        return holder.id;
     }
 }

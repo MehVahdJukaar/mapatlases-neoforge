@@ -1,8 +1,9 @@
 package pepjebs.mapatlases.fabric;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -22,8 +23,8 @@ public class PlatStuffImpl {
         return type == EntityType.WARDEN || type == EntityType.ENDER_DRAGON || type ==EntityType.ELDER_GUARDIAN || type == EntityType.WITHER;
     }
 
-    public static void drawString(GuiGraphics g, Font font, String text, float x, float y, int i, boolean b) {
-        g.drawString(font,text, (int) x, (int) y,i,b);
+    public static void drawString(PoseStack g, Font font, String text, float x, float y, int i, boolean b) {
+        GuiComponent.drawString(g,font,text, (int) x, (int) y,i);
     }
 
     public static boolean isSimple(NonNullList<Ingredient> ingredients) {

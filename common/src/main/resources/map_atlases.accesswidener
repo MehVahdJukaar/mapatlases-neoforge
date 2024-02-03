@@ -6,8 +6,6 @@ accessible field net/minecraft/world/level/saveddata/maps/MapItemSavedData decor
 
 accessible field net/minecraft/client/multiplayer/ClientLevel mapData Ljava/util/Map;
 
-accessible field net/minecraft/client/gui/components/Tooltip cachedTooltip Ljava/util/List;
-
 accessible field net/minecraft/world/inventory/CraftingContainer menu Lnet/minecraft/world/inventory/AbstractContainerMenu;
 accessible field net/minecraft/world/inventory/CraftingMenu player Lnet/minecraft/world/entity/player/Player;
 accessible field net/minecraft/world/inventory/InventoryMenu owner Lnet/minecraft/world/entity/player/Player;

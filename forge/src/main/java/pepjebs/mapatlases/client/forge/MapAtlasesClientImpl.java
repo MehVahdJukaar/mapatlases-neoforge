@@ -1,9 +1,8 @@
 package pepjebs.mapatlases.client.forge;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
@@ -31,7 +30,7 @@ public class MapAtlasesClientImpl {
     private static class MapAtlasesHUDImpl extends MapAtlasesHUD implements IGuiOverlay {
 
         @Override
-        public void render(ForgeGui forgeGui, GuiGraphics graphics, float f, int i, int j) {
+        public void render(ForgeGui forgeGui, PoseStack graphics, float f, int i, int j) {
             super.render(graphics, f, i, j);
         }
     }
@@ -42,11 +41,6 @@ public class MapAtlasesClientImpl {
         ClientLevel level = client.level;
         if (level == null || event.phase != TickEvent.Phase.END) return;
         MapAtlasesClientEvents.onClientTick(client, level);
-    }
-
-    @SubscribeEvent
-    public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        MapAtlasesClientEvents.onLoggedOut();
     }
 
     public static void decreaseHoodZoom() {

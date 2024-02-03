@@ -138,7 +138,7 @@ dependencies {
     modCompileOnly("curse.maven:supplementaries-412082:5066761")
     modCompileOnly("curse.maven:config-menus-forge-544048:4672356")
     modCompileOnly("curse.maven:the-twilight-forest-227639:4802174")
-    modRuntimeOnly("curse.maven:spark-361579:4738952")
+    modCompileOnly("curse.maven:spark-361579:4738952")
 
     modImplementation("maven.modrinth:immediatelyfast:1.2.10+1.19.2-forge")
     modCompileOnly("curse.maven:modernfix-790626:4599348")

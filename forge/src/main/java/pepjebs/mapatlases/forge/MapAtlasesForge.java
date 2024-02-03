@@ -2,14 +2,11 @@ package pepjebs.mapatlases.forge;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.mehvahdjukaar.moonlight.api.platform.PlatformHelper;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -34,16 +31,11 @@ public class MapAtlasesForge {
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        if (PlatformHelper.getPhysicalSide().isClient()) {
+        if (PlatformHelper.getEnv().isClient()) {
             MapAtlasesClientImpl.init();
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onDimensionUnload(LevelEvent.Unload event) {
-        if (event.getLevel() instanceof ServerLevel)
-            MapAtlasesServerEvents.onDimensionUnload();
-    }
 
     @SubscribeEvent
     public void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event) {
