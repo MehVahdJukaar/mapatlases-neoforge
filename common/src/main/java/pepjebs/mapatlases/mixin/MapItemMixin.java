@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import pepjebs.mapatlases.MapAtlasesMod;
 
 @Mixin(value = MapItem.class, priority = 1200)
 public class MapItemMixin {
@@ -31,7 +32,7 @@ public class MapItemMixin {
                                                      @Local(ordinal = 5) int range,
                                                      @Local(ordinal = 0) int scale) {
         //also checks the range early
-        if (distance <= (range + 1 + scale) * (range + 1 + scale)) {
+        if (MapAtlasesMod.rangeCheck(distance, range, scale)) {
             var c = instance.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
             if (c instanceof LevelChunk lc) {
                 //original
@@ -42,6 +43,7 @@ public class MapItemMixin {
         return new EmptyLevelChunk(instance, new ChunkPos(chunkX, chunkZ),
                 instance.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
     }
+
 
     // fixes issues with vanilla maps where first strips takes ages to update by incrementing step after map calculation
     @Inject(method = "update", at = @At(value = "NEW", target = "()Lnet/minecraft/core/BlockPos$MutableBlockPos;",

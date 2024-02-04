@@ -116,5 +116,9 @@ public class MapAtlasesMod {
 
     private static InteractionResult hack = InteractionResult.PASS;
 
+    public static boolean rangeCheck(int distance, int range, int scale) {
+        return distance <= (range + 1 + scale) * (range + 1 + scale);
+    }
+
 
 }
