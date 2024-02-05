@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.capabilities;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -15,79 +16,70 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 //backwards compat
-public record MapCollectionCap(IMapCollection instance) implements IMapCollection {
+public record MapCollectionCap(IMapCollection instance) {
 
-    @Override
     public boolean add(int mapId, Level level) {
         return instance.add(mapId, level);
     }
 
-    @Override
     public boolean remove(MapDataHolder obj) {
         return false;
     }
 
-    @Override
     public int getCount() {
         return instance.getCount();
     }
 
-    @Override
     public boolean isEmpty() {
         return instance.isEmpty();
     }
 
-    @Override
     public byte getScale() {
         return instance.getScale();
     }
 
-    @Override
     public int[] getAllIds() {
         return instance.getAllIds();
     }
 
-    @Override
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
         return instance.getAvailableDimensions();
     }
 
-    @Override
     public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
         return instance.getAvailableTypes(dimension);
     }
 
-    @Override
     public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType type) {
-        return instance.getHeightTree(dimension,type);
+        return instance.getHeightTree(dimension, type);
     }
 
-    @Override
     public List<MapDataHolder> selectSection(Slice slice) {
         return instance.selectSection(slice);
     }
 
-    @Override
     public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
         return instance.filterSection(slice, predicate);
     }
 
-    @Override
-    public @Nullable MapDataHolder select(MapKey key) {
+    public Pair<String, MapItemSavedData> select(MapKey key) {
+        MapDataHolder select = instance.select(key);
+        if (select == null) return null;
+        return Pair.of(select.stringId, select.data);
+    }
+
+    public @Nullable MapDataHolder select2(MapKey key) {
         return instance.select(key);
     }
 
-    @Override
     public @Nullable MapDataHolder getClosest(double x, double z, Slice slice) {
-        return instance.getClosest(x,z,slice);
+        return instance.getClosest(x, z, slice);
     }
 
-    @Override
     public List<MapDataHolder> getAll() {
         return instance.getAll();
     }
 
-    @Override
     public boolean hasOneSlice() {
         return instance.hasOneSlice();
     }

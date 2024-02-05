@@ -2,6 +2,7 @@
 package pepjebs.mapatlases.capabilities;
 
 import net.minecraft.world.entity.player.Player;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
@@ -17,6 +18,9 @@ public record MapKey(int mapX, int mapZ, Slice slice) {
         int i = 128 * (1 << scale);
         var center = slice.type().getCenter(px, pz, i);
         return new MapKey(center.x(), center.z(), slice);
+    }
+    public static MapKey at(byte scale, Player player, Integer slice) {
+        return at(scale, player, Slice.of(MapType.VANILLA, slice, player.level.dimension()));
     }
 
     public static MapKey at(byte scale, Player player, Slice slice) {
