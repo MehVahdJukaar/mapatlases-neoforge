@@ -1,5 +1,5 @@
 
-package pepjebs.mapatlases.map_collection;
+package pepjebs.mapatlases.capabilities;
 
 import net.minecraft.world.entity.player.Player;
 import pepjebs.mapatlases.utils.Slice;
