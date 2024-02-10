@@ -226,7 +226,7 @@ public class MapWidget extends AbstractAtlasWidget implements Widget, GuiEventLi
             if (!PlatformHelper.isDev()) mapScreen.onClose();
             return true;
         }
-        return false;
+        return true;
     }
 
     @NotNull
