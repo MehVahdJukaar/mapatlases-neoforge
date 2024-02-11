@@ -66,7 +66,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             }
         }
         IMapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
-        if (maps.getCount() > 1) {
+        //not using count. we want actual maps
+        if (maps.getAll().size() > 1) {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
             MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
