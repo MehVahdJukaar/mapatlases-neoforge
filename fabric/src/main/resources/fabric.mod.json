@@ -47,7 +47,7 @@
     "fabric": "*",
     "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}",
     "moonlight": ">=${required_moonlight_version}",
-    "cardinal-components-item": ">=${cca_version}"
+    "cardinal-components-item": "*"
   },
   "suggests": {
     "supplementaries": "*"

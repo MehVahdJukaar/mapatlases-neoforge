@@ -43,6 +43,7 @@ public abstract class BookmarkButton extends AbstractWidget {
                 this.x, this.y, xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);
+        this.renderToolTip(pose, pMouseX, pMouseY);
     }
 
     @Override

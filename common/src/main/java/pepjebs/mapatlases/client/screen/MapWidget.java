@@ -224,10 +224,10 @@ public class MapWidget extends AbstractAtlasWidget implements Widget, GuiEventLi
             Slice slice = mapScreen.getSelectedSlice();
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
             if (!PlatformHelper.isDev()) mapScreen.onClose();
-            return true;
         }
         return true;
     }
+
 
     @NotNull
     private ColumnPos getHoveredPos(double mouseX, double mouseY) {

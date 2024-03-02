@@ -18,6 +18,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 
@@ -121,6 +122,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         //hide waiting to be activated by mapWidget
         setSelected(false);
+
     }
 
     protected abstract void renderDecoration(PoseStack graphics, int mouseX, int mouseY);
