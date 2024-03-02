@@ -1,1 +1,1 @@
-fixed a server issue
+imprved map updating logic. could result in it playing better with mods modifying chunkloading
