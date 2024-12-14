@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "map_atlases:boss_entity",
+    "map_atlases:hostile_entity",
+    "map_atlases:neutral_entity",
+    "map_atlases:passive_entity"
+  ]
+}

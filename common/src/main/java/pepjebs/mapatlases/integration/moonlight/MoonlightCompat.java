@@ -7,11 +7,13 @@ import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -27,6 +29,8 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.*;
 
 public class MoonlightCompat {
+    private static final TagKey<MapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.REGISTRY_KEY,
+            MapAtlasesMod.res("no_button_on_atlas"));
 
     private static final ResourceLocation PIN_TYPE_ID = MapAtlasesMod.res("pin");
     private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
@@ -45,7 +49,10 @@ public class MoonlightCompat {
 
     public static Collection<DecorationHolder> getCustomDecorations(MapDataHolder map) {
         return ((ExpandedMapData) map.data).getCustomDecorations().entrySet().stream()
-                .filter(e -> !e.getValue().getType().getCustomFactoryID().equals(PIN_ENTITY_TYPE_ID))
+                //TODO: 1.21 improve with holder
+                .filter(e ->
+                        MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+                                .wrapAsHolder(e.getValue().getType()).is(NOT_ON_ATLAS))
                 .map(a -> new DecorationHolder(a.getValue(), a.getKey(), map)).toList();
     }
 

@@ -1,1 +1,1 @@
-fixed some minor random issues
+fixed map pins not saving in multiplayer
