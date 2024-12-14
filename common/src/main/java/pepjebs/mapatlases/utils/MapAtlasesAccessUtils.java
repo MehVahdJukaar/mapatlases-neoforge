@@ -3,7 +3,6 @@ package pepjebs.mapatlases.utils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -75,13 +74,9 @@ public class MapAtlasesAccessUtils {
             }
         }
         //then curios
-        if (MapAtlasesMod.CURIOS) {
-            itemStack = CuriosCompat.getAtlasInCurio(player);
-            if (!itemStack.isEmpty()) return itemStack;
-        }
-        if (MapAtlasesMod.TRINKETS) {
-            itemStack = TrinketsCompat.getAtlasInTrinket(player);
-            if (!itemStack.isEmpty()) return itemStack;
+        ItemStack atlasFromCurio = getAtlasFromCurioOrTrinket(player);
+        if (!atlasFromCurio.isEmpty()) {
+            return atlasFromCurio;
         }
         if (loc.scanAll()) {
             itemStack = getAtlasFromInventory(inventory, false);
@@ -89,6 +84,18 @@ public class MapAtlasesAccessUtils {
             itemStack = getAtlasFromInventory(inventory, true);
         }
         return itemStack;
+    }
+
+    public static ItemStack getAtlasFromCurioOrTrinket(Player player) {
+        if (MapAtlasesMod.CURIOS) {
+            ItemStack itemStack = CuriosCompat.getAtlasInCurio(player);
+            if (!itemStack.isEmpty()) return itemStack;
+        }
+        if (MapAtlasesMod.TRINKETS) {
+            ItemStack itemStack = TrinketsCompat.getAtlasInTrinket(player);
+            if (!itemStack.isEmpty()) return itemStack;
+        }
+        return ItemStack.EMPTY;
     }
 
     public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
@@ -106,13 +113,13 @@ public class MapAtlasesAccessUtils {
             MapDataHolder holder,
             ServerPlayer player,
             ItemStack atlas,
-            InteractionResult forceBeingCarried
+            TriState forceBeingCarried
     ) {
         MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
         //hack. just to be sure so contains will fail
         holder.data.tickCarriedBy(player, atlas);
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
-        MapAtlasesMod.setMapInInventoryHack(InteractionResult.PASS);
+        MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
     }
 
 

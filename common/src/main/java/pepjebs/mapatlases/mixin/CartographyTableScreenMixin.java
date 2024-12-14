@@ -35,9 +35,9 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
     }
 
     @Inject(method = "renderResultingMap", at = @At(value = "HEAD"))
-    void renderAtlasMap(GuiGraphics pGuiGraphics, Integer pMapId, MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper,
+    void mapAtlases$renderAtlasMap(GuiGraphics pGuiGraphics, Integer pMapId, MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper,
                         boolean pHasGlassPane, boolean pIsMaxSize, CallbackInfo ci,
-                        @Local LocalRef<Integer> mapid, @Local LocalRef<MapItemSavedData> data) {
+                        @Local(argsOnly = true) LocalRef<Integer> mapid, @Local(argsOnly = true) LocalRef<MapItemSavedData> data) {
 
         if (pMapData == null && pMapId == null && this.menu.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack item = this.menu.slots.get(2).getItem();

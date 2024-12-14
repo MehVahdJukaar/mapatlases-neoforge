@@ -6,6 +6,8 @@ import net.mehvahdjukaar.moonlight.api.platform.network.NetworkDir;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +65,10 @@ public class C2S2COpenAtlasScreenPacket implements Message {
                 atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             }
             if (atlas.getItem() instanceof MapAtlasItem) {
-                if(pinOnly && MapAtlasesMod.MOONLIGHT && MoonlightCompat.maybePlacePinInFront(player, atlas)){
+                if (pinOnly) {
+                    player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);
+                }
+                if (pinOnly && MapAtlasesMod.MOONLIGHT && MoonlightCompat.maybePlaceMarkerInFront(player, atlas)) {
                     return;
                 }
 

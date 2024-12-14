@@ -345,8 +345,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
                     pos.getX() / 16, pos.getZ() / 16, pos.getX() % 16, pos.getZ() % 16).getString();
         } else {
-            coordsToDisplay = displaysY ? pos.toShortString() : Component.translatable("message.map_atlases.coordinates",
-                    pos.getX() + ", " + pos.getZ()).getString();
+            coordsToDisplay = displaysY ?
+                    Component.translatable("message.map_atlases.coordinates_full",
+                            pos.getX(), pos.getY(), pos.getZ()).getString()
+                    : Component.translatable("message.map_atlases.coordinates",
+                    pos.getX(), pos.getZ()).getString();
         }
         drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }

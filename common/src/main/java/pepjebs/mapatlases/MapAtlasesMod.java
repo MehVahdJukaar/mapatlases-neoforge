@@ -7,7 +7,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -26,6 +25,7 @@ import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
+import pepjebs.mapatlases.utils.TriState;
 
 import java.util.function.Supplier;
 
@@ -105,16 +105,16 @@ public class MapAtlasesMod {
         return new ResourceLocation(MOD_ID, name);
     }
 
-    public static InteractionResult containsHack() {
+    public static TriState containsHack() {
         return hack;
     }
 
-    public static void setMapInInventoryHack(InteractionResult value) {
+    public static void setMapInInventoryHack(TriState value) {
         hack = value;
     }
 
 
-    private static InteractionResult hack = InteractionResult.PASS;
+    private static TriState hack = TriState.PASS;
 
     public static boolean rangeCheck(int distance, int range, int scale) {
         return distance <= (range + 1 + scale) * (range + 1 + scale);

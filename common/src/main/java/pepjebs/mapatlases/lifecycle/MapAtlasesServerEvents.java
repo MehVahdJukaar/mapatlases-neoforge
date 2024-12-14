@@ -6,7 +6,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
@@ -23,10 +22,7 @@ import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -168,13 +164,13 @@ public class MapAtlasesServerEvents {
         //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
         // this also update banners and decorations so wen dont want to update stuff we cant see
         for (var mapInfo : nearbyExistentMaps) {
-            MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, InteractionResult.SUCCESS);
+            MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, TriState.SET_TRUE);
             //if data has changed, a packet will be sent
         }
         // for far away maps so we remove player marker
         MapDataHolder lastData = lastMapData.get(player);
         if (lastData != null && !nearbyExistentMaps.contains(lastData)) {
-            MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, InteractionResult.FAIL);
+           MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, TriState.SET_FALSE);
         }
         lastMapData.put(player, activeInfo);
 
@@ -203,7 +199,7 @@ public class MapAtlasesServerEvents {
             if (hh != slice.heightOrTop()) {
                 var below = maps.select(activeKey.mapX(), activeKey.mapZ(), Slice.of(slice.type(), hh, dimension));
                 if (below != null)
-                    MapAtlasesAccessUtils.updateMapDataAndSync(below, player, atlas, InteractionResult.SUCCESS);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(below, player, atlas, TriState.SET_TRUE);
             }
         }
     }
@@ -323,7 +319,7 @@ public class MapAtlasesServerEvents {
                 MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
-                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, InteractionResult.SUCCESS);
+                    MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, TriState.SET_TRUE);
                 }
                 addedMap = maps.add(mapId, level);
             }
@@ -395,7 +391,7 @@ public class MapAtlasesServerEvents {
         if (PlatHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
                 // update all maps and sends them to player, if needed
-                MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
+               // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
             }
         }
     }

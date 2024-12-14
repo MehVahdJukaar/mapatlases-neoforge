@@ -4,7 +4,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.CuriosCompat;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.TriState;
 
 import java.util.Map;
 
@@ -33,11 +33,12 @@ public class MapItemSavedDataMixin {
             method = "tickCarriedBy",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;contains(Lnet/minecraft/world/item/ItemStack;)Z")
     )
-    private boolean mapAtlases$containsProxy(Inventory instance, ItemStack stack, Operation<Boolean> contains, @Local Player player) {
-        InteractionResult interactionResult = MapAtlasesMod.containsHack();
-        if (interactionResult == InteractionResult.FAIL) return false;
+    private boolean mapAtlases$containsProxy(Inventory instance, ItemStack stack, Operation<Boolean> contains, @Local(argsOnly = true) Player player) {
+        TriState state = MapAtlasesMod.containsHack();
+        if (state == TriState.SET_FALSE) return false;
         //needs to call these for some reason... before the rest
-        return interactionResult.consumesAction() || contains.call(instance, stack) || (MapAtlasesMod.CURIOS && CuriosCompat.getAtlasInCurio(player) == stack);
+        return (state == TriState.SET_TRUE) || contains.call(instance, stack)
+                || (MapAtlasesAccessUtils.getAtlasFromCurioOrTrinket(player) == stack);
 
     }
 

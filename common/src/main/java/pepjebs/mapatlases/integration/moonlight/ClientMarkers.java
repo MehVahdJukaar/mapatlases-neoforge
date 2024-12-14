@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
@@ -225,6 +226,7 @@ public class ClientMarkers {
         var pins = markersPerSlice.get(slice);
 
         if (pins != null) {
+            Registry<MapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
             PoseStack matrixStack = graphics.pose();
             int i = 0;
             VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
@@ -244,7 +246,7 @@ public class ClientMarkers {
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
                     ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType(), t ->
-                            Utils.getID(t).withPath(k -> "map_marker/" + k + "_small"));
+                            reg.getKey(t).withPath(k -> "map_marker/" + k + "_small"));
                     TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
                     matrixStack.popPose();

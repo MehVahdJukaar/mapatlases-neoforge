@@ -16,11 +16,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.DecorationHolder;
@@ -51,7 +48,7 @@ public class MoonlightCompat {
         return ((ExpandedMapData) map.data).getCustomDecorations().entrySet().stream()
                 //TODO: 1.21 improve with holder
                 .filter(e ->
-                        MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
+                        !MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
                                 .wrapAsHolder(e.getValue().getType()).is(NOT_ON_ATLAS))
                 .map(a -> new DecorationHolder(a.getValue(), a.getKey(), map)).toList();
     }
@@ -83,12 +80,18 @@ public class MoonlightCompat {
     }
 
 
-    public static boolean maybePlacePinInFront(Player player, ItemStack atlas) {
-        var hit = Utils.rayTrace(player, player.level(), ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY);
-        if (hit instanceof BlockHitResult bi && hit.getType() == HitResult.Type.BLOCK) {
-            return MapHelper.toggleMarkersAtPos(player.level(), bi.getBlockPos(), atlas, player);
+    public static boolean maybePlaceMarkerInFront(Player player, ItemStack atlas) {
+        var hit = Utils.rayTrace(player, true, 0);
+        var resoult = MapHelper.toggleMarkersAtPos(player.level(), hit.getBlockPos(), atlas, player);
+        if (!resoult) {
+            //check for vanilla banners
+            MapItemSavedData data = MapHelper.getMapData(atlas, player.level(), player);
+            if (data != null) {
+                resoult = data.toggleBanner(player.level(), hit.getBlockPos());
+            }
         }
-        return false;
+
+        return resoult;
     }
 
     public static void updateMarkers(MapItemSavedData data, Player player, int maxRange) {

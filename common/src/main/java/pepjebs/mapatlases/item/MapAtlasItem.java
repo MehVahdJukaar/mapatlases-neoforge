@@ -48,7 +48,7 @@ public class MapAtlasItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
 
-        if (level != null && stack.hasTag()) {
+        if (level != null) {
             IMapCollection maps = getMaps(stack, level);
             int mapSize = maps.getCount();
             int empties = getEmptyMaps(stack);
@@ -165,9 +165,9 @@ public class MapAtlasItem extends Item {
         IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
+            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
         }
-        MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
+       MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {
