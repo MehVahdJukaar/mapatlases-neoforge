@@ -82,7 +82,7 @@ public class ClientMarkers {
         markersPerSlice.clear();
         mapLookup.clear();
         //if not in multiplayer we have folder name here
-        String fileName = lastFolderName == null ? levelName : lastFolderName;
+        String fileName = lastFolderName == null ? levelName : sanitiseFolderName(lastFolderName);
         currentPath = getDataPath(fileName, lastType);
 
         try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
@@ -98,14 +98,27 @@ public class ClientMarkers {
         lastType = QuickPlayLog.Type.SINGLEPLAYER;
     }
 
+    private static String sanitiseFolderName(String input) {
+        // Convert to lowercase and replace non-alphanumeric characters except spaces with '_'
+        return input.toLowerCase().replaceAll("[^a-z0-9 ]", "_");
+    }
+
     @NotNull
     private static Path getDataPath(String fileName, QuickPlayLog.Type type) {
-        return PlatHelper.getGamePath()
-                .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
+        try {
+            return PlatHelper.getGamePath()
+                    .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
+        } catch (Exception e) {
+            throw new RuntimeException("Could not get client pins path for world " + fileName, e);
+        }
     }
 
     public static void saveClientMarkers() {
-        if (markers.isEmpty() || currentPath == null) return;
+        if (markers.isEmpty()) return;
+        if (currentPath == null) {
+            MapAtlasesMod.LOGGER.error("Could not save client markers saved data. Path is null");
+            return;
+        }
         try {
             if (!Files.exists(currentPath)) {
                 Files.createDirectories(currentPath.getParent());
