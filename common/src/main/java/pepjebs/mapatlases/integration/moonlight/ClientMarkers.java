@@ -59,21 +59,21 @@ public class ClientMarkers {
     private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
     private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
     private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
-    private static String lastFolderName = null;
+    private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
     private static Path currentPath = null;
 
     public static void setWorldFolder(String pId, QuickPlayLog.Type type) {
-        lastFolderName = pId;
+        lastFolderNameOrIP = pId;
         lastType = type;
     }
 
-    public static void deleteAllMarkersData(String levelName) {
+    public static void deleteAllMarkersData(String folderName) {
         try {
-            var path = getDataPath(levelName, QuickPlayLog.Type.SINGLEPLAYER);
+            var path = getFilePath(folderName, QuickPlayLog.Type.SINGLEPLAYER);
             Files.deleteIfExists(path);
         } catch (Exception e) {
-            MapAtlasesMod.LOGGER.error("Could not delete client markers saved data of world {}", levelName, e);
+            MapAtlasesMod.LOGGER.error("Could not delete client markers saved data of world {}", folderName, e);
         }
     }
 
@@ -81,30 +81,45 @@ public class ClientMarkers {
         markers.clear();
         markersPerSlice.clear();
         mapLookup.clear();
-        //if not in multiplayer we have folder name here
-        String fileName = lastFolderName == null ? levelName : sanitiseFolderName(lastFolderName);
-        currentPath = getDataPath(fileName, lastType);
-
-        try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
-            load(NbtIo.readCompressed(inputStream));
-        } catch (Exception ignored) {
+        //if not in multiplayer we have folder name here. foldername should be null on client
+        if (lastFolderNameOrIP == null) {
+            throw new RuntimeException("Could not load client markers saved data. Folder name is null");
         }
+        currentPath = getFilePath(lastFolderNameOrIP, lastType);
 
+        if (Files.exists(currentPath)) {
+            try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
+                load(NbtIo.readCompressed(inputStream));
+            } catch (Exception ignored) {
+                MapAtlasesMod.LOGGER.error("Could not load client markers saved data at {}", currentPath);
+            }
+        }
         if (MapAtlasesClientConfig.convertXaero.get()) {
-            XaeroMinimapCompat.parseXaeroWaypoints(lastFolderName);
+            XaeroMinimapCompat.parseXaeroWaypoints(lastFolderNameOrIP);
         }
 
-        lastFolderName = null;
+        //uhmm why?
+        lastFolderNameOrIP = null;
         lastType = QuickPlayLog.Type.SINGLEPLAYER;
     }
 
-    private static String sanitiseFolderName(String input) {
+
+    private static String sanitiseServerName(String input) {
         // Convert to lowercase and replace non-alphanumeric characters except spaces with '_'
-        return input.toLowerCase().replaceAll("[^a-z0-9 ]", "_");
+        return input.toLowerCase()
+                .replaceAll("\\]:\\d+$", "")
+                .replaceAll("[\\[\\]]", "")
+                .replaceAll("[^a-z0-9 ]", "_");
     }
 
     @NotNull
-    private static Path getDataPath(String fileName, QuickPlayLog.Type type) {
+    private static Path getFilePath(String lastFolderNameOrIP, QuickPlayLog.Type type) {
+        String fileName;
+        if (lastType == QuickPlayLog.Type.SINGLEPLAYER) {
+            fileName = lastFolderNameOrIP;
+        } else {
+            fileName = sanitiseServerName(lastFolderNameOrIP);
+        }
         try {
             return PlatHelper.getGamePath()
                     .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
