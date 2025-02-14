@@ -62,15 +62,15 @@ public class MapAtlasesAccessUtils {
         Inventory inventory = player.getInventory();
         var loc = MapAtlasesConfig.activationLocation.get();
         // first scan hand
-        ItemStack itemStack = player.getMainHandItem();
-        if (itemStack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-            return itemStack;
+        ItemStack atlasFromMainHand = player.getMainHandItem();
+        if (atlasFromMainHand.is(MapAtlasesMod.MAP_ATLAS.get())) {
+            return atlasFromMainHand;
         }
         // then offhand
         if (loc.hasOffhand()) {
-            itemStack = player.getOffhandItem();
-            if (itemStack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                return itemStack;
+            ItemStack atlasFromOffHand = player.getOffhandItem();
+            if (atlasFromOffHand.is(MapAtlasesMod.MAP_ATLAS.get())) {
+                return atlasFromOffHand;
             }
         }
         //then curios
@@ -79,11 +79,11 @@ public class MapAtlasesAccessUtils {
             return atlasFromCurio;
         }
         if (loc.scanAll()) {
-            itemStack = getAtlasFromInventory(inventory, false);
+            return getAtlasFromInventory(inventory, false);
         } else if (loc.hasHotbar()) {
-            itemStack = getAtlasFromInventory(inventory, true);
+            return getAtlasFromInventory(inventory, true);
         }
-        return itemStack;
+        return ItemStack.EMPTY;
     }
 
     public static ItemStack getAtlasFromCurioOrTrinket(Player player) {
