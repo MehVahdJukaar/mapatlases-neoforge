@@ -19,6 +19,7 @@ public class MapAtlasesNetworking {
             .register(NetworkDir.PLAY_TO_SERVER, C2SMarkerPacket.class, C2SMarkerPacket::new)
             .register(NetworkDir.PLAY_TO_SERVER, C2SRemoveMarkerPacket.class, C2SRemoveMarkerPacket::new)
             .register(NetworkDir.PLAY_TO_SERVER, C2STakeAtlasPacket.class, C2STakeAtlasPacket::new)
+            .register(NetworkDir.PLAY_TO_SERVER, C2SRemoveMapPacket.class, C2SRemoveMapPacket::new)
 
 
             .build();

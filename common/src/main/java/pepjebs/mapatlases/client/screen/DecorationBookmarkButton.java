@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.CompoundTooltip;
@@ -21,10 +20,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
+import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public abstract class DecorationBookmarkButton extends BookmarkButton {
-
-    public static final ResourceLocation MAP_ICON_TEXTURE = new ResourceLocation("textures/map/map_icons.png");
 
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
@@ -113,10 +112,10 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             if (this.control && canFocusMarker()) {
-                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
+                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
                         24, 173, 5, 5);
             } else if (this.shfting && canDeleteMarker()) {
-                graphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE, getX(), getY(),
+                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
                         24, 167, 5, 5);
             }
         }

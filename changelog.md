@@ -1,5 +1,1 @@
-- fixed map pins tabs not showing up for custom pins
-- fixed a rare crash
-- fixed not being able to place banners as markers with B key
-- possible fix for a bug that made atlas not update properly when in trinket slot
-- pin keybind will play a sound
+- fixed tracked pin having wrong z value

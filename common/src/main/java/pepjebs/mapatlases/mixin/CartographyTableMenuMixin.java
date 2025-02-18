@@ -77,7 +77,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     mapatlases$selectedMapIndex = 0;
                 }
                 MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
-                ItemStack result = MapAtlasesAccessUtils.createMapItemStackFromId(map.id);
+                ItemStack result = map.createExistingMapItem();
                 this.mapatlases$selectedSlice = map.slice;
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();

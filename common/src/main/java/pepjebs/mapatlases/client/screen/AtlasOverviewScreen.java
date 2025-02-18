@@ -31,7 +31,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -39,16 +39,13 @@ import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.*;
+
 //in retrospective, we should have kept the menu
 public class AtlasOverviewScreen extends Screen {
 
-    public static final ResourceLocation ATLAS_OVERLAY = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
-    public static final ResourceLocation ATLAS_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
-    public static final ResourceLocation ATLAS_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
-    public static final ResourceLocation GUI_ICONS = new ResourceLocation("textures/gui/icons.png");
-
     private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
-    private final ResourceLocation texture = bigTexture ? ATLAS_TEXTURE_BIG : ATLAS_TEXTURE;
+    private final ResourceLocation texture = bigTexture ? ATLAS_BACKGROUND_TEXTURE_BIG : ATLAS_BACKGROUND_TEXTURE;
 
     private final int BOOK_WIDTH = bigTexture ? 290 : 162;
     private final int BOOK_HEIGHT = bigTexture ? 231 : 167;
@@ -78,8 +75,10 @@ public class AtlasOverviewScreen extends Screen {
     private Slice selectedSlice;
     private boolean initialized = false;
     private boolean placingPin;
+    private boolean shearing;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
     private PinButton pinButton;
+    private ShearButton shearButton;
 
     // for fancy menu or something
     public AtlasOverviewScreen() {
@@ -181,11 +180,19 @@ public class AtlasOverviewScreen extends Screen {
 
         this.setFocused(mapWidget);
 
+        int by = 0;
         if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
             this.pinButton = new PinButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16, this);
             this.addRenderableWidget(pinButton);
+            by += 20;
         }
+        if (MapAtlasesConfig.shearButton.get()) {
+            this.shearButton = new ShearButton((width + BOOK_WIDTH) / 2 + 20,
+                    (height - BOOK_HEIGHT) / 2 + 16 + by, this);
+            this.addRenderableWidget(shearButton);
+        }
+
         this.selectDimension(level.dimension());
 
         if (lectern != null) {
@@ -293,6 +300,7 @@ public class AtlasOverviewScreen extends Screen {
         PoseStack poseStack = graphics.pose();
 
         if (!isPinOnly) {
+
             poseStack.pushPose();
 
             poseStack.translate(width / 2f, height / 2f, 0);
@@ -316,7 +324,7 @@ public class AtlasOverviewScreen extends Screen {
             );
             // Draw foreground
             graphics.blit(
-                    ATLAS_OVERLAY,
+                    ATLAS_OVERLAY_TEXTURE,
                     -H_BOOK_WIDTH,
                     -H_BOOK_HEIGHT,
                     0,
@@ -378,7 +386,7 @@ public class AtlasOverviewScreen extends Screen {
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
                     GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
                     GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            graphics.blit(GUI_ICONS, (width - 15) / 2, (height - 15) / 2,
+            graphics.blit(GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2,
                     0, 0, 15, 15);
             RenderSystem.defaultBlendFunc();
 
@@ -468,7 +476,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected MapDataHolder findMapEntryForCenter(int reqXCenter, int reqZCenter) {
+    protected MapDataHolder findMapAtPosCenter(int reqXCenter, int reqZCenter) {
         return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, selectedSlice);
     }
 
@@ -662,12 +670,32 @@ public class AtlasOverviewScreen extends Screen {
 
     public void togglePlacingPin() {
         this.placingPin = !this.placingPin;
+        if(this.placingPin){
+            this.shearing = false;
+        }
+    }
+
+    public boolean isShearing() {
+        return shearing;
+    }
+
+    public void toggleShearing() {
+        this.shearing = !this.shearing;
+        if(this.shearing){
+            this.placingPin = false;
+        }
+    }
+
+    public void shearMapAt(ColumnPos pos){
+        MapDataHolder selected = findMapAtPosCenter(pos.x(), pos.z());
+        if (selected != null) {
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(selected.id));
+        }
+        shearing = false;
     }
 
     public void placePinAt(ColumnPos pos) {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        MapKey key = MapKey.at(maps.getScale(), pos.x(), pos.z(), selectedSlice);
-        MapDataHolder selected = maps.select(key);
+        MapDataHolder selected = findMapAtPosCenter(pos.x(), pos.z());
         if (selected != null) {
             editBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
@@ -735,5 +763,15 @@ public class AtlasOverviewScreen extends Screen {
 
     public Minecraft getMinecraft() {
         return minecraft;
+    }
+
+    public void removeMapAt(double mouseX, double mouseY) {
+        //find map at pos
+        var v = transformMousePos(mouseX, mouseY);
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        MapDataHolder map = maps.select((int) v.x, (int) v.y, selectedSlice);
+        if (map != null) {
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(map.id));
+        }
     }
 }

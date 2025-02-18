@@ -29,7 +29,12 @@ public class SupplementariesCompat {
 
     public static ItemStack createSliced(Level level, int destX, int destZ, byte scale, boolean b, boolean b1, Integer slice) {
         return SliceMapItem.createSliced(level, destX, destZ, scale, b, b1, slice);
+    }
 
+    public static ItemStack createExistingSliced(int id) {
+        ItemStack stack = new ItemStack(ModRegistry.SLICE_MAP.get());
+        stack.getOrCreateTag().putInt("map", id);
+        return stack;
     }
 
     public static int getSliceReach() {

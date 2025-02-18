@@ -63,7 +63,7 @@ public enum MapType {
         return VANILLA;
     }
 
-    public String makeKey(int id) {
+    public String makeStringKey(int id) {
         return keyPrefix + id;
     }
 
@@ -123,6 +123,26 @@ public enum MapType {
             int mapCenterZ = k * scale + scale / 2 - 64;
             return new ColumnPos(mapCenterX, mapCenterZ);
         }
+    }
+
+    public ItemStack createExistingMapItem(int id, Integer height){
+        ItemStack map = ItemStack.EMPTY;
+        if (this == VANILLA) {
+            if (height != null && MapAtlasesMod.SUPPLEMENTARIES) {
+                map = SupplementariesCompat.createExistingSliced(id);
+            }else {
+                map = new ItemStack(Items.FILLED_MAP);
+                map.getOrCreateTag().putInt("map", id);
+            }
+        } else if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
+            map = TwilightForestCompat.makeExistingMagic(id);
+        } else if ((this == MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
+            map = TwilightForestCompat.makeExistingMaze(id);
+        }
+        else if ((this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
+            map = TwilightForestCompat.makeExistingOre(id);
+        }
+        return map;
     }
 
     public ItemStack createNewMapItem(int destX, int destZ, byte scale, Level level, @Nullable Integer height, ItemStack atlas) {

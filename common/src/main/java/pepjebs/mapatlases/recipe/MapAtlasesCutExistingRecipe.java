@@ -18,7 +18,6 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -71,7 +70,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
             //TODO: very ugly and wont work in many cases
             MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
-            return MapAtlasesAccessUtils.createMapItemStackFromId(toRemove.id);
+            return toRemove.createExistingMapItem();
         }
         if (MapAtlasItem.getEmptyMaps(atlas) > 0) {
             return new ItemStack(Items.MAP);
@@ -88,7 +87,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                     if (c != null) {
                         return c;
                     }
-                }else if(tc.menu instanceof InventoryMenu im){
+                } else if (tc.menu instanceof InventoryMenu im) {
                     MapDataHolder c = maps.getClosest(im.owner, slice);
                     if (c != null) {
                         return c;
@@ -115,10 +114,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 if (!maps.isEmpty()) {
                     var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                     maps.remove(getMapToRemove(inv, maps, slice));
-                    var tree = maps.getHeightTree(slice.dimension(),slice.type());
-                    if(!tree.contains(slice.heightOrTop())){
+                    var tree = maps.getHeightTree(slice.dimension(), slice.type());
+                    if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();
-                        if(first.isPresent()) {
+                        if (first.isPresent()) {
                             Integer newH = first.get();
                             MapAtlasItem.setSelectedSlice(stack, Slice.of(slice.type(),
                                     newH, slice.dimension()));

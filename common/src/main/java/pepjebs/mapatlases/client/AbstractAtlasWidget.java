@@ -2,14 +2,13 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -27,14 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_BORDER_TEXTURE;
+
 public abstract class AbstractAtlasWidget {
 
-    public static final Material MAP_BORDER = new Material(
-            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
-            MapAtlasesMod.res("gui/screen/map_border"));
-
     public static final int MAP_DIMENSION = 128;
-
 
     //internally controls how many maps are displayed
     protected final int atlasesCount;
@@ -65,7 +61,8 @@ public abstract class AbstractAtlasWidget {
     }
 
     public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim, boolean showBorders, MapType type, int light) {
+                          Player player, float zoomLevelDim, boolean showBorders, MapType type, int light,
+                          @Nullable MapItemSavedData selectedKey) {
 
         MapAtlasesClient.setIsDrawingAtlas(true);
 
@@ -93,7 +90,7 @@ public abstract class AbstractAtlasWidget {
 
         MultiBufferSource.BufferSource vcp = graphics.bufferSource();
 
-        List<Matrix4f> outlineHack = new ArrayList<>();
+        Pair<List<Matrix4f>,List<Matrix4f>> outlineHack = Pair.of(new ArrayList<>(), new ArrayList<>());
 
         applyScissors(graphics, x, y, (x + width), (y + height));
 
@@ -138,7 +135,7 @@ public abstract class AbstractAtlasWidget {
                             Math.abs(gridCenterJ - mapCenterOffsetX * zoomScale) < maxDist;
                 }
                 if (shouldDraw) {
-                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j, light);
+                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j, light, selectedKey);
                 }
             }
         }
@@ -148,24 +145,15 @@ public abstract class AbstractAtlasWidget {
 
             if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 
-            VertexConsumer outlineVC = MAP_BORDER.buffer(vcp, RenderType::text); //its already on block atlas
+            VertexConsumer outlineVC = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             //using this so we use mipmap
             int a = 50;
-            for (var matrix4f : outlineHack) {
-                //cause of vertex consumer chaining bug...
-                float zOffset = -0.01F;
-                outlineVC.vertex(matrix4f, 0.0F, 128.0F, zOffset).color(255, 255, 255, a);
-                outlineVC.uv(0.0F, 1.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 128.0F, zOffset).color(255, 255, 255, a);
-                outlineVC.uv(1.0F, 1.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 128.0F, 0.0F, zOffset).color(255, 255, 255, a);
-                outlineVC.uv(1.0F, 0.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-                outlineVC.vertex(matrix4f, 0.0F, 0.0F, zOffset).color(255, 255, 255, a);
-                outlineVC.uv(0.0F, 0.0F)
-                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+            for (var matrix4f : outlineHack.getFirst()) {
+                drawOutline(matrix4f, outlineVC, a);
+            }
+            VertexConsumer outlineVC2 = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
+            for (var matrix4f : outlineHack.getSecond()) {
+                drawOutline(matrix4f, outlineVC2, a);
             }
             vcp.endBatch();
 
@@ -179,12 +167,32 @@ public abstract class AbstractAtlasWidget {
 
     }
 
+    private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC, int a) {
+        //cause of vertex consumer chaining bug...
+        float zOffset = -0.01F;
+        outlineVC.vertex(matrix4f, 0.0F, 128.0F, zOffset).color(255, 255, 255, a);
+        outlineVC.uv(0.0F, 1.0F)
+                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+        outlineVC.vertex(matrix4f, 128.0F, 128.0F, zOffset).color(255, 255, 255, a);
+        outlineVC.uv(1.0F, 1.0F)
+                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+        outlineVC.vertex(matrix4f, 128.0F, 0.0F, zOffset).color(255, 255, 255, a);
+        outlineVC.uv(1.0F, 0.0F)
+                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+        outlineVC.vertex(matrix4f, 0.0F, 0.0F, zOffset).color(255, 255, 255, a);
+        outlineVC.uv(0.0F, 0.0F)
+                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+    }
+
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
         graphics.enableScissor(x, y, x1, y1);
     }
 
-    private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ, MultiBufferSource.BufferSource vcp,
-                               List<Matrix4f> outlineHack, int i, int j, int light) {
+    //TODO: in 1.21 refactor and render all at same time since its all a sprite
+    private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ,
+                               MultiBufferSource.BufferSource vcp,
+                              Pair<List<Matrix4f>, List<Matrix4f>> outlineHack, int i, int j, int light,
+                               @Nullable MapItemSavedData selectedData) {
         int reqXCenter = centerMapX + (j * mapBlocksSize);
         int reqZCenter = centerMapZ + (i * mapBlocksSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
@@ -192,7 +200,7 @@ public abstract class AbstractAtlasWidget {
             MapItemSavedData data = state.data;
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
             // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons, light);
+            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons, light, selectedData);
         }
     }
 
@@ -207,11 +215,12 @@ public abstract class AbstractAtlasWidget {
             Player player,
             PoseStack poseStack,
             MultiBufferSource.BufferSource vcp,
-            List<Matrix4f> outlineHack,
+            Pair<List<Matrix4f>,List<Matrix4f>> outlineHack,
             int ix, int iy,
             MapDataHolder state,
             boolean drawPlayerIcons,
-            int light
+            int light,
+            @Nullable MapItemSavedData selectedData
     ) {
         // Draw the map
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
@@ -265,7 +274,11 @@ public abstract class AbstractAtlasWidget {
                         light //
                 );
 
-        outlineHack.add(new Matrix4f(poseStack.last().pose()));
+        if (state.data == selectedData){
+            outlineHack.getSecond().add(new Matrix4f(poseStack.last().pose()));
+        }else {
+            outlineHack.getFirst().add(new Matrix4f(poseStack.last().pose()));
+        }
 
         poseStack.popPose();
         // Re-add the off-map player icons after render

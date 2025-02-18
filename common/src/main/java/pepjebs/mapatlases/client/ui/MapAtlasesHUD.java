@@ -39,7 +39,7 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
 
-import static pepjebs.mapatlases.client.screen.DecorationBookmarkButton.MAP_ICON_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public class MapAtlasesHUD extends AbstractAtlasWidget {
 
@@ -204,7 +204,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         drawAtlas(graphics, x + borderSize, y + borderSize,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light);
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light, null);
 
 
         // Draws background, player icon, cardinal dir, pos and direction
@@ -300,10 +300,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightPinTracking.get()) {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
-            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, -10);
+            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
             ClientMarkers.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
                     currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
                     mapBlocksSize * zoomLevel, player, rotatesWithPlayer);
+            RenderSystem.disableDepthTest();
             poseStack.popPose();
         }
 

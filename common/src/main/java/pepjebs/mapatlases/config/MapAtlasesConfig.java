@@ -54,6 +54,9 @@ public class MapAtlasesConfig {
         lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
                 .define("light_map", false);
 
+        shearButton = builder.comment("Adds a shear button to the atlas screen which allows you to cut maps")
+                .define("shear_button", true);
+
         builder.pop();
         builder.push("update_logic");
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
@@ -88,6 +91,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> roundRobinUpdate;
     public static final Supplier<Boolean> lightMap;
     public static final Supplier<String> pinMarkerId;
+    public static final Supplier<Boolean> shearButton;
     public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<ActivationLocation> activationLocation;
 

@@ -83,6 +83,7 @@ subprojects {
                         optionalDependency("supplementaries")
                     }
                 } else {
+                    addGameVersion("NeoForge")
                     id = rootProject.project_id_forge
                     relations {
                         requiredDependency("selene")

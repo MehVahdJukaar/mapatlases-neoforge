@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -52,7 +51,6 @@ public final class Slice {
                 '}';
     }
 
-    @NotNull
     public int heightOrTop() {
         return height == null ? Integer.MAX_VALUE : height;
     }
@@ -83,7 +81,7 @@ public final class Slice {
     }
 
     public String getMapString(int id) {
-        return type.makeKey(id);
+        return type.makeStringKey(id);
     }
 
     public boolean hasMarkers() {

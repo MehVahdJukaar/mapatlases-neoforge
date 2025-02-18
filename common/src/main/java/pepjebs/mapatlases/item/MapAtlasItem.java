@@ -43,6 +43,19 @@ public class MapAtlasItem extends Item {
         super(settings);
     }
 
+    public static void removeMap(ItemStack atlas, int mapId, ServerPlayer player) {
+        //TODO: remove map
+        var data = IMapCollection.get(atlas, player.level());
+        MapDataHolder holder = MapDataHolder.findFromId(player.level(), mapId);
+        boolean removed = data.remove(holder);
+        if (removed) {
+            ItemStack item = holder.createExistingMapItem();
+            if (!player.getInventory().add(item)) {
+                player.drop(item, false);
+            }
+        }
+    }
+
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {

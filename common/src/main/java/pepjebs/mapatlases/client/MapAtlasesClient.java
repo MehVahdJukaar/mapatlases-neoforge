@@ -16,6 +16,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -51,6 +52,21 @@ public class MapAtlasesClient {
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_end"));
     public static final Material OTHER_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
+
+    public static final Material MAP_BORDER_TEXTURE = new Material(
+            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            MapAtlasesMod.res("gui/screen/map_border"));
+
+    public static final Material MAP_HOVERED_TEXTURE = new Material(
+            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            MapAtlasesMod.res("gui/screen/map_border"));
+
+    public static final ResourceLocation MAP_ICON_TEXTURE = new ResourceLocation("textures/map/map_icons.png");
+    public static final ResourceLocation ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
+    public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
+    public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
+    public static final ResourceLocation GUI_ICONS_TEXTURE = new ResourceLocation("textures/gui/icons.png");
+
 
     public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(Level.OVERWORLD.location().toString(),
             Level.NETHER.location().toString(), Level.END.location().toString(),
