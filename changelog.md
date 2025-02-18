@@ -1,1 +1,2 @@
-- fixed tracked pin having wrong z value
+- added shearing button
+- some internal improvements

@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.DIMENSION_TEXTURE_ORDER;
 
 public class DimensionBookmarkButton extends BookmarkButton {
@@ -49,7 +50,7 @@ public class DimensionBookmarkButton extends BookmarkButton {
             pose.translate(0, 0, 2);
         }
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
+        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
                 this.getX() + 4, this.getY() + 2,
                 162,
                 dimY,

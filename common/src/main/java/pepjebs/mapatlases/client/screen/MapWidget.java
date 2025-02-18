@@ -100,7 +100,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapItemSavedData hoveredData = null;
         if (mapScreen.isShearing()) {
             ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
-            var d = mapScreen.findMapAtPosCenter(pos.x(), pos.z());
+            var d = mapScreen.findMapContaining(pos.x(), pos.z());
             hoveredData = d != null ? d.data : null;
         }
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
@@ -127,7 +127,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             poseStack.pushPose();
             poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
             graphics.blit(ATLAS_BACKGROUND_TEXTURE, 0, 0,
-                    40, 0, 8, 8, 256, 256);
+                    63, 172, 8, 8);
             poseStack.popPose();
         }
 
@@ -135,10 +135,18 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
 
             if (mapScreen.canTeleport()) {
-                graphics.renderTooltip(mapScreen.getMinecraft().font,
+                graphics.renderTooltip(mc.font,
                         Component.translatable("chat.coordinates.tooltip")
                                 .withStyle(ChatFormatting.GREEN),
                         pMouseX, pMouseY);
+            }
+            if (PlatHelper.isDev()) {
+                ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
+                var d = mapScreen.findMapContaining(pos.x(), pos.z());
+                if (d != null) {
+                    MapAtlasesHUD.drawScaledComponent(
+                            graphics, mc.font, x, y + height + 8 + 10, "Map: " + d.id, 1, width, width);
+                }
             }
         }
         renderScaleText(graphics, mc);
@@ -166,7 +174,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
-        return mapScreen.findMapAtPosCenter(centerX, centerZ);
+        return mapScreen.findMapWithCenter(centerX, centerZ);
     }
 
     private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY) {

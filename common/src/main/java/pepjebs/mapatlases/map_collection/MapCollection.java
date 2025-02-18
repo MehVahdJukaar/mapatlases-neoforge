@@ -49,9 +49,6 @@ public class MapCollection implements IMapCollection {
 
     // we need leven context
     public void initialize(Level level) {
-        if (level.isClientSide) {
-            int aa = 1;
-        }
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
             lazyNbt = null;
@@ -73,6 +70,11 @@ public class MapCollection implements IMapCollection {
     public int[] getAllIds() {
         if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT);
         return ids.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    public boolean hasId(int id) {
+        assertInitialized();
+        return ids.contains(id);
     }
 
     //@Override

@@ -1,6 +1,7 @@
 {
   "sources":  [
-    {"type": "single", "resource": "map_atlases:gui/screen/map_border"}
+    {"type": "single", "resource": "map_atlases:gui/screen/map_border"},
+    {"type": "single", "resource": "map_atlases:gui/screen/map_hovered"}
 
   ]
 }

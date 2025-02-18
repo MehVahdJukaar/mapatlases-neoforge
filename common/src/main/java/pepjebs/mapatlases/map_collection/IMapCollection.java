@@ -35,6 +35,8 @@ public interface IMapCollection {
 
     int[] getAllIds();
 
+    boolean hasId(int id);
+
     Collection<ResourceKey<Level>> getAvailableDimensions();
 
     Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension);

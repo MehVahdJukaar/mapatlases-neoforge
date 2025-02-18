@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
@@ -39,12 +38,10 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXTURE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public class MapAtlasesHUD extends AbstractAtlasWidget {
-
-    public static final ResourceLocation MAP_BACKGROUND = MapAtlasesMod.res("textures/gui/hud/map_background.png");
-    public static final ResourceLocation MAP_FOREGROUND = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
     private static final int BACKGROUND_SIZE = 128;
     protected final int BG_SIZE = 64;
@@ -56,6 +53,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapKey currentMapKey = null;
     private MapKey lastMapKey = null;
+    private IMapCollection currentMaps;
 
 
     private float globalScale = 1;
@@ -71,10 +69,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     @Nullable
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
-        //TODO: cache this too
         Slice slice = currentMapKey.slice();
-        IMapCollection maps = MapAtlasItem.getMaps(currentAtlas, mc.level);
-        return maps.select(centerX, centerZ, slice);
+        return currentMaps.select(centerX, centerZ, slice);
     }
 
     @Override
@@ -84,8 +80,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
-
-        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || MapAtlasItem.getMaps(currentAtlas, mc.level).hasOneSlice();
+        this.currentMaps = MapAtlasItem.getMaps(currentAtlas, mc.level);
+        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlice();
         this.drawBigPlayerMarker = followingPlayer;
 
     }
@@ -212,7 +208,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 
         RenderSystem.enableDepthTest();
-        graphics.blit(MAP_BACKGROUND, x, y, -2, 0, 0, BG_SIZE, BG_SIZE,
+        graphics.blit(MAP_HUD_BACKGROUND_TEXTURE, x, y, -2, 0, 0, BG_SIZE, BG_SIZE,
                 BG_SIZE, BG_SIZE);
         RenderSystem.disableDepthTest();
 
@@ -303,7 +299,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
             ClientMarkers.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
                     currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
-                    mapBlocksSize * zoomLevel, player, rotatesWithPlayer);
+                    mapBlocksSize * zoomLevel, player, rotatesWithPlayer, currentMaps);
             RenderSystem.disableDepthTest();
             poseStack.popPose();
         }

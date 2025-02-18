@@ -40,6 +40,8 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
+import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -56,9 +58,8 @@ public class ClientMarkers {
     private static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static final WeakHashMap<MapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
-    private static final Map<String, Set<MapBlockMarker<?>>> markers = new HashMap<>();
-    private static final Map<Slice, Set<MapBlockMarker<?>>> markersPerSlice = new HashMap<>();
-    private static final Map<MapItemSavedData, String> mapLookup = new IdentityHashMap<>();
+    private static final Map<Integer, Set<MapBlockMarker<?>>> markersPerMap = new HashMap<>();
+    private static final Map<Integer, String> mapIdToStringLookup = new IdentityHashMap<>();//dumb
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
     private static Path currentPath = null;
@@ -78,9 +79,8 @@ public class ClientMarkers {
     }
 
     public static void loadClientMarkers(long seed, String levelName) {
-        markers.clear();
-        markersPerSlice.clear();
-        mapLookup.clear();
+        markersPerMap.clear();
+        mapIdToStringLookup.clear();
         //if not in multiplayer we have folder name here. foldername should be null on client
         if (lastFolderNameOrIP == null) {
             throw new RuntimeException("Could not load client markers saved data. Folder name is null");
@@ -129,7 +129,7 @@ public class ClientMarkers {
     }
 
     public static void saveClientMarkers() {
-        if (markers.isEmpty()) return;
+        if (markersPerMap.isEmpty()) return;
         if (currentPath == null) {
             MapAtlasesMod.LOGGER.error("Could not save client markers saved data. Path is null");
             return;
@@ -140,13 +140,13 @@ public class ClientMarkers {
             }
             try (OutputStream outputstream = new FileOutputStream(currentPath.toFile())) {
                 NbtIo.writeCompressed(save(), outputstream);
-                MapAtlasesMod.LOGGER.info("Saved {} client map waypoints", markers.size());
+                MapAtlasesMod.LOGGER.info("Saved {} client map waypoints", markersPerMap.size());
             }
 
         } catch (Exception e) {
             MapAtlasesMod.LOGGER.error("Could not save client markers saved data at {}", currentPath, e);
         }
-        markers.clear();
+        markersPerMap.clear();
     }
 
     private static void load(CompoundTag tag) {
@@ -160,46 +160,34 @@ public class ClientMarkers {
                     l.add(marker);
                 }
             }
-            markers.put(k, l);
+            markersPerMap.put(MapAtlasesAccessUtils.findMapIntFromString(k), l);
         }
     }
 
     private static CompoundTag save() {
         CompoundTag tag = new CompoundTag();
-        for (var v : markers.entrySet()) {
+        for (var v : markersPerMap.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
                 CompoundTag c = new CompoundTag();
                 c.put(marker.getTypeId(), marker.saveToNBT());
                 listNBT.add(c);
             }
-            tag.put(v.getKey(), listNBT);
+            tag.put(mapIdToStringLookup.get(v.getKey()), listNBT);
         }
         return tag;
     }
 
     public static Set<MapBlockMarker<?>> send(Integer integer, MapItemSavedData data) {
-        String stringId = mapLookup.computeIfAbsent(data, g -> {
+        mapIdToStringLookup.computeIfAbsent(integer, g -> {
             MapDataHolder holder = MapDataHolder.findFromId(Minecraft.getInstance().level, integer);
-            String st = Objects.requireNonNull(holder).stringId;
-            var markersSet = markers.get(st);
-            if (markersSet != null) {
-                for (var m : markersSet) {
-                    //just adding once..
-                    //   ((ExpandedMapData) data).addCustomMarker(m);
-                }
-                markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>())
-                        .addAll(markersSet);
-            }
-
-
-            return st;
+            return Objects.requireNonNull(holder).stringId;
         });
 
-        var m = markers.get(stringId);
+        var pins = markersPerMap.get(integer);
 
-        if (m != null) {
-            return m;
+        if (pins != null) {
+            return pins;
         }
         return Set.of();
     }
@@ -212,8 +200,7 @@ public class ClientMarkers {
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
         marker.setPos(new BlockPos(pos.x(), h, pos.z()));
-        markers.computeIfAbsent(holder.stringId, k -> new HashSet<>()).add(marker);
-        markersPerSlice.computeIfAbsent(holder.slice, a -> new HashSet<>()).add(marker);
+        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(marker);
         //add immediately
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
@@ -232,13 +219,9 @@ public class ClientMarkers {
     }
 
     public static boolean removeDeco(String mapId, String key) {
-        var mr = markers.get(mapId);
+        var mr = markersPerMap.get(mapId);
         if (mr != null) {
             mr.removeIf(m -> m.getMarkerId().equals(key));
-        }
-        //iterate over all to find ones to remove
-        for (var v : markersPerSlice.values()) {
-            v.removeIf(m -> m.getMarkerId().equals(key));
         }
         return mr != null;
     }
@@ -249,17 +232,18 @@ public class ClientMarkers {
 
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
-                                     float widgetWorldLen, Player player, boolean rotateWithPlayer) {
+                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, IMapCollection collection) {
 
-        var pins = markersPerSlice.get(slice);
-
-        if (pins != null) {
-            Registry<MapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
-            PoseStack matrixStack = graphics.pose();
-            int i = 0;
-            VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
-            float yRot = rotateWithPlayer ? player.getYRot() : 180;
-            BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
+        Registry<MapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
+        PoseStack matrixStack = graphics.pose();
+        int i = 0;
+        VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
+        float yRot = rotateWithPlayer ? player.getYRot() : 180;
+        BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
+        for (var entry : markersPerMap.entrySet()) {
+            int mapId = entry.getKey();
+            if (!collection.hasId(mapId)) continue;
+            var pins = entry.getValue();
             for (var marker : pins) {
                 BlockPos pos = marker.getPos();
                 Vec3 dist = playerPos.getCenter().subtract(pos.getCenter());

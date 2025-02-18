@@ -31,6 +31,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
@@ -78,7 +79,9 @@ public class AtlasOverviewScreen extends Screen {
     private boolean shearing;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
     private PinButton pinButton;
-    private ShearButton shearButton;
+
+    @NotNull
+    private IMapCollection currentMaps;
 
     // for fancy menu or something
     public AtlasOverviewScreen() {
@@ -95,6 +98,7 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.worldMapScale.get() :
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
 
+        this.currentMaps = MapAtlasItem.getMaps(atlas, level);
         MapDataHolder closest = getMapClosestToPlayer();
         //improve for wrong dimension atlas
         this.selectedSlice = closest.slice;
@@ -112,12 +116,11 @@ public class AtlasOverviewScreen extends Screen {
 
     @NotNull
     private MapDataHolder getMapClosestToPlayer() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
-        MapDataHolder closest = maps.getClosest(player, selectedSlice);
+        MapDataHolder closest = currentMaps.getClosest(player, selectedSlice);
         if (closest == null) {
             //if it has no maps here, grab a random one
-            closest = maps.getAll().stream().findFirst().get();
+            closest = currentMaps.getAll().stream().findFirst().get();
         }
         return closest;
     }
@@ -153,8 +156,7 @@ public class AtlasOverviewScreen extends Screen {
         this.addRenderableWidget(sliceDown);
 
         int i = 0;
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        Collection<ResourceKey<Level>> dimensions = maps.getAvailableDimensions();
+        Collection<ResourceKey<Level>> dimensions = currentMaps.getAvailableDimensions();
         int separation = (int) Math.min(22, (BOOK_HEIGHT - 50f) / dimensions.size());
         for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
                     var s = e.location().toString();
@@ -188,7 +190,7 @@ public class AtlasOverviewScreen extends Screen {
             by += 20;
         }
         if (MapAtlasesConfig.shearButton.get()) {
-            this.shearButton = new ShearButton((width + BOOK_WIDTH) / 2 + 20,
+            ShearButton shearButton = new ShearButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16 + by, this);
             this.addRenderableWidget(shearButton);
         }
@@ -237,6 +239,8 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public void tick() {
+        this.currentMaps = MapAtlasItem.getMaps(atlas, level);
+
         if (mapWidget != null) {
             mapWidget.tick();
         }
@@ -251,7 +255,7 @@ public class AtlasOverviewScreen extends Screen {
         }
         //add lectern marker
         if (false && lectern != null && selectedSlice.dimension().equals(lectern.getLevel().dimension())) {
-            var data = MapAtlasItem.getMaps(atlas, level).getClosest(
+            var data = currentMaps.getClosest(
                     lectern.getBlockPos().getX(), lectern.getBlockPos().getZ(),
                     selectedSlice).data;
         }
@@ -442,12 +446,11 @@ public class AtlasOverviewScreen extends Screen {
         if (selectedSlice.dimension().equals(level.dimension())) {
             return getMapClosestToPlayer().data;
         } else {
-            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
             MapItemSavedData best = null;
             float averageX = 0;
             float averageZ = 0;
             int count = 0;
-            for (MapDataHolder holder : maps.selectSection(selectedSlice)) {
+            for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
                 MapItemSavedData d = holder.data;
                 averageX += d.centerX;
                 averageZ += d.centerZ;
@@ -466,7 +469,7 @@ public class AtlasOverviewScreen extends Screen {
             }
             averageX /= count;
             averageZ /= count;
-            MapDataHolder closest = maps.getClosest(averageX, averageZ, selectedSlice);
+            MapDataHolder closest = currentMaps.getClosest(averageX, averageZ, selectedSlice);
             if (closest == null) {
                 int error = 1;
             }
@@ -476,8 +479,13 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected MapDataHolder findMapAtPosCenter(int reqXCenter, int reqZCenter) {
-        return MapAtlasItem.getMaps(atlas, level).select(reqXCenter, reqZCenter, selectedSlice);
+    protected MapDataHolder findMapWithCenter(int reqXCenter, int reqZCenter) {
+        return currentMaps.select(reqXCenter, reqZCenter, selectedSlice);
+    }
+
+    @Nullable
+    protected MapDataHolder findMapContaining(int x , int z){
+        return currentMaps.select(MapKey.containing(currentMaps.getScale(), x, z, selectedSlice));
     }
 
     public static String getReadableName(ResourceLocation id) {
@@ -565,7 +573,7 @@ public class AtlasOverviewScreen extends Screen {
         List<DecorationHolder> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
-        for (MapDataHolder holder : MapAtlasItem.getMaps(atlas, level).selectSection(selectedSlice)) {
+        for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
             MapItemSavedData data = holder.data;
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
@@ -602,33 +610,30 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean decreaseSlice() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
-        Integer newHeight = maps.getHeightTree(dim, type).floor(current - 1);
+        Integer newHeight = currentMaps.getHeightTree(dim, type).floor(current - 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }
 
     //TODO: make static
     public boolean increaseSlice() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
-        Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
+        Integer newHeight = currentMaps.getHeightTree(dim, type).ceiling(current + 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }
 
     public void cycleSliceType() {
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         ResourceKey<Level> dim = selectedSlice.dimension();
-        var slices = new ArrayList<>(maps.getAvailableTypes(dim));
+        var slices = new ArrayList<>(currentMaps.getAvailableTypes(dim));
         if (!slices.isEmpty()) {
             int index = slices.indexOf(selectedSlice.type());
             index = (index + 1) % slices.size();
             MapType type = slices.get(index);
-            TreeSet<Integer> heightTree = maps.getHeightTree(dim, type);
+            TreeSet<Integer> heightTree = currentMaps.getHeightTree(dim, type);
             Integer ceiling = heightTree.floor(selectedSlice.heightOrTop());
             if (ceiling == null) ceiling = heightTree.first();
             updateSlice(Slice.of(type, ceiling, dim));
@@ -649,10 +654,9 @@ public class AtlasOverviewScreen extends Screen {
             changed = true;
         }
         //update button regardless
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         var dim = selectedSlice.dimension();
-        boolean manySlices = maps.getHeightTree(dim, selectedSlice.type()).size() > 1;
-        boolean manyTypes = maps.getAvailableTypes(dim).size() != 1;
+        boolean manySlices = currentMaps.getHeightTree(dim, selectedSlice.type()).size() > 1;
+        boolean manyTypes = currentMaps.getAvailableTypes(dim).size() != 1;
         sliceButton.refreshState(manySlices, manyTypes);
         sliceDown.setActive(manySlices);
         sliceUp.setActive(manySlices);
@@ -687,15 +691,18 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void shearMapAt(ColumnPos pos){
-        MapDataHolder selected = findMapAtPosCenter(pos.x(), pos.z());
+        MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(selected.id));
+            //also remove immediately
+            currentMaps.remove(selected);
+            recalculateDecorationWidgets();
         }
         shearing = false;
     }
 
     public void placePinAt(ColumnPos pos) {
-        MapDataHolder selected = findMapAtPosCenter(pos.x(), pos.z());
+        MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             editBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
@@ -768,8 +775,7 @@ public class AtlasOverviewScreen extends Screen {
     public void removeMapAt(double mouseX, double mouseY) {
         //find map at pos
         var v = transformMousePos(mouseX, mouseY);
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        MapDataHolder map = maps.select((int) v.x, (int) v.y, selectedSlice);
+        MapDataHolder map = currentMaps.select((int) v.x, (int) v.y, selectedSlice);
         if (map != null) {
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(map.id));
         }

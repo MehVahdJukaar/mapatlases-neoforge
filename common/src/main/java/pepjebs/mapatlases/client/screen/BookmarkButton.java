@@ -8,6 +8,8 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
+
 public abstract class BookmarkButton extends AbstractWidget {
 
     private final int xOff;
@@ -36,7 +38,7 @@ public abstract class BookmarkButton extends AbstractWidget {
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.enableDepthTest();
         if (!visible || !active) return;
-        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
+        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
                 this.getX(), this.getY(), xOff,
                 yOff + (this.selected ? this.height : 0),
                 this.width, this.height);

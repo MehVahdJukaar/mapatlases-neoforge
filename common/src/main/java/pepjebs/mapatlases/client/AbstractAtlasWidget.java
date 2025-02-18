@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_BORDER_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HOVERED_TEXTURE;
 
 public abstract class AbstractAtlasWidget {
 
@@ -147,13 +148,12 @@ public abstract class AbstractAtlasWidget {
 
             VertexConsumer outlineVC = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             //using this so we use mipmap
-            int a = 50;
             for (var matrix4f : outlineHack.getFirst()) {
-                drawOutline(matrix4f, outlineVC, a);
+                drawOutline(matrix4f, outlineVC, 50);
             }
-            VertexConsumer outlineVC2 = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
+            VertexConsumer outlineVC2 = MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             for (var matrix4f : outlineHack.getSecond()) {
-                drawOutline(matrix4f, outlineVC2, a);
+                drawOutline(matrix4f, outlineVC2, 200);
             }
             vcp.endBatch();
 

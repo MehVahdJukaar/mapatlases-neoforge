@@ -16,7 +16,7 @@ public class PinButton extends BookmarkButton {
     protected PinButton(int pX, int pY, AtlasOverviewScreen screen) {
         super(pX, pY, 16, 16, 30, 152, screen);
         Tooltip tooltip = Tooltip.create(Component.translatable("message.map_atlases.pin"));
-        if(Minecraft.getInstance().options.advancedItemTooltips){
+        if (Minecraft.getInstance().options.advancedItemTooltips) {
             Tooltip t2 = Tooltip.create(Component.translatable("message.map_atlases.pin.info")
                     .withStyle(ChatFormatting.GRAY));
             tooltip = CompoundTooltip.create(tooltip, t2);
@@ -29,10 +29,11 @@ public class PinButton extends BookmarkButton {
         parentScreen.togglePlacingPin();
     }
 
-    public static void placePin( MapDataHolder map, ColumnPos pos, String text, int index) {
+    public static void placePin(MapDataHolder map, ColumnPos pos, String text, int index) {
         if (MapAtlasesMod.MOONLIGHT) {
             ClientMarkers.addMarker(map, pos, text, index);
-        } else MapAtlasesNetworking.CHANNEL.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text));
+        } else
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text));
     }
 
 }

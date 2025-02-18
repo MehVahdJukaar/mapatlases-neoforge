@@ -8,7 +8,7 @@ import pepjebs.mapatlases.client.CompoundTooltip;
 
 public class ShearButton extends BookmarkButton {
     protected ShearButton(int pX, int pY, AtlasOverviewScreen screen) {
-        super(pX, pY, 16, 16, 30, 152, screen);
+        super(pX, pY, 16, 16, 47, 152, screen);
         Tooltip tooltip = Tooltip.create(Component.translatable("message.map_atlases.shear"));
         if (Minecraft.getInstance().options.advancedItemTooltips) {
             Tooltip t2 = Tooltip.create(Component.translatable("message.map_atlases.shear.info")

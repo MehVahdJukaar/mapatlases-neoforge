@@ -12,17 +12,17 @@ public record MapKey(int mapX, int mapZ, Slice slice) {
         return Objects.equals(slice, this.slice);
     }
 
-    public static MapKey at(byte scale, double px, double pz, Slice slice) {
+    public static MapKey containing(byte scale, double px, double pz, Slice slice) {
         //map code
         int i = 128 * (1 << scale);
         var center = slice.type().getCenter(px, pz, i);
         return new MapKey(center.x(), center.z(), slice);
     }
 
-    public static MapKey at(byte scale, Player player, Slice slice) {
+    public static MapKey containing(byte scale, Player player, Slice slice) {
         double px = player.getX();
         double pz = player.getZ();
-        return at(scale, px, pz, slice);
+        return containing(scale, px, pz, slice);
     }
 
 }

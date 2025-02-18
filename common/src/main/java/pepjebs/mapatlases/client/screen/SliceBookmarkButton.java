@@ -8,6 +8,8 @@ import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.Slice;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
+
 public class SliceBookmarkButton extends BookmarkButton {
 
     private static final int BUTTON_H = 21;
@@ -52,7 +54,7 @@ public class SliceBookmarkButton extends BookmarkButton {
         RenderSystem.enableDepthTest();
 
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blit(AtlasOverviewScreen.ATLAS_TEXTURE,
+        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
                 this.getX() + 8, this.getY() + 2, 51 + slice.type().ordinal() * 16,
                 167 + 66,
                 16, 16);
