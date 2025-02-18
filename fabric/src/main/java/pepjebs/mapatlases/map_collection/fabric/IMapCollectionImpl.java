@@ -108,6 +108,10 @@ public class IMapCollectionImpl extends ItemComponent implements IMapCollection 
         return instance == null ? new int[0] : instance.getAllIds();
     }
 
+    public boolean hasId(int id) {
+        return instance != null && instance.hasId(id);
+    }
+
     @Override
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
         return instance == null ? List.of() : instance.getAvailableDimensions();
