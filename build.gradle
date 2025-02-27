@@ -41,18 +41,19 @@ subprojects {
 
     if (env.MODRINTH_TOKEN) {
         modrinth {
-            projectId = rootProject.mod_id
             uploadFile = tasks.remapJar
             gameVersions = [rootProject.minecraft_version]
             loaders = [modLoader]
             changelog = changelogText
 
             if (modLoader == "fabric") {
+                projectId = rootProject.modrinth_id_fabric
                 dependencies {
                     required.project "fabric-api"
                     required.project "moonlight"
                 }
             } else {
+                projectId = rootProject.modrinth_id_forge
                 dependencies {
                     required.project "moonlight"
                 }

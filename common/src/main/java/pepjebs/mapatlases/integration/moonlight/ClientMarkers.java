@@ -218,7 +218,7 @@ public class ClientMarkers {
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 
-    public static boolean removeDeco(String mapId, String key) {
+    public static boolean removeDeco(int mapId, String key) {
         var mr = markersPerMap.get(mapId);
         if (mr != null) {
             mr.removeIf(m -> m.getMarkerId().equals(key));

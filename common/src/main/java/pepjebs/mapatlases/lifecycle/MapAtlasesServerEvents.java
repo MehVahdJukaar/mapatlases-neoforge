@@ -108,7 +108,7 @@ public class MapAtlasesServerEvents {
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
-        MapKey activeKey = MapKey.containing(maps.getScale(), player, slice);
+        MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
 
         //sync the slice below and above so we can update slice automatically
         if ((level.getGameTime() + 13) % 40 == 0) {
@@ -384,7 +384,7 @@ public class MapAtlasesServerEvents {
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
-        MapKey activeKey = MapKey.containing(maps.getScale(), player, slice);
+        MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
 
         //TODO: figure out why its not synced automatically

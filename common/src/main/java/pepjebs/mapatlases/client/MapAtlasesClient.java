@@ -139,7 +139,7 @@ public class MapAtlasesClient {
             maps.addNotSynced(player.level());
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
-            currentActiveMapKey = MapKey.containing(maps.getScale(), player, slice);
+            currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
             MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
                 select = maps.getClosest(player, slice);

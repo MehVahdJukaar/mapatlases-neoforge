@@ -1,2 +1,1 @@
-- added shearing button
-- some internal improvements
+fixed removing pins not wroking

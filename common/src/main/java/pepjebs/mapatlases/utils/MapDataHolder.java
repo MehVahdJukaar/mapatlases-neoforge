@@ -62,7 +62,7 @@ public class MapDataHolder {
     }
 
     public MapKey makeKey() {
-        return MapKey.containing(data.scale, data.centerX, data.centerZ, slice);
+        return MapKey.at(data.scale, data.centerX, data.centerZ, slice);
     }
 
     public void updateMap(ServerPlayer player) {

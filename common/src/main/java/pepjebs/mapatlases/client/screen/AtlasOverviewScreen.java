@@ -485,7 +485,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     protected MapDataHolder findMapContaining(int x , int z){
-        return currentMaps.select(MapKey.containing(currentMaps.getScale(), x, z, selectedSlice));
+        return currentMaps.select(MapKey.at(currentMaps.getScale(), x, z, selectedSlice));
     }
 
     public static String getReadableName(ResourceLocation id) {

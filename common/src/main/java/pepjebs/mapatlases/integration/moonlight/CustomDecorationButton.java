@@ -100,7 +100,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         var d = decorations.get(decorationId);
         if (d != null) {
             //in case this is is a pin
-            if (!ClientMarkers.removeDeco(mapData.stringId, decorationId)) {
+            if (!ClientMarkers.removeDeco(mapData.id, decorationId)) {
                 //we cant use string id because server has them diferent...
                 MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.hashCode(), true));
                 //also removes immediately from client side
