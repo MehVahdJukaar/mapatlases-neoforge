@@ -1,9 +1,10 @@
 architectury {
-    common(rootProject.enabled_platforms.split(","))
+    common(enabled_platforms.split(",")){
+        //it.platformPackage("neoforge", "forge")
+    }
 }
-
 loom {
-    accessWidenerPath = file("src/main/resources/map_atlases.accesswidener")
+    accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
 }
 
 dependencies {
@@ -11,21 +12,15 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
-    implementation("io.github.llamalad7:mixinextras-forge:${mixin_extras_version}")
-
     modImplementation ("net.mehvahdjukaar:moonlight:${moonlight_version}")
-    //modImplementation("curse.maven:selene-499980:5599500")
 
 
-    modCompileOnly("curse.maven:jei-238222:4405345")
-    modCompileOnly("curse.maven:roughly-enough-items-310111:4401136")
-    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
-    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
     modCompileOnly "dev.emi:trinkets:${project.trinkets_version}"
     modCompileOnly("curse.maven:curios-309927:4581099")
-
-
+    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
+    modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
+    modCompileOnly("curse.maven:jei-238222:4405345")
+    modCompileOnly("curse.maven:roughly-enough-items-310111:4401136")
     modImplementation("curse.maven:supplementaries-412082:5066761")
     modImplementation("curse.maven:config-menus-forge-544048:4672356")
     modImplementation("curse.maven:the-twilight-forest-227639:4802174")
@@ -34,6 +29,7 @@ dependencies {
     modRuntimeOnly("curse.maven:spark-361579:4738952")
 
     modImplementation("maven.modrinth:immediatelyfast:1.2.8+1.20.4-forge")
+
 }
 
 publishing {
