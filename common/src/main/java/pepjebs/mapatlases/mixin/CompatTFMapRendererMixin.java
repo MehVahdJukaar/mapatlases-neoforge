@@ -6,12 +6,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import twilightforest.TFMagicMapData;
-
 @Pseudo
-@Mixin(TFMagicMapData.TFMapDecoration.class)
+//@Mixin(MagicMapPlayerIconRenderer.class)
 public class CompatTFMapRendererMixin {
-
+/*
     @Inject(method = "render",
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V",
                     ordinal = 0),
@@ -19,4 +17,6 @@ public class CompatTFMapRendererMixin {
     private void scaleProxy(int idx, CallbackInfoReturnable<Boolean> cir) {
         MapAtlasesClient.modifyDecorationTransform(TFMagicMapData.TFMapDecoration.RenderContext.stack);
     }
+
+ */
 }

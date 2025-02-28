@@ -1,44 +1,49 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
-import net.minecraft.nbt.CompoundTag;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 
-public class EntityPinMarker extends MapBlockMarker<EntityPinDecoration> {
+public class EntityPinMarker extends MLMapMarker<EntityPinDecoration> {
 
     private WeakReference<Entity> entity;
 
-    protected EntityPinMarker(MapDecorationType<EntityPinDecoration, ?> type) {
-        super(type);
+    public EntityPinMarker(Holder<MLMapDecorationType<?, ?>> type, BlockPos pos, float rotation, Optional<Component> component, Optional<Boolean> shouldRefresh, Optional<Boolean> shouldSave, boolean preventsExtending) {
+        super(type, pos, rotation, component, shouldRefresh, shouldSave, preventsExtending);
     }
+
 
     public void setEntity(Entity entity) {
         this.entity = new WeakReference<>(entity);
     }
 
     @Override
-    public boolean shouldRefresh() {
+    public boolean shouldRefreshFromWorld() {
         return false;
     }
 
     @Override
+    public boolean shouldSave() {
+        return false;
+    }
+
+    @Override
+    public @Nullable EntityPinDecoration createDecorationFromMarker(MapItemSavedData data) {
+        if (this.entity == null) return null;
+        return super.createDecorationFromMarker(data);
+    }
+
+    @Override
     public EntityPinDecoration doCreateDecoration(byte mapX, byte mapY, byte rot) {
-        var en = entity.get();
-        if(en != null) {
-            return new EntityPinDecoration(this.getType(), mapX, mapY, en);
-        }
-        return null;
+        return new EntityPinDecoration(this.getType(), mapX, mapY, entity.get());
     }
 
-    @Override
-    public CompoundTag saveToNBT() {
-        return new CompoundTag();
-    }
-
-    @Override
-    public void loadFromNBT(CompoundTag compound) {
-    }
 }

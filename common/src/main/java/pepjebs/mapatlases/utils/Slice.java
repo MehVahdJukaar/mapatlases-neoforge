@@ -1,83 +1,47 @@
 package pepjebs.mapatlases.utils;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Optional;
 
-import static pepjebs.mapatlases.item.MapAtlasItem.HEIGHT_NBT;
 import static pepjebs.mapatlases.item.MapAtlasItem.TYPE_NBT;
 
 // this is a pair of map item type + y levels basically
-public final class Slice {
+public record Slice(MapType type, Optional<Integer> height, ResourceKey<Level> dimension) {
 
-    private final MapType type;
-    private final @Nullable Integer height;
-    private final ResourceKey<Level> dimension;
+    public static final Codec<Slice> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            MapType.CODEC.fieldOf("type").forGetter(Slice::type),
+            Codec.INT.optionalFieldOf("height").forGetter(Slice::height),
+            ResourceKey.codec(Registries.DIMENSION).fieldOf("dimension").forGetter(Slice::dimension)
+    ).apply(instance, Slice::new));
 
-    private Slice(MapType type, Integer height, ResourceKey<Level> dimension) {
-        this.type = type;
-        this.height = height;
-        this.dimension = dimension;
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, Slice> STREAM_CODEC = StreamCodec.composite(
+            MapType.STREAM_CODEC, Slice::type,
+            ByteBufCodecs.optional(ByteBufCodecs.INT), Slice::height,
+            ResourceKey.streamCodec(Registries.DIMENSION), Slice::dimension,
+            Slice::new
+    );
+
     public static Slice of(MapType type, @Nullable Integer height, ResourceKey<Level> dimension) {
-        if (height != null && height.equals(Integer.MAX_VALUE)) {
+        if (height != null && height.equals(java.lang.Integer.MAX_VALUE)) {
             height = null;
         }
-        return new Slice(type, height, dimension);
-    }
-
-    public static Slice parse(CompoundTag t, ResourceKey<Level> dimension) {
-        int anInt = t.getInt(TYPE_NBT);
-        if (anInt >= MapType.values().length) anInt = 0;
-        return of(MapType.values()[anInt], t.getInt(HEIGHT_NBT), dimension);
-    }
-
-    public CompoundTag save() {
-        CompoundTag t = new CompoundTag();
-        t.putInt(TYPE_NBT, type.ordinal());
-        t.putInt(HEIGHT_NBT, heightOrTop());
-        return t;
-    }
-
-    @Override
-    public String toString() {
-        return "Slice{" +
-                "type=" + type +
-                ", height=" + height +
-                '}';
+        return new Slice(type, Optional.ofNullable(height), dimension);
     }
 
     public int heightOrTop() {
-        return height == null ? Integer.MAX_VALUE : height;
-    }
-
-    public MapType type() {
-        return type;
-    }
-
-    public @Nullable Integer height() {
-        return height;
-    }
-
-    public ResourceKey<Level> dimension() {
-        return dimension;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Slice slice = (Slice) o;
-        return type == slice.type && Objects.equals(height, slice.height) && Objects.equals(dimension, slice.dimension);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(type, height, dimension);
+        return height.orElse(Integer.MAX_VALUE);
     }
 
     public boolean hasMarkers() {

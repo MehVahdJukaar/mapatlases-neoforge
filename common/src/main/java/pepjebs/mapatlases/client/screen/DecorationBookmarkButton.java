@@ -2,12 +2,16 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
@@ -157,53 +161,48 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     public static class Vanilla extends DecorationBookmarkButton {
 
         private final MapDecoration decoration; // might not match what on map
-        private final boolean isBanner;
+        private final boolean canRemove;
 
         public Vanilla(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, MapDecoration mapDecoration, String decoId) {
             super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
             this.setTooltip(createTooltip());
-            this.isBanner = decoration.getType().name().startsWith("BANNER");
+            this.canRemove = !decoration.type().value().explorationMapElement();
         }
 
         @Override
         protected boolean canDeleteMarker() {
-            return isBanner;
+            return canRemove;
         }
 
         @Override
         public double getWorldX() {
-            return mapData.data.centerX - getDecorationPos(decoration.getX(), mapData.data);
+            return mapData.data.centerX - getDecorationPos(decoration.x(), mapData.data);
         }
 
         @Override
         public double getWorldZ() {
-            return mapData.data.centerZ - getDecorationPos(decoration.getY(), mapData.data);
+            return mapData.data.centerZ - getDecorationPos(decoration.y(), mapData.data);
         }
 
 
         @Override
         public Component getDecorationName() {
-            var name = decoration.getName();
-            return name == null
-                    ? Component.literal(
-                    AtlasOverviewScreen.getReadableName(decoration.getType().name().toLowerCase(Locale.ROOT)))
-                    : name;
+            var name = decoration.name();
+            return name.orElseGet(() -> Component.literal(
+                    AtlasOverviewScreen.getReadableName(decoration.type().getRegisteredName().toLowerCase(Locale.ROOT))));
         }
 
         @Override
         protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
             PoseStack matrices = pGuiGraphics.pose();
-            byte b = decoration.getImage();
-
-            int u = (b % 16) * 8;
-            int v = (b / 16) * 8;
+            ResourceLocation sprite = decoration.getSpriteLocation();
 
             matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
-            matrices.mulPose(Axis.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
+            matrices.mulPose(Axis.ZP.rotationDegrees((decoration.rot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
 
-            pGuiGraphics.blit(MAP_ICON_TEXTURE, -4, -4, u, v, 8, 8, 128, 128);
+            pGuiGraphics.blitSprite(sprite, -4, -4, 8, 8);
 
         }
 
@@ -214,7 +213,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             var d = decorations.get(decorationId);
             if (d != null) {
                 //we cant use string id because server has them different...
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId,
+                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(mapData.id,
                         d.hashCode(), false));
 
                 //removes immediately from client so we update gui

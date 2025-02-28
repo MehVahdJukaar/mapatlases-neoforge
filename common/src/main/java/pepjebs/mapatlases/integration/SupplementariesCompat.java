@@ -6,6 +6,7 @@ import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
 import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
 import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -34,7 +35,7 @@ public class SupplementariesCompat {
 
     public static ItemStack createExistingSliced(MapId id) {
         ItemStack stack = new ItemStack(ModRegistry.SLICE_MAP.get());
-        stack.getOrCreateTag().putInt("map", id);
+        stack.set(DataComponents.MAP_ID, id);
         return stack;
     }
 

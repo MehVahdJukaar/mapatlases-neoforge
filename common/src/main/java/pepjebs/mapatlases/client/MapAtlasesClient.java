@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -212,7 +213,7 @@ public class MapAtlasesClient {
 
         Minecraft.getInstance().player.connection.handleMapItemData(packet.packet);
 
-        var data = level.getMapData(MapItem.makeKey(packet.packet.getMapId()));
+        var data = level.getMapData(packet.packet.mapId());
         if (data instanceof MapItemSavedDataAccessor d) {
             try {
                 d.setCenterX(packet.centerX);
@@ -306,7 +307,7 @@ public class MapAtlasesClient {
         CACHE.put(mapId, 10);
     }
 
-    public static int debugIsMapUpdated(int light, String stringId) {
+    public static int debugIsMapUpdated(int light, MapId stringId) {
         Integer value = getValue(stringId);
         if (value != null) {
             int pBlockLight = Mth.clamp((int) (value / (float) 10 * 15f), 0, 15);

@@ -25,8 +25,15 @@ public class EntityPinDecoration extends MLMapDecoration {
         this.entity = null;
     }
 
-    @Override
-    public byte getX() {
-        return super.getX();
+    public void setX(byte x) {
+        this.x = x;
+    }
+
+    public void setY(byte y) {
+        this.y = y;
+    }
+
+    public void setRot(byte rot) {
+        this.rot = rot;
     }
 }

@@ -2,6 +2,8 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.mehvahdjukaar.supplementaries.common.network.NetworkHandler;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -229,23 +231,23 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         float minZoom = 0.5f;
         float maxZoom = 20;
-        if ((pDelta < 0 && targetZoomLevel >= maxZoom) || (pDelta > 0 && targetZoomLevel <= minZoom)) {
+        if ((scrollY < 0 && targetZoomLevel >= maxZoom) || (scrollY > 0 && targetZoomLevel <= minZoom)) {
             cumulativeZoomValue = 0;
             return false;
         }
 
         float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
-            float c = (float) (pDelta);
+            float c = (float) (scrollY);
             double v = -c / 25d * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
             if (Screen.hasShiftDown() || Screen.hasControlDown()) v *= 3;
             targetZoomLevel = Mth.clamp(targetZoomLevel + targetZoomLevel * (float) v, minZoom, maxZoom);
             zoomLevel = targetZoomLevel - 0.001f;
         } else {
-            cumulativeZoomValue -= (float) pDelta;
+            cumulativeZoomValue -= (float) scrollY;
             cumulativeZoomValue = Math.max(cumulativeZoomValue, 0);
             zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
             zl = Math.max(zl, 0);
@@ -270,7 +272,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             } else if (mapScreen.canTeleport()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 Slice slice = mapScreen.getSelectedSlice();
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
+                NetworkHelper.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
                 if (!PlatHelper.isDev()) mapScreen.onClose();
                 return true;
             }

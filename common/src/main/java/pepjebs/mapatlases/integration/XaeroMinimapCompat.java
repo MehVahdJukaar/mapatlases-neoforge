@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -74,7 +74,7 @@ public class XaeroMinimapCompat {
                 for (var w : waypoints) {
                     if (w.y > holder.slice.heightOrTop()) continue;
                     //hack to see if it will be contained
-                    MapBlockMarker<?> marker = MapDataRegistry.getDefaultType().createEmptyMarker();
+                    MLMapMarker<?> marker = MapDataRegistry.getDefaultType().createEmptyMarker();
                     marker.setPos(new BlockPos(w.x, w.y, w.z));
                     if (marker.createDecorationFromMarker(data) != null) {
                         ClientMarkers.addMarker(holder, new ColumnPos(w.x, w.z), w.name, w.color);

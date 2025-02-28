@@ -160,10 +160,10 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double xDelta, double yDelta) {
         scrollVisibleCounter = 40;
-        this.currentIndex -= (float) pDelta;
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+        this.currentIndex -= (float) yDelta;
+        return super.mouseScrolled(pMouseX, pMouseY, xDelta, yDelta);
     }
 
     private static float smoothStep(float start, float end, float speed) {

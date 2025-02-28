@@ -1,14 +1,13 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLSpecialMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -34,8 +33,8 @@ public class MoonlightCompat {
     private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
 
     public static void init() {
-        MapDataRegistry.registerCustomType(PIN_TYPE_ID, () -> MLMapDecoration.simple(PinMarker::new, PinDecoration::new));
-        MapDataRegistry.registerCustomType(PIN_ENTITY_TYPE_ID, () -> CustomDecorationType.simple(EntityPinMarker::new, EntityPinDecoration::new));
+        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(PinMarker::new, PinDecoration::new));
+        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_ENTITY_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(EntityPinMarker::new, EntityPinDecoration::new));
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
@@ -46,18 +45,15 @@ public class MoonlightCompat {
     }
 
     public static Collection<DecorationHolder> getCustomDecorations(MapDataHolder map) {
-        return ((ExpandedMapData) map.data).getCustomDecorations().entrySet().stream()
-                //TODO: 1.21 improve with holder
-                .filter(e ->
-                        !MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess())
-                                .wrapAsHolder(e.getValue().getType()).is(NOT_ON_ATLAS))
+        return ((ExpandedMapData) map.data).ml$getCustomDecorations().entrySet().stream()
+                .filter(e -> !e.getValue().getType().is(NOT_ON_ATLAS))
                 .map(a -> new DecorationHolder(a.getValue(), a.getKey(), map)).toList();
     }
 
-    public static void addDecoration(MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        var type = MapDataRegistry.get(id);
+    public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
+        MLMapDecorationType<?,?> type = MapDataRegistry.getRegistry(level.registryAccess()).get(id);
         if (type != null) {
-            MapBlockMarker<?> defaultMarker = type.createEmptyMarker();
+            MLMapMarker<?> defaultMarker = type.createEmptyMarker();
             defaultMarker.setPos(pos);
             defaultMarker.setName(name);
             ((ExpandedMapData) data).addCustomMarker(defaultMarker);
@@ -68,8 +64,8 @@ public class MoonlightCompat {
     public static void removeCustomDecoration(MapItemSavedData data, int hash) {
         if (data instanceof ExpandedMapData d) {
             String selected = null;
-            for (var v : d.getCustomMarkers().entrySet()) {
-                CustomMapDecoration decorationFromMarker = v.getValue().createDecorationFromMarker(data);
+            for (var v : d.ml$getCustomMarkers().entrySet()) {
+                MLMapDecoration decorationFromMarker = v.getValue().createDecorationFromMarker(data);
                 if (decorationFromMarker != null && decorationFromMarker.hashCode() == hash) {
                     selected = v.getKey();
                 }
@@ -98,18 +94,18 @@ public class MoonlightCompat {
     public static void updateMarkers(MapItemSavedData data, Player player, int maxRange) {
 
         ExpandedMapData d = ((ExpandedMapData) data);
-        Map<String, MapBlockMarker<?>> markers = new HashMap<>(d.getCustomMarkers());
+        Map<String, MLMapMarker<?>> markers = new HashMap<>(d.ml$getCustomMarkers());
         if (!markers.isEmpty()) {
             markers.entrySet().removeIf(m -> !m.getValue().shouldRefresh());
             List<String> toRemove = new ArrayList<>();
-            List<MapBlockMarker<?>> toAdd = new ArrayList<>();
+            List<MLMapMarker<?>> toAdd = new ArrayList<>();
             Level level = player.level();
             for (var m : markers.entrySet()) {
                 var marker = m.getValue();
                 BlockPos pos = marker.getPos();
                 if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
                     if (level.isLoaded(pos)) {
-                        MapBlockMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(level, marker.getPos());
+                        MLMapMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(level, marker.getPos());
                         String id = m.getKey();
                         if (newMarker == null) {
                             toRemove.add(id);

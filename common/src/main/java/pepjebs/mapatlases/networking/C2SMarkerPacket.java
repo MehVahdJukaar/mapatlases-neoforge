@@ -12,6 +12,7 @@ import net.minecraft.server.level.ColumnPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -44,7 +45,7 @@ public class C2SMarkerPacket implements Message {
         return new ColumnPos(x, z);
     }
 
-    public C2SMarkerPacket(ColumnPos pos, String map, @Nullable String name) {
+    public C2SMarkerPacket(ColumnPos pos, MapId map, @Nullable String name) {
         this.pos = pos;
         this.mapId = map;
         this.name = name;

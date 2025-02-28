@@ -59,11 +59,11 @@ public class SliceBookmarkButton extends BookmarkButton {
                 167 + 66,
                 16, 16);
 
-        if(hasMoreThan1Slice) {
+        if (hasMoreThan1Slice) {
             pose.translate(0, 0, 1);
-            Integer h = slice.height();
-            Component text = h != null ? Component.literal(String.valueOf(h)) :
-                    Component.translatable("message.map_atlases.atlas.slice_default");
+            var h = slice.height();
+            Component text = h.map(integer -> Component.literal(String.valueOf(integer)))
+                    .orElseGet(() -> Component.translatable("message.map_atlases.atlas.slice_default"));
             pGuiGraphics.drawCenteredString(parentScreen.getMinecraft().font,
                     text, this.getX() + (compact ? 17 : 39), this.getY() + 7, -1);
         }

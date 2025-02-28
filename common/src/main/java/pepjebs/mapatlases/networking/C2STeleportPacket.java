@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -35,17 +36,17 @@ public class C2STeleportPacket implements Message {
 
     private final int x;
     private final int z;
-    private final Integer y;
+    private final Optional<Integer> y;
     private final ResourceKey<Level> dimension;
 
     public C2STeleportPacket(FriendlyByteBuf buf) {
         this.x = buf.readVarInt();
         this.z = buf.readVarInt();
-        this.y = buf.readOptional(FriendlyByteBuf::readVarInt).orElse(null);
+        this.y = buf.readOptional(FriendlyByteBuf::readVarInt);
         this.dimension = buf.readResourceKey(Registries.DIMENSION);
     }
 
-    public C2STeleportPacket(int x, int z, @Nullable Integer y, ResourceKey<Level> dimension) {
+    public C2STeleportPacket(int x, int z, Optional<Integer> y, ResourceKey<Level> dimension) {
         this.x = x;
         this.z = z;
         this.y = y;
@@ -84,7 +85,7 @@ public class C2STeleportPacket implements Message {
     public void write(RegistryFriendlyByteBuf buf) {
         buf.writeVarInt(x);
         buf.writeVarInt(z);
-        buf.writeOptional(Optional.ofNullable(y), FriendlyByteBuf::writeVarInt);
+        buf.writeOptional(y, FriendlyByteBuf::writeVarInt);
         buf.writeResourceKey(dimension);
     }
 
@@ -95,8 +96,8 @@ public class C2STeleportPacket implements Message {
         ServerLevel level = player.getServer().getLevel(dimension);
 
         int y;
-        if (this.y == null) {
-            var chunk = level.getChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
+        if (this.y.isEmpty()) {
+            ChunkAccess chunk = level.getChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
             if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
                 y = level.getMaxBuildHeight();
                 MinecraftServer server = level.getServer();
@@ -108,7 +109,7 @@ public class C2STeleportPacket implements Message {
 
             }
         } else {
-            y = this.y;
+            y = this.y.get();
         }
 
 

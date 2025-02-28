@@ -2,6 +2,9 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.serialization.JsonOps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
@@ -9,8 +12,6 @@ import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.Minecraft;
@@ -21,13 +22,12 @@ import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
@@ -35,6 +35,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MutableMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -60,8 +62,8 @@ public class ClientMarkers {
     private static final TagKey<MLMapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static final WeakHashMap<MLMapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
-    private static final Map<Integer, Set<MLMapMarker<?>>> markersPerMap = new HashMap<>();
-    private static final Map<Integer, String> mapIdToStringLookup = new IdentityHashMap<>();//dumb
+    private static final Map<Integer, Set<MLMapMarker<?>>> markersPerMap = new Int2ObjectOpenHashMap<>();
+    private static final Map<Integer, String> mapIdToStringLookup = new Int2ObjectOpenHashMap<>();//dumb
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
     private static Path currentPath = null;
@@ -91,7 +93,7 @@ public class ClientMarkers {
 
         if (Files.exists(currentPath)) {
             try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
-                load(NbtIo.readCompressed(inputStream));
+                load(inputStream);
             } catch (Exception ignored) {
                 MapAtlasesMod.LOGGER.error("Could not load client markers saved data at {}", currentPath);
             }
@@ -151,13 +153,16 @@ public class ClientMarkers {
         markersPerMap.clear();
     }
 
-    private static void load(CompoundTag tag) {
+    private static void load(CompoundTag tag, HolderLookup.Provider registries) {
+        RegistryOps<Tag> registryOps = registries.createSerializationContext(NbtOps.INSTANCE);
+
         for (var k : tag.getAllKeys()) {
-            Set<MapBlockMarker<?>> l = new HashSet<>();
+            Set<MLMapMarker<?>> l = new HashSet<>();
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
             for (int j = 0; j < listNbt.size(); ++j) {
                 var c = listNbt.getCompound(j);
-                MapBlockMarker<?> marker = MapDataRegistry.readMarker(c);
+                MLMapMarker<?> marker = MLMapMarker.REFERENCE_CODEC.
+                        parse(registryOps, c).getOrThrow();
                 if (marker != null) {
                     l.add(marker);
                 }
@@ -166,13 +171,16 @@ public class ClientMarkers {
         }
     }
 
-    private static CompoundTag save() {
+    private static CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
+        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         for (var v : markersPerMap.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
                 CompoundTag c = new CompoundTag();
-                c.put(marker.getTypeId(), marker.saveToNBT());
+                Tag markerSaved = MLMapMarker.REFERENCE_CODEC
+                        .encodeStart(ops, marker).getOrThrow();
+                c.put(marker.getType().getRegisteredName(), markerSaved);
                 listNBT.add(c);
             }
             tag.put(mapIdToStringLookup.get(v.getKey()), listNBT);
@@ -180,7 +188,7 @@ public class ClientMarkers {
         return tag;
     }
 
-    public static Set<MapBlockMarker<?>> send(Integer integer, MapItemSavedData data) {
+    public static Set<MLMapMarker<?>> send(MapId integer, MapItemSavedData data) {
         mapIdToStringLookup.computeIfAbsent(integer, g -> {
             MapDataHolder holder = MapDataHolder.findFromId(Minecraft.getInstance().level, integer);
             return Objects.requireNonNull(holder).stringId;
@@ -195,7 +203,7 @@ public class ClientMarkers {
     }
 
     public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        MapBlockMarker<?> marker = getPinAt(index).createEmptyMarker();
+        MLMapMarker<?> marker = getPinAt(index).createEmptyMarker();
         if (!text.isEmpty()) marker.setName(Component.translatable(text));
         ClientLevel level = Minecraft.getInstance().level;
         Integer h = holder.height;
@@ -207,23 +215,23 @@ public class ClientMarkers {
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
 
-    private static MapDecorationType<?, ?> getPinAt(int index) {
-        Optional<HolderSet.Named<MapDecorationType<?, ?>>> tag = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
+    private static MLMapDecorationType<?, ?> getPinAt(int index) {
+        Optional<HolderSet.Named<MLMapDecorationType<?, ?>>> tag = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
         if (tag.isEmpty()) {
             throw new AssertionError("map_atlases:pins tag was empty or not found. How is this possible?");
         }
         var pins = tag.get().stream().sorted(Comparator.comparing(h -> {
-            Optional<ResourceKey<MapDecorationType<?, ?>>> key = h.unwrapKey();
+            Optional<ResourceKey<MLMapDecorationType<?, ?>>> key = h.unwrapKey();
             if (key.isEmpty()) throw new AssertionError("Registry key for MapDecorationType was null. How?");
             return key.get().toString();
         })).toList();
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 
-    public static boolean removeDeco(int mapId, String key) {
+    public static boolean removeDeco(MapId mapId, String key) {
         var mr = markersPerMap.get(mapId);
         if (mr != null) {
-            mr.removeIf(m -> m.getMarkerId().equals(key));
+            mr.removeIf(m -> m.getMarkerUniqueId().equals(key));
         }
         return mr != null;
     }
@@ -234,7 +242,7 @@ public class ClientMarkers {
 
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
-                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, MutableMapCollection collection) {
+                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, ImmutableMapCollection collection) {
 
         Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
         PoseStack matrixStack = graphics.pose();

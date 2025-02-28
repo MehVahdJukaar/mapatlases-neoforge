@@ -6,14 +6,17 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.MapDecorationTextureManager;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -236,15 +239,15 @@ public abstract class AbstractAtlasWidget {
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
         for (var e : data.decorations.entrySet()) {
             MapDecoration dec = e.getValue();
-            MapDecorationType type = dec.getType();
-            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
+            var type = dec.type();
+            if (type.is( MapDecorationTypes.PLAYER_OFF_MAP) || type.is(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     removed.add(e);
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
-                            dec.getX(), dec.getY(), getPlayerMarkerRot(player), dec.getName())));
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
+                            dec.x(), dec.y(), getPlayerMarkerRot(player), dec.name())));
                 } else removed.add(e);
 
-            } else if (type == MapDecoration.Type.PLAYER) {
+            } else if (type.is(MapDecorationTypes.PLAYER)) {
                 if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
                     removed.add(e);
                 } else {
@@ -253,8 +256,8 @@ public abstract class AbstractAtlasWidget {
                     float f1 = (float) (player.getZ() - data.centerZ) / i;
                     byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
                     byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
-                            b0, b1, getPlayerMarkerRot(player), dec.getName())));
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
+                            b0, b1, getPlayerMarkerRot(player), dec.name())));
                     //add accurate player
                 }
             }
@@ -263,7 +266,7 @@ public abstract class AbstractAtlasWidget {
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
 
-        light = MapAtlasesClient.debugIsMapUpdated(light, state.stringId);
+        light = MapAtlasesClient.debugIsMapUpdated(light, state.id);
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(

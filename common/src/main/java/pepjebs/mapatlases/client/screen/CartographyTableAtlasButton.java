@@ -71,9 +71,10 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                                 this.getX() - 52, y0 + this.getY() - 50, -1);
                         y0 += 8;
                     }
-                    Integer height = slice.height();
-                    if (height != null) {
-                        pGuiGraphics.drawString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.slice_height", height),
+                    var height = slice.height();
+                    if (height.isPresent()) {
+                        pGuiGraphics.drawString(Minecraft.getInstance().font,
+                                Component.translatable("message.map_atlases.slice_height", height.get()),
                                 this.getX() - 52, y0 + this.getY() - 50, -1);
                     }
                 }

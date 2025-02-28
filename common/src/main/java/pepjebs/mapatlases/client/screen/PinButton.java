@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
@@ -33,7 +34,7 @@ public class PinButton extends BookmarkButton {
         if (MapAtlasesMod.MOONLIGHT) {
             ClientMarkers.addMarker(map, pos, text, index);
         } else
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text));
+            NetworkHelper.sendToServer(new C2SMarkerPacket(pos, map.id, text.isEmpty() ? null : text));
     }
 
 }

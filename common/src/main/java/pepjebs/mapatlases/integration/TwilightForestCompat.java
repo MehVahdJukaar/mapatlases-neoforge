@@ -2,6 +2,7 @@ package pepjebs.mapatlases.integration;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
@@ -10,10 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import twilightforest.TFMagicMapData;
-import twilightforest.TFMazeMapData;
 import twilightforest.item.MagicMapItem;
 import twilightforest.item.MazeMapItem;
+import twilightforest.item.mapdata.TFMagicMapData;
+import twilightforest.item.mapdata.TFMazeMapData;
 
 public class TwilightForestCompat {
 
@@ -27,28 +28,28 @@ public class TwilightForestCompat {
             BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("twilightforest", "filled_ore_map")));
 
     public static MapItemSavedData getMagic(Level level, MapId name) {
-        return TFMagicMapData.getMagicMapData(level, name);
+        return TFMagicMapData.getMagicMapData(level, MagicMapItem.getMapName(name.id()));
     }
 
     public static MapItemSavedData getMaze(Level level, MapId name) {
-        return TFMazeMapData.getMazeMapData(level, name);
+        return TFMazeMapData.getMazeMapData(level, MazeMapItem.getMapName(name.id()));
     }
 
     public static ItemStack makeExistingMagic(MapId id) {
         ItemStack stack = new ItemStack(FILLED_MAGIC.get());
-        stack.getOrCreateTag().putInt("map", id);
+        stack.set(DataComponents.MAP_ID, id);
         return stack;
     }
 
     public static ItemStack makeExistingMaze(MapId id) {
         ItemStack stack = new ItemStack(FILLED_MAZE.get());
-        stack.getOrCreateTag().putInt("map", id);
+        stack.set(DataComponents.MAP_ID, id);
         return stack;
     }
 
     public static ItemStack makeExistingOre(MapId id) {
         ItemStack stack = new ItemStack(FILLED_ORE.get());
-        stack.getOrCreateTag().putInt("map", id);
+        stack.set(DataComponents.MAP_ID, id);
         return stack;
     }
 

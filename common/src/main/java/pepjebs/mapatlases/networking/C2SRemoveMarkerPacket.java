@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
@@ -19,7 +20,7 @@ public class C2SRemoveMarkerPacket implements Message {
     );
 
     private final int decoHash;
-    private final String mapId;
+    private final MapId mapId;
     private final boolean isCustom;
 
     public C2SRemoveMarkerPacket(FriendlyByteBuf buf) {
@@ -28,7 +29,7 @@ public class C2SRemoveMarkerPacket implements Message {
         this.isCustom = buf.readBoolean();
     }
 
-    public C2SRemoveMarkerPacket(String map, int decoId, boolean custom) {
+    public C2SRemoveMarkerPacket(MapId map, int decoId, boolean custom) {
         // Sending hash, hacky.
         // Have to because client doesn't know deco id
         this.decoHash = decoId;

@@ -28,12 +28,12 @@ import java.util.Optional;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
-    public static final Codec<MapAtlasesCutExistingRecipe>
+    public static final Codec<MapAtlasesCutExistingRecipe> CODEC = null;
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public MapAtlasesCutExistingRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public MapAtlasesCutExistingRecipe(CraftingBookCategory category) {
+        super( category);
     }
 
     @Override

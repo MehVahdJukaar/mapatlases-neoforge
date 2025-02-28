@@ -96,8 +96,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void deleteMarker() {
-        var decorations = ((ExpandedMapData) mapData.data).getCustomDecorations();
-        var d = decorations.get(decorationId);
+        var decorations = ((ExpandedMapData) mapData.data).ml$getCustomDecorations();
+        MLMapDecoration d = decorations.get(decorationId);
         if (d != null) {
             //in case this is is a pin
             if (!ClientMarkers.removeDeco(mapData.id, decorationId)) {

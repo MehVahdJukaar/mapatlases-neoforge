@@ -1,13 +1,18 @@
 package pepjebs.mapatlases;
 
 
+import com.mojang.serialization.Codec;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -27,6 +32,7 @@ import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
+import pepjebs.mapatlases.utils.SelectedSlice;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.function.Supplier;
@@ -52,6 +58,30 @@ public class MapAtlasesMod {
             res("map_collection"), () -> DataComponentType.<ImmutableMapCollection>builder()
                     .networkSynchronized(ImmutableMapCollection.STREAM_CODEC)
                     .persistent(ImmutableMapCollection.CODEC).build()
+    );
+
+    public static final Supplier<DataComponentType<Unit>> LOCKED = RegHelper.registerDataComponent(
+            res("locked"), () -> DataComponentType.<Unit>builder()
+                    .networkSynchronized(StreamCodec.unit(Unit.INSTANCE))
+                    .persistent(Unit.CODEC).build()
+    );
+
+    public static final Supplier<DataComponentType<Integer>> EMPTY_MAPS = RegHelper.registerDataComponent(
+            res("empty_maps"), () -> DataComponentType.<Integer>builder()
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .persistent(Codec.INT).build()
+    );
+
+    public static final Supplier<DataComponentType<Integer>> HEIGHT = RegHelper.registerDataComponent(
+            res("height"), () -> DataComponentType.<Integer>builder()
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .persistent(Codec.INT).build()
+    );
+
+    public static final Supplier<DataComponentType<SelectedSlice>> SELECTED_SLICE = RegHelper.registerDataComponent(
+            res("selected_slice"), () -> DataComponentType.<SelectedSlice>builder()
+                    .networkSynchronized(SelectedSlice.STREAM_CODEC)
+                    .persistent(SelectedSlice.CODEC).build()
     );
 
     public static final TagKey<Item> STICKY_ITEMS = TagKey.create(Registries.ITEM, res("sticky_crafting_items"));
@@ -110,7 +140,7 @@ public class MapAtlasesMod {
     }
 
     public static ResourceLocation res(String name) {
-        return new ResourceLocation(MOD_ID, name);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, name);
     }
 
     public static TriState containsHack() {

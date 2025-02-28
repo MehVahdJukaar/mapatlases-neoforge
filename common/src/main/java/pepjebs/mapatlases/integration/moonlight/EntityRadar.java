@@ -15,6 +15,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
@@ -88,7 +89,7 @@ public class EntityRadar {
     }
 
 
-    public static Set<MLMapMarker<?>> send(Integer integer, MapItemSavedData data) {
+    public static Set<MLMapMarker<?>> send(MapId id, MapItemSavedData data) {
         ClientLevel level = Minecraft.getInstance().level;
         if (data.dimension.equals(level.dimension())) {
             return nearbyEntityMarkers.computeIfAbsent(level, j->new HashSet<>());
@@ -99,4 +100,6 @@ public class EntityRadar {
     public static void unloadLevel() {
         nearbyEntityMarkers.clear();
     }
+
+
 }

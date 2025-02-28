@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -36,10 +37,6 @@ import java.util.List;
 
 public class MapAtlasItem extends Item {
 
-    protected static final String EMPTY_MAPS_NBT = "empty";
-    protected static final String LOCKED_NBT = "locked";
-    protected static final String SELECTED_NBT = "selected";
-    public static final String HEIGHT_NBT = "height";
     public static final String TYPE_NBT = "type";
 
     public MapAtlasItem(Properties settings) {
@@ -88,10 +85,9 @@ public class MapAtlasItem extends Item {
             tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
         }
         Slice selected = getSelectedSlice(stack, level.dimension());
-        Integer slice = selected.height();
-        if (slice != null) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
-        }
+        var height = selected.height();
+        height.ifPresent(integer ->
+                tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", integer).withStyle(ChatFormatting.GRAY)));
         var type = selected.type();
         if (type != MapType.VANILLA) {
             tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_type", type.getName()).withStyle(ChatFormatting.GRAY));
@@ -105,8 +101,12 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            boolean locked = !tag.getBoolean(LOCKED_NBT);
-            tag.putBoolean(LOCKED_NBT, locked);
+            boolean locked = !stack.has(MapAtlasesMod.LOCKED.get());
+            if (locked) {
+                stack.remove(MapAtlasesMod.LOCKED.get());
+            } else {
+                stack.set(MapAtlasesMod.LOCKED.get(), Unit.INSTANCE);
+            }
             if (player.level().isClientSide) {
                 player.displayClientMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
             }
@@ -172,9 +172,9 @@ public class MapAtlasItem extends Item {
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {
         MapType t = slice.type();
-        Integer h = slice.height();
+        var h = slice.height();
         var dimension = slice.dimension();
-        if (h == null && t == MapType.VANILLA) {
+        if (h.isEmpty() && t == MapType.VANILLA) {
             CompoundTag tag = stack.getTagElement(SELECTED_NBT);
             if (tag != null) {
                 tag.remove(dimension.location().toString());
@@ -221,12 +221,11 @@ public class MapAtlasItem extends Item {
     }
 
     public static int getEmptyMaps(ItemStack atlas) {
-        CompoundTag tag = atlas.getTag();
-        return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT) : 0;
+        return atlas.getOrDefault(MapAtlasesMod.EMPTY_MAPS.get(), 0);
     }
 
     public static void setEmptyMaps(ItemStack stack, int count) {
-        stack.getOrCreateTag().putInt(EMPTY_MAPS_NBT, count);
+        stack.set(MapAtlasesMod.EMPTY_MAPS.get(), count);
     }
 
     public static void increaseEmptyMaps(ItemStack stack, int count) {
@@ -234,19 +233,15 @@ public class MapAtlasItem extends Item {
     }
 
     public static boolean isLocked(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(LOCKED_NBT);
+        return stack.has(MapAtlasesMod.LOCKED.get());
     }
 
     @NotNull
     public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
-        CompoundTag tag = stack.getTagElement(SELECTED_NBT);
-        if (tag != null) {
-            String string = dimension.location().toString();
-            if (tag.contains(string)) {
-                var t = tag.getCompound(string);
-                return Slice.parse(t, dimension);
-            }
+        SelectedSlice selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICE.get());
+        if (selectedSlice != null) {
+            Slice slice = selectedSlice.get(dimension);
+            if (slice != null) return slice;
         }
         return Slice.of(MapType.VANILLA, null, dimension);
     }
