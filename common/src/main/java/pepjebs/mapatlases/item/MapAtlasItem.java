@@ -1,6 +1,10 @@
 package pepjebs.mapatlases.item;
 
+import com.google.common.base.Preconditions;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -23,10 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.List;
@@ -43,12 +46,10 @@ public class MapAtlasItem extends Item {
         super(settings);
     }
 
-    public static void removeMap(ItemStack atlas, int mapId, ServerPlayer player) {
-        //TODO: remove map
-        var data = IMapCollection.get(atlas, player.level());
+    public static void removeAndDropMap(ItemStack atlas, int mapId, ServerPlayer player) {
+        var data = getMaps(atlas, player.level());
         MapDataHolder holder = MapDataHolder.findFromId(player.level(), mapId);
-        boolean removed = data.remove(holder);
-        if (removed) {
+        if (holder != null && data != data.removeAndAssigns(atlas, player.level(), holder.id)) {
             ItemStack item = holder.createExistingMapItem();
             if (!player.getInventory().add(item)) {
                 player.drop(item, false);
@@ -58,53 +59,51 @@ public class MapAtlasItem extends Item {
 
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
-        super.appendHoverText(stack, level, tooltip, isAdvanced);
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
-        if (level != null) {
-            IMapCollection maps = getMaps(stack, level);
-            int mapSize = maps.getCount();
-            int empties = getEmptyMaps(stack);
-            if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
-                        .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+        if (PlatHelper.getPhysicalSide().isServer()) return;
+        Level level = Minecraft.getInstance().level;
+        ImmutableMapCollection maps = getMaps(stack, level);
+        int mapSize = maps.getCount();
+        int empties = getEmptyMaps(stack);
+        if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
+                    .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+        }
+        tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
+        if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
+                MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
+            // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
+            // they *would* receive if they activated the atlas
+            if (mapSize + empties == 0) {
+                empties = MapAtlasesConfig.pityActivationMapCount.get();
             }
-            tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
-            if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
-                    MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
-                // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
-                // they *would* receive if they activated the atlas
-                if (mapSize + empties == 0) {
-                    empties = MapAtlasesConfig.pityActivationMapCount.get();
-                }
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
-            }
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
+        }
 
-            tooltip.add(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
 
-            if (isLocked(stack)) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
-            }
-            Slice selected = getSelectedSlice(stack, level.dimension());
-            Integer slice = selected.height();
-            if (slice != null) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
-            }
-            var type = selected.type();
-            if (type != MapType.VANILLA) {
-                tooltip.add(Component.translatable("item.map_atlases.atlas.tooltip_type", type.getName()).withStyle(ChatFormatting.GRAY));
-            }
-            if(MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)){
-                tooltip.add(Component.translatable("item.map_atlases.atlas.supplementaries_antique").withStyle(ChatFormatting.GRAY));
-            }
+        if (isLocked(stack)) {
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
+        }
+        Slice selected = getSelectedSlice(stack, level.dimension());
+        Integer slice = selected.height();
+        if (slice != null) {
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", slice).withStyle(ChatFormatting.GRAY));
+        }
+        var type = selected.type();
+        if (type != MapType.VANILLA) {
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_type", type.getName()).withStyle(ChatFormatting.GRAY));
+        }
+        if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
+            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.supplementaries_antique").withStyle(ChatFormatting.GRAY));
         }
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        CompoundTag tag = stack.getOrCreateTag();
-        convertOldAtlas(level, stack);
         if (player.isSecondaryUseActive()) {
             boolean locked = !tag.getBoolean(LOCKED_NBT);
             tag.putBoolean(LOCKED_NBT, locked);
@@ -117,18 +116,6 @@ public class MapAtlasItem extends Item {
             syncAndOpenGui(sp, stack, null, false);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
-    }
-
-    private static void convertOldAtlas(Level level, ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
-        //convert old atlas
-        if (tag.contains("maps")) {
-            IMapCollection maps = getMaps(stack, level);
-            for (var i : tag.getIntArray("maps")) {
-                maps.add(i, level);
-            }
-            tag.remove("maps");
-        }
     }
 
     // convert lectern
@@ -153,7 +140,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                IMapCollection maps = getMaps(stack, level);
+                ImmutableMapCollection maps = getMaps(stack, level);
                 MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
@@ -175,12 +162,12 @@ public class MapAtlasItem extends Item {
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
         }
-       MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
+        NetworkHelper.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {
@@ -198,6 +185,7 @@ public class MapAtlasItem extends Item {
             tag.put(dimension.location().toString(), slice.save());
         }
     }
+
     //TODO:
 /*
     public static boolean decreaseSlice(ItemStack atlas, Level level) {
@@ -218,8 +206,14 @@ public class MapAtlasItem extends Item {
         Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }*/
-    public static IMapCollection getMaps(ItemStack stack, Level level) {
-       return IMapCollection.get(stack, level);
+    public static ImmutableMapCollection getMaps(ItemStack stack, Level level) {
+        //gets and assure initialized
+        var comp = stack.get(MapAtlasesMod.MAP_COLLECTION.get());
+        Preconditions.checkNotNull(comp, "Map collection component was null");
+        if (!comp.isInitialized()) {
+            comp.initialize(level);
+        }
+        return comp;
     }
 
     public static int getMaxMapCount() {
@@ -262,7 +256,6 @@ public class MapAtlasItem extends Item {
         super.onCraftedBy(stack, level, pPlayer);
 
         validateSelectedSlices(stack, level);
-        convertOldAtlas(level, stack);
     }
 
     private static void validateSelectedSlices(ItemStack pStack, Level level) {

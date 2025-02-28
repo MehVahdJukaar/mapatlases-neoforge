@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -30,7 +31,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
@@ -81,7 +82,7 @@ public class AtlasOverviewScreen extends Screen {
     private PinButton pinButton;
 
     @NotNull
-    private IMapCollection currentMaps;
+    private ImmutableMapCollection currentMaps;
 
     // for fancy menu or something
     public AtlasOverviewScreen() {
@@ -204,7 +205,7 @@ public class AtlasOverviewScreen extends Screen {
                     this.onClose();
                 }).bounds(this.width / 2 - 100, pY, 98, 20).build());
                 this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), (button) -> {
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
+                    NetworkHelper.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
                     this.onClose();
                 }).bounds(this.width / 2 + 2, pY, 98, 20).build());
             } else {
@@ -693,7 +694,7 @@ public class AtlasOverviewScreen extends Screen {
     public void shearMapAt(ColumnPos pos){
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(selected.id));
+            NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id));
             //also remove immediately
             currentMaps.remove(selected);
             recalculateDecorationWidgets();

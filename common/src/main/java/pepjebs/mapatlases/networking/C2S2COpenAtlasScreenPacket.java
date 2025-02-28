@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
-import net.mehvahdjukaar.moonlight.api.platform.network.NetworkDir;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -20,6 +20,11 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import java.util.Optional;
 
 public class C2S2COpenAtlasScreenPacket implements Message {
+
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, C2S2COpenAtlasScreenPacket> TYPE = Message.makeType(
+            MapAtlasesMod.res("open_atlas_screen"),
+            C2S2COpenAtlasScreenPacket::new
+    );
 
     @Nullable
     private final BlockPos lecternPos;
@@ -40,13 +45,13 @@ public class C2S2COpenAtlasScreenPacket implements Message {
     }
 
     @Override
-    public void writeToBuffer(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeOptional(Optional.ofNullable(lecternPos), FriendlyByteBuf::writeBlockPos);
         buf.writeBoolean(pinOnly);
     }
 
     @Override
-    public void handle(ChannelHandler.Context context) {
+    public void handle(Context context) {
         // we need all this craziness as we need to ensure maps are sent before gui is opened
 
         if (context.getDirection() == NetworkDir.PLAY_TO_CLIENT) {
@@ -54,7 +59,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             MapAtlasesClient.openScreen(lecternPos, pinOnly);
         } else {
             // sends all atlas and then send this but to client
-            if (!(context.getSender() instanceof ServerPlayer player)) return;
+            if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
             ItemStack atlas = ItemStack.EMPTY;
             if (lecternPos != null) {
@@ -75,5 +80,10 @@ public class C2S2COpenAtlasScreenPacket implements Message {
                 MapAtlasItem.syncAndOpenGui(player, atlas, lecternPos, pinOnly);
             }
         }
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE.type();
     }
 }

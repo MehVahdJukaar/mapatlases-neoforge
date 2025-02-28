@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.config;
 
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
-import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigSpec;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.ActivationLocation;
 
@@ -69,13 +69,12 @@ public class MapAtlasesConfig {
         debugUpdate = builder.comment("Visually shows map updates")
                 .define("debug_map_updates", false);
         markersUpdatePeriod = builder.comment("Every how many ticks should markers be updated")
-                        .define("markers_update_period", 10, 1, 200);
+                .define("markers_update_period", 10, 1, 200);
 
         builder.pop();
 
 
-
-        SPEC = builder.buildAndRegister();
+        SPEC = builder.build();
     }
 
     public static final Supplier<Boolean> debugUpdate;
@@ -95,13 +94,13 @@ public class MapAtlasesConfig {
     public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<ActivationLocation> activationLocation;
 
-    public static final ConfigSpec SPEC;
+    public static final ModConfigHolder SPEC;
 
-    public static enum UpdateType{
+    public enum UpdateType {
         OFF, SINGLE_PLAYER_ONLY, ALWAYS_ON
     }
 
-    public static void init(){
+    public static void init() {
 
     }
 }

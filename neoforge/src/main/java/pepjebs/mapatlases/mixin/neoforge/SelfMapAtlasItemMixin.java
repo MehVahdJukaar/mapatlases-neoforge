@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.mixin.forge;
+package pepjebs.mapatlases.mixin.neoforge;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;

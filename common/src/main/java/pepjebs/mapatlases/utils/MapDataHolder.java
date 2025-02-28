@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.google.common.base.Preconditions;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapBanner;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +18,6 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
 import java.util.Iterator;
@@ -25,8 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MapDataHolder {
-    public final int id;
-    public final String stringId;
+    public final MapId id;
     public final MapItemSavedData data;
 
     // redundant info, cache basically as we use this for data structures
@@ -36,26 +36,25 @@ public class MapDataHolder {
     public final Integer height;
 
     public MapDataHolder(String name, @NotNull MapItemSavedData data) {
-        this(MapAtlasesAccessUtils.findMapIntFromString(name), name, data);
+        this(MapAtlasesAccessUtils.findMapIdFromString(name), data);
     }
 
-    private MapDataHolder(int id, String stringId, @NotNull MapItemSavedData data) {
+    private MapDataHolder(MapId id , @NotNull MapItemSavedData data) {
         Preconditions.checkNotNull(data);
         this.id = id;
-        this.stringId = stringId;
         this.data = data;
-        this.type = MapType.fromKey(stringId, data);
+        this.type = MapType.fromKey(id, data);
         this.height = type.getHeight(data);
         this.slice = Slice.of(type, height, data.dimension);
     }
 
     @Nullable
-    public static MapDataHolder findFromId(Level level, int id) {
+    public static MapDataHolder findFromId(Level level, MapId id) {
         //try all known types
         for (var t : MapType.values()) {
             var d = t.getMapData(level, id);
             if (d != null) {
-                return new MapDataHolder(id, d.getFirst(), d.getSecond());
+                return new MapDataHolder(id, d);
             }
         }
         return null;
@@ -81,7 +80,7 @@ public class MapDataHolder {
             ((MapItem) type.filled).update(player.level(), player, data);
         }
         if (MapAtlasesConfig.debugUpdate.get()) {
-            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(stringId));
+            NetworkHelper.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(id));
         }
     }
 
@@ -105,7 +104,7 @@ public class MapDataHolder {
             Level level = player.level();
             while (iterator.hasNext()) {
                 var banner = iterator.next();
-                BlockPos pos = banner.getPos();
+                BlockPos pos = banner.pos();
                 //update all loaded in range
                 if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
                     if (level.isLoaded(pos)) {

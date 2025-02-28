@@ -13,6 +13,7 @@ import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -170,18 +171,18 @@ public abstract class AbstractAtlasWidget {
     private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC, int a) {
         //cause of vertex consumer chaining bug...
         float zOffset = -0.01F;
-        outlineVC.vertex(matrix4f, 0.0F, 128.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(0.0F, 1.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 128.0F, 128.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(1.0F, 1.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 128.0F, 0.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(1.0F, 0.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 0.0F, 0.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(0.0F, 0.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+        outlineVC.addVertex(matrix4f, 0.0F, 128.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.setUv(0.0F, 1.0F)
+                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+        outlineVC.addVertex(matrix4f, 128.0F, 128.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.setUv(1.0F, 1.0F)
+                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+        outlineVC.addVertex(matrix4f, 128.0F, 0.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.setUv(1.0F, 0.0F)
+                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+        outlineVC.addVertex(matrix4f, 0.0F, 0.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.setUv(0.0F, 0.0F)
+                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
     }
 
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
@@ -235,7 +236,7 @@ public abstract class AbstractAtlasWidget {
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
         for (var e : data.decorations.entrySet()) {
             MapDecoration dec = e.getValue();
-            MapDecoration.Type type = dec.getType();
+            MapDecorationType type = dec.getType();
             if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     removed.add(e);

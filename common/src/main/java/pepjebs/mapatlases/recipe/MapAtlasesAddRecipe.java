@@ -1,19 +1,15 @@
 package pepjebs.mapatlases.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -25,17 +21,17 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public MapAtlasesAddRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public MapAtlasesAddRecipe(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level level) {
+    public boolean matches(CraftingInput inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMaps = 0;
         List<MapDataHolder> filledMaps = new ArrayList<>();
         // ensure 1 and one only atlas
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 if (!atlas.isEmpty()) return false;
@@ -51,7 +47,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = emptyMaps + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
-            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+            ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
             int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
             if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
                 return false;
@@ -83,14 +79,14 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
 
         Level level = levelRef.get();
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMapCount = 0;
         List<Integer> mapIds = new ArrayList<>();
         // ensure 1 and one only atlas
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 atlas = itemstack.copyWithCount(1);
@@ -104,10 +100,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        for (var i : mapIds) {
-            maps.add(i, level);
-        }
+        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.addAndAssigns(atlas, level, mapIds);
 
         MapAtlasItem.increaseEmptyMaps(atlas, emptyMapCount);
         return atlas;
@@ -123,4 +117,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         return width * height >= 2;
     }
 
+    @Override
+    public RecipeType<?> getType() {
+        return RecipeType.CRAFTING;
+    }
 }

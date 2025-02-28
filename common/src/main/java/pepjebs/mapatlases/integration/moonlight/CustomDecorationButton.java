@@ -2,11 +2,12 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
-import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationRenderer;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
@@ -14,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Locale;
@@ -23,13 +23,13 @@ import java.util.Locale;
 public class CustomDecorationButton extends DecorationBookmarkButton {
 
     public static DecorationBookmarkButton create(int px, int py, AtlasOverviewScreen screen, MapDataHolder data, Object mapDecoration, String id) {
-        return new CustomDecorationButton(px, py, screen, data, (CustomMapDecoration) mapDecoration, id);
+        return new CustomDecorationButton(px, py, screen, data, (MLMapDecoration) mapDecoration, id);
     }
 
-    private final CustomMapDecoration decoration; // could not match whats in maps
+    private final MLMapDecoration decoration; // could not match whats in maps
 
     private CustomDecorationButton(int px, int py, AtlasOverviewScreen screen,
-                                   MapDataHolder data, CustomMapDecoration mapDecoration, String id) {
+                                   MapDataHolder data, MLMapDecoration mapDecoration, String id) {
         super(px, py, screen, data, id);
         this.decoration = mapDecoration;
         this.setTooltip(createTooltip());
@@ -102,7 +102,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             //in case this is is a pin
             if (!ClientMarkers.removeDeco(mapData.id, decorationId)) {
                 //we cant use string id because server has them diferent...
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.hashCode(), true));
+                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(mapData.stringId, d.hashCode(), true));
                 //also removes immediately from client side
             }
             decorations.remove(decorationId);
@@ -110,10 +110,10 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     public static void renderStaticMarker(GuiGraphics pGuiGraphics,
-                                          MapDecorationType<?, ?> type,
+                                          MLMapDecorationType<?, ?> type,
                                           float x, float y,
                                           int index, boolean outline, int alpha) {
-        DecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);
+        MapDecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);
 
         if (renderer != null) {
             PoseStack poseStack = pGuiGraphics.pose();

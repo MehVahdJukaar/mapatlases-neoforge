@@ -1,13 +1,21 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 
 public class S2CWorldHashPacket implements Message {
+
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, S2CMapPacketWrapper> TYPE = Message.makeType(
+            MapAtlasesMod.res("world_hash"),
+            S2CMapPacketWrapper::new
+    );
+
     public final long seed;
     private final String name;
 
@@ -26,14 +34,18 @@ public class S2CWorldHashPacket implements Message {
     }
 
     @Override
-    public void writeToBuffer(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeVarLong(seed);
         buf.writeUtf(name);
     }
 
     @Override
-    public void handle(ChannelHandler.Context context) {
+    public void handle(Context context) {
         ClientMarkers.loadClientMarkers(this.seed, this.name);
+    }
 
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE.type();
     }
 }

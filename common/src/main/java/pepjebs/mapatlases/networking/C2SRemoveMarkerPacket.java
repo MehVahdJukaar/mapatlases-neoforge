@@ -1,8 +1,9 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
@@ -11,6 +12,11 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 
 public class C2SRemoveMarkerPacket implements Message {
+
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, C2SRemoveMarkerPacket> TYPE = Message.makeType(
+            MapAtlasesMod.res("remove_marker"),
+            C2SRemoveMarkerPacket::new
+    );
 
     private final int decoHash;
     private final String mapId;
@@ -31,7 +37,7 @@ public class C2SRemoveMarkerPacket implements Message {
     }
 
     @Override
-    public void writeToBuffer(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeUtf(mapId);
         buf.writeVarInt(decoHash);
         buf.writeBoolean(isCustom);
@@ -39,15 +45,15 @@ public class C2SRemoveMarkerPacket implements Message {
     }
 
     @Override
-    public void handle(ChannelHandler.Context context) {
-        if (!(context.getSender() instanceof ServerPlayer player)) return;
+    public void handle(Context context) {
+        if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
         Level level = player.level();
         MapItemSavedData data = level.getMapData(mapId);
 
         if (data != null) {
             if (!isCustom) {
-                if(!removeBannerMarker(data, level, decoHash)){
+                if (!removeBannerMarker(data, level, decoHash)) {
                     MapAtlasesMod.LOGGER.warn("Tried to delete banner marker but none was found");
                 }
             } else if (MapAtlasesMod.MOONLIGHT) {
@@ -67,8 +73,8 @@ public class C2SRemoveMarkerPacket implements Message {
             // recreates deco...
             float rotation = 180;
             int i = 1 << data.scale;
-            float f = (float) (mapBanner.getPos().getX() - (double) data.centerX) / i;
-            float g = (float) (mapBanner.getPos().getZ() - (double) data.centerZ) / i;
+            float f = (float) (mapBanner.pos().getX() - (double) data.centerX) / i;
+            float g = (float) (mapBanner.pos().getZ() - (double) data.centerZ) / i;
             byte b = (byte) ((int) ((f * 2.0F) + 0.5));
             byte c = (byte) ((int) ((g * 2.0F) + 0.5));
 
@@ -98,13 +104,18 @@ public class C2SRemoveMarkerPacket implements Message {
                     c = 127;
                 }
             }
-            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b+1), (byte) (c+1), d, mapBanner.getName());
+            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b + 1), (byte) (c + 1), d, mapBanner.getName());
 
             if (mapDecoration.hashCode() == hash) {
-                data.toggleBanner(level, mapBanner.getPos());
+                data.toggleBanner(level, mapBanner.pos());
                 return true;
             }
         }
         return false;
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE.type();
     }
 }

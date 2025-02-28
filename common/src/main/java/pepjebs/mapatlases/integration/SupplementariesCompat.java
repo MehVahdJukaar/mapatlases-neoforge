@@ -9,6 +9,7 @@ import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,7 @@ public class SupplementariesCompat {
         return SliceMapItem.createSliced(level, destX, destZ, scale, b, b1, slice);
     }
 
-    public static ItemStack createExistingSliced(int id) {
+    public static ItemStack createExistingSliced(MapId id) {
         ItemStack stack = new ItemStack(ModRegistry.SLICE_MAP.get());
         stack.getOrCreateTag().putInt("map", id);
         return stack;

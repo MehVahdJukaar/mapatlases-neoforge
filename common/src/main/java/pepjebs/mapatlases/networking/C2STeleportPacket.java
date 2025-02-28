@@ -1,12 +1,13 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
@@ -14,10 +15,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 
 import java.util.EnumSet;
@@ -26,6 +28,10 @@ import java.util.Optional;
 
 public class C2STeleportPacket implements Message {
 
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, C2STeleportPacket> TYPE = Message.makeType(
+            MapAtlasesMod.res("teleport"),
+            C2STeleportPacket::new
+    );
 
     private final int x;
     private final int z;
@@ -75,7 +81,7 @@ public class C2STeleportPacket implements Message {
     }
 
     @Override
-    public void writeToBuffer(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeVarInt(x);
         buf.writeVarInt(z);
         buf.writeOptional(Optional.ofNullable(y), FriendlyByteBuf::writeVarInt);
@@ -83,14 +89,14 @@ public class C2STeleportPacket implements Message {
     }
 
     @Override
-    public void handle(ChannelHandler.Context context) {
-        if (!(context.getSender() instanceof ServerPlayer player)) return;
+    public void handle(Context context) {
+        if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
         ServerLevel level = player.getServer().getLevel(dimension);
 
         int y;
         if (this.y == null) {
-           var chunk = level.getChunk(SectionPos.blockToSectionCoord(x),SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
+            var chunk = level.getChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
             if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
                 y = level.getMaxBuildHeight();
                 MinecraftServer server = level.getServer();
@@ -116,5 +122,10 @@ public class C2STeleportPacket implements Message {
             player.sendSystemMessage(Component.translatable("commands.teleport.invalidPosition"));
         }
 
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE.type();
     }
 }

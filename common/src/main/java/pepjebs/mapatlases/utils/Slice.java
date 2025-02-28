@@ -80,10 +80,6 @@ public final class Slice {
         return Objects.hash(type, height, dimension);
     }
 
-    public String getMapString(int id) {
-        return type.makeStringKey(id);
-    }
-
     public boolean hasMarkers() {
         return type.hasMarkers();
     }

@@ -1,11 +1,12 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,6 +24,10 @@ import java.util.Optional;
 
 public class C2SMarkerPacket implements Message {
 
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, C2SMarkerPacket> TYPE = Message.makeType(
+            MapAtlasesMod.res("place_marker"),
+            C2SMarkerPacket::new
+    );
     private final ColumnPos pos;
     private final String mapId;
     private final String name;
@@ -36,7 +41,7 @@ public class C2SMarkerPacket implements Message {
     public ColumnPos fromLong(long combinedValue) {
         var x = (int) (combinedValue);
         var z = (int) (combinedValue >>> 32);
-        return new ColumnPos(x,z);
+        return new ColumnPos(x, z);
     }
 
     public C2SMarkerPacket(ColumnPos pos, String map, @Nullable String name) {
@@ -46,15 +51,16 @@ public class C2SMarkerPacket implements Message {
     }
 
     @Override
-    public void writeToBuffer(FriendlyByteBuf buf) {
+    public void write(RegistryFriendlyByteBuf buf) {
         buf.writeLong(pos.toLong());
         buf.writeUtf(mapId);
         buf.writeOptional(Optional.ofNullable(name), FriendlyByteBuf::writeUtf);
     }
 
+
     @Override
-    public void handle(ChannelHandler.Context context) {
-        if (!(context.getSender() instanceof ServerPlayer player)) return;
+    public void handle(Context context) {
+        if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
         Level level = player.level();
         MapItemSavedData data = level.getMapData(mapId);
@@ -84,5 +90,10 @@ public class C2SMarkerPacket implements Message {
             }
         }
 
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE.type();
     }
 }

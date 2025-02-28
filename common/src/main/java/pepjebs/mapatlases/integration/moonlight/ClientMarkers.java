@@ -3,10 +3,12 @@ package pepjebs.mapatlases.integration.moonlight;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
@@ -40,7 +42,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MutableMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -55,10 +57,10 @@ import java.util.*;
 
 public class ClientMarkers {
 
-    private static final TagKey<MapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
-    private static final WeakHashMap<MapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
+    private static final TagKey<MLMapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
+    private static final WeakHashMap<MLMapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
-    private static final Map<Integer, Set<MapBlockMarker<?>>> markersPerMap = new HashMap<>();
+    private static final Map<Integer, Set<MLMapMarker<?>>> markersPerMap = new HashMap<>();
     private static final Map<Integer, String> mapIdToStringLookup = new IdentityHashMap<>();//dumb
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
@@ -160,7 +162,7 @@ public class ClientMarkers {
                     l.add(marker);
                 }
             }
-            markersPerMap.put(MapAtlasesAccessUtils.findMapIntFromString(k), l);
+            markersPerMap.put(MapAtlasesAccessUtils.findMapIdFromString(k), l);
         }
     }
 
@@ -232,9 +234,9 @@ public class ClientMarkers {
 
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
-                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, IMapCollection collection) {
+                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, MutableMapCollection collection) {
 
-        Registry<MapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
+        Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
         PoseStack matrixStack = graphics.pose();
         int i = 0;
         VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
@@ -277,13 +279,13 @@ public class ClientMarkers {
     }
 
     //TODO: change
-    public static void focusMarker(MapDataHolder map, CustomMapDecoration deco, boolean focused) {
+    public static void focusMarker(MapDataHolder map, MLMapDecoration deco, boolean focused) {
         if (deco instanceof PinDecoration mp) {
             mp.forceFocused(focused);
         }
     }
 
-    public static boolean isDecorationFocused(MapDataHolder map, CustomMapDecoration deco) {
+    public static boolean isDecorationFocused(MapDataHolder map, MLMapDecoration deco) {
         if (deco instanceof PinDecoration mp) {
             return mp.isFocused();
         }

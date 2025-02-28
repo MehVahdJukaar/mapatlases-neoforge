@@ -27,7 +27,7 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -88,8 +88,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                IMapCollection resultMaps = MapAtlasItem.getMaps(result, world);
-                IMapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
+                ImmutableMapCollection resultMaps = MapAtlasItem.getMaps(result, world);
+                ImmutableMapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
                 if (resultMaps.getScale() != bottomMaps.getScale()) return;
                 int[] idsToADd = bottomMaps.getAllIds();
                 for (var i : idsToADd) {
@@ -121,7 +121,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
                 Integer mapId = MapItem.getMapId(bottomItem);
-                IMapCollection maps = MapAtlasItem.getMaps(result, world);
+                ImmutableMapCollection maps = MapAtlasItem.getMaps(result, world);
                 if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();

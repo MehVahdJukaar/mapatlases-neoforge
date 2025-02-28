@@ -12,6 +12,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -31,7 +32,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -53,7 +54,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapKey currentMapKey = null;
     private MapKey lastMapKey = null;
-    private IMapCollection currentMaps;
+    private ImmutableMapCollection currentMaps;
 
 
     private float globalScale = 1;
@@ -154,8 +155,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             boolean hasBeneficial = false;
             boolean hasNegative = false;
             for (var e : player.getActiveEffects()) {
-                MobEffect effect = e.getEffect();
-                if (effect.isBeneficial()) {
+                Holder<MobEffect> effect = e.getEffect();
+                if (effect.value().isBeneficial()) {
                     hasBeneficial = true;
                 } else {
                     hasNegative = true;

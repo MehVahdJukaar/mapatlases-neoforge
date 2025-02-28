@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.forge;
+package pepjebs.mapatlases.neoforge;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
@@ -9,10 +9,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.util.RecipeMatcher;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.util.RecipeMatcher;
+import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 
 import java.util.List;
 

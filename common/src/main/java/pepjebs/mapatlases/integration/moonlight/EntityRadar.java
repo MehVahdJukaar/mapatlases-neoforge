@@ -2,9 +2,9 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
-import net.mehvahdjukaar.moonlight.api.misc.DataObjectReference;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
+import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -29,19 +29,19 @@ import java.util.WeakHashMap;
 
 public class EntityRadar {
 
-    private static final DataObjectReference<MapDecorationType<?, ?>> PASSIVE_PIN =
-            new DataObjectReference<>(MapAtlasesMod.res("passive_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final DataObjectReference<MapDecorationType<?, ?>> HOSTILE_PIN =
-            new DataObjectReference<>(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final DataObjectReference<MapDecorationType<?, ?>> NEUTRAL_PIN =
-            new DataObjectReference<>(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final DataObjectReference<MapDecorationType<?, ?>> BOSS_PIN =
-            new DataObjectReference<>(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
+    private static final HolderReference<MLMapDecorationType<?, ?>> PASSIVE_PIN =
+             HolderReference.of(MapAtlasesMod.res("passive_entity"), MapDataRegistry.REGISTRY_KEY);
+    private static final HolderReference<MLMapDecorationType<?, ?>> HOSTILE_PIN =
+             HolderReference.of(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.REGISTRY_KEY);
+    private static final HolderReference<MLMapDecorationType<?, ?>> NEUTRAL_PIN =
+             HolderReference.of(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.REGISTRY_KEY);
+    private static final HolderReference<MLMapDecorationType<?, ?>> BOSS_PIN =
+             HolderReference.of(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
 
-    private static final WeakHashMap<Level, Set<MapBlockMarker<?>>> nearbyEntityMarkers = new WeakHashMap<>();
+    private static final WeakHashMap<Level, Set<MLMapMarker<?>>> nearbyEntityMarkers = new WeakHashMap<>();
 
     // we dont clear as just bosses use tags...too bad
-    private static final Map<Class<? extends LivingEntity>, DataObjectReference<MapDecorationType<?, ?>>> entityTypeMap = new Object2ObjectOpenHashMap<>();
+    private static final Map<Class<? extends LivingEntity>, HolderReference<MLMapDecorationType<?, ?>>> entityTypeMap = new Object2ObjectOpenHashMap<>();
 
     public static void onClientTick(Player player) {
         Level level = player.level();
@@ -56,7 +56,7 @@ public class EntityRadar {
             if (e == player) continue;
             var type = getMarkerForType(e);
             if (type != null) {
-                MapBlockMarker<?> marker = type.get().createEmptyMarker();
+                MLMapMarker<?> marker = type.get().createEmptyMarker();
                 if (marker instanceof EntityPinMarker m) {
                     m.setPos(new BlockPos(e.getBlockX(), e.getBlockY(), e.getBlockZ()));
                     m.setEntity(e);
@@ -68,7 +68,7 @@ public class EntityRadar {
 
 
     @Nullable
-    public static DataObjectReference<MapDecorationType<?, ?>> getMarkerForType(LivingEntity entity) {
+    public static HolderReference<MLMapDecorationType<?, ?>> getMarkerForType(LivingEntity entity) {
         return entityTypeMap.computeIfAbsent(entity.getClass(), clazz -> {
             EntityType<?> type = entity.getType();
             if (type == EntityType.PLAYER)
@@ -88,7 +88,7 @@ public class EntityRadar {
     }
 
 
-    public static Set<MapBlockMarker<?>> send(Integer integer, MapItemSavedData data) {
+    public static Set<MLMapMarker<?>> send(Integer integer, MapItemSavedData data) {
         ClientLevel level = Minecraft.getInstance().level;
         if (data.dimension.equals(level.dimension())) {
             return nearbyEntityMarkers.computeIfAbsent(level, j->new HashSet<>());

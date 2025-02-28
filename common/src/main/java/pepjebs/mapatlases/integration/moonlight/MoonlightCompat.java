@@ -5,9 +5,10 @@ import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.MapHelper;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
 import net.mehvahdjukaar.moonlight.api.map.type.CustomDecorationType;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -26,14 +27,14 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.*;
 
 public class MoonlightCompat {
-    private static final TagKey<MapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.REGISTRY_KEY,
+    private static final TagKey<MLMapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.REGISTRY_KEY,
             MapAtlasesMod.res("no_button_on_atlas"));
 
     private static final ResourceLocation PIN_TYPE_ID = MapAtlasesMod.res("pin");
     private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
 
     public static void init() {
-        MapDataRegistry.registerCustomType(PIN_TYPE_ID, () -> CustomDecorationType.simple(PinMarker::new, PinDecoration::new));
+        MapDataRegistry.registerCustomType(PIN_TYPE_ID, () -> MLMapDecoration.simple(PinMarker::new, PinDecoration::new));
         MapDataRegistry.registerCustomType(PIN_ENTITY_TYPE_ID, () -> CustomDecorationType.simple(EntityPinMarker::new, EntityPinDecoration::new));
 
         if (PlatHelper.getPhysicalSide().isClient()) {

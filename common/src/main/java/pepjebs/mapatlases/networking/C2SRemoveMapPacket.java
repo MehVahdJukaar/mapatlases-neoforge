@@ -31,7 +31,7 @@ public class C2SRemoveMapPacket implements Message {
 
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (!atlas.isEmpty()) {
-            MapAtlasItem.removeMap(atlas, mapId, player);
+            MapAtlasItem.removeAndDropMap(atlas, mapId, player);
         }
     }
 }

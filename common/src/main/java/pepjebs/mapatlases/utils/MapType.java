@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.utils;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,24 +37,22 @@ public enum MapType {
         for (var v : MapType.values()) {
             var t = v.empty;
             if (t != null) s.add(t);
-            BuiltInRegistries.ITEM.getOptional(new ResourceLocation("supplementaries:slice_map")).ifPresent(s::add);
+            BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("supplementaries:slice_map")).ifPresent(s::add);
         }
         return s;
     });
 
-    private final String keyPrefix;
     public final Item filled;
     public final Item empty;
     public final String translationKey;
 
     MapType(String keyPrefix, Item filled, Item empty) {
-        this.keyPrefix = keyPrefix;
         this.filled = filled;
         this.empty = empty;
         this.translationKey = filled == null ? "Missing" : filled.getDescriptionId();
     }
 
-    public static MapType fromKey(String mapString, MapItemSavedData data) {
+    public static MapType fromKey(MapId id, MapItemSavedData data) {
         if(MapAtlasesMod.TWILIGHTFOREST && TwilightForestCompat.isMazeOre(data)){
             return ORE_MAZE;
         }
@@ -61,16 +60,6 @@ public enum MapType {
             if (mapString.startsWith(t.keyPrefix)) return t;
         }
         return VANILLA;
-    }
-
-    public String makeStringKey(int id) {
-        return keyPrefix + id;
-    }
-
-    @Nullable
-    public Integer findKey(String s) {
-        if (s.startsWith(keyPrefix)) return Integer.parseInt(s.substring(keyPrefix.length()));
-        return null;
     }
 
     public static boolean isEmptyMap(Item i) {
@@ -83,25 +72,24 @@ public enum MapType {
 
     private static Item tf(String id) {
         if (MapAtlasesMod.TWILIGHTFOREST) {
-            return BuiltInRegistries.ITEM.getOptional(new ResourceLocation("twilightforest", id))
+            return BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", id))
                     .orElse(null);
         }
         return null;
     }
 
     @Nullable
-    public Pair<String, MapItemSavedData> getMapData(Level level, int id) {
-        String key = keyPrefix + id;
+    public MapItemSavedData getMapData(Level level, MapId id) {
         MapItemSavedData data = null;
         if (this == VANILLA) {
-            data = level.getMapData(key);
+            data = level.getMapData(id);
         }
         if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
-            data = TwilightForestCompat.getMagic(level, key);
+            data = TwilightForestCompat.getMagic(level, id);
         } else if ((this == MAZE || this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
-            data = TwilightForestCompat.getMaze(level, key);
+            data = TwilightForestCompat.getMaze(level, id);
         }
-        return data == null ? null : Pair.of(key, data);
+        return data;
     }
 
     public Integer getHeight(@NotNull MapItemSavedData data) {
@@ -125,14 +113,14 @@ public enum MapType {
         }
     }
 
-    public ItemStack createExistingMapItem(int id, Integer height){
+    public ItemStack createExistingMapItem(MapId id, Integer height){
         ItemStack map = ItemStack.EMPTY;
         if (this == VANILLA) {
             if (height != null && MapAtlasesMod.SUPPLEMENTARIES) {
                 map = SupplementariesCompat.createExistingSliced(id);
             }else {
                 map = new ItemStack(Items.FILLED_MAP);
-                map.getOrCreateTag().putInt("map", id);
+                map.set(DataComponents.MAP_ID,id);
             }
         } else if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             map = TwilightForestCompat.makeExistingMagic(id);

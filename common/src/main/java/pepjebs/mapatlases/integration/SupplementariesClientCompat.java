@@ -24,7 +24,7 @@ import java.util.Map;
 // client class
 public class SupplementariesClientCompat {
 
-    public static void init(){
+    public static void init() {
         ClientHelper.addClientReloadListener(R::new, MapAtlasesMod.res("lightmap"));
     }
 
@@ -50,7 +50,7 @@ public class SupplementariesClientCompat {
     private static boolean lastTickWasDay = true;
 
     public static void onClientTick(ClientLevel level) {
-        if(MapAtlasesClientConfig.nightLightMap.get()) {
+        if (MapAtlasesClientConfig.nightLightMap.get()) {
             float timeOfDay = level.getTimeOfDay(0);
             boolean isDay = timeOfDay < 0.26 || timeOfDay > 0.8;
             if (isDay != lastTickWasDay) {
@@ -61,7 +61,7 @@ public class SupplementariesClientCompat {
                     String keyId = e.getKey();
                     if (e.getKey().startsWith("map_")) {
                         MapItemSavedData data = e.getValue();
-                        mapRenderer.update(MapAtlasesAccessUtils.findMapIntFromString(keyId), data);
+                        mapRenderer.update(MapAtlasesAccessUtils.findMapIdFromString(keyId), data);
                     }
                 }
             }

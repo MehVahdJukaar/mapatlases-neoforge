@@ -1,30 +1,26 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.ChannelHandler;
-import net.mehvahdjukaar.moonlight.api.platform.network.NetworkDir;
-import pepjebs.mapatlases.MapAtlasesMod;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 
 public class MapAtlasesNetworking {
 
-    public static final ChannelHandler CHANNEL = ChannelHandler.builder(MapAtlasesMod.MOD_ID)
-            .version(5)
-            .register(NetworkDir.PLAY_TO_CLIENT, S2CMapPacketWrapper.class, S2CMapPacketWrapper::new)
-            .register(NetworkDir.PLAY_TO_CLIENT, S2CWorldHashPacket.class, S2CWorldHashPacket::new)
-            .register(NetworkDir.PLAY_TO_CLIENT, S2CDebugUpdateMapPacket.class, S2CDebugUpdateMapPacket::new)
-            // both dir
-            .register(NetworkDir.BOTH, C2S2COpenAtlasScreenPacket.class, C2S2COpenAtlasScreenPacket::new)
 
-            .register(NetworkDir.PLAY_TO_SERVER, C2SSelectSlicePacket.class, C2SSelectSlicePacket::new)
-            .register(NetworkDir.PLAY_TO_SERVER, C2STeleportPacket.class, C2STeleportPacket::new)
-            .register(NetworkDir.PLAY_TO_SERVER, C2SMarkerPacket.class, C2SMarkerPacket::new)
-            .register(NetworkDir.PLAY_TO_SERVER, C2SRemoveMarkerPacket.class, C2SRemoveMarkerPacket::new)
-            .register(NetworkDir.PLAY_TO_SERVER, C2STakeAtlasPacket.class, C2STakeAtlasPacket::new)
-            .register(NetworkDir.PLAY_TO_SERVER, C2SRemoveMapPacket.class, C2SRemoveMapPacket::new)
-
-
-            .build();
+    private static void registerMessages(NetworkHelper.RegisterMessagesEvent event) {
+        event.registerClientBound(S2CMapPacketWrapper.TYPE);
+        event.registerClientBound(S2CWorldHashPacket.TYPE);
+        event.registerClientBound(S2CDebugUpdateMapPacket.TYPE);
+        event.registerBidirectional(C2S2COpenAtlasScreenPacket.TYPE);
+        event.registerServerBound(C2SSelectSlicePacket.TYPE);
+        event.registerServerBound(C2STeleportPacket.TYPE);
+        event.registerServerBound(C2SMarkerPacket.TYPE);
+        event.registerServerBound(C2SRemoveMarkerPacket.TYPE);
+        event.registerServerBound(C2STakeAtlasPacket.TYPE);
+        event.registerServerBound(C2SRemoveMapPacket.TYPE);
+    }
 
     public static void init() {
+        NetworkHelper.addNetworkRegistration(MapAtlasesNetworking::registerMessages,6);
 
     }
+
 }

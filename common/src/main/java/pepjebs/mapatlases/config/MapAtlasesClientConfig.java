@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.config;
 
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
-import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigSpec;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
+import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.InHandMode;
@@ -25,7 +25,7 @@ public class MapAtlasesClientConfig {
 
         miniMapScale = builder
                 .comment("Global scale of entire minimap HUD. Keep at 1 for pixel perfect consistency")
-                .define("scale", 1f, 0, 20);
+                .define("scale", 1d, 0, 20);
         drawMiniMapHUD = builder
                 .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
                 .define("enabled", true);
@@ -69,7 +69,7 @@ public class MapAtlasesClientConfig {
                 .define("decoration_scale", 1, 0, 10d);
 
         miniMapDecorationTextScale = builder.comment("Scale multiplier for Map Markers text on the mini-map")
-                .define("map_markers_text_scale", 1, 0, 10f);
+                .define("map_markers_text_scale", 1, 0, 10d);
 
         miniMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
                 .define("follow_player", true);
@@ -79,20 +79,20 @@ public class MapAtlasesClientConfig {
         drawMinimapCardinals = builder.comment("Draw cardinal directions on minimap")
                 .define("cardinal_directions", true);
         miniMapCardinalsScale = builder.comment("Scale of cardinal directions on minimap")
-                        .define("cardinal_scale", 1f, 0, 2);
+                .define("cardinal_scale", 1d, 0, 2);
         miniMapOnlyNorth = builder.comment("Only shows north cardinal direction")
-                        .define("only_show_north_cardinal", false);
+                .define("only_show_north_cardinal", false);
         miniMapBorder = builder.comment("Shows map separation borders")
-                        .define("map_borders", true);
+                .define("map_borders", true);
 
         minimapSkyLight = builder.comment("Use sky color for minimap")
-                        .define("darken_at_night", false);
+                .define("darken_at_night", false);
 
         mapChangeSound = builder.comment("Plays page turn sound when current active map changes. Works best when paired with no rotation and no player follow")
-                        .define("map_change_sound", false);
+                .define("map_change_sound", false);
 
         automaticSlice = builder.comment("Automatically switches to the nearest slice when possible")
-                        .define("automatic_slice_change", false);
+                .define("automatic_slice_change", false);
         builder.pop();
 
         builder.push("world_map");
@@ -110,10 +110,10 @@ public class MapAtlasesClientConfig {
 
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
-                .define("scale", 1.25f, 0, 20);
+                .define("scale", 1.25d, 0, 20);
         lecternWorldMapScale = builder
                 .comment("Global scale of the entire world map GUI when opening from lectern. Keep at 1 for pixel perfect consistency")
-                .define("lectern_scale", 1f, 0, 20);
+                .define("lectern_scale", 1d, 0, 20);
 
         worldMapBorder = builder.comment("Shows map separation borders")
                 .define("map_borders", true);
@@ -129,7 +129,7 @@ public class MapAtlasesClientConfig {
                 .define("decoration_scale", 1, 0, 10d);
 
         worldMapDecorationTextScale = builder.comment("Scale multiplier for Map Markers text on the world-map")
-                .define("map_markers_text_scale", 1, 0, 10f);
+                .define("map_markers_text_scale", 1, 0, 10d);
 
         worldMapCompactSliceIndicator = builder
                 .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
@@ -158,7 +158,7 @@ public class MapAtlasesClientConfig {
                 .define("pin_tracking", true);
         entityRadar = builder.comment("Show nearby mobs on minimap")
                 .define("mob_radar", false);
-        radarRadius = builder.define("radar_radius", 64, 0 , 256);
+        radarRadius = builder.define("radar_radius", 64, 0, 256);
         radarRotation = builder.comment("Entities on radar will have their icon rotate")
                 .define("radar_pins_rotate", false);
         radarColor = builder.comment("Uses yellow markers for all mobs")
@@ -170,7 +170,7 @@ public class MapAtlasesClientConfig {
 
         builder.pop();
 
-        SPEC = builder.buildAndRegister();
+        SPEC = builder.build();
     }
 
     public static final Supplier<Boolean> drawMiniMapHUD;
@@ -222,7 +222,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
 
-    public static final ConfigSpec SPEC;
+    public static final ModConfigHolder SPEC;
 
 
     public static void init() {

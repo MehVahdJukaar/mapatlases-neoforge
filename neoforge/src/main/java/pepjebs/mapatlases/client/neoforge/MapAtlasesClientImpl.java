@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.client.forge;
+package pepjebs.mapatlases.client.neoforge;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

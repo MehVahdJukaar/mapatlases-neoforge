@@ -1,38 +1,33 @@
-package pepjebs.mapatlases.forge;
+package pepjebs.mapatlases.neoforge;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.forge.MapAtlasesClientImpl;
+import pepjebs.mapatlases.client.neoforge.MapAtlasesClientImpl;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
-import pepjebs.mapatlases.map_collection.forge.CapStuff;
 
 @Mod(MapAtlasesMod.MOD_ID)
 public class MapAtlasesForge {
 
-    public MapAtlasesForge() {
+    public MapAtlasesForge(IEventBus bus) {
+        RegHelper.startRegisteringFor(bus);
         MapAtlasesMod.init();
 
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        bus.addListener(CapStuff::register);
-
-        MinecraftForge.EVENT_BUS.register(this);
+        NeoForge.EVENT_BUS.register(this);
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesClientImpl.init();

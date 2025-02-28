@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.lifecycle;
 
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -17,10 +18,9 @@ import pepjebs.mapatlases.integration.SupplementariesClientCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -34,17 +34,15 @@ public class MapAtlasesClientEvents {
 
         if (MapAtlasesMod.SUPPLEMENTARIES && (gameTime + 27) % 40 == 0) {
             SupplementariesClientCompat.onClientTick(level);
-        }
-        else if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
+        } else if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
                 maybeChangeSlice(client.player, level, maps, s, atlas);
             }
-        }
-        else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
+        } else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
             EntityRadar.onClientTick(client.player);
         }
     }
@@ -52,13 +50,13 @@ public class MapAtlasesClientEvents {
     public static void onKeyPressed(int key, int code) {
 
         Minecraft client = Minecraft.getInstance();
-        if (client.screen != null ) return;
+        if (client.screen != null) return;
         if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
                 // needed as we might not have all mas needed
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
+                NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket());
             }
         }
 
@@ -67,7 +65,7 @@ public class MapAtlasesClientEvents {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
+                    NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
                 }
             }
         }
@@ -83,7 +81,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();
@@ -93,7 +91,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
-                IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();
@@ -107,7 +105,7 @@ public class MapAtlasesClientEvents {
     private static void maybeSyncNewSlice(ItemStack atlas, Slice oldSlice, Integer newHeight) {
         Slice newSlice = Slice.of(oldSlice.type(), newHeight, oldSlice.dimension());
         if (!newSlice.equals(oldSlice)) {
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SSelectSlicePacket(newSlice, null));
+            NetworkHelper.sendToServer(new C2SSelectSlicePacket(newSlice, null));
         }
         //update the client immediately
         MapAtlasItem.setSelectedSlice(atlas, newSlice);
@@ -118,7 +116,7 @@ public class MapAtlasesClientEvents {
     }
 
     //make this client sided
-    private static void maybeChangeSlice(Player player, Level level, IMapCollection maps, Slice lastSlice, ItemStack atlas) {
+    private static void maybeChangeSlice(Player player, Level level, ImmutableMapCollection maps, Slice lastSlice, ItemStack atlas) {
         MapType type = lastSlice.type();
         ResourceKey<Level> dim = lastSlice.dimension();
         Integer newHeight = getClosestSlice(player, level, maps, dim, type);
@@ -130,7 +128,7 @@ public class MapAtlasesClientEvents {
 
     // null when we dont change
     @Nullable
-    public static Integer getClosestSlice(Player player, Level level, IMapCollection cap, ResourceKey<Level> dim, MapType type) {
+    public static Integer getClosestSlice(Player player, Level level, ImmutableMapCollection cap, ResourceKey<Level> dim, MapType type) {
         //check locked
         TreeSet<Integer> heightTree = cap.getHeightTree(dim, type);
         if (heightTree.size() == 1) return null;

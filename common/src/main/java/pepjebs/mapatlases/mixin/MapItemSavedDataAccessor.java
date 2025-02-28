@@ -1,11 +1,12 @@
 package pepjebs.mapatlases.mixin;
 
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.saveddata.maps.MapBanner;
-import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +32,7 @@ public interface MapItemSavedDataAccessor {
     void setDimension(ResourceKey<Level> dimension);
 
     @Invoker("addDecoration")
-    void invokeAddDecoration(MapDecoration.Type pType, @Nullable LevelAccessor pLevel, String pDecorationName, double pLevelX,
+    void invokeAddDecoration(Holder<MapDecorationType> pType, @Nullable LevelAccessor pLevel, String pDecorationName, double pLevelX,
                              double pLevelZ, double pRotation, @Nullable Component pName);
 
     @Accessor("bannerMarkers")

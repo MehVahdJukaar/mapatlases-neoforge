@@ -1,14 +1,14 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.mehvahdjukaar.moonlight.api.map.markers.MapBlockMarker;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.minecraft.nbt.CompoundTag;
 
-public class PinMarker extends MapBlockMarker<PinDecoration> {
+public class PinMarker extends MLMapMarker<PinDecoration> {
 
     private boolean focused;
 
-    protected PinMarker(MapDecorationType<PinDecoration, ?> type) {
+    protected PinMarker(MLMapDecorationType<PinDecoration, ?> type) {
         super(type);
     }
 

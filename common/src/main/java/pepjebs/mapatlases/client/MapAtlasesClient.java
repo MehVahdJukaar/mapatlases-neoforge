@@ -31,7 +31,7 @@ import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
@@ -54,18 +54,18 @@ public class MapAtlasesClient {
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
     public static final Material MAP_BORDER_TEXTURE = new Material(
-            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final Material MAP_HOVERED_TEXTURE = new Material(
-            new ResourceLocation("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
-    public static final ResourceLocation MAP_ICON_TEXTURE = new ResourceLocation("textures/map/map_icons.png");
+    public static final ResourceLocation MAP_ICON_TEXTURE = ResourceLocation.withDefaultNamespace("textures/map/map_icons.png");
     public static final ResourceLocation ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
-    public static final ResourceLocation GUI_ICONS_TEXTURE = new ResourceLocation("textures/gui/icons.png");
+    public static final ResourceLocation GUI_ICONS_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/icons.png");
     public static final ResourceLocation MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final ResourceLocation MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
@@ -135,8 +135,8 @@ public class MapAtlasesClient {
         currentActiveMap = null;
         currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
-            var maps = MapAtlasItem.getMaps(atlas, player.level());
-            maps.addNotSynced(player.level());
+            ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+            maps.updateNotSynced(player.level());
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
@@ -244,9 +244,9 @@ public class MapAtlasesClient {
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
         ClientLevel level = Minecraft.getInstance().level;
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        var maps = MapAtlasItem.getMaps(atlas, level);
         //we arent ticking these so we have to fix duplicates
-        maps.addNotSynced(level);
+        maps.updateNotSynced(level);
         if (!maps.isEmpty()) {
             Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
         }

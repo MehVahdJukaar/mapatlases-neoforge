@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -33,7 +34,7 @@ public class MapAtlasesAccessUtils {
         return MapDataHolder.findFromId(level, MapItem.getMapId(item));
     }
 
-    public static int findMapIntFromString(String id) {
+    public static MapId findMapIdFromString(String id) {
         return Integer.parseInt(id.split("_")[1]);
     }
 

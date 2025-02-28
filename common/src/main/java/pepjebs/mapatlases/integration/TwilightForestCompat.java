@@ -8,6 +8,7 @@ import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import twilightforest.TFMagicMapData;
 import twilightforest.TFMazeMapData;
@@ -16,36 +17,36 @@ import twilightforest.item.MazeMapItem;
 
 public class TwilightForestCompat {
 
-    private static final Supplier<Item> FILLED_MAGIC = Suppliers.memoize(()->
-            BuiltInRegistries.ITEM.get(new ResourceLocation("twilightforest", "filled_magic_map")));
+    private static final Supplier<Item> FILLED_MAGIC = Suppliers.memoize(() ->
+            BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("twilightforest", "filled_magic_map")));
 
-    private static final Supplier<Item> FILLED_MAZE = Suppliers.memoize(()->
-            BuiltInRegistries.ITEM.get(new ResourceLocation("twilightforest", "filled_maze_map")));
+    private static final Supplier<Item> FILLED_MAZE = Suppliers.memoize(() ->
+            BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("twilightforest", "filled_maze_map")));
 
-    private static final Supplier<Item> FILLED_ORE = Suppliers.memoize(()->
-            BuiltInRegistries.ITEM.get(new ResourceLocation("twilightforest", "filled_ore_map")));
+    private static final Supplier<Item> FILLED_ORE = Suppliers.memoize(() ->
+            BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("twilightforest", "filled_ore_map")));
 
-    public static MapItemSavedData getMagic(Level level, String name) {
+    public static MapItemSavedData getMagic(Level level, MapId name) {
         return TFMagicMapData.getMagicMapData(level, name);
     }
 
-    public static MapItemSavedData getMaze(Level level, String name) {
+    public static MapItemSavedData getMaze(Level level, MapId name) {
         return TFMazeMapData.getMazeMapData(level, name);
     }
 
-    public static ItemStack makeExistingMagic(int id) {
+    public static ItemStack makeExistingMagic(MapId id) {
         ItemStack stack = new ItemStack(FILLED_MAGIC.get());
         stack.getOrCreateTag().putInt("map", id);
         return stack;
     }
 
-    public static ItemStack makeExistingMaze(int id) {
+    public static ItemStack makeExistingMaze(MapId id) {
         ItemStack stack = new ItemStack(FILLED_MAZE.get());
         stack.getOrCreateTag().putInt("map", id);
         return stack;
     }
 
-    public static ItemStack makeExistingOre(int id) {
+    public static ItemStack makeExistingOre(MapId id) {
         ItemStack stack = new ItemStack(FILLED_ORE.get());
         stack.getOrCreateTag().putInt("map", id);
         return stack;

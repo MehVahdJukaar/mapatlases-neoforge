@@ -1,12 +1,12 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
-import net.mehvahdjukaar.moonlight.api.map.type.MapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
-public class PinDecoration extends CustomMapDecoration {
+public class PinDecoration extends MLMapDecoration {
     public final PinMarker marker;
     private boolean focused;
 
@@ -16,7 +16,7 @@ public class PinDecoration extends CustomMapDecoration {
     }
 
     //unused TODO:improve
-    public PinDecoration(MapDecorationType<?, ?> type, FriendlyByteBuf buffer) {
+    public PinDecoration(MLMapDecorationType<?, ?> type, FriendlyByteBuf buffer) {
         super(type, buffer);
         this.marker = null;
     }

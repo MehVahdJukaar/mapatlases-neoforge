@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.lifecycle;
 
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -8,8 +10,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
@@ -18,9 +20,8 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.*;
 
@@ -32,7 +33,7 @@ public class MapAtlasesServerEvents {
     // Used to prevent Map creation spam consuming all Empty Maps on auto-create
     private static final ReentrantLock mutex = new ReentrantLock();
 
-    private static final WeakHashMap<Player, Tuple<Float, HashMap<String, MapUpdateTicket>>> updateQueue = new WeakHashMap<>();
+    private static final WeakHashMap<Player, Tuple<Float, HashMap<MapId, MapUpdateTicket>>> updateQueue = new WeakHashMap<>();
     private static final WeakHashMap<Player, MapDataHolder> lastMapData = new WeakHashMap<>();
 
     //TODO: improve . lower updates when stationary
@@ -104,7 +105,7 @@ public class MapAtlasesServerEvents {
 
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
@@ -170,7 +171,7 @@ public class MapAtlasesServerEvents {
         // for far away maps so we remove player marker
         MapDataHolder lastData = lastMapData.get(player);
         if (lastData != null && !nearbyExistentMaps.contains(lastData)) {
-           MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, TriState.SET_FALSE);
+            MapAtlasesAccessUtils.updateMapDataAndSync(lastData, player, atlas, TriState.SET_FALSE);
         }
         lastMapData.put(player, activeInfo);
 
@@ -191,7 +192,7 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, IMapCollection maps, MapKey activeKey) {
+    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, ImmutableMapCollection maps, MapKey activeKey) {
         Slice slice = activeKey.slice();
         var dimension = activeKey.slice().dimension();
         var tree = maps.getHeightTree(dimension, slice.type());
@@ -230,10 +231,10 @@ public class MapAtlasesServerEvents {
     private static MapDataHolder getMapToUpdate(List<MapDataHolder> nearbyExistentMaps, ServerPlayer player) {
         var tup = updateQueue.computeIfAbsent(player, a -> new Tuple<>(0f, new HashMap<>()));
         var mapsToUpdate = tup.getB();
-        Set<String> nearbyIds = new HashSet<>();
+        Set<MapId> nearbyIds = new HashSet<>();
         for (var holder : nearbyExistentMaps) {
-            nearbyIds.add(holder.stringId);
-            mapsToUpdate.computeIfAbsent(holder.stringId, a -> new MapUpdateTicket(holder));
+            nearbyIds.add(holder.id);
+            mapsToUpdate.computeIfAbsent(holder.id, a -> new MapUpdateTicket(holder));
         }
         int px = player.getBlockX();
         int pz = player.getBlockZ();
@@ -280,13 +281,13 @@ public class MapAtlasesServerEvents {
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
-            IMapCollection maps,
+            ImmutableMapCollection maps,
             Slice slice,
             int destX,
             int destZ
     ) {
         Level level = player.level();
-        if (atlas.getTag() == null) {
+        if (maps.isReallyEmpty()) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }
@@ -313,7 +314,7 @@ public class MapAtlasesServerEvents {
             //TODO: create custom ones
 
             ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
-            Integer mapId = MapItem.getMapId(newMap);
+            MapId mapId = newMap.get(DataComponents.MAP_ID);
 
             if (mapId != null) {
                 MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
@@ -373,14 +374,14 @@ public class MapAtlasesServerEvents {
 
     public static void onPlayerJoin(ServerPlayer player) {
         if (MapAtlasesMod.MOONLIGHT) {
-            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
+            NetworkHelper.sendToClientPlayer(player, new S2CWorldHashPacket(player));
         }
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
@@ -391,7 +392,7 @@ public class MapAtlasesServerEvents {
         if (PlatHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
                 // update all maps and sends them to player, if needed
-               // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
+                // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
             }
         }
     }

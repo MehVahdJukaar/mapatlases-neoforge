@@ -2,15 +2,15 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.mehvahdjukaar.moonlight.api.map.CustomMapDecoration;
-import net.mehvahdjukaar.moonlight.api.map.client.DecorationRenderer;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationRenderer;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-public class AtlasOnlyDecorationRenderer<T extends CustomMapDecoration> extends DecorationRenderer<T> {
+public class AtlasOnlyDecorationRenderer<T extends MLMapDecoration> extends MapDecorationRenderer<T> {
 
     public AtlasOnlyDecorationRenderer(ResourceLocation texture) {
         super(texture);
