@@ -36,8 +36,8 @@ public class SpecialRecipeDisplays {
             l.add(Ingredient.of(new ItemStack(Items.FILLED_MAP)));
 
             NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY, l.toArray(Ingredient[]::new));
-            ResourceLocation id = new ResourceLocation(MapAtlasesMod.MOD_ID, "craft_atlas");
-            ShapelessRecipe recipe = new ShapelessRecipe(id, group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
+            ResourceLocation id = MapAtlasesMod.res("craft_atlas");
+            ShapelessRecipe recipe = new ShapelessRecipe(group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
             recipes.add(recipe);
         }
         return recipes;

@@ -23,24 +23,26 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapId;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
@@ -123,7 +125,7 @@ public class MapAtlasesClient {
     private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
 
     @Nullable
-    private static MapKey currentActiveMapKey = null;
+    private static MapSearchKey currentActiveMapKey = null;
     private static MapDataHolder currentActiveMap = null;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
     private static boolean isDrawingAtlas = false;
@@ -136,11 +138,11 @@ public class MapAtlasesClient {
         currentActiveMap = null;
         currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
-            ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+            MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
             maps.updateNotSynced(player.level());
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
-            currentActiveMapKey = MapKey.at(maps.getScale(), player, slice);
+            currentActiveMapKey = MapSearchKey.at(maps.getScale(), player, slice);
             MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
                 select = maps.getClosest(player, slice);
@@ -156,7 +158,7 @@ public class MapAtlasesClient {
         return currentActiveAtlas;
     }
 
-    public static MapKey getActiveMapKey() {
+    public static MapSearchKey getActiveMapKey() {
         return currentActiveMapKey;
     }
 
@@ -226,14 +228,14 @@ public class MapAtlasesClient {
     }
 
 
-    public static void openScreen(@Nullable BlockPos lecternPos, boolean pinOnly) {
+    public static void openScreen(Optional<BlockPos> lecternPos, boolean pinOnly) {
         @Nullable LecternBlockEntity lectern = null;
         ItemStack atlas = ItemStack.EMPTY;
         Player player = Minecraft.getInstance().player;
-        if (lecternPos == null) {
+        if (lecternPos.isEmpty()) {
             atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         } else {
-            if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lec) {
+            if (player.level().getBlockEntity(lecternPos.get()) instanceof LecternBlockEntity lec) {
                 lectern = lec;
                 atlas = lec.getBook();
             }
@@ -303,12 +305,12 @@ public class MapAtlasesClient {
     }
 
     //debug stuff
-    public static void debugMapUpdated(String mapId) {
-        CACHE.put(mapId, 10);
+    public static void debugMapUpdated(MapId mapId, MapType mapType) {
+        CACHE.put(Pair.of(mapId, mapType), 10);
     }
 
-    public static int debugIsMapUpdated(int light, MapId stringId) {
-        Integer value = getValue(stringId);
+    public static int debugIsMapUpdated(int light, MapId stringId, MapType mapType) {
+        Integer value = getValue(stringId, mapType);
         if (value != null) {
             int pBlockLight = Mth.clamp((int) (value / (float) 10 * 15f), 0, 15);
             return LightTexture.pack(pBlockLight, pBlockLight);
@@ -316,7 +318,8 @@ public class MapAtlasesClient {
         return light;
     }
 
-    private static Integer getValue(String key) {
+    private static Integer getValue(MapId id, MapType type) {
+        var key = Pair.of(id, type);
         Integer value = CACHE.getIfPresent(key);
         if (value != null) {
             value--; // Decrease the counter
@@ -331,7 +334,7 @@ public class MapAtlasesClient {
         return value;
     }
 
-    private static final Cache<String, Integer> CACHE = CacheBuilder.newBuilder()
+    private static final Cache<Pair<MapId, MapType>, Integer> CACHE = CacheBuilder.newBuilder()
             .maximumSize(100)
             .expireAfterAccess(10, TimeUnit.SECONDS)
             .build();

@@ -2,8 +2,6 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.serialization.JsonOps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
@@ -43,8 +41,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
-import pepjebs.mapatlases.map_collection.MutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
@@ -242,7 +239,7 @@ public class ClientMarkers {
 
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
-                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, ImmutableMapCollection collection) {
+                                     float widgetWorldLen, Player player, boolean rotateWithPlayer, MapCollection collection) {
 
         Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
         PoseStack matrixStack = graphics.pose();
@@ -252,7 +249,7 @@ public class ClientMarkers {
         BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
         for (var entry : markersPerMap.entrySet()) {
             int mapId = entry.getKey();
-            if (!collection.hasId(mapId)) continue;
+            if (!collection.hasMap(mapId)) continue;
             var pins = entry.getValue();
             for (var marker : pins) {
                 BlockPos pos = marker.getPos();

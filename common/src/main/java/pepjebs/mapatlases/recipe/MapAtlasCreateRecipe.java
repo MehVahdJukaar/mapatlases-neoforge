@@ -16,7 +16,7 @@ import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -97,7 +97,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapAtlasItem.setSelectedSlice(atlas, holder.slice);
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);

@@ -63,16 +63,6 @@ public enum MapType implements StringRepresentable {
         this.id = this.name().toLowerCase(Locale.ROOT);
     }
 
-    public static MapType fromKey(MapId id, MapItemSavedData data) {
-        if(MapAtlasesMod.TWILIGHTFOREST && TwilightForestCompat.isMazeOre(data)){
-            return ORE_MAZE;
-        }
-        for (var t : values()) {
-            if (mapString.startsWith(t.keyPrefix)) return t;
-        }
-        return VANILLA;
-    }
-
     public static boolean isEmptyMap(Item i) {
         return EMPTY.contains(i);
     }

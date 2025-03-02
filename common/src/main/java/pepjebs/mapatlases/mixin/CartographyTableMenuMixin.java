@@ -6,13 +6,14 @@
  */
 package pepjebs.mapatlases.mixin;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,12 +28,13 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -88,13 +90,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                ImmutableMapCollection resultMaps = MapAtlasItem.getMaps(result, world);
-                ImmutableMapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
+                MapCollection resultMaps = MapAtlasItem.getMaps(result, world);
+                MapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
                 if (resultMaps.getScale() != bottomMaps.getScale()) return;
-                int[] idsToADd = bottomMaps.getAllIds();
-                for (var i : idsToADd) {
-                    resultMaps.add(i, world);
-                }
+                List<Integer> idsToADd = bottomMaps.getIdsCopy();
+                resultMaps.addAndAssigns(result, world, idsToADd);
+
                 MapAtlasItem.setEmptyMaps(result, (int) Math.ceil((MapAtlasItem.getEmptyMaps(result) + MapAtlasItem.getEmptyMaps(bottomItem)) / 2f));
 
                 result.grow(1);
@@ -120,9 +121,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.getItem() == Items.FILLED_MAP) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                Integer mapId = MapItem.getMapId(bottomItem);
-                ImmutableMapCollection maps = MapAtlasItem.getMaps(result, world);
-                if (mapId != null && maps.add(mapId, world)) {
+                MapId mapId = bottomItem.get(DataComponents.MAP_ID);
+                MapCollection maps = MapAtlasItem.getMaps(result, world);
+                if (mapId != null && maps.addAndAssigns(result, world, mapId) != maps) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
                     info.cancel();

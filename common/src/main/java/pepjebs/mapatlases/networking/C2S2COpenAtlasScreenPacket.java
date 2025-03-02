@@ -26,27 +26,26 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             C2S2COpenAtlasScreenPacket::new
     );
 
-    @Nullable
-    private final BlockPos lecternPos;
+    private final Optional<BlockPos> lecternPos;
     private final boolean pinOnly;
 
     public C2S2COpenAtlasScreenPacket(FriendlyByteBuf buf) {
-        lecternPos = buf.readOptional(FriendlyByteBuf::readBlockPos).orElse(null);
+        lecternPos = buf.readOptional(object -> object.readBlockPos());
         pinOnly = buf.readBoolean();
     }
 
     public C2S2COpenAtlasScreenPacket() {
-        this(null, false);
+        this(Optional.empty(), false);
     }
 
-    public C2S2COpenAtlasScreenPacket(BlockPos lecternPos, boolean pinOnly) {
+    public C2S2COpenAtlasScreenPacket(Optional<BlockPos> lecternPos, boolean pinOnly) {
         this.lecternPos = lecternPos;
         this.pinOnly = pinOnly;
     }
 
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
-        buf.writeOptional(Optional.ofNullable(lecternPos), FriendlyByteBuf::writeBlockPos);
+        buf.writeOptional(lecternPos, (object, object2) -> object.writeBlockPos(object2));
         buf.writeBoolean(pinOnly);
     }
 
@@ -54,7 +53,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
     public void handle(Context context) {
         // we need all this craziness as we need to ensure maps are sent before gui is opened
 
-        if (context.getDirection() == NetworkDir.PLAY_TO_CLIENT) {
+        if (context.getDirection() == NetworkDir.CLIENT_BOUND) {
             // open screen
             MapAtlasesClient.openScreen(lecternPos, pinOnly);
         } else {
@@ -62,8 +61,8 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
             ItemStack atlas = ItemStack.EMPTY;
-            if (lecternPos != null) {
-                if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity le) {
+            if (lecternPos.isPresent()) {
+                if (player.level().getBlockEntity(lecternPos.get()) instanceof LecternBlockEntity le) {
                     atlas = le.getBook();
                 }
             } else {

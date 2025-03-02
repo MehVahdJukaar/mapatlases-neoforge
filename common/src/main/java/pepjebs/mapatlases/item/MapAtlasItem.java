@@ -28,8 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
 
@@ -61,7 +61,7 @@ public class MapAtlasItem extends Item {
 
         if (PlatHelper.getPhysicalSide().isServer()) return;
         Level level = Minecraft.getInstance().level;
-        ImmutableMapCollection maps = getMaps(stack, level);
+        MapCollection maps = getMaps(stack, level);
         int mapSize = maps.getCount();
         int empties = getEmptyMaps(stack);
         if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
@@ -140,8 +140,8 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
 
-                ImmutableMapCollection maps = getMaps(stack, level);
-                MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                MapCollection maps = getMaps(stack, level);
+                MapDataHolder mapState = maps.select(MapSearchKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
                 if (!didAdd)
@@ -162,7 +162,7 @@ public class MapAtlasItem extends Item {
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+        MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
@@ -206,7 +206,7 @@ public class MapAtlasItem extends Item {
         Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
         return updateSlice(Slice.of(type, newHeight, dim));
     }*/
-    public static ImmutableMapCollection getMaps(ItemStack stack, Level level) {
+    public static MapCollection getMaps(ItemStack stack, Level level) {
         //gets and assure initialized
         var comp = stack.get(MapAtlasesMod.MAP_COLLECTION.get());
         Preconditions.checkNotNull(comp, "Map collection component was null");

@@ -20,8 +20,8 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.*;
 
@@ -105,11 +105,11 @@ public class MapAtlasesServerEvents {
 
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
-        MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
+        MapSearchKey activeKey = MapSearchKey.at(maps.getScale(), player, slice);
 
         //sync the slice below and above so we can update slice automatically
         if ((level.getGameTime() + 13) % 40 == 0) {
@@ -192,7 +192,7 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, ImmutableMapCollection maps, MapKey activeKey) {
+    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas, MapCollection maps, MapSearchKey activeKey) {
         Slice slice = activeKey.slice();
         var dimension = activeKey.slice().dimension();
         var tree = maps.getHeightTree(dimension, slice.type());
@@ -271,7 +271,7 @@ public class MapAtlasesServerEvents {
 
 
     public static boolean isPlayerTooFarAway(
-            MapKey key,
+            MapSearchKey key,
             Player player, int width
     ) {
         return Mth.square(key.mapX() - player.getX()) + Mth.square(key.mapZ() - player.getZ()) > width * width;
@@ -281,7 +281,7 @@ public class MapAtlasesServerEvents {
     private static void maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
-            ImmutableMapCollection maps,
+            MapCollection maps,
             Slice slice,
             int destX,
             int destZ
@@ -381,11 +381,11 @@ public class MapAtlasesServerEvents {
 
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
-        MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
+        MapSearchKey activeKey = MapSearchKey.at(maps.getScale(), player, slice);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
 
         //TODO: figure out why its not synced automatically

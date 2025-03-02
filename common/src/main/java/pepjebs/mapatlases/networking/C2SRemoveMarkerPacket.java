@@ -11,6 +11,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.utils.MapType;
 
 public class C2SRemoveMarkerPacket implements Message {
 
@@ -21,25 +22,29 @@ public class C2SRemoveMarkerPacket implements Message {
 
     private final int decoHash;
     private final MapId mapId;
+    private final MapType mapType;
     private final boolean isCustom;
 
     public C2SRemoveMarkerPacket(FriendlyByteBuf buf) {
-        this.mapId = buf.readUtf();
+        this.mapId = MapId.STREAM_CODEC.decode(buf);
+        this.mapType = MapType.STREAM_CODEC.decode(buf);
         this.decoHash = buf.readVarInt();
         this.isCustom = buf.readBoolean();
     }
 
-    public C2SRemoveMarkerPacket(MapId map, int decoId, boolean custom) {
+    public C2SRemoveMarkerPacket(MapId mapId, MapType mapType,  int decoId, boolean custom) {
         // Sending hash, hacky.
         // Have to because client doesn't know deco id
         this.decoHash = decoId;
-        this.mapId = map;
+        this.mapId = mapId;
+        this.mapType = mapType;
         this.isCustom = custom;
     }
 
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
-        buf.writeUtf(mapId);
+        MapId.STREAM_CODEC.encode(buf, mapId);
+        MapType.STREAM_CODEC.encode(buf, mapType);
         buf.writeVarInt(decoHash);
         buf.writeBoolean(isCustom);
 
@@ -50,7 +55,7 @@ public class C2SRemoveMarkerPacket implements Message {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
         Level level = player.level();
-        MapItemSavedData data = level.getMapData(mapId);
+        MapItemSavedData data = mapType.getMapData(level, mapId);
 
         if (data != null) {
             if (!isCustom) {
@@ -105,7 +110,7 @@ public class C2SRemoveMarkerPacket implements Message {
                     c = 127;
                 }
             }
-            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b + 1), (byte) (c + 1), d, mapBanner.getName());
+            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b + 1), (byte) (c + 1), d, mapBanner.name());
 
             if (mapDecoration.hashCode() == hash) {
                 data.toggleBanner(level, mapBanner.pos());

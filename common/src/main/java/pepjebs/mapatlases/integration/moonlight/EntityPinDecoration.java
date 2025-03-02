@@ -20,11 +20,6 @@ public class EntityPinDecoration extends MLMapDecoration {
         return entity;
     }
 
-    public EntityPinDecoration(Holder<MLMapDecorationType<?, ?>> type, FriendlyByteBuf buffer) {
-        super(type, buffer);
-        this.entity = null;
-    }
-
     public void setX(byte x) {
         this.x = x;
     }

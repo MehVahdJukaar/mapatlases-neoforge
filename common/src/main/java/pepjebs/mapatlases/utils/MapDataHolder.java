@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
@@ -35,33 +35,25 @@ public class MapDataHolder {
     @Nullable
     public final Integer height;
 
-    public MapDataHolder(String name, @NotNull MapItemSavedData data) {
-        this(MapAtlasesAccessUtils.findMapIdFromString(name), data);
-    }
 
-    private MapDataHolder(MapId id , @NotNull MapItemSavedData data) {
+    private MapDataHolder(MapId id, MapType type, @NotNull MapItemSavedData data) {
         Preconditions.checkNotNull(data);
         this.id = id;
         this.data = data;
-        this.type = MapType.fromKey(id, data);
+        this.type = type;
         this.height = type.getHeight(data);
         this.slice = Slice.of(type, height, data.dimension);
     }
 
     @Nullable
-    public static MapDataHolder findFromId(Level level, MapId id) {
-        //try all known types
-        for (var t : MapType.values()) {
-            var d = t.getMapData(level, id);
-            if (d != null) {
-                return new MapDataHolder(id, d);
-            }
-        }
-        return null;
+    public static MapDataHolder get(MapId id, MapType type, Level level) {
+        MapItemSavedData data = type.getMapData(level, id);
+        if (data == null) return null;
+        return new MapDataHolder(id, type, data);
     }
 
-    public MapKey makeKey() {
-        return MapKey.at(data.scale, data.centerX, data.centerZ, slice);
+    public MapSearchKey makeKey() {
+        return MapSearchKey.at(data.scale, data.centerX, data.centerZ, slice);
     }
 
     public void updateMap(ServerPlayer player) {

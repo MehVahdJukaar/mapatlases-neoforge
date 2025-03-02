@@ -34,11 +34,6 @@ public class MapAtlasesAccessUtils {
         return MapDataHolder.findFromId(level, MapItem.getMapId(item));
     }
 
-    public static MapId findMapIdFromString(String id) {
-        return Integer.parseInt(id.split("_")[1]);
-    }
-
-
     @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
         int max = onlyHotbar ? 9 : inventory.getContainerSize();

@@ -32,8 +32,8 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
-import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -52,9 +52,9 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     //cached stuff
     private boolean needsInit = true;
     private ItemStack currentAtlas = ItemStack.EMPTY;
-    private MapKey currentMapKey = null;
-    private MapKey lastMapKey = null;
-    private ImmutableMapCollection currentMaps;
+    private MapSearchKey currentMapKey = null;
+    private MapSearchKey lastMapKey = null;
+    private MapCollection currentMaps;
 
 
     private float globalScale = 1;

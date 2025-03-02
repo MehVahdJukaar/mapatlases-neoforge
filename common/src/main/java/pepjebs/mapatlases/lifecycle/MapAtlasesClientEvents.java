@@ -18,7 +18,7 @@ import pepjebs.mapatlases.integration.SupplementariesClientCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -37,7 +37,7 @@ public class MapAtlasesClientEvents {
         } else if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
-                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+                MapCollection maps = MapAtlasItem.getMaps(atlas, level);
 
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
                 maybeChangeSlice(client.player, level, maps, s, atlas);
@@ -81,7 +81,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
-                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                MapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();
@@ -91,7 +91,7 @@ public class MapAtlasesClientEvents {
             }
 
             if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
-                ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
+                MapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
                 int current = selectedSlice.heightOrTop();
@@ -116,7 +116,7 @@ public class MapAtlasesClientEvents {
     }
 
     //make this client sided
-    private static void maybeChangeSlice(Player player, Level level, ImmutableMapCollection maps, Slice lastSlice, ItemStack atlas) {
+    private static void maybeChangeSlice(Player player, Level level, MapCollection maps, Slice lastSlice, ItemStack atlas) {
         MapType type = lastSlice.type();
         ResourceKey<Level> dim = lastSlice.dimension();
         Integer newHeight = getClosestSlice(player, level, maps, dim, type);
@@ -128,7 +128,7 @@ public class MapAtlasesClientEvents {
 
     // null when we dont change
     @Nullable
-    public static Integer getClosestSlice(Player player, Level level, ImmutableMapCollection cap, ResourceKey<Level> dim, MapType type) {
+    public static Integer getClosestSlice(Player player, Level level, MapCollection cap, ResourceKey<Level> dim, MapType type) {
         //check locked
         TreeSet<Integer> heightTree = cap.getHeightTree(dim, type);
         if (heightTree.size() == 1) return null;

@@ -23,7 +23,7 @@ public class PinMarker extends MLMapMarker<PinDecoration> {
 
     @Override
     public PinDecoration doCreateDecoration(byte mapX, byte mapY, byte rot) {
-        var p = new PinDecoration(this, mapX, mapY, rot, this.getName());
+        var p = new PinDecoration(this, mapX, mapY, rot, this.name);
         p.forceFocused(focused);
         return p;
     }

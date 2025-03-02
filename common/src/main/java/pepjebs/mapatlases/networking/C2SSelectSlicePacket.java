@@ -5,6 +5,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamDecoder;
+import net.minecraft.network.codec.StreamEncoder;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -15,6 +17,8 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.Optional;
+
 public class C2SSelectSlicePacket implements Message {
 
     public static final TypeAndCodec<RegistryFriendlyByteBuf, C2SSelectSlicePacket> TYPE = Message.makeType(
@@ -22,11 +26,10 @@ public class C2SSelectSlicePacket implements Message {
             C2SSelectSlicePacket::new
     );
 
-    @Nullable
-    private final BlockPos lecternPos;
+    private final Optional<BlockPos> lecternPos;
     private final Slice slice;
 
-    public C2SSelectSlicePacket(Slice slice, @Nullable BlockPos lecternPos) {
+    public C2SSelectSlicePacket(Slice slice, Optional<BlockPos> lecternPos) {
         this.slice = slice;
         this.lecternPos = lecternPos;
     }
@@ -36,35 +39,18 @@ public class C2SSelectSlicePacket implements Message {
 
         MapType type = MapType.values()[buf.readVarInt()];
 
-        Integer h;
-        if (buf.readBoolean()) {
-            h = null;
-        } else h = buf.readVarInt();
-        slice = Slice.of(type, h, dimension);
+        Optional<Integer> h = buf.readOptional(FriendlyByteBuf::readVarInt);
+        slice = new Slice(type, h, dimension);
 
-        if (buf.readBoolean()) {
-            lecternPos = null;
-        } else {
-            lecternPos = buf.readBlockPos();
-        }
+        lecternPos = buf.readOptional(object -> object.readBlockPos());
     }
 
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
         buf.writeResourceKey(slice.dimension());
-
         buf.writeVarInt(slice.type().ordinal());
-
-        Integer h = slice.height();
-        buf.writeBoolean(h == null);
-        if (h != null) {
-            buf.writeVarInt(h);
-        }
-
-        buf.writeBoolean(lecternPos == null);
-        if (lecternPos != null) {
-            buf.writeBlockPos(lecternPos);
-        }
+        buf.writeOptional(slice.height(), FriendlyByteBuf::writeVarInt);
+        buf.writeOptional(lecternPos, (object, object2) -> object.writeBlockPos(object2));
     }
 
     @Override

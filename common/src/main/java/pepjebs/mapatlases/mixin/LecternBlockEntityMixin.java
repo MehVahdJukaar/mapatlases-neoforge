@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -35,14 +36,15 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
         super(pType, pPos, pBlockState);
     }
 
+
     @Inject(method = "saveAdditional", at = @At("TAIL"))
-    public void onSave(CompoundTag pTag, CallbackInfo ci) {
-        if (mapatlases$hasAtlas) pTag.putBoolean("has_atlas", true);
+    public void onSave(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
+        if (mapatlases$hasAtlas) tag.putBoolean("has_atlas", true);
     }
 
-    @Inject(method = "load", at = @At("TAIL"))
-    public void onLoad(CompoundTag pTag, CallbackInfo ci) {
-        if (pTag.contains("has_atlas")) mapatlases$hasAtlas = pTag.getBoolean("has_atlas");
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    public void onLoad(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
+        if (tag.contains("has_atlas")) mapatlases$hasAtlas = tag.getBoolean("has_atlas");
     }
 
     @Override
@@ -75,8 +77,8 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     @Override

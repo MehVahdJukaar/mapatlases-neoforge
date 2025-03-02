@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 @Pseudo
 //@Mixin(MagicMapPlayerIconRenderer.class)
-public class CompatTFMapRendererMixin {
+public abstract class CompatTFMapRendererMixin {
 /*
     @Inject(method = "render",
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V",

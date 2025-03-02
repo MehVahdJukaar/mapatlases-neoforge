@@ -3,12 +3,10 @@ package pepjebs.mapatlases.recipe;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -19,7 +17,8 @@ import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.utils.ICraftingInputWithContext;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -33,7 +32,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
     public MapAtlasesCutExistingRecipe(CraftingBookCategory category) {
-        super( category);
+        super(category);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
+        MapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         //not using count. we want actual maps
         if (maps.getAll().size() > 1) {
             var slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
@@ -83,21 +82,19 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static MapDataHolder getMapToRemove(CraftingContainer inv, ImmutableMapCollection maps, Slice slice) {
-        if (inv instanceof TransientCraftingContainer tc) {
-            try {
-                if (tc.menu instanceof CraftingMenu cm) {
-                    MapDataHolder c = maps.getClosest(cm.player, slice);
-                    if (c != null) {
-                        return c;
-                    }
-                } else if (tc.menu instanceof InventoryMenu im) {
-                    MapDataHolder c = maps.getClosest(im.owner, slice);
-                    if (c != null) {
-                        return c;
-                    }
+    private static MapDataHolder getMapToRemove(CraftingInput inv, MapCollection maps, Slice slice) {
+        if (inv instanceof ICraftingInputWithContext ct) {
+            AbstractContainerMenu menu = ct.mapAtlases$getMenu();
+            if (menu instanceof CraftingMenu cm) {
+                MapDataHolder c = maps.getClosest(cm.player, slice);
+                if (c != null) {
+                    return c;
                 }
-            } catch (Exception ignored) {
+            } else if (menu instanceof InventoryMenu im) {
+                MapDataHolder c = maps.getClosest(im.owner, slice);
+                if (c != null) {
+                    return c;
+                }
             }
         }
         return maps.getAll().stream().findAny().get();
@@ -114,10 +111,11 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 stack.hurt(1, RandomSource.create(), null);
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
-                ImmutableMapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
+                MapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
-                    var slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
-                    maps.remove(getMapToRemove(inv, maps, slice));
+                    Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
+                    var toRemove = getMapToRemove(inv, maps, slice);
+                    maps = maps.removeAndAssigns(stack, levelRef.get(), toRemove);
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());
                     if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();

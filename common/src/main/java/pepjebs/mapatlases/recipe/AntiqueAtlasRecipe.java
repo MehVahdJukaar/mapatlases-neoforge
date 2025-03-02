@@ -1,8 +1,6 @@
 package pepjebs.mapatlases.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -12,7 +10,7 @@ import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.ImmutableMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
@@ -21,8 +19,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public AntiqueAtlasRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public AntiqueAtlasRecipe(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
@@ -50,13 +48,13 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
 
         Level level = levelRef.get();
         ItemStack newAtlas = ItemStack.EMPTY;
         ItemStack oldAtlas = ItemStack.EMPTY;
         // ensure 1 and one only atlas
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 newAtlas = itemstack.copyWithCount(1);
@@ -66,8 +64,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
         // Get the Map Ids in the Grid
         // Set NBT Data
-        ImmutableMapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
-        ImmutableMapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
+        MapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
+        MapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
         for (MapDataHolder holder : maps.getAll()) {
             oldMaps.remove(holder);
             Integer newId = SupplementariesCompat.createAntiqueMapData(holder.data,level,true, false);

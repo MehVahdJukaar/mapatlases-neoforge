@@ -5,6 +5,8 @@
   "package": "pepjebs.mapatlases.mixin",
   "mixins": [
     "CartographyTableMenuMixin",
+    "CraftingContainerMixin",
+    "CraftingInputMixin",
     "LecternBlockEntityMixin",
     "LecternBlockMixin",
     "MapItemMixin",
