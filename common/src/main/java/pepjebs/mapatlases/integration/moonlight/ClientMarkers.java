@@ -200,13 +200,16 @@ public class ClientMarkers {
     }
 
     public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        MLMapMarker<?> marker = getPinAt(index).createEmptyMarker();
+        MLMapDecorationType<?, ?> type = getPinAt(index);
+        MLMapMarker<?> marker = ((MLMapDecorationType<?, ?>) pinAt).createEmptyMarker();
         if (!text.isEmpty()) marker.setName(Component.translatable(text));
         ClientLevel level = Minecraft.getInstance().level;
         Integer h = holder.height;
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
         marker.setPos(new BlockPos(pos.x(), h, pos.z()));
+        //aaa not correct
+        var marker = new PinMarker(type, pos,  0,holder, pos, text, pinAt);
         markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(marker);
         //add immediately
         ((ExpandedMapData) holder.data).addCustomMarker(marker);

@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.utils;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,7 +23,8 @@ public class MapAtlasesAccessUtils {
 
 
     public static boolean isValidFilledMap(ItemStack item) {
-        return MapType.fromItem(item.getItem()) != null && MapItem.getMapId(item) != null;
+        MapType mapType = MapType.fromItem(item.getItem());
+        return mapType != null && mapType.getMapId(item) != null;
     }
 
     public static boolean isValidEmptyMap(ItemStack item) {
@@ -31,7 +33,10 @@ public class MapAtlasesAccessUtils {
 
 
     public static MapDataHolder findMapFromItemStack(Level level, ItemStack item) {
-        return MapDataHolder.findFromId(level, MapItem.getMapId(item));
+        MapType type = MapType.fromItem(item.getItem());
+        if (type == null) return null;
+        MapId id = type.getMapId(item);
+        return MapDataHolder.get(id, type, level);
     }
 
     @NotNull

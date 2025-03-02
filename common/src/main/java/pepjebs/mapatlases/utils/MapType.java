@@ -201,4 +201,9 @@ public enum MapType implements StringRepresentable {
     public String getSerializedName() {
         return id;
     }
+
+    public MapId getMapId(ItemStack item) {
+        return item.get(DataComponents.MAP_ID);
+    }
+
 }

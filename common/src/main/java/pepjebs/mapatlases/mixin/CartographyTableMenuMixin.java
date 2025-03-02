@@ -93,7 +93,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 MapCollection resultMaps = MapAtlasItem.getMaps(result, world);
                 MapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
                 if (resultMaps.getScale() != bottomMaps.getScale()) return;
-                List<Integer> idsToADd = bottomMaps.getIdsCopy();
+                var idsToADd = bottomMaps.getIdsCopy();
                 resultMaps.addAndAssigns(result, world, idsToADd);
 
                 MapAtlasItem.setEmptyMaps(result, (int) Math.ceil((MapAtlasItem.getEmptyMaps(result) + MapAtlasItem.getEmptyMaps(bottomItem)) / 2f));
@@ -121,9 +121,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.getItem() == Items.FILLED_MAP) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                MapId mapId = bottomItem.get(DataComponents.MAP_ID);
+                MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(world, bottomItem);
                 MapCollection maps = MapAtlasItem.getMaps(result, world);
-                if (mapId != null && maps.addAndAssigns(result, world, mapId) != maps) {
+                if (mapHolder != null && maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id) != maps) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
                     info.cancel();

@@ -266,7 +266,7 @@ public abstract class AbstractAtlasWidget {
         removed.forEach(d -> data.decorations.remove(d.getKey()));
         added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
 
-        light = MapAtlasesClient.debugIsMapUpdated(light, state.id);
+        light = MapAtlasesClient.debugIsMapUpdated(light, state.id, state.type);
 
         Minecraft.getInstance().gameRenderer.getMapRenderer()
                 .render(

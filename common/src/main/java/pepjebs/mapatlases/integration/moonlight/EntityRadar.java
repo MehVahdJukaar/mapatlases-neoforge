@@ -7,7 +7,6 @@ import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
@@ -31,13 +30,13 @@ import java.util.WeakHashMap;
 public class EntityRadar {
 
     private static final HolderReference<MLMapDecorationType<?, ?>> PASSIVE_PIN =
-             HolderReference.of(MapAtlasesMod.res("passive_entity"), MapDataRegistry.REGISTRY_KEY);
+            HolderReference.of(MapAtlasesMod.res("passive_entity"), MapDataRegistry.REGISTRY_KEY);
     private static final HolderReference<MLMapDecorationType<?, ?>> HOSTILE_PIN =
-             HolderReference.of(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.REGISTRY_KEY);
+            HolderReference.of(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.REGISTRY_KEY);
     private static final HolderReference<MLMapDecorationType<?, ?>> NEUTRAL_PIN =
-             HolderReference.of(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.REGISTRY_KEY);
+            HolderReference.of(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.REGISTRY_KEY);
     private static final HolderReference<MLMapDecorationType<?, ?>> BOSS_PIN =
-             HolderReference.of(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
+            HolderReference.of(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
 
     private static final WeakHashMap<Level, Set<MLMapMarker<?>>> nearbyEntityMarkers = new WeakHashMap<>();
 
@@ -55,12 +54,12 @@ public class EntityRadar {
                 .inflate(pValue, 30, pValue).move(0, 2, 0));
         for (var e : entities) {
             if (e == player) continue;
-            var type = getMarkerForType(e);
+            var typeHolder = getMarkerForType(e);
+            if (typeHolder == null) continue;
+            var type = typeHolder.getHolder(level);
             if (type != null) {
-                MLMapMarker<?> marker = type.get().createEmptyMarker();
+                EntityPinMarker marker = new EntityPinMarker(type, e);
                 if (marker instanceof EntityPinMarker m) {
-                    m.setPos(new BlockPos(e.getBlockX(), e.getBlockY(), e.getBlockZ()));
-                    m.setEntity(e);
                     set.add(marker);
                 }
             }
@@ -80,7 +79,7 @@ public class EntityRadar {
                 return HOSTILE_PIN;
             if (entity instanceof NeutralMob)
                 return NEUTRAL_PIN;
-            if(entity instanceof Animal){
+            if (entity instanceof Animal) {
                 return PASSIVE_PIN;
             }
             //excludes armor stands and such
@@ -92,7 +91,7 @@ public class EntityRadar {
     public static Set<MLMapMarker<?>> send(MapId id, MapItemSavedData data) {
         ClientLevel level = Minecraft.getInstance().level;
         if (data.dimension.equals(level.dimension())) {
-            return nearbyEntityMarkers.computeIfAbsent(level, j->new HashSet<>());
+            return nearbyEntityMarkers.computeIfAbsent(level, j -> new HashSet<>());
         }
         return Set.of();
     }

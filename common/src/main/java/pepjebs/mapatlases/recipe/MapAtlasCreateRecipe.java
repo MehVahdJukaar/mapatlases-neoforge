@@ -4,21 +4,23 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -45,15 +47,15 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level level) {
+    public boolean matches(CraftingInput inv, Level level) {
         StackedContents stackedcontents = new StackedContents();
         List<ItemStack> inputs = new ArrayList<>();
         int i = 0;
         boolean hasMap = false;
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
-            if ( MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
-                if (hasMap || MapItem.getSavedData(itemstack, level) == null) {
+            if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
+                if (hasMap) {
                     return false;
                 }
                 hasMap = true;
@@ -78,27 +80,25 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
         ItemStack mapItemStack = null;
         for (var item : inv.items()) {
-            if( MapAtlasesAccessUtils.isValidFilledMap(item)){
+            if (MapAtlasesAccessUtils.isValidFilledMap(item)) {
                 mapItemStack = item;
                 break;
             }
         }
         Level level = levelReference.get();
-        if (mapItemStack == null || level == null || mapItemStack.getTag() == null) {
+        if (mapItemStack == null || level == null) {
             return ItemStack.EMPTY; //this should never happen
         }
-        Integer mapId = MapItem.getMapId(mapItemStack);
-        if (mapId == null) {
+        MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(level, mapItemStack);
+        if (mapHolder == null) {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
         }
-        MapDataHolder holder = MapDataHolder.findFromId(level, mapId);
-        if (holder == null) return ItemStack.EMPTY;
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, holder.slice);
+        MapAtlasItem.setSelectedSlice(atlas, mapHolder.slice);
         if (!maps.add(mapId, level)) {
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
         }

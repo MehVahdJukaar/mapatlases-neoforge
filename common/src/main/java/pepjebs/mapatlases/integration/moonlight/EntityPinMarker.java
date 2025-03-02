@@ -1,7 +1,11 @@
 package pepjebs.mapatlases.integration.moonlight;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
+import net.mehvahdjukaar.moonlight.api.map.decoration.SimpleMapMarker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -14,14 +18,17 @@ import java.util.Optional;
 
 public class EntityPinMarker extends MLMapMarker<EntityPinDecoration> {
 
+    public static final MapCodec<EntityPinMarker> DIRECT_CODEC =RecordCodecBuilder.mapCodec((i) ->
+            baseCodecGroup(i).apply(i, EntityPinMarker::new));
+
     private WeakReference<Entity> entity;
 
     public EntityPinMarker(Holder<MLMapDecorationType<?, ?>> type, BlockPos pos, float rotation, Optional<Component> component, Optional<Boolean> shouldRefresh, Optional<Boolean> shouldSave, boolean preventsExtending) {
         super(type, pos, rotation, component, shouldRefresh, shouldSave, preventsExtending);
     }
 
-
-    public void setEntity(Entity entity) {
+    public EntityPinMarker(Holder<MLMapDecorationType<?, ?>> type, Entity entity) {
+        this(type, entity.blockPosition(), 0f, Optional.ofNullable(entity.getCustomName()), Optional.empty(), Optional.empty(), false);
         this.entity = new WeakReference<>(entity);
     }
 

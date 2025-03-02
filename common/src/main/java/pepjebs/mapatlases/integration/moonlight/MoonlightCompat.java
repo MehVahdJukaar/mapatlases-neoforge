@@ -9,15 +9,17 @@ import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLSpecialMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.DecorationHolder;
@@ -33,8 +35,8 @@ public class MoonlightCompat {
     private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
 
     public static void init() {
-        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(PinMarker::new, PinDecoration::new));
-        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_ENTITY_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(EntityPinMarker::new, EntityPinDecoration::new));
+        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(PinMarker.DIRECT_CODEC, PinDecoration.STREAM_CODEC));
+        MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_ENTITY_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(EntityPinMarker.DIRECT_CODEC, EntityPinDecoration.STREAM_CODEC));
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
@@ -51,7 +53,7 @@ public class MoonlightCompat {
     }
 
     public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        MLMapDecorationType<?,?> type = MapDataRegistry.getRegistry(level.registryAccess()).get(id);
+        MLMapDecorationType<?, ?> type = MapDataRegistry.getRegistry(level.registryAccess()).get(id);
         if (type != null) {
             MLMapMarker<?> defaultMarker = type.createEmptyMarker();
             defaultMarker.setPos(pos);
@@ -78,17 +80,20 @@ public class MoonlightCompat {
 
 
     public static boolean maybePlaceMarkerInFront(Player player, ItemStack atlas) {
-        var hit = Utils.rayTrace(player, true, 0);
-        var resoult = MapHelper.toggleMarkersAtPos(player.level(), hit.getBlockPos(), atlas, player);
-        if (!resoult) {
-            //check for vanilla banners
-            MapItemSavedData data = MapHelper.getMapData(atlas, player.level(), player);
-            if (data != null) {
-                resoult = data.toggleBanner(player.level(), hit.getBlockPos());
+        HitResult hit = player.pick(player.getAttributeBaseValue(Attributes.BLOCK_INTERACTION_RANGE), 1, true);
+        if (hit instanceof BlockHitResult bh) {
+            var resoult = MapHelper.toggleMarkersAtPos(player.level(), bh.getBlockPos(), atlas, player);
+            if (!resoult) {
+                //check for vanilla banners
+                MapItemSavedData data = MapHelper.getMapData(atlas, player.level(), player);
+                if (data != null) {
+                    resoult = data.toggleBanner(player.level(), bh.getBlockPos());
+                }
             }
+            return resoult;
         }
 
-        return resoult;
+        return false;
     }
 
     public static void updateMarkers(MapItemSavedData data, Player player, int maxRange) {

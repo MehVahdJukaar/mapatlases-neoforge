@@ -18,6 +18,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -36,7 +37,6 @@ import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
@@ -401,12 +401,13 @@ public class AtlasOverviewScreen extends Screen {
 
     // ================== Mouse Functions ==================
 
+
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!editBox.active) {
-            return super.mouseScrolled(mouseX, mouseY, amount);
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        return editBox.mouseScrolled(mouseX, mouseY, amount);
+        return editBox.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -456,7 +457,7 @@ public class AtlasOverviewScreen extends Screen {
                 averageX += d.centerX;
                 averageZ += d.centerZ;
                 count++;
-                if (d.decorations.values().stream().anyMatch(e -> e.getType().isRenderedOnFrame())) {
+                if (d.decorations.values().stream().anyMatch(e -> e.type().value().showOnItemFrame())) {
                     if (best != null) {
                         if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
                             best = d;
@@ -485,7 +486,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected MapDataHolder findMapContaining(int x , int z){
+    protected MapDataHolder findMapContaining(int x, int z) {
         return currentMaps.select(MapSearchKey.at(currentMaps.getScale(), x, z, selectedSlice));
     }
 
@@ -508,7 +509,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public void selectDimension(ResourceKey<Level> dimension) {
         boolean changedDim = selectedSlice.dimension().equals(dimension);
-        if (changedDim) this.selectedSlice = Slice.of(selectedSlice.type(), selectedSlice.height(), dimension);
+        if (changedDim) this.selectedSlice = new Slice(selectedSlice.type(), selectedSlice.height(), dimension);
         //we dont change slice when calling this from init as we want to use the atlas initial slice
         updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
         boolean isWherePlayerIs = level.dimension().equals(dimension);
@@ -647,8 +648,8 @@ public class AtlasOverviewScreen extends Screen {
             selectedSlice = newSlice;
             sliceButton.setSlice(selectedSlice);
             //notify server
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SSelectSlicePacket(selectedSlice,
-                    lectern == null ? null : lectern.getBlockPos()));
+            NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice,
+                    Optional.ofNullable(lectern).map(BlockEntity::getBlockPos)));
             //update the client immediately
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice);
             recalculateDecorationWidgets();
@@ -675,7 +676,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public void togglePlacingPin() {
         this.placingPin = !this.placingPin;
-        if(this.placingPin){
+        if (this.placingPin) {
             this.shearing = false;
         }
     }
@@ -686,17 +687,17 @@ public class AtlasOverviewScreen extends Screen {
 
     public void toggleShearing() {
         this.shearing = !this.shearing;
-        if(this.shearing){
+        if (this.shearing) {
             this.placingPin = false;
         }
     }
 
-    public void shearMapAt(ColumnPos pos){
+    public void shearMapAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
-            NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id));
+            NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type));
             //also remove immediately
-            currentMaps.remove(selected);
+            currentMaps.removeAndAssigns(atlas, level, selected.id, selected.type);
             recalculateDecorationWidgets();
         }
         shearing = false;
@@ -775,10 +776,10 @@ public class AtlasOverviewScreen extends Screen {
 
     public void removeMapAt(double mouseX, double mouseY) {
         //find map at pos
-        var v = transformMousePos(mouseX, mouseY);
+        Vector4d v = transformMousePos(mouseX, mouseY);
         MapDataHolder map = currentMaps.select((int) v.x, (int) v.y, selectedSlice);
         if (map != null) {
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(map.id));
+            NetworkHelper.sendToServer(new C2SRemoveMapPacket(map.id, map.type));
         }
     }
 }

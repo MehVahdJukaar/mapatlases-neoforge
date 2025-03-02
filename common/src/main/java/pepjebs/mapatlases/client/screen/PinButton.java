@@ -10,7 +10,6 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.networking.C2SMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class PinButton extends BookmarkButton {
@@ -34,7 +33,7 @@ public class PinButton extends BookmarkButton {
         if (MapAtlasesMod.MOONLIGHT) {
             ClientMarkers.addMarker(map, pos, text, index);
         } else
-            NetworkHelper.sendToServer(new C2SMarkerPacket(pos, map.id, text.isEmpty() ? null : text));
+            NetworkHelper.sendToServer(new C2SMarkerPacket(map.id, map.type, pos, text.isEmpty() ? null : text));
     }
 
 }

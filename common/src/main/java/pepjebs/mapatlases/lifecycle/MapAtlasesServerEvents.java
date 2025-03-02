@@ -304,9 +304,10 @@ public class MapAtlasesServerEvents {
                 MapAtlasItem.increaseEmptyMaps(atlas, -1);
             }
             //validate height
-            Integer height = slice.height();
-            if (height != null && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height)) {
+            var height = slice.height();
+            if (height.isPresent() && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height.get())) {
                 int error = 1;
+                MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
             }
 
             byte scale = maps.getScale();
@@ -314,15 +315,15 @@ public class MapAtlasesServerEvents {
             //TODO: create custom ones
 
             ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
-            MapId mapId = newMap.get(DataComponents.MAP_ID);
+            MapId newMapId = newMap.get(DataComponents.MAP_ID);
 
-            if (mapId != null) {
-                MapDataHolder newData = MapDataHolder.findFromId(level, mapId);
+            if (newMapId != null) {
+                MapDataHolder newData = MapDataHolder.get(newMapId, slice.type(), level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, TriState.SET_TRUE);
                 }
-                addedMap = maps.add(mapId, level);
+                addedMap = maps.addAndAssigns(atlas, level, slice.type(), newMapId) != maps;
             }
             mutex.unlock();
         }

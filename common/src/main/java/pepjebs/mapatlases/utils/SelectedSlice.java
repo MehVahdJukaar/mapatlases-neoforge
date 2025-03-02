@@ -6,17 +6,22 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class SelectedSlice {
 
+    public static final SelectedSlice EMPTY = new SelectedSlice(Map.of());
+
     private final Map<ResourceKey<Level>, Slice> map;
 
-    public SelectedSlice(Map<ResourceKey<Level>, Slice> map) {
+    private SelectedSlice(Map<ResourceKey<Level>, Slice> map) {
         this.map = map;
     }
 
@@ -35,5 +40,20 @@ public class SelectedSlice {
     @Nullable
     public Slice get(ResourceKey<Level> dimension) {
         return this.map.get(dimension);
+    }
+
+    public void removeAndAssigns(ItemStack stack, ResourceKey<Level> location) {
+        //copy map,remove and assign new comp
+        Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
+        newMap.remove(location);
+        SelectedSlice newSlice = new SelectedSlice(newMap);
+        stack.set(MapAtlasesMod.SELECTED_SLICE.get(), newSlice);
+    }
+
+    public void addAndAssigns(ItemStack stack, ResourceKey<Level> location, Slice slice) {
+        Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
+        newMap.put(location, slice);
+        SelectedSlice newSlice = new SelectedSlice(newMap);
+        stack.set(MapAtlasesMod.SELECTED_SLICE.get(), newSlice);
     }
 }

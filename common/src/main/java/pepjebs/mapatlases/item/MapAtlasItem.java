@@ -6,7 +6,6 @@ import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,8 +22,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
@@ -34,6 +33,7 @@ import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MapAtlasItem extends Item {
 
@@ -43,10 +43,10 @@ public class MapAtlasItem extends Item {
         super(settings);
     }
 
-    public static void removeAndDropMap(ItemStack atlas, int mapId, ServerPlayer player) {
-        var data = getMaps(atlas, player.level());
-        MapDataHolder holder = MapDataHolder.findFromId(player.level(), mapId);
-        if (holder != null && data != data.removeAndAssigns(atlas, player.level(), holder.id)) {
+    public static void removeAndDropMap(MapId id, MapType type, ItemStack atlas, ServerPlayer player) {
+        MapCollection data = getMaps(atlas, player.level());
+        MapDataHolder holder = MapDataHolder.get(id, type, player.level());
+        if (holder != null && data != data.removeAndAssigns(atlas, player.level(), id, type)) {
             ItemStack item = holder.createExistingMapItem();
             if (!player.getInventory().add(item)) {
                 player.drop(item, false);
@@ -159,7 +159,7 @@ public class MapAtlasItem extends Item {
     // Utilities functions
 
 
-    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
+    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, Optional<BlockPos> lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
@@ -175,14 +175,14 @@ public class MapAtlasItem extends Item {
         var h = slice.height();
         var dimension = slice.dimension();
         if (h.isEmpty() && t == MapType.VANILLA) {
-            CompoundTag tag = stack.getTagElement(SELECTED_NBT);
-            if (tag != null) {
-                tag.remove(dimension.location().toString());
+            SelectedSlice selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICE.get());
+            if (selectedSlice != null) {
+                selectedSlice.removeAndAssigns(stack, dimension);
             }
 
         } else {
-            CompoundTag tag = stack.getOrCreateTagElement(SELECTED_NBT);
-            tag.put(dimension.location().toString(), slice.save());
+            SelectedSlice selectedSlice = stack.getOrDefault(MapAtlasesMod.SELECTED_SLICE.get(), SelectedSlice.EMPTY);
+            selectedSlice.addAndAssigns(stack, dimension, slice);
         }
     }
 

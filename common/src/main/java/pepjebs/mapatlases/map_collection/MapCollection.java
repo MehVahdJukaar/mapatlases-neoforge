@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -34,14 +35,15 @@ public class MapCollection {
                     i -> new EnumMap<>(MapType.class), MapType.STREAM_CODEC, MapId.STREAM_CODEC.apply(ByteBufCodecs.list()))
             .map(MapCollection::new, m -> m.ids);
 
-    protected final Map<MapSearchKey, MapDataHolder> maps = new HashMap<>();
     protected final EnumMap<MapType, List<MapId>> ids = new EnumMap<>(MapType.class);
+
+    protected final Map<MapSearchKey, MapDataHolder> maps = new HashMap<>();
     //available dimensions and slices
-    protected final Map<ResourceKey<Level>, Map<MapType, TreeSet<MapId>>> dimensionSlices = new HashMap<>();
+    protected final Map<ResourceKey<Level>, Map<MapType, TreeSet<Integer>>> mapHeights = new HashMap<>();
     protected final int size;
     protected byte scale = 0;
     // list of ids that have not been received yet
-    protected final Map<MapType, Set<MapId>> notSyncedIds = new EnumMap<>(MapType.class);
+    protected final Set<Pair<MapType, MapId>> notSyncedIds = new HashSet<>();
 
     private boolean initialized = false;
 
@@ -101,14 +103,14 @@ public class MapCollection {
 
     public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
         assertInitialized();
-        var mapTypeTreeSetMap = dimensionSlices.get(dimension);
+        var mapTypeTreeSetMap = mapHeights.get(dimension);
         if (mapTypeTreeSetMap != null) return mapTypeTreeSetMap.keySet();
         else return List.of();
     }
 
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
         assertInitialized();
-        return dimensionSlices.keySet();
+        return mapHeights.keySet();
     }
 
     private static final TreeSet<Integer> TOP = Util.make(() -> {
@@ -119,7 +121,7 @@ public class MapCollection {
 
     public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType kind) {
         assertInitialized();
-        var d = dimensionSlices.get(dimension);
+        Map<MapType, TreeSet<Integer>> d = mapHeights.get(dimension);
         if (d != null) {
             return d.getOrDefault(kind, TOP);
         }
@@ -188,7 +190,7 @@ public class MapCollection {
         return maps.keySet().stream().anyMatch(k -> k.slice() != null);
     }
 
-    protected boolean addInternal(MapId intId, MapType type, Level level) {
+    protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
         assertInitialized();
 
         MapDataHolder found = MapDataHolder.get(intId, type, level);
@@ -201,8 +203,7 @@ public class MapCollection {
                 MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().location());
             } else {
                 //wait till we receive data from server
-                ids.add(intId);
-                notSyncedIds.add(intId);
+                notSyncedIds.add(Pair.of(type, intId));
             }
             return false;
         }
@@ -218,7 +219,6 @@ public class MapCollection {
                 return false;
 
             }
-            ids.add(intId);
             maps.put(key, found);
             addToDimensionMap(key);
             return true;
@@ -227,9 +227,9 @@ public class MapCollection {
     }
 
     protected void addToDimensionMap(MapSearchKey j) {
-        dimensionSlices.computeIfAbsent(j.slice().dimension(), d -> new EnumMap<>(MapType.class))
+        mapHeights.computeIfAbsent(j.slice().dimension(), d -> new EnumMap<>(MapType.class))
                 .computeIfAbsent(j.slice().type(), a -> new TreeSet<>())
-                .add(j.slice().height() == null ? Integer.MAX_VALUE : j.slice().height());
+                .add(j.slice().heightOrTop());
     }
 
 
@@ -237,25 +237,43 @@ public class MapCollection {
         return initialized;
     }
 
-    public MapCollection removeAndAssigns(ItemStack atlas, Level level, int toRemove) {
+    public MapCollection removeAndAssigns(ItemStack atlas, Level level, MapId id, MapType type) {
         //make id copy
-        if (!ids.contains(toRemove)) return this;
-        Collection<Integer> newIds = new HashSet<>(ids);
-        newIds.remove(toRemove);
-        var newColl = new MapCollection(newIds, level);
+        var l = ids.get(type);
+        if (l == null || !l.contains(id)) return this;
+        //make copy and remove
+        Map<MapType, List<MapId>> mapCopy = getIdsCopy();
+        mapCopy.get(type).remove(id);
+        MapCollection newColl = new MapCollection(mapCopy, level);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
         return newColl;
+    }
+
+    public MapCollection addAndAssigns(ItemStack atlas, Level level, MapType type, MapId map) {
+        return addAndAssigns(atlas, level, type, List.of(map));
     }
 
     public MapCollection addAndAssigns(ItemStack atlas, Level level, MapType type, Collection<MapId> map) {
-        if (maps.isEmpty()) return this;
-
-        Collection<Integer> newIds = new HashSet<>(ids);
+        if (map.isEmpty()) return this;
+        //make copy and add
+        Map<MapType, List<MapId>> newIds = getIdsCopy();
+        newIds.computeIfAbsent(type, k -> new ArrayList<>()).addAll(map);
         var newColl = new MapCollection(newIds, level);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
         return newColl;
     }
 
+    public MapCollection addAndAssigns(ItemStack atlas, Level level, Map<MapType, List<MapId>> maps) {
+        if (maps.isEmpty()) return this;
+        //make copy and add
+        Map<MapType, List<MapId>> newIds = getIdsCopy();
+        for (var e : maps.entrySet()) {
+            newIds.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).addAll(e.getValue());
+        }
+        var newColl = new MapCollection(newIds, level);
+        atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
+        return newColl;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -273,8 +291,10 @@ public class MapCollection {
     public void initialize(Level level) {
         if (!isInitialized()) {
 
-            for (int i : ids) {
-                addInternal(i, level);
+            for (var i : ids.entrySet()) {
+                for (var j : i.getValue()) {
+                    populateInDataStructure(j, i.getKey(), level);
+                }
             }
             initialized = true;
         }
@@ -282,7 +302,7 @@ public class MapCollection {
 
     // if a duplicate exists its likely that its data was not synced yet
     public void updateNotSynced(Level level) {
-        notSyncedIds.removeIf(i -> addInternal(i, level));
+        notSyncedIds.removeIf(i -> populateInDataStructure(i.getValue(), i.getKey(), level));
     }
 
 

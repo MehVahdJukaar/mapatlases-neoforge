@@ -1,6 +1,6 @@
 architectury {
-    common(enabled_platforms.split(",")){
-        //it.platformPackage("neoforge", "forge")
+    common(enabled_platforms.split(",")) {
+        // This means map neoforge to forge
     }
 }
 loom {
@@ -13,8 +13,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
 
     modImplementation ("net.mehvahdjukaar:moonlight:${moonlight_version}")
-
-
     modCompileOnly "dev.emi:trinkets:${project.trinkets_version}"
     modCompileOnly("curse.maven:curios-309927:4581099")
     modCompileOnly "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
@@ -43,4 +41,12 @@ publishing {
     repositories {
         // Add repositories to publish to here.
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.compilerArgs.add("-Acrafttweaker.processor.document.output_directory=${new File(rootProject.buildDir, "docsOut")}")
+    it.options.compilerArgs.add("-Acrafttweaker.processor.document.multi_source=true")
+
+    it.options.compilerArgs << "-Xmaxerrs" << "4000"
+
 }
