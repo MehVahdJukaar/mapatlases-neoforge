@@ -105,9 +105,7 @@ public class PinNameBox extends EditBox {
         p.popPose();
     }
 
-    @Override
     public void tick() {
-        super.tick();
         scrollPopInAnimationO = scrollPopInAnimation;
         displayIndexO = displayIndex;
         int index = getIndex();

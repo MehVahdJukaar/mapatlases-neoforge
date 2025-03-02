@@ -3,12 +3,15 @@ package pepjebs.mapatlases.recipe;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ShearsItem;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -24,6 +27,7 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.lang.ref.WeakReference;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
@@ -108,14 +112,19 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             ItemStack stack = i.copy();
 
             if (stack.getItem() == Items.SHEARS) {
-                stack.hurt(1, RandomSource.create(), null);
+                AtomicReference<Boolean> broken = new AtomicReference<>(false);
+                stack.hurtAndBreak(1, (ServerLevel) levelRef.get(), null, s-> broken.set(true));
+                if (broken.get()) {
+                    stack = ItemStack.EMPTY;
+                }
+//TODO: test
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
                 MapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 if (!maps.isEmpty()) {
                     Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
-                    var toRemove = getMapToRemove(inv, maps, slice);
-                    maps = maps.removeAndAssigns(stack, levelRef.get(), toRemove);
+                    MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
+                    maps = maps.removeAndAssigns(stack, levelRef.get(), toRemove.id, toRemove.type);
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());
                     if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();

@@ -28,10 +28,7 @@
       "pepjebs.mapatlases.integration.JEICompat"
     ],
     "emi": [
-      "pepjebs.mapatlases.integration.fabric.EMICompat"
-    ],
-    "cardinal-components-item": [
-      "pepjebs.mapatlases.map_collection.fabric.CCStuff"
+      "pepjebs.mapatlases.integration.EMICompat"
     ]
   },
   "custom": {
@@ -46,8 +43,7 @@
   "depends": {
     "fabric": "*",
     "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}",
-    "moonlight": ">=${required_moonlight_version}",
-    "cardinal-components-item": ">=${cca_version}"
+    "moonlight": ">=${required_moonlight_version}"
   },
   "suggests": {
     "supplementaries": "*"

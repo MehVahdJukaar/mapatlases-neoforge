@@ -176,9 +176,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Override
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
-            var maps = MapAtlasItem.getMaps(atlas, level);
+            MapCollection maps = MapAtlasItem.getMaps(atlas, level);
             MapDataHolder m = maps.getAll().get(mapatlases$selectedMapIndex);
-            maps.remove(m);
+            maps.removeAndAssigns(atlas, level, m.id, m.type);
         });
     }
 

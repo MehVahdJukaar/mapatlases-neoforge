@@ -95,7 +95,7 @@ public enum MapType implements StringRepresentable {
 
     public Integer getHeight(@NotNull MapItemSavedData data) {
         return switch (this) {
-            case VANILLA -> MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data) : null;
+            case VANILLA -> MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data).orElse(null) : null;
             case MAZE, ORE_MAZE -> MapAtlasesMod.TWILIGHTFOREST ? TwilightForestCompat.getSlice(data) : null;
             case MAGIC -> null;
         };

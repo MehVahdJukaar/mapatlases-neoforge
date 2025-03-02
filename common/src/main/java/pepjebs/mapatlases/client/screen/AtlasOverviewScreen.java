@@ -380,7 +380,7 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
         RenderSystem.enableDepthTest();
         poseStack.translate(0, 0, editBox.active ? 22 : -20);
-        renderBackground(graphics);
+        //renderBackground(graphics);
         poseStack.popPose();
 
         if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);

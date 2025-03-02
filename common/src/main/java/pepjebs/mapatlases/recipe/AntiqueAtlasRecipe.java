@@ -7,11 +7,13 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.lang.ref.WeakReference;
 
@@ -66,10 +68,13 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         // Set NBT Data
         MapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
         MapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
+        var map = oldMaps.getIdsCopy();
         for (MapDataHolder holder : maps.getAll()) {
-            oldMaps.remove(holder);
-            Integer newId = SupplementariesCompat.createAntiqueMapData(holder.data,level,true, false);
-            if(newId != null) oldMaps.add(newId, level);
+            oldMaps = oldMaps.removeAndAssigns(oldAtlas, level, holder.id, holder.type);
+            MapId newId = SupplementariesCompat.createAntiqueMapData(holder.data, level, true, false);
+            if (newId != null) {
+                oldMaps = oldMaps.addAndAssigns(oldAtlas, level, holder.type, newId);
+            }
         }
         SupplementariesCompat.setAntiqueInk(newAtlas);
         return newAtlas;

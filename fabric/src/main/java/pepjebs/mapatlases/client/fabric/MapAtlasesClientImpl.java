@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.fabric;
 import com.mojang.blaze3d.platform.Window;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,9 +27,9 @@ public class MapAtlasesClientImpl {
         HudRenderCallback.EVENT.register(MapAtlasesClientImpl::onRenderHud);
     }
 
-    private static void onRenderHud(GuiGraphics graphics, float partialTicks) {
+    private static void onRenderHud(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Window window = Minecraft.getInstance().getWindow();
-        HUD.render(graphics, partialTicks, window.getGuiScaledWidth(), window.getGuiScaledHeight());
+        HUD.render(graphics, deltaTracker.getGameTimeDeltaTicks(), window.getGuiScaledWidth(), window.getGuiScaledHeight());
     }
 
     private static void mapAtlasClientTick(Minecraft minecraft) {

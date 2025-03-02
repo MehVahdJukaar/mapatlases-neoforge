@@ -7,6 +7,8 @@
 package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
@@ -63,7 +65,9 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                 menu.mapatlases$removeSelectedMap(atlas);
                 atlas.grow(1);
                 slotOneItem.grow(1);
-                slotOneItem.hurt(1, RandomSource.create(), null);
+                if(player instanceof ServerPlayer sp){
+                    slotOneItem.hurtAndBreak(1, sp.serverLevel(), sp, b->{});
+                }
                 menu.mapatlases$setSelectedMapIndex(0);
             } else if (
                     (slotOneItem.is(Items.MAP)

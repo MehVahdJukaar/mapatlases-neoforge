@@ -8,6 +8,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
@@ -96,7 +97,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
                        int screenWidth, int screenHeight) {
         // Handle early returns
         // Check F3 menu displayed
-        if (mc.level == null || mc.player == null || mc.options.renderDebug) {
+        if (mc.level == null || mc.player == null || mc.getDebugOverlay().showDebugScreen()) {
             return;
         }
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;

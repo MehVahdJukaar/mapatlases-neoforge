@@ -3,7 +3,6 @@ package pepjebs.mapatlases.recipe;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -13,10 +12,13 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapAtlasesAddRecipe extends CustomRecipe {
 
@@ -85,7 +87,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         Level level = levelRef.get();
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMapCount = 0;
-        List<MapId> mapIds = new ArrayList<>();
+        Map<MapType, List<MapId>> mapIds = new HashMap<>();
         // ensure 1 and one only atlas
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
@@ -94,7 +96,9 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             } else if (isEmptyMap(itemstack)) {
                 emptyMapCount++;
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
-                mapIds.add(MapAtlasesAccessUtils.findMapId(itemstack));
+                MapType mapType = MapType.fromItem(itemstack.getItem());
+                MapId mapId = mapType.getMapId(itemstack);
+                mapIds.computeIfAbsent(mapType, k -> new ArrayList<>()).add(mapId);
             }
         }
 

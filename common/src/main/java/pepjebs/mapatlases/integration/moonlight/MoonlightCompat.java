@@ -55,10 +55,14 @@ public class MoonlightCompat {
     public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
         MLMapDecorationType<?, ?> type = MapDataRegistry.getRegistry(level.registryAccess()).get(id);
         if (type != null) {
+            //TODO?
+            /*
+            new PinMarker()
             MLMapMarker<?> defaultMarker = type.createEmptyMarker();
             defaultMarker.setPos(pos);
             defaultMarker.setName(name);
             ((ExpandedMapData) data).addCustomMarker(defaultMarker);
+             */
         }
     }
 
@@ -72,7 +76,7 @@ public class MoonlightCompat {
                     selected = v.getKey();
                 }
             }
-            if (selected == null || !d.removeCustomMarker(selected)) {
+            if (selected == null || !d.ml$removeCustomMarker(selected)) {
                 MapAtlasesMod.LOGGER.warn("Tried to delete custom marker but none was found");
             }
         }
@@ -101,7 +105,7 @@ public class MoonlightCompat {
         ExpandedMapData d = ((ExpandedMapData) data);
         Map<String, MLMapMarker<?>> markers = new HashMap<>(d.ml$getCustomMarkers());
         if (!markers.isEmpty()) {
-            markers.entrySet().removeIf(m -> !m.getValue().shouldRefresh());
+            markers.entrySet().removeIf(m -> !m.getValue().shouldRefreshFromWorld());
             List<String> toRemove = new ArrayList<>();
             List<MLMapMarker<?>> toAdd = new ArrayList<>();
             Level level = player.level();
@@ -110,7 +114,7 @@ public class MoonlightCompat {
                 BlockPos pos = marker.getPos();
                 if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
                     if (level.isLoaded(pos)) {
-                        MLMapMarker<?> newMarker = marker.getType().getWorldMarkerFromWorld(level, marker.getPos());
+                        MLMapMarker<?> newMarker = marker.getType().value().createMarkerFromWorld(level, marker.getPos());
                         String id = m.getKey();
                         if (newMarker == null) {
                             toRemove.add(id);
@@ -121,8 +125,8 @@ public class MoonlightCompat {
                     }
                 }
             }
-            toRemove.forEach(d::removeCustomMarker);
-            toAdd.forEach(d::addCustomMarker);
+            toRemove.forEach(d::ml$removeCustomMarker);
+            toAdd.forEach(d::ml$addCustomMarker);
         }
     }
 }
