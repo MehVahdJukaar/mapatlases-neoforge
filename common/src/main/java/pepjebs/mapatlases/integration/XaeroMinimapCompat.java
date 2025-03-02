@@ -1,18 +1,24 @@
 package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
+import net.mehvahdjukaar.moonlight.api.map.decoration.SimpleMapMarker;
+import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -63,19 +69,23 @@ public class XaeroMinimapCompat {
         }
     }
 
-    public static void loadXaeroWaypoints(String pMapName, MapItemSavedData data) {
+    private static final HolderReference<MLMapDecorationType<?, ?>> DEF_TYPE = HolderReference.of(
+            ResourceLocation.fromNamespaceAndPath("moonlight", "generic_structure"),
+            MapDataRegistry.REGISTRY_KEY);
+
+    public static void loadXaeroWaypoints(MapId pMapName, MapItemSavedData data, RegistryAccess registries) {
         if (!WAYPOINTS_MAP.isEmpty()) {
             var dim = data.dimension;
             String dimKey = getDimensionDirectoryName(dim);
             var waypoints = WAYPOINTS_MAP.get(dimKey);
             List<Waypoint> toRemove = new ArrayList<>();
             if (waypoints != null) {
-                MapDataHolder holder = new MapDataHolder(pMapName, data);
+                MapDataHolder holder = new MapDataHolder(pMapName, MapType.VANILLA, data);
                 for (var w : waypoints) {
                     if (w.y > holder.slice.heightOrTop()) continue;
                     //hack to see if it will be contained
-                    MLMapMarker<?> marker = MapDataRegistry.getDefaultType().createEmptyMarker();
-                    marker.setPos(new BlockPos(w.x, w.y, w.z));
+                    MLMapMarker<?> marker = new SimpleMapMarker(DEF_TYPE.getHolder(registries),
+                            new BlockPos(w.x, w.y, w.z), 0f, Optional.empty());
                     if (marker.createDecorationFromMarker(data) != null) {
                         ClientMarkers.addMarker(holder, new ColumnPos(w.x, w.z), w.name, w.color);
                         //toRemove.add(w);

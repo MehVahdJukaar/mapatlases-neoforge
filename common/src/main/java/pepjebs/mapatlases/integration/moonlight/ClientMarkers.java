@@ -2,7 +2,7 @@ package pepjebs.mapatlases.integration.moonlight;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
@@ -19,10 +19,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
+import net.minecraft.core.*;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
@@ -42,8 +39,8 @@ import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.io.FileInputStream;
@@ -59,8 +56,7 @@ public class ClientMarkers {
     private static final TagKey<MLMapDecorationType<?, ?>> PINS = TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
     private static final WeakHashMap<MLMapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
 
-    private static final Map<Integer, Set<MLMapMarker<?>>> markersPerMap = new Int2ObjectOpenHashMap<>();
-    private static final Map<Integer, String> mapIdToStringLookup = new Int2ObjectOpenHashMap<>();//dumb
+    private static final Map<MapId, Set<MLMapMarker<?>>> markersPerMap = new Object2ObjectOpenHashMap<>();
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
     private static Path currentPath = null;
@@ -79,9 +75,8 @@ public class ClientMarkers {
         }
     }
 
-    public static void loadClientMarkers(long seed, String levelName) {
+    public static void loadClientMarkers(long seed, String levelName, HolderLookup.Provider registries) {
         markersPerMap.clear();
-        mapIdToStringLookup.clear();
         //if not in multiplayer we have folder name here. foldername should be null on client
         if (lastFolderNameOrIP == null) {
             throw new RuntimeException("Could not load client markers saved data. Folder name is null");
@@ -90,7 +85,7 @@ public class ClientMarkers {
 
         if (Files.exists(currentPath)) {
             try (InputStream inputStream = new FileInputStream(currentPath.toFile())) {
-                load(inputStream);
+                load(NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap()), registries);
             } catch (Exception ignored) {
                 MapAtlasesMod.LOGGER.error("Could not load client markers saved data at {}", currentPath);
             }
@@ -129,7 +124,7 @@ public class ClientMarkers {
         }
     }
 
-    public static void saveClientMarkers() {
+    public static void saveClientMarkers(RegistryAccess registryAccess) {
         if (markersPerMap.isEmpty()) return;
         if (currentPath == null) {
             MapAtlasesMod.LOGGER.error("Could not save client markers saved data. Path is null");
@@ -140,7 +135,7 @@ public class ClientMarkers {
                 Files.createDirectories(currentPath.getParent());
             }
             try (OutputStream outputstream = new FileOutputStream(currentPath.toFile())) {
-                NbtIo.writeCompressed(save(), outputstream);
+                NbtIo.writeCompressed(save(registryAccess), outputstream);
                 MapAtlasesMod.LOGGER.info("Saved {} client map waypoints", markersPerMap.size());
             }
 
@@ -164,7 +159,7 @@ public class ClientMarkers {
                     l.add(marker);
                 }
             }
-            markersPerMap.put(MapAtlasesAccessUtils.findMapIdFromString(k), l);
+            markersPerMap.put(mapIdFromString(k), l);
         }
     }
 
@@ -180,19 +175,13 @@ public class ClientMarkers {
                 c.put(marker.getType().getRegisteredName(), markerSaved);
                 listNBT.add(c);
             }
-            tag.put(mapIdToStringLookup.get(v.getKey()), listNBT);
+            tag.put(v.getKey().key(), listNBT);
         }
         return tag;
     }
 
-    public static Set<MLMapMarker<?>> send(MapId integer, MapItemSavedData data) {
-        mapIdToStringLookup.computeIfAbsent(integer, g -> {
-            MapDataHolder holder = MapDataHolder.findFromId(Minecraft.getInstance().level, integer);
-            return Objects.requireNonNull(holder).stringId;
-        });
-
-        var pins = markersPerMap.get(integer);
-
+    public static Set<MLMapMarker<?>> send(MapId mapId, MapItemSavedData data) {
+        var pins = markersPerMap.get(mapId);
         if (pins != null) {
             return pins;
         }
@@ -200,22 +189,25 @@ public class ClientMarkers {
     }
 
     public static void addMarker(MapDataHolder holder, ColumnPos pos, String text, int index) {
-        MLMapDecorationType<?, ?> type = getPinAt(index);
-        MLMapMarker<?> marker = ((MLMapDecorationType<?, ?>) pinAt).createEmptyMarker();
-        if (!text.isEmpty()) marker.setName(Component.translatable(text));
+        Holder<MLMapDecorationType<?, ?>> type = getPinAt(index);
+        Optional<Component> name;
+        if (!text.isEmpty()) {
+            name = Optional.of(Component.translatable(text));
+        } else {
+            name = Optional.empty();
+        }
         ClientLevel level = Minecraft.getInstance().level;
         Integer h = holder.height;
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
-        marker.setPos(new BlockPos(pos.x(), h, pos.z()));
         //aaa not correct
-        var marker = new PinMarker(type, pos,  0,holder, pos, text, pinAt);
+        var marker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
         markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(marker);
         //add immediately
-        ((ExpandedMapData) holder.data).addCustomMarker(marker);
+        ((ExpandedMapData) holder.data).ml$addCustomMarker(marker);
     }
 
-    private static MLMapDecorationType<?, ?> getPinAt(int index) {
+    private static Holder<MLMapDecorationType<?, ?>> getPinAt(int index) {
         Optional<HolderSet.Named<MLMapDecorationType<?, ?>>> tag = MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
         if (tag.isEmpty()) {
             throw new AssertionError("map_atlases:pins tag was empty or not found. How is this possible?");
@@ -225,7 +217,7 @@ public class ClientMarkers {
             if (key.isEmpty()) throw new AssertionError("Registry key for MapDecorationType was null. How?");
             return key.get().toString();
         })).toList();
-        return pins.get(Math.floorMod(index, pins.size())).value();
+        return pins.get(Math.floorMod(index, pins.size()));
     }
 
     public static boolean removeDeco(MapId mapId, String key) {
@@ -237,12 +229,14 @@ public class ClientMarkers {
     }
 
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, getPinAt(index), x, y, 1, outline, alpha);
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, getPinAt(index).value(), x, y, 1, outline, alpha);
     }
 
 
     public static void drawSmallPins(GuiGraphics graphics, Font font, double mapCenterX, double mapCenterZ, Slice slice,
                                      float widgetWorldLen, Player player, boolean rotateWithPlayer, MapCollection collection) {
+
+        if (slice.type() != MapType.VANILLA) return;
 
         Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
         PoseStack matrixStack = graphics.pose();
@@ -251,8 +245,8 @@ public class ClientMarkers {
         float yRot = rotateWithPlayer ? player.getYRot() : 180;
         BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
         for (var entry : markersPerMap.entrySet()) {
-            int mapId = entry.getKey();
-            if (!collection.hasMap(mapId)) continue;
+            MapId mapId = entry.getKey();
+            if (!collection.hasMap(mapId, MapType.VANILLA)) continue;
             var pins = entry.getValue();
             for (var marker : pins) {
                 BlockPos pos = marker.getPos();
@@ -267,9 +261,10 @@ public class ClientMarkers {
                     matrixStack.translate(a, b, 5);
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
-                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType(), t ->
+
+                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType().value(), t ->
                             reg.getKey(t).withPath(k -> "map_marker/" + k + "_small"));
-                    TextureAtlasSprite sprite = MapDecorationClientManager.getAtlasSprite(texture);
+                    TextureAtlasSprite sprite = Minecraft.getInstance().getMapDecorationTextures().getSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
                     matrixStack.popPose();
                 }
@@ -301,4 +296,7 @@ public class ClientMarkers {
     }
 
 
+    private static MapId mapIdFromString(String id) {
+        return new MapId(Integer.parseInt(id.substring(4)));
+    }
 }

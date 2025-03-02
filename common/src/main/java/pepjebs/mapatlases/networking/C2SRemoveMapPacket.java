@@ -14,7 +14,7 @@ import pepjebs.mapatlases.utils.MapType;
 
 public class C2SRemoveMapPacket implements Message {
 
-    public final TypeAndCodec<RegistryFriendlyByteBuf, C2SRemoveMapPacket> TYPE = Message.makeType(
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, C2SRemoveMapPacket> TYPE = Message.makeType(
             MapAtlasesMod.res("remove_map"),
             C2SRemoveMapPacket::new
     );

@@ -19,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasLectern;
 
+import java.util.Optional;
+
 @Mixin(LecternBlock.class)
 public abstract class LecternBlockMixin extends Block {
 
@@ -28,13 +30,13 @@ public abstract class LecternBlockMixin extends Block {
     }
 
 
-    //use click events?
+    //use click events? should really use click events
     @Inject(
-            method = "use",
+            method = "useWithoutItem",
             at = @At(value = "HEAD"),
             cancellable = true
     )
-    public void injectAtlasRemoval(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
+    public void injectAtlasRemoval(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasLectern al
                 && al.mapatlases$hasAtlas()) {
             if (player.isSecondaryUseActive()) {
@@ -55,7 +57,7 @@ public abstract class LecternBlockMixin extends Block {
                         //MapAtlasesClient.openScreen(atlas, lbe);
                     }
                 }else{
-                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, pos, false);
+                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, Optional.ofNullable(pos), false);
                 }
                 cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
             }

@@ -10,7 +10,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-
+/*
 public class S2CMapPacketWrapper implements Message {
 
     public static final TypeAndCodec<RegistryFriendlyByteBuf, S2CMapPacketWrapper> TYPE = Message.makeType(
@@ -56,3 +56,4 @@ public class S2CMapPacketWrapper implements Message {
         return TYPE.type();
     }
 }
+*/

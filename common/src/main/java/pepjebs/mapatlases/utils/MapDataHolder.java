@@ -36,7 +36,7 @@ public class MapDataHolder {
     public final Integer height;
 
 
-    private MapDataHolder(MapId id, MapType type, @NotNull MapItemSavedData data) {
+    public MapDataHolder(MapId id, MapType type, @NotNull MapItemSavedData data) {
         Preconditions.checkNotNull(data);
         this.id = id;
         this.data = data;
@@ -72,7 +72,7 @@ public class MapDataHolder {
             ((MapItem) type.filled).update(player.level(), player, data);
         }
         if (MapAtlasesConfig.debugUpdate.get()) {
-            NetworkHelper.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(id));
+            NetworkHelper.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(id, type));
         }
     }
 

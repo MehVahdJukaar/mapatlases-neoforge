@@ -85,7 +85,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
         Level level = levelRef.get();
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMapCount = 0;
-        List<Integer> mapIds = new ArrayList<>();
+        List<MapId> mapIds = new ArrayList<>();
         // ensure 1 and one only atlas
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
@@ -94,7 +94,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             } else if (isEmptyMap(itemstack)) {
                 emptyMapCount++;
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
-                mapIds.add(MapItem.getMapId(itemstack));
+                mapIds.add(MapAtlasesAccessUtils.findMapId(itemstack));
             }
         }
 

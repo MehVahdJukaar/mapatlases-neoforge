@@ -35,7 +35,6 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
-import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -209,6 +208,7 @@ public class MapAtlasesClient {
         return i / 10f + (unlocked ? 0 : 0.05f);
     }
 
+    /*
     public static void handleMapPacketWrapperPacket(S2CMapPacketWrapper packet) {
         Level level = Minecraft.getInstance().level;
         if (level == null) return;
@@ -226,7 +226,7 @@ public class MapAtlasesClient {
             }
         }
     }
-
+    */
 
     public static void openScreen(Optional<BlockPos> lecternPos, boolean pinOnly) {
         @Nullable LecternBlockEntity lectern = null;

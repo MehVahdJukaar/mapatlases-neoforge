@@ -213,7 +213,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             var d = decorations.get(decorationId);
             if (d != null) {
                 //we cant use string id because server has them different...
-                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(mapData.id,
+                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(mapData.id, mapData.type,
                         d.hashCode(), false));
 
                 //removes immediately from client so we update gui

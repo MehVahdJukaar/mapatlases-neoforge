@@ -1,23 +1,21 @@
 package pepjebs.mapatlases.utils;
 
-import net.minecraft.core.component.DataComponents;
+import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
-import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 
 public class MapAtlasesAccessUtils {
 
@@ -32,10 +30,19 @@ public class MapAtlasesAccessUtils {
     }
 
 
-    public static MapDataHolder findMapFromItemStack(Level level, ItemStack item) {
-        MapType type = MapType.fromItem(item.getItem());
+    @Nullable
+    public static MapId findMapId(ItemStack itemstack) {
+        MapType type = MapType.fromItem(itemstack.getItem());
         if (type == null) return null;
-        MapId id = type.getMapId(item);
+        return type.getMapId(itemstack);
+    }
+
+    @Nullable
+    public static MapDataHolder findMapFromItemStack(Level level, ItemStack itemStack) {
+        MapType type = MapType.fromItem(itemStack.getItem());
+        if (type == null) return null;
+        MapId id = type.getMapId(itemStack);
+        if (id == null) return null;
         return MapDataHolder.get(id, type, level);
     }
 
@@ -43,9 +50,9 @@ public class MapAtlasesAccessUtils {
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
         int max = onlyHotbar ? 9 : inventory.getContainerSize();
         for (int i = 0; i < max; ++i) {
-            ItemStack itemstack = inventory.getItem(i);
-            if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                return itemstack;
+            ItemStack itemStack = inventory.getItem(i);
+            if (itemStack.is(MapAtlasesMod.MAP_ATLAS.get())) {
+                return itemStack;
             }
         }
         return ItemStack.EMPTY;
@@ -128,9 +135,10 @@ public class MapAtlasesAccessUtils {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-                MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
+               // NetworkHelper.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
             }
         }
     }
+
 
 }

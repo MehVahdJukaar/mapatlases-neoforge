@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -57,12 +58,11 @@ public class SupplementariesClientCompat {
                 lastTickWasDay = isDay;
                 MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
                 MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
+                //lag
                 for (var e : level.mapData.entrySet()) {
-                    String keyId = e.getKey();
-                    if (e.getKey().startsWith("map_")) {
-                        MapItemSavedData data = e.getValue();
-                        mapRenderer.update(MapAtlasesAccessUtils.findMapIdFromString(keyId), data);
-                    }
+                    MapId keyId = e.getKey();
+                    MapItemSavedData data = e.getValue();
+                    mapRenderer.update(keyId, data);
                 }
             }
         }

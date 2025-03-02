@@ -20,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.CartographyTableAtlasButton;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 @Mixin(CartographyTableScreen.class)
 public abstract class CartographyTableScreenMixin extends AbstractContainerScreen<CartographyTableMenu> {
@@ -36,15 +38,19 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
     }
 
     @Inject(method = "renderResultingMap", at = @At(value = "HEAD"))
-    void mapAtlases$renderAtlasMap(GuiGraphics pGuiGraphics, Integer pMapId, MapItemSavedData pMapData, boolean pHasMap, boolean pHasPaper,
-                                   boolean pHasGlassPane, boolean pIsMaxSize, CallbackInfo ci,
-                                   @Local(argsOnly = true) LocalRef<MapId> mapid, @Local(argsOnly = true) LocalRef<MapItemSavedData> data) {
+    void mapAtlases$renderAtlasMap(GuiGraphics guiGraphics, MapId pMapId, MapItemSavedData pMapData, boolean hasMap, boolean hasPaper,
+                                   boolean hasGlassPane, boolean isMaxSize, CallbackInfo ci,
+                                   @Local(argsOnly = true) LocalRef<MapId> mapid,
+                                   @Local(argsOnly = true) LocalRef<MapItemSavedData> data) {
 
         if (pMapData == null && pMapId == null && this.menu.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack item = this.menu.slots.get(2).getItem();
             if (item.is(Items.FILLED_MAP)) {
-                mapid.set(MapItem.getMapId(item));
-                data.set(MapItem.getSavedData(mapid.get(), this.minecraft.level));
+                MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(this.minecraft.level, item);
+                if (holder != null) {
+                    mapid.set(holder.id);
+                    data.set(holder.data);
+                }
             }
         }
     }

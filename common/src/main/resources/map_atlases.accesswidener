@@ -12,6 +12,8 @@ accessible field net/minecraft/world/inventory/TransientCraftingContainer menu L
 accessible field net/minecraft/world/inventory/CraftingMenu player Lnet/minecraft/world/entity/player/Player;
 accessible field net/minecraft/world/inventory/InventoryMenu owner Lnet/minecraft/world/entity/player/Player;
 
+accessible method net/minecraft/client/resources/TextureAtlasHolder getSprite (Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;
+
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen leftPos I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen topPos I
 

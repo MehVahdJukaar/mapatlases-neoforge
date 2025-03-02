@@ -42,6 +42,6 @@ public class S2CDebugUpdateMapPacket implements Message {
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
-        return TYPE_AND_CODEC.type();
+        return TYPE.type();
     }
 }

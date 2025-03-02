@@ -4,6 +4,7 @@ import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -111,8 +112,8 @@ public class MapAtlasesClientEvents {
         MapAtlasItem.setSelectedSlice(atlas, newSlice);
     }
 
-    public static void onLoggedOut() {
-        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
+    public static void  onLoggedOut(RegistryAccess registryAccess) {
+        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers(registryAccess);
     }
 
     //make this client sided

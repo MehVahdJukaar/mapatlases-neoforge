@@ -39,7 +39,7 @@ public class MoonlightCompat {
         MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_ENTITY_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(EntityPinMarker.DIRECT_CODEC, EntityPinDecoration.STREAM_CODEC));
 
         if (PlatHelper.getPhysicalSide().isClient()) {
-            MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send);
+            MapDataRegistry.addDynamicClientMarkersEvent(ClientMarkers::send); //just works with vanilla maps
             MapDataRegistry.addDynamicClientMarkersEvent(EntityRadar::send);
             MapDecorationClientManager.registerCustomRenderer(PIN_TYPE_ID, PinDecorationRenderer::new);
             MapDecorationClientManager.registerCustomRenderer(PIN_ENTITY_TYPE_ID, EntityPinDecorationRenderer::new);

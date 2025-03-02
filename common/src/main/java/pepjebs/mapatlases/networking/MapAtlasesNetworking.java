@@ -6,7 +6,7 @@ public class MapAtlasesNetworking {
 
 
     private static void registerMessages(NetworkHelper.RegisterMessagesEvent event) {
-        event.registerClientBound(S2CMapPacketWrapper.TYPE);
+        //event.registerClientBound(S2CMapPacketWrapper.TYPE);
         event.registerClientBound(S2CWorldHashPacket.TYPE);
         event.registerClientBound(S2CDebugUpdateMapPacket.TYPE);
         event.registerBidirectional(C2S2COpenAtlasScreenPacket.TYPE);

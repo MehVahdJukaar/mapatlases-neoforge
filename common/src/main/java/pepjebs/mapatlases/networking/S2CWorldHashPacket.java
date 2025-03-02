@@ -11,9 +11,9 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 
 public class S2CWorldHashPacket implements Message {
 
-    public static final TypeAndCodec<RegistryFriendlyByteBuf, S2CMapPacketWrapper> TYPE = Message.makeType(
+    public static final TypeAndCodec<RegistryFriendlyByteBuf, S2CWorldHashPacket> TYPE = Message.makeType(
             MapAtlasesMod.res("world_hash"),
-            S2CMapPacketWrapper::new
+            S2CWorldHashPacket::new
     );
 
     public final long seed;
@@ -41,7 +41,7 @@ public class S2CWorldHashPacket implements Message {
 
     @Override
     public void handle(Context context) {
-        ClientMarkers.loadClientMarkers(this.seed, this.name);
+        ClientMarkers.loadClientMarkers(this.seed, this.name, context.getPlayer().registryAccess());
     }
 
     @Override

@@ -3,15 +3,10 @@ package pepjebs.mapatlases.client.neoforge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 
@@ -19,9 +14,9 @@ public class MapAtlasesClientImpl {
 
     private static final MapAtlasesHUDImpl HUD = new MapAtlasesHUDImpl();
 
-    public static void init(){
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(MapAtlasesClientImpl::registerOverlay);
-        MinecraftForge.EVENT_BUS.register(MapAtlasesClientImpl.class);
+    public static void init(IEventBus bus) {
+        bus.addListener(MapAtlasesClientImpl::registerOverlay);
+        NeoForge.EVENT_BUS.register(MapAtlasesClientImpl.class);
     }
 
     public static void registerOverlay(RegisterGuiOverlaysEvent event) {
@@ -46,7 +41,7 @@ public class MapAtlasesClientImpl {
 
     @SubscribeEvent
     public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        MapAtlasesClientEvents.onLoggedOut();
+        MapAtlasesClientEvents.onLoggedOut(event.getPlayer().registryAccess());
     }
 
     public static void decreaseHoodZoom() {

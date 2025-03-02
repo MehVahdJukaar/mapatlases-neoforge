@@ -24,7 +24,7 @@ public class MapAtlasesFabric implements ModInitializer {
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesFabricClient.clientInit();
 
-            ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->  MapAtlasesClientEvents.onLoggedOut());
+            ClientPlayConnectionEvents.DISCONNECT.register((handler, client) ->  MapAtlasesClientEvents.onLoggedOut(handler.getLevel().registryAccess()));
         }
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
