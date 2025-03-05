@@ -13,10 +13,11 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 @Mixin(WorldSelectionList.WorldListEntry.class)
 public class WorldSelectionListMixin {
 
-    @Shadow @Final private LevelSummary summary;
+    @Shadow @Final
+    LevelSummary summary;
 
     @Inject(method = "doDeleteWorld", at = @At("HEAD"))
-    public void deleteAtlasMarkers(CallbackInfo ci){
+    public void mapAtlases$deleteAtlasMarkers(CallbackInfo ci){
         ClientMarkers.deleteAllMarkersData(this.summary.getLevelId());
     }
 }

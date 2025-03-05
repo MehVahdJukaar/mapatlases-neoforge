@@ -6,24 +6,26 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
 
 public abstract class BookmarkButton extends AbstractWidget {
 
-    private final int xOff;
-    private final int yOff;
+    protected final ResourceLocation sprite;
+    protected final ResourceLocation selectedSprite;
     protected final AtlasOverviewScreen parentScreen;
     protected boolean selected = true;
 
-    protected BookmarkButton(int pX, int pY, int width, int height, int xOff, int yOff, AtlasOverviewScreen screen) {
+    protected BookmarkButton(int pX, int pY, int width, int height, AtlasOverviewScreen screen,
+                             ResourceLocation sprite, ResourceLocation selectedSprite) {
         super(pX, pY,
                 width, height,
                 Component.empty());
-        this.xOff = xOff;
-        this.yOff = yOff;
         this.parentScreen = screen;
+        this.sprite = sprite;
+        this.selectedSprite = selectedSprite;
     }
 
     public void setSelected(boolean selected) {
@@ -38,11 +40,14 @@ public abstract class BookmarkButton extends AbstractWidget {
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.enableDepthTest();
         if (!visible || !active) return;
-        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
-                this.getX(), this.getY(), xOff,
-                yOff + (this.selected ? this.height : 0),
+        pGuiGraphics.blitSprite(getSprite(),
+                this.getX(), this.getY(),
                 this.width, this.height);
         if (parentScreen.isEditingText()) isHovered = false; //cancel tooltip
+    }
+
+    public ResourceLocation getSprite() {
+        return selected ? selectedSprite : sprite;
     }
 
     @Nullable
@@ -51,7 +56,6 @@ public abstract class BookmarkButton extends AbstractWidget {
         if (!visible || !active) return null;
         return super.getTooltip();
     }
-
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {

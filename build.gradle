@@ -199,6 +199,7 @@ ext{
             neo_version          : neo_version,
             neo_version_range    : neo_version_range,
             loader_version_range : loader_version_range,
+            moonlight_min_version: moonlight_min_version
     ]
 }
 

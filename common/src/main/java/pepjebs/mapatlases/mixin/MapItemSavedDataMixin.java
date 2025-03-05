@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -21,6 +23,7 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 @Mixin(value = MapItemSavedData.class, priority = 1100)
 public class MapItemSavedDataMixin {
@@ -29,15 +32,16 @@ public class MapItemSavedDataMixin {
     @Final
     private Map<Player, MapItemSavedData.HoldingPlayer> carriedByPlayers;
 
-    @WrapOperation(
+    @ModifyExpressionValue(
             method = "tickCarriedBy",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;contains(Lnet/minecraft/world/item/ItemStack;)Z")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/saveddata/maps/MapItemSavedData;mapMatcher(Lnet/minecraft/world/item/ItemStack;)Ljava/util/function/Predicate;")
     )
-    private boolean mapAtlases$containsProxy(Inventory instance, ItemStack stack, Operation<Boolean> contains, @Local(argsOnly = true) Player player) {
+    private Predicate<ItemStack> mapAtlases$containsProxy(Predicate<ItemStack> predicate, @Local(argsOnly = true) Player player) {
         TriState state = MapAtlasesMod.containsHack();
-        if (state == TriState.SET_FALSE) return false;
+        if (state == TriState.SET_FALSE) return stack -> false;
         //needs to call these for some reason... before the rest
-        return (state == TriState.SET_TRUE) || contains.call(instance, stack)
+        if(state == TriState.SET_TRUE) return stack -> true;
+        return  stack -> predicate.test(stack)
                 || (MapAtlasesAccessUtils.getAtlasFromCurioOrTrinket(player) == stack);
 
     }

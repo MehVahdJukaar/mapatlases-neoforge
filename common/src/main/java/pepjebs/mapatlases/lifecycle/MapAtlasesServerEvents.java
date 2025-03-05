@@ -287,7 +287,7 @@ public class MapAtlasesServerEvents {
             int destZ
     ) {
         Level level = player.level();
-        if (maps.isReallyEmpty()) {
+        if (maps.getCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }

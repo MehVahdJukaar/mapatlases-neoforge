@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -34,7 +33,6 @@ import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
-import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -63,7 +61,48 @@ public class MapAtlasesClient {
             ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
-    public static final ResourceLocation MAP_ICON_TEXTURE = ResourceLocation.withDefaultNamespace("textures/map/map_icons.png");
+    //sprites
+    public static final ResourceLocation PLAYER_MARKER_SPRITE = MapAtlasesMod.res("player_marker");
+    public static final ResourceLocation ATLAS_BACKGROUND_EDGE_LEFT_SPRITE = MapAtlasesMod.res("atlas_background_edge_left");
+    public static final ResourceLocation ATLAS_BACKGROUND_EDGE_RIGHT_SPRITE = MapAtlasesMod.res("atlas_background_edge_right");
+    public static final ResourceLocation BOOKMARK_LEFT_SPRITE = MapAtlasesMod.res("bookmark_left");
+    public static final ResourceLocation BOOKMARK_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_left_selected");
+    public static final ResourceLocation BOOKMARK_RIGHT_SPRITE = MapAtlasesMod.res("bookmark_right");
+    public static final ResourceLocation BOOKMARK_RIGHT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_right_selected");
+    public static final ResourceLocation SLICE_BOOKMARK_SPRITE = MapAtlasesMod.res("slice_bookmark");
+
+    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_SPRITE = MapAtlasesMod.res("cartography_table_left");
+    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("cartography_table_left_selected");
+    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_left_hovered");
+    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_SPRITE = MapAtlasesMod.res("cartography_table_right");
+    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_SELECTED_SPRITE = MapAtlasesMod.res("cartography_table_right_selected");
+    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_right_hovered");
+
+    public static final ResourceLocation DELETE_MARKER_SPRITE = MapAtlasesMod.res("delete_marker");
+    public static final ResourceLocation FOCUS_MARKER_SPRITE = MapAtlasesMod.res("focus_marker");
+    public static final ResourceLocation PIN_BUTTON_SPRITE = MapAtlasesMod.res("pin_button");
+    public static final ResourceLocation PIN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("pin_button_hovered");
+    public static final ResourceLocation SHEAR_BUTTON_SPRITE = MapAtlasesMod.res("shear_button");
+    public static final ResourceLocation SHEAR_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("shear_button_hovered");
+    public static final ResourceLocation SHEAR_MAP_SPRITE = MapAtlasesMod.res("shear_map");
+    public static final ResourceLocation PLACE_PIN_SPRITE = MapAtlasesMod.res("place_pin");
+    public static final ResourceLocation ZOOM_IN_BUTTON_SPRITE = MapAtlasesMod.res("zoom_in_button");
+    public static final ResourceLocation ZOOM_IN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("zoom_in_button_hovered");
+
+    public static final ResourceLocation SLICE_DOWN_SPRITE = MapAtlasesMod.res("slice_down");
+    public static final ResourceLocation SLICE_DOWN_HOVERED_SPRITE = MapAtlasesMod.res("slice_down_hovered");
+    public static final ResourceLocation SLICE_DOWN_INACTIVE_SPRITE = MapAtlasesMod.res("slice_down_inactive");
+    public static final ResourceLocation SLICE_UP_SPRITE = MapAtlasesMod.res("slice_up");
+    public static final ResourceLocation SLICE_UP_HOVERED_SPRITE = MapAtlasesMod.res("slice_up_hovered");
+    public static final ResourceLocation SLICE_UP_INACTIVE_SPRITE = MapAtlasesMod.res("slice_up_inactive");
+
+
+    public static final ResourceLocation MAP_OVERWORLD_SPRITE = MapAtlasesMod.res("map_overworld");
+    public static final ResourceLocation MAP_AETHER_SPRITE = MapAtlasesMod.res("map_the_aether");
+    public static final ResourceLocation MAP_END_SPRITE = MapAtlasesMod.res("map_end");
+    public static final ResourceLocation MAP_NETHER_SPRITE = MapAtlasesMod.res("map_nether");
+    public static final ResourceLocation MAP_BUMBLEZONE_SPRITE = MapAtlasesMod.res("map_the_bumblezone");
+
     public static final ResourceLocation ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
@@ -131,6 +170,7 @@ public class MapAtlasesClient {
 
 
     public static void cachePlayerState(Player player) {
+
         if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;

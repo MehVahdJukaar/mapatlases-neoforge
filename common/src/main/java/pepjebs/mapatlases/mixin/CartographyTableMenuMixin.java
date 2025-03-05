@@ -6,14 +6,12 @@
  */
 package pepjebs.mapatlases.mixin;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,7 +32,6 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -190,14 +187,16 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             access.execute((level, pos) -> {
                 l.set(level);
             });
-            if(l.get() == null){
-                try{
+            if (l.get() == null) {
+                try {
                     MapAtlasesClient.getClientAccess().execute((level, pos) -> l.set(level));
-                }catch (Exception ignored){}
+                } catch (Exception ignored) {
+                    int aa = 1;
+                }
             }
-            if(l.get() != null) {
+            if (l.get() != null) {
                 if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
-                    var maps = MapAtlasItem.getMaps(atlas, l.get());
+                    MapCollection maps = MapAtlasItem.getMaps(atlas, l.get());
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
                             + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
                     try {
@@ -207,7 +206,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                         } else {
                             this.mapatlases$selectedSlice = null;
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         //aa ERROR
                         int a = 1;
                     }

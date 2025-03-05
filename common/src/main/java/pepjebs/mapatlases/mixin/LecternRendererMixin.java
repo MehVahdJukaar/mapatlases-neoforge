@@ -19,9 +19,9 @@ public abstract class LecternRendererMixin {
 
     @ModifyArg(
             method = "render(Lnet/minecraft/world/level/block/entity/LecternBlockEntity;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;II)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/BookModel;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/BookModel;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V")
     )
-    private VertexConsumer renderMapAtlasInLectern(VertexConsumer original, @Local LecternBlockEntity tile, @Local MultiBufferSource buffer) {
+    private VertexConsumer renderMapAtlasInLectern(VertexConsumer original, @Local(argsOnly = true) LecternBlockEntity tile, @Local(argsOnly = true) MultiBufferSource buffer) {
         if (tile instanceof AtlasLectern ah && ah.mapatlases$hasAtlas() && buffer != null) {
             Level level = tile.getLevel();
             if (level == null) {

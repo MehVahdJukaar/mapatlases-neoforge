@@ -14,6 +14,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.CompoundTooltip;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -25,7 +26,6 @@ import java.util.Map;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public abstract class DecorationBookmarkButton extends BookmarkButton {
 
@@ -39,7 +39,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected boolean control = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data, String id) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H,  parentScreen,
+                MapAtlasesClient.BOOKMARK_LEFT_SPRITE, MapAtlasesClient.BOOKMARK_LEFT_SELECTED_SPRITE);
         this.mapData = data;
         this.decorationId = id;
         this.shfting = Screen.hasShiftDown();

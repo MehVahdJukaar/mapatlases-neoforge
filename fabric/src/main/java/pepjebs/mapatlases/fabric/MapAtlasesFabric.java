@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.mixin.client.rendering.WorldRendererMixin;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
@@ -14,7 +15,6 @@ public class MapAtlasesFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         MapAtlasesMod.init();
-
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (var p : server.getPlayerList().getPlayers()) {

@@ -301,6 +301,67 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
+    protected void renderMenuBackground(GuiGraphics graphics, int x, int y, int width, int height) {
+        super.renderMenuBackground(graphics, x, y, width, height);
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(width / 2f, height / 2f, 0);
+
+        RenderSystem.enableDepthTest();
+        //background
+        graphics.blit(
+                texture,
+                -H_BOOK_WIDTH,
+                -H_BOOK_HEIGHT,
+                0,
+                0,
+                BOOK_WIDTH,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
+        );
+        // Draw foreground
+        graphics.blit(
+                ATLAS_OVERLAY_TEXTURE,
+                -H_BOOK_WIDTH,
+                -H_BOOK_HEIGHT,
+                0,
+                0,
+                BOOK_WIDTH,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
+        );
+
+        graphics.pose().translate(0, 0, 1);
+        //background overlay
+
+        graphics.blitSprite(
+                texture,
+                H_BOOK_WIDTH - 10,
+                -H_BOOK_HEIGHT,
+                OVERLAY_UR,
+                0,
+                5,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
+        );
+        graphics.blit(
+                texture,
+                -H_BOOK_WIDTH + 5,
+                -H_BOOK_HEIGHT,
+                OVERLAY_UL,
+                0,
+                5,
+                BOOK_HEIGHT,
+                TEXTURE_W,
+                256
+        );
+        graphics.pose().popPose();
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         PoseStack poseStack = graphics.pose();
 
@@ -311,61 +372,6 @@ public class AtlasOverviewScreen extends Screen {
             poseStack.translate(width / 2f, height / 2f, 0);
             poseStack.scale(globalScale, globalScale, 1);
 
-
-            poseStack.pushPose();
-
-            RenderSystem.enableDepthTest();
-            //background
-            graphics.blit(
-                    texture,
-                    -H_BOOK_WIDTH,
-                    -H_BOOK_HEIGHT,
-                    0,
-                    0,
-                    BOOK_WIDTH,
-                    BOOK_HEIGHT,
-                    TEXTURE_W,
-                    256
-            );
-            // Draw foreground
-            graphics.blit(
-                    ATLAS_OVERLAY_TEXTURE,
-                    -H_BOOK_WIDTH,
-                    -H_BOOK_HEIGHT,
-                    0,
-                    0,
-                    BOOK_WIDTH,
-                    BOOK_HEIGHT,
-                    TEXTURE_W,
-                    256
-            );
-
-            poseStack.translate(0, 0, 1);
-            //background overlay
-            graphics.blit(
-                    texture,
-                    H_BOOK_WIDTH - 10,
-                    -H_BOOK_HEIGHT,
-                    OVERLAY_UR,
-                    0,
-                    5,
-                    BOOK_HEIGHT,
-                    TEXTURE_W,
-                    256
-            );
-            graphics.blit(
-                    texture,
-                    -H_BOOK_WIDTH + 5,
-                    -H_BOOK_HEIGHT,
-                    OVERLAY_UL,
-                    0,
-                    5,
-                    BOOK_HEIGHT,
-                    TEXTURE_W,
-                    256
-            );
-            poseStack.popPose();
-
             //render widgets
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
@@ -374,6 +380,7 @@ public class AtlasOverviewScreen extends Screen {
             var v = transformMousePos(mouseX, mouseY);
             super.render(graphics, (int) v.x, (int) v.y, delta);
             poseStack.popPose();
+
 
             poseStack.popPose();
         }

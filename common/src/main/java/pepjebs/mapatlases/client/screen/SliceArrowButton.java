@@ -4,7 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.resources.ResourceLocation;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class SliceArrowButton extends BookmarkButton {
@@ -13,12 +15,15 @@ public class SliceArrowButton extends BookmarkButton {
     private static final int BUTTON_W = 12;
 
     private final boolean down;
+    private final ResourceLocation inactiveSprite;
 
     protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
         super(getpX(button), getpY(down, button),
-                BUTTON_W, BUTTON_H, button.getWidth() + (down ? BUTTON_W : 0), 167 + 64,
-                screen);
+                BUTTON_W, BUTTON_H,
+                screen, down ? MapAtlasesClient.SLICE_DOWN_SPRITE : MapAtlasesClient.SLICE_UP_SPRITE,
+                down ? MapAtlasesClient.SLICE_DOWN_HOVERED_SPRITE : MapAtlasesClient.SLICE_UP_HOVERED_SPRITE);
         this.down = down;
+        this.inactiveSprite = down ? MapAtlasesClient.SLICE_DOWN_INACTIVE_SPRITE : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
         this.setSelected(false);
     }
 

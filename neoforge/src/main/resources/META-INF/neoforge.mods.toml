@@ -35,10 +35,11 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId="moonlight"
-mandatory=true
-versionRange="*"
-ordering="NONE"
-side="BOTH"
+modId = "moonlight"
+type = "required"
+referralUrl = "https://www.curseforge.com/minecraft/mc-mods/selene"
+versionRange = "[${moonlight_min_version},]"
+ordering = "NONE"
+side = "BOTH"
 
 

@@ -129,7 +129,10 @@ public class MapAtlasesMod {
                 () -> new SimpleCraftingRecipeSerializer<>(AntiqueAtlasRecipe::new));
         // Register items
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
-                () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
+                () -> new MapAtlasItem(new Item.Properties()
+                        .component(EMPTY_MAPS.get(), 0)
+                        .component(MAP_COLLECTION.get(), MapCollection.EMPTY)
+                        .stacksTo(16)));
 
     }
 

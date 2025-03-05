@@ -1,8 +1,13 @@
 package pepjebs.mapatlases.config;
 
+import com.mojang.realmsclient.util.TextRenderingUtils;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.world.entity.Entity;
+import org.apache.logging.log4j.core.pattern.TextRenderer;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.InHandMode;
@@ -14,7 +19,6 @@ public class MapAtlasesClientConfig {
 
     static {
         ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.CLIENT);
-
 
         builder.push("minimap");
 

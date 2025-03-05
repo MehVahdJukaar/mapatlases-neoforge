@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
@@ -24,7 +25,8 @@ public class DimensionBookmarkButton extends BookmarkButton {
 
 
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H, 0, 167, screen);
+        super(pX, pY, BUTTON_W, BUTTON_H,  screen,
+                MapAtlasesClient.BOOKMARK_RIGHT_SPRITE, MapAtlasesClient.BOOKMARK_RIGHT_SELECTED_SPRITE);
         this.dimension = dimension;
         this.setTooltip(createTooltip());
         int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());

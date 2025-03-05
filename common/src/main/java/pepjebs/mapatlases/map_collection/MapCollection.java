@@ -3,6 +3,8 @@ package pepjebs.mapatlases.map_collection;
 import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
+import net.mehvahdjukaar.moonlight.api.util.math.ColorUtils;
+import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
 import net.minecraft.Util;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -35,8 +37,9 @@ public class MapCollection {
                     i -> new EnumMap<>(MapType.class), MapType.STREAM_CODEC, MapId.STREAM_CODEC.apply(ByteBufCodecs.list()))
             .map(MapCollection::new, m -> m.ids);
 
-    protected final EnumMap<MapType, List<MapId>> ids = new EnumMap<>(MapType.class);
+    public static final MapCollection EMPTY = new MapCollection(Map.of());
 
+    protected final EnumMap<MapType, List<MapId>> ids = new EnumMap<>(MapType.class);
     protected final Map<MapSearchKey, MapDataHolder> maps = new HashMap<>();
     //available dimensions and slices
     protected final Map<ResourceKey<Level>, Map<MapType, TreeSet<Integer>>> mapHeights = new HashMap<>();
@@ -64,7 +67,7 @@ public class MapCollection {
     }
 
     protected void assertInitialized() {
-        Preconditions.checkState(this.isInitialized(), "map collection capability was not initialized");
+        Preconditions.checkState(this.isInitialized(), "map collection component was not initialized");
     }
 
     public Map<MapType, List<MapId>> getIdsCopy() {
@@ -83,12 +86,7 @@ public class MapCollection {
     }
 
     public int getCount() {
-        assertInitialized();
-        return ids.size();
-    }
-
-    public boolean isReallyEmpty() {
-        return ids.isEmpty();
+        return size;
     }
 
     public boolean isEmpty() {
@@ -191,10 +189,8 @@ public class MapCollection {
     }
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
-        assertInitialized();
-
         MapDataHolder found = MapDataHolder.get(intId, type, level);
-        if (this.isEmpty() && found != null) {
+        if (getCount() == 0 && found != null) {
             scale = found.data.scale;
         }
 
@@ -212,7 +208,6 @@ public class MapCollection {
 
         if (d != null && d.scale == scale) {
             MapSearchKey key = found.makeKey();
-
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
                 MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().location());

@@ -21,7 +21,7 @@ public class MapRendererMixin {
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V",
                     ordinal = 0),
             require = 1)
-    private void scaleProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci) {
+    private void mapAtlases$scaleProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci) {
         MapAtlasesClient.modifyDecorationTransform(poseStack);
     }
 
@@ -29,7 +29,7 @@ public class MapRendererMixin {
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;scale(FFF)V",
                     ordinal = 1),
             require = 1)
-    private void scaleTextProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci,
+    private void mapAtlases$scaleTextProxy(PoseStack poseStack, MultiBufferSource bufferSource, boolean active, int packedLight, CallbackInfo ci,
                                 @Local(ordinal = 6) float width, @Local(ordinal = 7) float scale) {
         MapAtlasesClient.modifyTextDecorationTransform(poseStack, width, scale);
     }

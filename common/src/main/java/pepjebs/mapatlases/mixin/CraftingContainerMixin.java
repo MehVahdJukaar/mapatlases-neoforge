@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import pepjebs.mapatlases.utils.ICraftingInputWithContext;
 
 @Mixin(CraftingContainer.class)
-public abstract class CraftingContainerMixin {
+public interface CraftingContainerMixin {
 
     @ModifyReturnValue(method = "asPositionedCraftInput", at = @At("RETURN"))
-    public CraftingInput.Positioned mapAtlases$addContext(CraftingInput.Positioned original) {
+     default CraftingInput.Positioned mapAtlases$addContext(CraftingInput.Positioned original) {
         if (((Object) this) instanceof TransientCraftingContainer tc) {
             ((ICraftingInputWithContext) original.input()).mapAtlases$setMenu(tc.menu);
         }

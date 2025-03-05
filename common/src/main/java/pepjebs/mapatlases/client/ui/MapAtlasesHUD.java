@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.supplementaries.reg.ModTextures;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -41,7 +42,6 @@ import pepjebs.mapatlases.utils.Slice;
 import java.util.Objects;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public class MapAtlasesHUD extends AbstractAtlasWidget {
 
@@ -230,9 +230,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         }
         if (drawBigPlayerMarker) {
             poseStack.translate(-4.5f, -4f, 0);
-            graphics.blit(MAP_ICON_TEXTURE, 0,
-                    0,
-                    0, 0, 8, 8, 128, 128);
+            graphics.blitSprite(MapAtlasesClient.PLAYER_MARKER_SPRITE, 0,0, 8,8);
         }
         poseStack.popPose();
 

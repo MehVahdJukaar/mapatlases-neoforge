@@ -6,16 +6,13 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.MapDecorationTextureManager;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
-import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_BORDER_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HOVERED_TEXTURE;
 
 public abstract class AbstractAtlasWidget {
 
@@ -54,7 +49,7 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize( MapDataHolder newCenter) {
+    protected void initialize(MapDataHolder newCenter) {
         if (mapWherePlayerIs == null || !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
             this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
         }
@@ -95,7 +90,7 @@ public abstract class AbstractAtlasWidget {
 
         MultiBufferSource.BufferSource vcp = graphics.bufferSource();
 
-        Pair<List<Matrix4f>,List<Matrix4f>> outlineHack = Pair.of(new ArrayList<>(), new ArrayList<>());
+        Pair<List<Matrix4f>, List<Matrix4f>> outlineHack = Pair.of(new ArrayList<>(), new ArrayList<>());
 
         applyScissors(graphics, x, y, (x + width), (y + height));
 
@@ -150,12 +145,12 @@ public abstract class AbstractAtlasWidget {
 
             if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 
-            VertexConsumer outlineVC = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-            //using this so we use mipmap
+            VertexConsumer outlineVC = MapAtlasesClient.MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
+            //using this so we use mipmap. cant use blit sprite
             for (var matrix4f : outlineHack.getFirst()) {
                 drawOutline(matrix4f, outlineVC, 50);
             }
-            VertexConsumer outlineVC2 = MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
+            VertexConsumer outlineVC2 = MapAtlasesClient.MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             for (var matrix4f : outlineHack.getSecond()) {
                 drawOutline(matrix4f, outlineVC2, 200);
             }
@@ -195,7 +190,7 @@ public abstract class AbstractAtlasWidget {
     //TODO: in 1.21 refactor and render all at same time since its all a sprite
     private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ,
                                MultiBufferSource.BufferSource vcp,
-                              Pair<List<Matrix4f>, List<Matrix4f>> outlineHack, int i, int j, int light,
+                               Pair<List<Matrix4f>, List<Matrix4f>> outlineHack, int i, int j, int light,
                                @Nullable MapItemSavedData selectedData) {
         int reqXCenter = centerMapX + (j * mapBlocksSize);
         int reqZCenter = centerMapZ + (i * mapBlocksSize);
@@ -219,7 +214,7 @@ public abstract class AbstractAtlasWidget {
             Player player,
             PoseStack poseStack,
             MultiBufferSource.BufferSource vcp,
-            Pair<List<Matrix4f>,List<Matrix4f>> outlineHack,
+            Pair<List<Matrix4f>, List<Matrix4f>> outlineHack,
             int ix, int iy,
             MapDataHolder state,
             boolean drawPlayerIcons,
@@ -240,7 +235,7 @@ public abstract class AbstractAtlasWidget {
         for (var e : data.decorations.entrySet()) {
             MapDecoration dec = e.getValue();
             var type = dec.type();
-            if (type.is( MapDecorationTypes.PLAYER_OFF_MAP) || type.is(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
+            if (type.is(MapDecorationTypes.PLAYER_OFF_MAP) || type.is(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     removed.add(e);
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
@@ -278,9 +273,9 @@ public abstract class AbstractAtlasWidget {
                         light //
                 );
 
-        if (state.data == selectedData){
+        if (state.data == selectedData) {
             outlineHack.getSecond().add(new Matrix4f(poseStack.last().pose()));
-        }else {
+        } else {
             outlineHack.getFirst().add(new Matrix4f(poseStack.last().pose()));
         }
 

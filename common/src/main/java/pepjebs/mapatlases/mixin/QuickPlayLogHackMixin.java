@@ -12,7 +12,7 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 public class QuickPlayLogHackMixin {
 
     @Inject(method = "setWorldData", at = @At("HEAD"))
-    public void associatedFolderNameWithLevelName(QuickPlayLog.Type pType, String pId, String pName, CallbackInfo ci) {
+    public void mapAtlases$associatedFolderNameWithLevelName(QuickPlayLog.Type pType, String pId, String pName, CallbackInfo ci) {
         if (MapAtlasesMod.MOONLIGHT) ClientMarkers.setWorldFolder(pId, pType);
     }
 
