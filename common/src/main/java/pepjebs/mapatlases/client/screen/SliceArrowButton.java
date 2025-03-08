@@ -39,6 +39,10 @@ public class SliceArrowButton extends BookmarkButton {
         return i;
     }
 
+    @Override
+    public ResourceLocation getSprite() {
+        return super.getSprite();
+    }
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {

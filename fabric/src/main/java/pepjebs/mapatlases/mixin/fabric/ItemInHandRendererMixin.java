@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.mixin;
+package pepjebs.mapatlases.mixin.fabric;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -28,7 +28,7 @@ public abstract class ItemInHandRendererMixin {
     @ModifyExpressionValue(method = "renderArmWithItem", at =  @At(value = "INVOKE",
             ordinal = 0,
             target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
-    public boolean renderMapAtlasItem(boolean isNormalMap, @Local ItemStack pStack){
+    public boolean renderMapAtlasItem(boolean isNormalMap, @Local(argsOnly = true) ItemStack pStack){
         if(pStack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(pStack)){
             mapatlases$renderingAtlas = true;
             return true;

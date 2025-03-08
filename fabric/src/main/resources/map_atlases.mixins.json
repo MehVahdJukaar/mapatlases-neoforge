@@ -4,6 +4,7 @@
   "package": "pepjebs.mapatlases.mixin.fabric",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "ItemInHandRendererMixin"
   ],
   "mixins": [
   ],

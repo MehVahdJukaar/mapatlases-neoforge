@@ -27,6 +27,8 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
+    modImplementation("curse.maven:supplementaries-412082:6257676")
+    modImplementation("curse.maven:trinkets-341284:5534317")
 
     modCompileOnly "com.terraformersmc:modmenu:4.0.6", {
         exclude module: "fabric-api"

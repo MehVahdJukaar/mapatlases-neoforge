@@ -63,8 +63,6 @@ public class MapAtlasesClient {
 
     //sprites
     public static final ResourceLocation PLAYER_MARKER_SPRITE = MapAtlasesMod.res("player_marker");
-    public static final ResourceLocation ATLAS_BACKGROUND_EDGE_LEFT_SPRITE = MapAtlasesMod.res("atlas_background_edge_left");
-    public static final ResourceLocation ATLAS_BACKGROUND_EDGE_RIGHT_SPRITE = MapAtlasesMod.res("atlas_background_edge_right");
     public static final ResourceLocation BOOKMARK_LEFT_SPRITE = MapAtlasesMod.res("bookmark_left");
     public static final ResourceLocation BOOKMARK_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_left_selected");
     public static final ResourceLocation BOOKMARK_RIGHT_SPRITE = MapAtlasesMod.res("bookmark_right");

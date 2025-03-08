@@ -50,6 +50,15 @@ public enum MapType implements StringRepresentable {
         return s;
     });
 
+    private static final Set<Item> FILLED = Util.make(() -> {
+        var s = new HashSet<Item>();
+        for (var v : MapType.values()) {
+            var t = v.filled;
+            if (t != null) s.add(t);
+        }
+        return s;
+    });
+
     public final Item filled;
     public final Item empty;
     public final String translationKey;
@@ -65,6 +74,10 @@ public enum MapType implements StringRepresentable {
 
     public static boolean isEmptyMap(Item i) {
         return EMPTY.contains(i);
+    }
+
+    public static boolean isFilledMap(Item i) {
+        return FILLED.contains(i);
     }
 
     public static MapType fromItem(Item item) {

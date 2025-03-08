@@ -30,7 +30,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
-import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.DELETE_MARKER_SPRITE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.FOCUS_MARKER_SPRITE;
 
 public abstract class DecorationBookmarkButton extends BookmarkButton {
 
@@ -122,11 +123,9 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             if (this.control && canFocusMarker()) {
-                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
-                        24, 173, 5, 5);
+                graphics.blitSprite(FOCUS_MARKER_SPRITE, getX(), getY(), 5, 5);
             } else if (this.shfting && canDeleteMarker()) {
-                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
-                        24, 167, 5, 5);
+                graphics.blitSprite(DELETE_MARKER_SPRITE, getX(), getY(), 5, 5);
             }
         }
         renderDecoration(graphics, pMouseX, pMouseY);
