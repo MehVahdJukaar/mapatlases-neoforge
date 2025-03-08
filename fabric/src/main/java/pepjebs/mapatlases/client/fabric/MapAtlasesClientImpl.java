@@ -28,8 +28,7 @@ public class MapAtlasesClientImpl {
     }
 
     private static void onRenderHud(GuiGraphics graphics, DeltaTracker deltaTracker) {
-        Window window = Minecraft.getInstance().getWindow();
-        HUD.render(graphics, deltaTracker.getGameTimeDeltaTicks(), window.getGuiScaledWidth(), window.getGuiScaledHeight());
+        HUD.render(graphics, deltaTracker);
     }
 
     private static void mapAtlasClientTick(Minecraft minecraft) {

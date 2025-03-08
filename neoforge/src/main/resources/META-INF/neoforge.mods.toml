@@ -11,35 +11,35 @@ config = "${mod_id}.mixins.json"
 config = "${mod_id}-common.mixins.json"
 
 [[mods]]
-modId = "${mod_id}"
-version = "${mod_version}"
-displayName = "${mod_name}"
-logoFile = "icon.png"
-authors = "${mod_authors}"
-credits = "${mod_credits}"
-description = '''${mod_description}'''
-modUrl = "${mod_homepage}"
+    modId = "${mod_id}"
+    version = "${mod_version}"
+    displayName = "${mod_name}"
+    logoFile = "icon.png"
+    authors = "${mod_authors}"
+    credits = "${mod_credits}"
+    description = '''${mod_description}'''
+    modUrl = "${mod_homepage}"
 
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "${neo_version_range}"
-ordering = "NONE"
-side = "BOTH"
+    modId = "neoforge"
+    type = "required"
+    versionRange = "${neo_version_range}"
+    ordering = "NONE"
+    side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "minecraft"
-type = "required"
-versionRange = "[${minecraft_min_version},${minecraft_max_version})"
-ordering = "NONE"
-side = "BOTH"
+    modId = "minecraft"
+    type = "required"
+    versionRange = "[${minecraft_min_version},${minecraft_max_version})"
+    ordering = "NONE"
+    side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "moonlight"
-type = "required"
-referralUrl = "https://www.curseforge.com/minecraft/mc-mods/selene"
-versionRange = "[${moonlight_min_version},]"
-ordering = "NONE"
-side = "BOTH"
+    modId = "moonlight"
+    type = "required"
+    referralUrl = "https://www.curseforge.com/minecraft/mc-mods/selene"
+    versionRange = "[${moonlight_min_version},]"
+    ordering = "NONE"
+    side = "BOTH"
 
 

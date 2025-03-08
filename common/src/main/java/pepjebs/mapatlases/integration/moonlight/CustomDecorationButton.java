@@ -55,7 +55,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         Component displayName = decoration.getDisplayName();
         return displayName == null
                 ? Component.literal(
-                AtlasOverviewScreen.getReadableName(Utils.getID(decoration.getType()).getPath()
+                AtlasOverviewScreen.getReadableName(decoration.getType().unwrapKey().get().location().getPath()
                         .toLowerCase(Locale.ROOT)))
                 : displayName;
     }

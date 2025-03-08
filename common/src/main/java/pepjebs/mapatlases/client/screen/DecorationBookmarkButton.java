@@ -1,23 +1,28 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.MapDecorationTextureManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
-import net.minecraft.world.level.saveddata.maps.MapDecorationType;
-import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -39,7 +44,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected boolean control = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data, String id) {
-        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H,  parentScreen,
+        super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, parentScreen,
                 MapAtlasesClient.BOOKMARK_LEFT_SPRITE, MapAtlasesClient.BOOKMARK_LEFT_SELECTED_SPRITE);
         this.mapData = data;
         this.decorationId = id;
@@ -191,20 +196,29 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Component getDecorationName() {
             var name = decoration.name();
             return name.orElseGet(() -> Component.literal(
-                    AtlasOverviewScreen.getReadableName(decoration.type().getRegisteredName().toLowerCase(Locale.ROOT))));
+                    AtlasOverviewScreen.getReadableName(decoration.type().unwrapKey().get()
+                            .location().getPath().toLowerCase(Locale.ROOT))));
         }
 
         @Override
         protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
             PoseStack matrices = pGuiGraphics.pose();
-            ResourceLocation sprite = decoration.getSpriteLocation();
+            MultiBufferSource.BufferSource bufferSource = pGuiGraphics.bufferSource();
 
             matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
             matrices.mulPose(Axis.ZP.rotationDegrees((decoration.rot() * 360) / 16.0F));
             matrices.scale(-1, -1, 1);
+            matrices.translate(-4, -4, 0);
 
-            pGuiGraphics.blitSprite(sprite, -4, -4, 8, 8);
+            MapDecorationTextureManager textures = Minecraft.getInstance().gameRenderer.getMapRenderer().decorationTextures;
+            if (!PlatStuff.renderForgeMapDecoration(decoration, matrices, bufferSource, mapData.data,
+                    textures, true, LightTexture.FULL_BRIGHT, index)) {
+                TextureAtlasSprite textureAtlasSprite = textures.get(decoration);
+                VertexConsumer vertexConsumer = pGuiGraphics.bufferSource().getBuffer(RenderType.text(textureAtlasSprite.atlasLocation()));
 
+                RenderUtil.renderSprite(matrices, vertexConsumer, LightTexture.FULL_BRIGHT, index, 255, 255, 255, 255, textureAtlasSprite);
+                pGuiGraphics.blitSprite(sprite, -4, -4, 8, 8);
+            }
         }
 
 

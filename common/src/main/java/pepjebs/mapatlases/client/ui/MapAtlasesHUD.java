@@ -1,15 +1,15 @@
 package pepjebs.mapatlases.client.ui;
 
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
-import net.mehvahdjukaar.supplementaries.reg.ModTextures;
 import net.minecraft.Util;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
@@ -93,8 +93,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
-    public void render(GuiGraphics graphics, float partialTick,
-                       int screenWidth, int screenHeight) {
+    public void render(GuiGraphics graphics, DeltaTracker partialTick) {
+        Window window = Minecraft.getInstance().getWindow();
+        int screenWidth = window.getGuiScaledWidth();
+        int screenHeight = window.getGuiScaledHeight();
+
         // Handle early returns
         // Check F3 menu displayed
         if (mc.level == null || mc.player == null || mc.getDebugOverlay().showDebugScreen()) {
@@ -230,7 +233,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         }
         if (drawBigPlayerMarker) {
             poseStack.translate(-4.5f, -4f, 0);
-            graphics.blitSprite(MapAtlasesClient.PLAYER_MARKER_SPRITE, 0,0, 8,8);
+            graphics.blitSprite(MapAtlasesClient.PLAYER_MARKER_SPRITE, 0, 0, 8, 8);
         }
         poseStack.popPose();
 
