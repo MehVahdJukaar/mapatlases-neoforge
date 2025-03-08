@@ -24,7 +24,7 @@ import java.util.List;
 
 public class PlatStuffImpl {
     public static boolean isShear(ItemStack bottomItem) {
-        return bottomItem.is(Tags.Items.SHEARS);
+        return bottomItem.is(Tags.Items.TOOLS_SHEAR);
     }
 
     public static boolean isBoss(EntityType<?> type) {

@@ -2,6 +2,7 @@ package pepjebs.mapatlases.fabric;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class PlatStuffImpl {
     public static boolean isShear(ItemStack bottomItem) {
-        return bottomItem.is(Items.SHEARS);
+        return bottomItem.is(ConventionalItemTags.SHEAR_TOOLS);
     }
 
     public static boolean isBoss(EntityType<?> type) {

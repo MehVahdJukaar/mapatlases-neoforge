@@ -15,6 +15,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.neoforge.MapAtlasesClientImpl;
@@ -42,12 +43,11 @@ public class MapAtlasesForge {
     }
 
     @SubscribeEvent
-    public void mapAtlasesPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        if (event.side == LogicalSide.CLIENT) {
-            MapAtlasesClient.cachePlayerState(event.player);
+    public void mapAtlasesPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide) {
+            MapAtlasesClient.cachePlayerState(event.getEntity());
         } else {
-            MapAtlasesServerEvents.onPlayerTick(event.player);
+            MapAtlasesServerEvents.onPlayerTick(event.getEntity());
         }
     }
 
