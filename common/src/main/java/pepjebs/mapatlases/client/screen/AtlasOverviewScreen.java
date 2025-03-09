@@ -264,14 +264,22 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (pKeyCode == 256 && editBox.active) {
-            editBox.active = false;
-            editBox.visible = false;
-            partialPin = null;
-            if (isPinOnly) {
-                this.onClose();
+        if (pKeyCode == 256) {
+            if (editBox.active) {
+                editBox.active = false;
+                editBox.visible = false;
+                partialPin = null;
+                if (isPinOnly) {
+                    this.onClose();
+                }
+                return true;
+            } else if (placingPin) {
+                placingPin = false;
+                return true;
+            } else if (shearing) {
+                shearing = false;
+                return true;
             }
-            return true;
         }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) {

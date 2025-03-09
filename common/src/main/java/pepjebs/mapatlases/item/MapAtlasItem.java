@@ -255,7 +255,7 @@ public class MapAtlasItem extends Item {
 
     private static void validateSelectedSlices(ItemStack pStack, Level level) {
         // Populate default slices
-        var maps = getMaps(pStack, level);
+        MapCollection maps = getMaps(pStack, level);
         var dim = maps.getAvailableDimensions();
         for (var d : dim) {
             for (var k : maps.getAvailableTypes(d)) {

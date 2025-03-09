@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.Slice;
@@ -37,8 +38,8 @@ public class SliceBookmarkButton extends BookmarkButton {
 
     @Override
     public Tooltip createTooltip() {
-        return Tooltip.create(slice == null ? Component.translatable("item.map_atlases.atlas.tooltip_slice_default") :
-                Component.translatable("item.map_atlases.atlas.tooltip_slice", slice.type().getName().getString()));
+        return Tooltip.create(slice.height().isEmpty() ? Component.translatable("item.map_atlases.atlas.tooltip_slice_default") :
+                Component.translatable("item.map_atlases.atlas.tooltip_slice", slice.height().get()));
     }
 
     public Slice getSlice() {
@@ -55,10 +56,14 @@ public class SliceBookmarkButton extends BookmarkButton {
         RenderSystem.enableDepthTest();
 
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
-                this.getX() + 8, this.getY() + 2, 51 + slice.type().ordinal() * 16,
-                167 + 66,
-                16, 16);
+        ResourceLocation sprite = switch(slice.type()){
+            case VANILLA -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
+            case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
+            case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;
+            case MAGIC -> MapAtlasesClient.MAP_TYPE_MAGIC_SPRITE;
+        };
+        pGuiGraphics.blitSprite(sprite,
+                this.getX() + 8, this.getY() + 2, 16, 16);
 
         if (hasMoreThan1Slice) {
             pose.translate(0, 0, 1);

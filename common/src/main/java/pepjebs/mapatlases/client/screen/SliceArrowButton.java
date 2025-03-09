@@ -11,8 +11,8 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class SliceArrowButton extends BookmarkButton {
 
-    private static final int BUTTON_H = 7;
-    private static final int BUTTON_W = 12;
+    private static final int BUTTON_H = 5;
+    private static final int BUTTON_W = 8;
 
     private final boolean down;
     private final ResourceLocation inactiveSprite;
@@ -33,8 +33,8 @@ public class SliceArrowButton extends BookmarkButton {
 
     private static int getpY(boolean down, SliceBookmarkButton button) {
         int i = button.getY() - 1 + (down ? button.getHeight() - BUTTON_H + 2 : 0);
-        if(button.compact){
-            i+= ( down ? 7 : -7);
+        if (button.compact) {
+            i += (down ? 7 : -7);
         }
         return i;
     }
@@ -60,7 +60,7 @@ public class SliceArrowButton extends BookmarkButton {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if(down) this.parentScreen.decreaseSlice();
+        if (down) this.parentScreen.decreaseSlice();
         else this.parentScreen.increaseSlice();
     }
 
@@ -73,7 +73,7 @@ public class SliceArrowButton extends BookmarkButton {
     @Override
     public void playDownSound(SoundManager pHandler) {
         super.playDownSound(pHandler);
-        pHandler.play(SimpleSoundInstance.forUI( MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
-                (float)(double)   MapAtlasesClientConfig.soundScalar.get()));
+        pHandler.play(SimpleSoundInstance.forUI(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
+                (float) (double) MapAtlasesClientConfig.soundScalar.get()));
     }
 }

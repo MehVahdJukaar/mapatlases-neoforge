@@ -136,10 +136,11 @@ public class MapAtlasesServerEvents {
                         .anyMatch(edge -> edge.x == e.centerX
                                 && edge.y == e.centerZ));
 
+        boolean createdNewMap = false;
         MapDataHolder activeInfo = maps.select(activeKey);
         if (activeInfo == null && !MapAtlasItem.isLocked(atlas)) {
             // no map. we try creating a new one for this dimension
-            maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
             activeInfo = maps.select(activeKey);
         }
 
@@ -181,14 +182,21 @@ public class MapAtlasesServerEvents {
 
         //TODO : this isnt accurate and can be improved
         if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
-            maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
+          createdNewMap |=  maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
                     Mth.floor(player.getZ()));
         }
-        //remove existing maps and tries to fill in remaining nones
+        //remove existing maps and tries to fill in remaining ones
         discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
                 d -> d.data.centerX == e.x && d.data.centerZ == e.y));
         for (var edge : discoveringEdges) {
-            maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+          createdNewMap |=  maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+        }
+
+        if (createdNewMap) {
+            // Play the sound
+            player.level().playSound(null, player.blockPosition(),
+                    MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
+                    SoundSource.PLAYERS, 1, 1.0F);
         }
     }
 
@@ -278,7 +286,7 @@ public class MapAtlasesServerEvents {
     }
 
     //TODO: optimize
-    private static void maybeCreateNewMapEntry(
+    private static boolean maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
             MapCollection maps,
@@ -306,13 +314,10 @@ public class MapAtlasesServerEvents {
             //validate height
             var height = slice.height();
             if (height.isPresent() && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height.get())) {
-                int error = 1;
                 MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
             }
 
             byte scale = maps.getScale();
-
-            //TODO: create custom ones
 
             ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
             MapId newMapId = newMap.get(DataComponents.MAP_ID);
@@ -328,12 +333,7 @@ public class MapAtlasesServerEvents {
             mutex.unlock();
         }
 
-        if (addedMap) {
-            // Play the sound
-            player.level().playSound(null, player.blockPosition(),
-                    MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
-                    SoundSource.PLAYERS, 1, 1.0F);
-        }
+        return addedMap;
     }
 
     private static Set<Vector2i> getPlayerDiscoveringMapEdges(

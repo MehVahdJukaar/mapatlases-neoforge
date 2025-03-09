@@ -17,22 +17,32 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 public class CartographyTableAtlasButton extends AbstractWidget {
 
-    private static final ResourceLocation TEXTURE = MapAtlasesMod.res(
-            "textures/gui/screen/cartography_table_buttons.png");
-
     protected final boolean left;
     protected final AbstractContainerMenu menu;
+    protected final ResourceLocation hoveredSprite;
+    protected final ResourceLocation sprite;
+    protected final ResourceLocation selectedSprite;
 
     public CartographyTableAtlasButton(AbstractContainerScreen<?> screen, boolean left, AbstractContainerMenu menu) {
         super(screen.leftPos + (left ? 71 : 122), screen.topPos + 65, 7, 11, Component.empty());
         this.menu = menu;
         this.left = left;
+        if (left) {
+            sprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_SPRITE;
+            hoveredSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE;
+            selectedSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_SELECTED_SPRITE;
+        } else {
+            sprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_SPRITE;
+            hoveredSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE;
+            selectedSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_SELECTED_SPRITE;
+        }
     }
 
     @Override
@@ -44,9 +54,8 @@ public class CartographyTableAtlasButton extends AbstractWidget {
         PoseStack pose = pGuiGraphics.pose();
         pose.pushPose();
         pose.translate(0, 0, 5);
-        pGuiGraphics.blit(TEXTURE,
-                this.getX(), this.getY(), left ? 9 : 0, isHovered ? height : 0,
-                this.width, this.height, 32, 32);
+        pGuiGraphics.blitSprite(isHovered ? hoveredSprite : sprite,
+                this.getX(), this.getY(), this.width, this.height);
 
         if (this.menu instanceof AtlasCartographyTable at) {
             if (left) {

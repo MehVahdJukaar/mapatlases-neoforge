@@ -149,8 +149,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         Component mapIconComponent = getDecorationName();
         Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())
                 .withStyle(ChatFormatting.GRAY);
-        var t = Tooltip.create(mapIconComponent);
-        var t2 = Tooltip.create(coordsComponent);
+        Tooltip t = Tooltip.create(mapIconComponent);
+        Tooltip t2 = Tooltip.create(coordsComponent);
         return CompoundTooltip.create(t, t2);
     }
 
@@ -206,17 +206,16 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
             matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
             matrices.mulPose(Axis.ZP.rotationDegrees((decoration.rot() * 360) / 16.0F));
-            matrices.scale(-1, -1, 1);
-            matrices.translate(-4, -4, 0);
+            matrices.scale(-4, -4, 1);
 
             MapDecorationTextureManager textures = Minecraft.getInstance().gameRenderer.getMapRenderer().decorationTextures;
             if (!PlatStuff.renderForgeMapDecoration(decoration, matrices, bufferSource, mapData.data,
-                    textures, true, LightTexture.FULL_BRIGHT, index)) {
+                    textures, true, LightTexture.FULL_BRIGHT, 0)) {
                 TextureAtlasSprite textureAtlasSprite = textures.get(decoration);
-                VertexConsumer vertexConsumer = pGuiGraphics.bufferSource().getBuffer(RenderType.text(textureAtlasSprite.atlasLocation()));
+                VertexConsumer vertexConsumer = pGuiGraphics.bufferSource()
+                        .getBuffer(RenderType.text(textureAtlasSprite.atlasLocation()));
 
-                RenderUtil.renderSprite(matrices, vertexConsumer, LightTexture.FULL_BRIGHT, index, 255, 255, 255, 255, textureAtlasSprite);
-                pGuiGraphics.blitSprite(sprite, -4, -4, 8, 8);
+                RenderUtil.renderSprite(matrices, vertexConsumer, LightTexture.FULL_BRIGHT, 255, 255, 255, 255, textureAtlasSprite);
             }
         }
 

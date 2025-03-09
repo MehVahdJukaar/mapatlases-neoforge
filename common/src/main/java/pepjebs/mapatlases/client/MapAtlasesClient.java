@@ -101,6 +101,12 @@ public class MapAtlasesClient {
     public static final ResourceLocation MAP_NETHER_SPRITE = MapAtlasesMod.res("map_nether");
     public static final ResourceLocation MAP_BUMBLEZONE_SPRITE = MapAtlasesMod.res("map_the_bumblezone");
 
+    public static final ResourceLocation MAP_TYPE_VANILLA_SPRITE = MapAtlasesMod.res("map_type_vanilla");
+    public static final ResourceLocation MAP_TYPE_MAGIC_SPRITE = MapAtlasesMod.res("map_type_magic");
+    public static final ResourceLocation MAP_TYPE_MAZE_SPRITE = MapAtlasesMod.res("map_type_maze");
+    public static final ResourceLocation MAP_TYPE_ORE_SPRITE = MapAtlasesMod.res("map_type_ore");
+
+
     public static final ResourceLocation ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");

@@ -214,6 +214,7 @@ public class MapCollection {
                 return false;
 
             }
+            MapItemDataPacketMixin
             maps.put(key, found);
             addToDimensionMap(key);
             return true;
