@@ -2,22 +2,14 @@
   "type": "map_atlases:antique_atlas",
   "neoforge:conditions": [
     {
-      "type": "neoforge:mod_loaded",
+      "condition": "neoforge:mod_loaded",
       "modid": "supplementaries"
-    },
-    {
-        "type": "supplementaries:flag",
-        "flag": "antique_ink"
     }
   ],
   "fabric:load_conditions": [
     {
       "type": "fabric:mod_loaded",
       "modid": "supplementaries"
-    },
-    {
-      "type": "supplementaries:flag",
-      "flag": "antique_ink"
     }
   ]
 }

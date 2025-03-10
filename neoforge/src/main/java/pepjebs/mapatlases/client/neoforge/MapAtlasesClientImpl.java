@@ -40,7 +40,9 @@ public class MapAtlasesClientImpl {
 
     @SubscribeEvent
     public static void onLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
-        MapAtlasesClientEvents.onLoggedOut(event.getPlayer().registryAccess());
+        if (event.getPlayer() != null) {
+            MapAtlasesClientEvents.onLoggedOut(event.getPlayer().registryAccess());
+        }
     }
 
     public static void decreaseHoodZoom() {

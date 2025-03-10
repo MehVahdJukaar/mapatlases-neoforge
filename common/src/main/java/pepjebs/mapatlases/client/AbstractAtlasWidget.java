@@ -187,7 +187,6 @@ public abstract class AbstractAtlasWidget {
         graphics.enableScissor(x, y, x1, y1);
     }
 
-    //TODO: in 1.21 refactor and render all at same time since its all a sprite
     private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ,
                                MultiBufferSource.BufferSource vcp,
                                Pair<List<Matrix4f>, List<Matrix4f>> outlineHack, int i, int j, int light,

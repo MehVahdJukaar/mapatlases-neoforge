@@ -11,6 +11,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
@@ -634,7 +635,6 @@ public class AtlasOverviewScreen extends Screen {
         return updateSlice(Slice.of(type, newHeight, dim));
     }
 
-    //TODO: make static
     public boolean increaseSlice() {
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();

@@ -1,1 +1,1 @@
-fixed removing pins not wroking
+fixed a new issue on logout

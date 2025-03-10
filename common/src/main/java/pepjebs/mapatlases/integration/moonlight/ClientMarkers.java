@@ -263,7 +263,7 @@ public class ClientMarkers {
                     matrixStack.translate(-0.25, -0.25, 0);
 
                     ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType().value(), t ->
-                            reg.getKey(t).withPath(k -> "map_marker/" + k + "_small"));
+                            reg.getKey(t).withPath(k -> k + "_small"));
                     TextureAtlasSprite sprite = Minecraft.getInstance().getMapDecorationTextures().getSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);
                     matrixStack.popPose();

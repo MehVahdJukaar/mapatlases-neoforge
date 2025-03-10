@@ -23,7 +23,6 @@ public class MapAtlasesClientImpl {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(MapAtlasesClientImpl::mapAtlasClientTick);
-
         HudRenderCallback.EVENT.register(MapAtlasesClientImpl::onRenderHud);
     }
 

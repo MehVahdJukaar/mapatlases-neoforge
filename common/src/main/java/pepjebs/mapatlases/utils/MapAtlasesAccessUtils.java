@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.utils;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.mehvahdjukaar.supplementaries.Supplementaries;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;

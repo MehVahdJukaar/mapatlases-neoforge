@@ -53,16 +53,10 @@ public class MoonlightCompat {
     }
 
     public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        MLMapDecorationType<?, ?> type = MapDataRegistry.getRegistry(level.registryAccess()).get(id);
-        if (type != null) {
-            //TODO?
-            /*
-            new PinMarker()
-            MLMapMarker<?> defaultMarker = type.createEmptyMarker();
-            defaultMarker.setPos(pos);
-            defaultMarker.setName(name);
-            ((ExpandedMapData) data).addCustomMarker(defaultMarker);
-             */
+        var type = MapDataRegistry.getRegistry(level.registryAccess()).getHolder(id);
+        if (type.isPresent()) {
+            MLMapMarker<?> defaultMarker = new PinMarker(type.get(), pos, Optional.ofNullable(name), false);
+            ((ExpandedMapData) data).ml$addCustomMarker(defaultMarker);
         }
     }
 
