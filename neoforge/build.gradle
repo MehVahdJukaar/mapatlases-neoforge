@@ -98,6 +98,7 @@ dependencies {
     modImplementation("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
     //modImplementation("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
     modImplementation("curse.maven:the-twilight-forest-227639:6087105")
+    modImplementation("curse.maven:curios-309927:6274154")
 
     implementation 'org.jetbrains:annotations:22.0.0'
 

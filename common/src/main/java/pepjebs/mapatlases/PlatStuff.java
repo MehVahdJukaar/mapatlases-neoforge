@@ -53,6 +53,7 @@ public class PlatStuff {
         throw new AssertionError();
     }
 
+    @Environment(EnvType.CLIENT)
     @ExpectPlatform
     public static boolean renderForgeMapDecoration(MapDecoration mapdecoration, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource,
                                                    MapItemSavedData data, MapDecorationTextureManager decorationTextures, boolean active, int packedLight, int index) {

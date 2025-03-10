@@ -1,1 +1,1 @@
-minor bug fix
+fixed not working on servers

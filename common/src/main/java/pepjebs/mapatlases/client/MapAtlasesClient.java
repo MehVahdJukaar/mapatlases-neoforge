@@ -393,4 +393,7 @@ public class MapAtlasesClient {
         throw new AssertionError();
     }
 
+    public static Level getLevel() {
+        return Minecraft.getInstance().level;
+    }
 }

@@ -14,6 +14,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.gui.map.MapDecorationRendererManager;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.RecipeMatcher;
@@ -48,6 +50,7 @@ public class PlatStuffImpl {
         return Pair.of(event.isCanceled(), new Vec3(event.getTargetX(), event.getTargetY(), event.getTargetZ()));
     }
 
+    @OnlyIn(Dist.CLIENT)
     public static boolean renderForgeMapDecoration(MapDecoration mapdecoration, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource,
                                                    MapItemSavedData data, MapDecorationTextureManager decorationTextures, boolean active, int packedLight, int index) {
         return MapDecorationRendererManager.render(mapdecoration, poseStack, bufferSource, data, decorationTextures, active, packedLight, index);

@@ -2,6 +2,8 @@ package pepjebs.mapatlases.fabric;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -44,6 +46,7 @@ public class PlatStuffImpl {
         return Pair.of(false, new Vec3(pX,pY,pZ));
     }
 
+    @Environment(EnvType.CLIENT)
     public static boolean renderForgeMapDecoration(MapDecoration mapdecoration, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, MapItemSavedData data, MapDecorationTextureManager decorationTextures, boolean active, int packedLight, int index) {
         return false;
     }

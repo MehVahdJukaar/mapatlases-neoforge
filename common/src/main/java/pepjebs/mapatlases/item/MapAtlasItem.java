@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -60,7 +61,8 @@ public class MapAtlasItem extends Item {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
         if (PlatHelper.getPhysicalSide().isServer()) return;
-        Level level = Minecraft.getInstance().level;
+
+        Level level = MapAtlasesClient.getLevel();
         MapCollection maps = getMaps(stack, level);
         int mapSize = maps.getCount();
         int empties = getEmptyMaps(stack);
