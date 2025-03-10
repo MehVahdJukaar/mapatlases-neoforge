@@ -2,13 +2,13 @@
   "type": "map_atlases:antique_atlas",
   "neoforge:conditions": [
     {
-      "condition": "neoforge:mod_loaded",
+      "type": "neoforge:mod_loaded",
       "modid": "supplementaries"
     }
   ],
   "fabric:load_conditions": [
     {
-      "type": "fabric:mod_loaded",
+      "condition": "fabric:mod_loaded",
       "modid": "supplementaries"
     }
   ]

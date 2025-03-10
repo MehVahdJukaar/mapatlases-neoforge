@@ -1,1 +1,1 @@
-fixed a new issue on logout
+minor bug fix

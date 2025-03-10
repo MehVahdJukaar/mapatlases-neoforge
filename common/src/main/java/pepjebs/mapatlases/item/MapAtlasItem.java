@@ -113,7 +113,7 @@ public class MapAtlasItem extends Item {
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }
         if (player instanceof ServerPlayer sp) {
-            syncAndOpenGui(sp, stack, null, false);
+            syncAndOpenGui(sp, stack, Optional.empty(), false);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
@@ -159,7 +159,7 @@ public class MapAtlasItem extends Item {
     // Utilities functions
 
 
-    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, Optional<BlockPos> lecternPos, boolean pinOnly) {
+    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @NotNull Optional<BlockPos> lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
