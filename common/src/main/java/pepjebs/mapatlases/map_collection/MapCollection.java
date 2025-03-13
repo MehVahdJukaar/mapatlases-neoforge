@@ -190,8 +190,9 @@ public class MapCollection {
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
         MapDataHolder found = MapDataHolder.get(intId, type, level);
-        if (getCount() == 0 && found != null) {
+        if (!initialized && found != null) {
             scale = found.data.scale;
+            initialized = true;
         }
 
         if (found == null) {

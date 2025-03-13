@@ -11,6 +11,7 @@ import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
@@ -62,7 +63,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        renderStaticMarker(pGuiGraphics, decoration.getType().value(), getX() + width / 2f, getY() + height / 2f,
+        renderStaticMarker(pGuiGraphics, decoration.getType(), getX() + width / 2f, getY() + height / 2f,
                 1, decoration instanceof PinDecoration p && p.isFocused(), 255);
     }
 
@@ -110,7 +111,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     public static void renderStaticMarker(GuiGraphics pGuiGraphics,
-                                          MLMapDecorationType<?, ?> type,
+                                          Holder<MLMapDecorationType<?, ?>> type,
                                           float x, float y,
                                           int index, boolean outline, int alpha) {
         MapDecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);

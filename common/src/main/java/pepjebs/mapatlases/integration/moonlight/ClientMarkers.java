@@ -169,11 +169,9 @@ public class ClientMarkers {
         for (var v : markersPerMap.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
-                CompoundTag c = new CompoundTag();
                 Tag markerSaved = MLMapMarker.REFERENCE_CODEC
                         .encodeStart(ops, marker).getOrThrow();
-                c.put(marker.getType().getRegisteredName(), markerSaved);
-                listNBT.add(c);
+                listNBT.add(markerSaved);
             }
             tag.put(v.getKey().key(), listNBT);
         }
@@ -229,7 +227,7 @@ public class ClientMarkers {
     }
 
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {
-        CustomDecorationButton.renderStaticMarker(pGuiGraphics, getPinAt(index).value(), x, y, 1, outline, alpha);
+        CustomDecorationButton.renderStaticMarker(pGuiGraphics, getPinAt(index), x, y, 1, outline, alpha);
     }
 
 

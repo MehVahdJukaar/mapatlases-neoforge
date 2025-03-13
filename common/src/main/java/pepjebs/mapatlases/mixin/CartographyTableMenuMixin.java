@@ -120,6 +120,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 ItemStack result = topItem.copy();
                 MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(world, bottomItem);
                 MapCollection maps = MapAtlasItem.getMaps(result, world);
+                if (maps.getScale() != mapHolder.data.scale) return;
                 if (mapHolder != null && maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id) != maps) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();

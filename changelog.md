@@ -1,1 +1,1 @@
-fixed not working on servers
+fixed atlas scale not being initialized
