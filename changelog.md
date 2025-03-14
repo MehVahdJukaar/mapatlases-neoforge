@@ -1,2 +1,4 @@
-improved twilight forest integration
-fixed some misc bugs
+- improved twilight forest integration
+- fixed some misc bugs
+- atlases can now hold 5 different kinds of maps and will need to consume those to create the respective types (these are vanilla, supplementaries sliced maps and twilight forest maps)
+- for sliced maps theres a config that allows the atlas to just consume normal maps instead

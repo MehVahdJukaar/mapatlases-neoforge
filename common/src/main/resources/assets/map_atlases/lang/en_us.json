@@ -4,7 +4,7 @@
   "item.map_atlases.nether_atlas": "Nether Atlas",
   "item.map_atlases.atlas.tooltip_maps": "Maps: %d",
   "item.map_atlases.atlas.tooltip_empty": "Empty Maps: %d",
-  "item.map_atlases.atlas.tooltip_empty_type": "Empty %1$d Maps: %2$d",
+  "item.map_atlases.atlas.tooltip_empty_type": "Empty %1$d: %2$d",
   "item.map_atlases.atlas.tooltip_scale": "Scale: 1:%s",
   "item.map_atlases.atlas.tooltip_slice": "Slice: %s",
   "item.map_atlases.atlas.tooltip_type": "Type: %s",

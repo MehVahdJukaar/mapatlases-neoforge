@@ -138,7 +138,7 @@ public class EmptyMaps {
 
             }
             if (hasNonVanilla) {
-                tooltips.add(Component.translatable("item.map_atlases.atlas.tooltip_empty_type", type, empties).withStyle(ChatFormatting.GRAY));
+                tooltips.add(Component.translatable("item.map_atlases.atlas.tooltip_empty_type", type.getName(), empties).withStyle(ChatFormatting.GRAY));
             } else {
                 tooltips.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
