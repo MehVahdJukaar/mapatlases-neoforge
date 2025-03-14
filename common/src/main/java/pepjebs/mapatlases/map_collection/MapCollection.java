@@ -3,8 +3,6 @@ package pepjebs.mapatlases.map_collection;
 import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.mehvahdjukaar.moonlight.api.util.math.ColorUtils;
-import net.mehvahdjukaar.moonlight.core.mixins.MapItemDataPacketMixin;
 import net.minecraft.Util;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -184,8 +182,8 @@ public class MapCollection {
     }
 
 
-    public boolean hasOneSlice() {
-        return maps.keySet().stream().anyMatch(k -> k.slice() != null);
+    public boolean hasOneSlicedMap() {
+        return maps.keySet().stream().anyMatch(k -> k.slice().height().isPresent());
     }
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {

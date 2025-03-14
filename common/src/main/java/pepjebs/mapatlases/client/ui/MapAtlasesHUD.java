@@ -83,7 +83,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
         this.currentMaps = MapAtlasItem.getMaps(currentAtlas, mc.level);
-        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlice();
+        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlicedMap();
         this.drawBigPlayerMarker = followingPlayer;
 
     }
