@@ -242,6 +242,6 @@ public class MapCollection implements IMapCollection {
 
 
     public boolean hasOneSlice() {
-        return maps.keySet().stream().anyMatch(k -> k.slice() != null);
+        return maps.keySet().stream().anyMatch(k -> k.slice().height() != null);
     }
 }

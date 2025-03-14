@@ -1,1 +1,1 @@
-fixed removing pins not wroking
+slice config fix
