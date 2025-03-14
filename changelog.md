@@ -1,1 +1,1 @@
-fixed atlas scale not being initialized
+fixed atlas recipe giving a free empty map
