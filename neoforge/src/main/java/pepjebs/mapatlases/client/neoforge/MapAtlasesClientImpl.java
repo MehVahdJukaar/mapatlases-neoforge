@@ -13,6 +13,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
+import twilightforest.network.MagicMapPacket;
 
 public class MapAtlasesClientImpl {
 

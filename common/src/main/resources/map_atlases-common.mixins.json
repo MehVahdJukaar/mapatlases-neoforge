@@ -5,6 +5,10 @@
   "package": "pepjebs.mapatlases.mixin",
   "mixins": [
     "CartographyTableMenuMixin",
+    "CompatTFMapCoordinatesMagic1PacketMixin",
+    "CompatTFMapCoordinatesMagic2PacketMixin",
+    "CompatTFMapCoordinatesMaze1PacketMixin",
+    "CompatTFMapCoordinatesMaze2PacketMixin",
     "CraftingContainerMixin",
     "CraftingInputMixin",
     "LecternBlockEntityMixin",

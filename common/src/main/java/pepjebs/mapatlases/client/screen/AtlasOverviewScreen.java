@@ -345,7 +345,7 @@ public class AtlasOverviewScreen extends Screen {
         graphics.pose().translate(0, 0, 1);
         //background overlay
 
-        graphics.blitSprite(
+        graphics.blit(
                 texture,
                 H_BOOK_WIDTH - 10,
                 -H_BOOK_HEIGHT,

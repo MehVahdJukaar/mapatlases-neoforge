@@ -27,7 +27,7 @@ dependencies {
     modCompileOnly("curse.maven:emi-580555:6205506")
   //  modRuntimeOnly("curse.maven:spark-361579:4738952")
 
-    modCompileOnly("maven.modrinth:immediatelyfast:1.2.8+1.20.4-forge")
+    modCompileOnly("maven.modrinth:immediatelyfast:1.6.1+1.21.1-neoforge")
 
 }
 
