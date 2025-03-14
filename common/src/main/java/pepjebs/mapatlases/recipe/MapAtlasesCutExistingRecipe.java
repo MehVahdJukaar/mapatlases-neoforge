@@ -129,7 +129,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
 
             if (stack.getItem() == Items.SHEARS) {
                 AtomicReference<Boolean> broken = new AtomicReference<>(false);
-                stack.hurtAndBreak(1, (ServerLevel) levelRef.get(), null, s -> broken.set(true));
+                Level l = levelRef.get();
+                if (l instanceof ServerLevel sl) {
+                    stack.hurtAndBreak(1, sl, null, s -> broken.set(true));
+                }
                 if (broken.get()) {
                     stack = ItemStack.EMPTY;
                 }
