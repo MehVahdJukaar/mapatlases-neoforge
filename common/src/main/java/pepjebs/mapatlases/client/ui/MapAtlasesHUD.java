@@ -202,21 +202,19 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
 
         // RenderSystem.enableDepthTest();
 
-        drawAtlas(graphics, x + borderSize, y + borderSize,
-                mapWidgetSize, mapWidgetSize, player,
-                zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light, null);
-
-
-        // Draws background, player icon, cardinal dir, pos and direction
-
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
-
         RenderSystem.enableDepthTest();
         graphics.blit(MAP_HUD_BACKGROUND_TEXTURE, x, y, -2, 0, 0, BG_SIZE, BG_SIZE,
                 BG_SIZE, BG_SIZE);
         RenderSystem.disableDepthTest();
 
+        drawAtlas(graphics, x + borderSize, y + borderSize,
+                mapWidgetSize, mapWidgetSize, player,
+                zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light, null);
+
+        // Draws background, player icon, cardinal dir, pos and direction
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
 
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);

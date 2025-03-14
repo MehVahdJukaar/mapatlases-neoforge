@@ -11,7 +11,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
@@ -122,7 +121,7 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder closest = currentMaps.getClosest(player, selectedSlice);
         if (closest == null) {
             //if it has no maps here, grab a random one
-            closest = currentMaps.getAll().stream().findFirst().get();
+            closest = currentMaps.getAllFound().stream().findFirst().get();
         }
         return closest;
     }

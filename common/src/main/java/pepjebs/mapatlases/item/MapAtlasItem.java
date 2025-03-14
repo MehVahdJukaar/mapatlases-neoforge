@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -28,8 +27,10 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
+import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
+import pepjebs.mapatlases.map_collection.SelectedSlice;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
 
@@ -55,7 +56,6 @@ public class MapAtlasItem extends Item {
         }
     }
 
-
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
@@ -65,21 +65,11 @@ public class MapAtlasItem extends Item {
         Level level = MapAtlasesClient.getLevel();
         MapCollection maps = getMaps(stack, level);
         int mapSize = maps.getCount();
-        int empties = getEmptyMaps(stack);
-        if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
-                    .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
-        }
+
         tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
-        if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
-                MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
-            // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
-            // they *would* receive if they activated the atlas
-            if (mapSize + empties == 0) {
-                empties = MapAtlasesConfig.pityActivationMapCount.get();
-            }
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
-        }
+
+        EmptyMaps emptyMaps = stack.getOrDefault(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.EMPTY);
+        tooltipComponents.addAll(emptyMaps.getTooltips(mapSize));
 
         tooltipComponents.add(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
 
@@ -165,7 +155,7 @@ public class MapAtlasItem extends Item {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
-        for (var info : maps.getAll()) {
+        for (var info : maps.getAllFound()) {
             // update all maps and sends them to player, if needed
             MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
         }
@@ -222,16 +212,8 @@ public class MapAtlasItem extends Item {
         return MapAtlasesConfig.maxMapCount.get();
     }
 
-    public static int getEmptyMaps(ItemStack atlas) {
-        return atlas.getOrDefault(MapAtlasesMod.EMPTY_MAPS.get(), 0);
-    }
-
-    public static void setEmptyMaps(ItemStack stack, int count) {
-        stack.set(MapAtlasesMod.EMPTY_MAPS.get(), count);
-    }
-
-    public static void increaseEmptyMaps(ItemStack stack, int count) {
-        setEmptyMaps(stack, getEmptyMaps(stack) + count);
+    public static EmptyMaps getEmptyMaps(ItemStack atlas) {
+        return atlas.getOrDefault(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.EMPTY);
     }
 
     public static boolean isLocked(ItemStack stack) {

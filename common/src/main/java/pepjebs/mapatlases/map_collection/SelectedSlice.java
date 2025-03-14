@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.utils;
+package pepjebs.mapatlases.map_collection;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
@@ -6,14 +6,15 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class SelectedSlice {
 
@@ -55,5 +56,17 @@ public class SelectedSlice {
         newMap.put(location, slice);
         SelectedSlice newSlice = new SelectedSlice(newMap);
         stack.set(MapAtlasesMod.SELECTED_SLICE.get(), newSlice);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SelectedSlice that)) return false;
+        return Objects.equals(map, that.map);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(map);
     }
 }

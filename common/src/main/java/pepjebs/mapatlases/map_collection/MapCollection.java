@@ -109,6 +109,10 @@ public class MapCollection {
         return mapHeights.keySet();
     }
 
+    public boolean mapsDimension(ResourceKey<Level> levelResourceKey) {
+        return mapHeights.containsKey(levelResourceKey);
+    }
+
     private static final TreeSet<Integer> TOP = Util.make(() -> {
         var t = new TreeSet<Integer>();
         t.add(Integer.MAX_VALUE);
@@ -124,7 +128,7 @@ public class MapCollection {
         return TOP;
     }
 
-    public List<MapDataHolder> getAll() {
+    public List<MapDataHolder> getAllFound() {
         assertInitialized();
         return new ArrayList<>(maps.values());
     }

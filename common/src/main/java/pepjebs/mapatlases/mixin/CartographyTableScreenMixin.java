@@ -10,8 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,7 +44,7 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
 
         if (pMapData == null && pMapId == null && this.menu.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack item = this.menu.slots.get(2).getItem();
-            if (MapType.isFilledMap(item.getItem())) {
+            if (MapType.fromFilledMap(item.getItem()) != null) {
                 MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(this.minecraft.level, item);
                 if (holder != null) {
                     mapid.set(holder.id);

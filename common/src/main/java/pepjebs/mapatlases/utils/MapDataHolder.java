@@ -61,7 +61,7 @@ public class MapDataHolder {
             EXECUTORS.submit(() -> {
                 //the only unsafe operation that this does is data.getHoldingPlayer
                 //we need to redirect it.
-                ((MapItem) type.filled).update(player.level(), player, data);
+                type.getFilled().update(player.level(), player, data);
             });
             //update markers on the main thread. has to be done because block entities cant be accessed off thread
 
@@ -69,7 +69,7 @@ public class MapDataHolder {
             updateMarkers(player, 128);
 
         } else {
-            ((MapItem) type.filled).update(player.level(), player, data);
+            type.getFilled().update(player.level(), player, data);
         }
         if (MapAtlasesConfig.debugUpdate.get()) {
             NetworkHelper.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(id, type));

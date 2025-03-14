@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.utils;
 
-import net.mehvahdjukaar.supplementaries.Supplementaries;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,29 +17,25 @@ import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 
+import java.util.Map;
+
 public class MapAtlasesAccessUtils {
 
-
     public static boolean isValidFilledMap(ItemStack item) {
-        MapType mapType = MapType.fromItem(item.getItem());
+        MapType mapType = MapType.fromFilledMap(item.getItem());
         return mapType != null && mapType.getMapId(item) != null;
     }
 
-    public static boolean isValidEmptyMap(ItemStack item) {
-        return MapType.isEmptyMap(item.getItem());
-    }
-
-
     @Nullable
     public static MapId findMapId(ItemStack itemstack) {
-        MapType type = MapType.fromItem(itemstack.getItem());
+        MapType type = MapType.fromFilledMap(itemstack.getItem());
         if (type == null) return null;
         return type.getMapId(itemstack);
     }
 
     @Nullable
     public static MapDataHolder findMapFromItemStack(Level level, ItemStack itemStack) {
-        MapType type = MapType.fromItem(itemStack.getItem());
+        MapType type = MapType.fromFilledMap(itemStack.getItem());
         if (type == null) return null;
         MapId id = type.getMapId(itemStack);
         if (id == null) return null;
@@ -99,15 +95,17 @@ public class MapAtlasesAccessUtils {
         return ItemStack.EMPTY;
     }
 
-    public static int getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
+    @Nullable
+    public static Pair<MapType, Integer> getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
         int amountToAdd = bottomItem.getCount();
-        int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas);
-        amountToAdd *= MapAtlasesConfig.mapEntryValueMultiplier.get();
+        MapType bottomType = MapType.fromEmptyMap(bottomItem.getItem());
+        if (bottomType == null) return null;
+        int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas).getSize();
         if (MapAtlasItem.getMaxMapCount() != -1
                 && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {
             amountToAdd = MapAtlasItem.getMaxMapCount() - existingMapCount;
         }
-        return amountToAdd;
+        return Pair.of(bottomType, amountToAdd);
     }
 
     public static void updateMapDataAndSync(

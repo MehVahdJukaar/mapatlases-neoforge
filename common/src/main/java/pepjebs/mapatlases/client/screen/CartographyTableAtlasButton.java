@@ -76,7 +76,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                     }
                     MapType type = slice.type();
                     if (type != MapType.VANILLA) {
-                        pGuiGraphics.drawString(Minecraft.getInstance().font, Component.translatable(type.translationKey),
+                        pGuiGraphics.drawString(Minecraft.getInstance().font, type.getName(),
                                 this.getX() - 52, y0 + this.getY() - 50, -1);
                         y0 += 8;
                     }

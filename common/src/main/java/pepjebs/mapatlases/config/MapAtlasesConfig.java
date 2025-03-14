@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.config;
 
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
@@ -27,14 +28,14 @@ public class MapAtlasesConfig {
                 .comment("If true, the Atlas is required to have spare Empty Maps stored to expand the Filled Map size")
                 .define("require_empty_maps_to_expand", true);
 
-        mapEntryValueMultiplier = builder
-                .comment("Controls how many usable Maps are added when you add a single Map to the Atlas")
-                .define("map_entry_value_multiplier", 1, 0, 64);
-
         pityActivationMapCount = builder
                 .comment("Controls how many free Empty Maps you get for 'activating' an Inactive Atlas")
                 .define("pity_activation_map_count", 9, 0, 64);
 
+
+        requireSliceMaps = !PlatHelper.isModLoaded("supplementaries") ? () -> false :
+                builder.comment("If active, when Supplementaries is installed, the atlas will need to be filled with slice maps to be able to create new sliced maps")
+                        .define("requires_slice_maps", false);
 
         enableEmptyMapEntryAndFill = builder
                 .comment("If 'true', Atlases will be able to store Empty Maps and auto-fill them as you explore.")
@@ -81,8 +82,8 @@ public class MapAtlasesConfig {
     public static final Supplier<Integer> markersUpdatePeriod;
     public static final Supplier<UpdateType> mapUpdateMultithreaded;
     public static final Supplier<Integer> maxMapCount;
-    public static final Supplier<Integer> mapEntryValueMultiplier;
     public static final Supplier<Integer> pityActivationMapCount;
+    public static final Supplier<Boolean> requireSliceMaps;
     public static final Supplier<Boolean> requireEmptyMapsToExpand;
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;

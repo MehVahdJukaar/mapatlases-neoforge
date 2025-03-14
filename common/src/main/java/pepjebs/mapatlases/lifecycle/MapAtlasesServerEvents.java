@@ -182,14 +182,14 @@ public class MapAtlasesServerEvents {
 
         //TODO : this isnt accurate and can be improved
         if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
-          createdNewMap |=  maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
                     Mth.floor(player.getZ()));
         }
         //remove existing maps and tries to fill in remaining ones
         discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
                 d -> d.data.centerX == e.x && d.data.centerZ == e.y));
         for (var edge : discoveringEdges) {
-          createdNewMap |=  maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
         }
 
         if (createdNewMap) {
@@ -297,10 +297,10 @@ public class MapAtlasesServerEvents {
         Level level = player.level();
         if (maps.getCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
-            MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
+            MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
         }
 
-        int emptyCount = MapAtlasItem.getEmptyMaps(atlas);
+        int emptyCount = MapAtlasItem.getEmptyMaps(atlas).get(slice);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
         boolean addedMap = false;
         if (!mutex.isLocked() && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
@@ -309,7 +309,7 @@ public class MapAtlasesServerEvents {
             // Make the new map
             if (!player.isCreative() && !bypassEmptyMaps) {
                 //remove 1 map
-                MapAtlasItem.increaseEmptyMaps(atlas, -1);
+                MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
             }
             //validate height
             var height = slice.height();
@@ -391,7 +391,7 @@ public class MapAtlasesServerEvents {
 
         //TODO: figure out why its not synced automatically
         if (PlatHelper.getPlatform().isFabric()) {
-            for (var info : maps.getAll()) {
+            for (var info : maps.getAllFound()) {
                 // update all maps and sends them to player, if needed
                 // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
             }

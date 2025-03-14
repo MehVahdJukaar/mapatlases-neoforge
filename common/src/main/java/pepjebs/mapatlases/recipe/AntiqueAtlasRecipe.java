@@ -13,7 +13,6 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
 
 import java.lang.ref.WeakReference;
 
@@ -69,7 +68,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         MapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
         MapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
         var map = oldMaps.getIdsCopy();
-        for (MapDataHolder holder : maps.getAll()) {
+        for (MapDataHolder holder : maps.getAllFound()) {
             oldMaps = oldMaps.removeAndAssigns(oldAtlas, level, holder.id, holder.type);
             MapId newId = SupplementariesCompat.createAntiqueMapData(holder.data, level, true, false);
             if (newId != null) {

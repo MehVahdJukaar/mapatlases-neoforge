@@ -35,8 +35,8 @@ class CompatTFMapCoordinatesMagic1PacketMixin {
     @ModifyArg(method = "run",
             index = 0,
             remap = false,
-            at = @At(value = "NEW",
-                    target = "(IIBZZZLnet/minecraft/resources/ResourceKey;)Ltwilightforest/item/mapdata/TFMagicMapData;"))
+            at = @At(value = "INVOKE",
+                    target = "Ltwilightforest/item/mapdata/TFMagicMapData;<init>(IIBZZZLnet/minecraft/resources/ResourceKey;)V"))
     private int mapAtlases$setX(int x) {
         return ((IMapDataPacketExtension) (Object) val$message.inner()).moonlight$getMapCenterX();
     }
@@ -44,8 +44,8 @@ class CompatTFMapCoordinatesMagic1PacketMixin {
     @ModifyArg(method = "run",
             index = 1,
             remap = false,
-            at = @At(value = "NEW",
-                    target = "(IIBZZZLnet/minecraft/resources/ResourceKey;)Ltwilightforest/item/mapdata/TFMagicMapData;"))
+            at = @At(value = "INVOKE",
+                    target = "Ltwilightforest/item/mapdata/TFMagicMapData;<init>(IIBZZZLnet/minecraft/resources/ResourceKey;)V"))
     private int mapAtlases$setZ(int z) {
         return ((IMapDataPacketExtension) (Object) val$message.inner()).moonlight$getMapCenterZ();
     }
@@ -61,16 +61,16 @@ class CompatTFMapCoordinatesMaze1PacketMixin {
     @ModifyArg(method = "run",
             index = 0,
             remap = false,
-            at = @At(value = "NEW",
-                    target = "(IIBZZZLnet/minecraft/resources/ResourceKey;)Ltwilightforest/item/mapdata/TFMazeMapData;"))
+            at = @At(value = "INVOKE",
+                    target = "Ltwilightforest/item/mapdata/TFMazeMapData;<init>(IIBZZZLnet/minecraft/resources/ResourceKey;)V"))
     private int mapAtlases$setX(int x) {
         return ((IMapDataPacketExtension) (Object) val$message.inner()).moonlight$getMapCenterX();
     }
 
     @ModifyArg(method = "run",
             index = 1,
-            at = @At(value = "NEW",
-                    target = "(IIBZZZLnet/minecraft/resources/ResourceKey;)Ltwilightforest/item/mapdata/TFMazeMapData;"))
+            at = @At(value = "INVOKE",
+                    target = "Ltwilightforest/item/mapdata/TFMazeMapData;<init>(IIBZZZLnet/minecraft/resources/ResourceKey;)V"))
     private int mapAtlases$setZ(int z) {
         return ((IMapDataPacketExtension) (Object) val$message.inner()).moonlight$getMapCenterZ();
     }

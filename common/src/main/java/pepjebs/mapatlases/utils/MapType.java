@@ -1,11 +1,10 @@
 package pepjebs.mapatlases.utils;
 
+import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.Util;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -13,7 +12,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -22,80 +24,96 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.TwilightForestCompat;
-import twilightforest.util.Codecs;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.IdentityHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
+//mainly for integration puposes
 public enum MapType implements StringRepresentable {
-    VANILLA("map_", Items.FILLED_MAP, Items.MAP),
+    VANILLA("map_", () -> Items.FILLED_MAP, () -> Items.MAP),
     MAGIC("magicmap_", tf("filled_magic_map"), tf("magic_map")),
     MAZE("mazemap_", tf("filled_maze_map"), tf("maze_map")),
-    ORE_MAZE("mazemap_", tf("filled_ore_map"), tf("ore_map"));
+    ORE_MAZE("mazemap_", tf("filled_ore_map"), tf("ore_map")),
+    SLICED("map_", () -> Items.FILLED_MAP, sup("slice_map")); //just used for empty maps
 
     public static final Codec<MapType> CODEC = StringRepresentable.fromEnum(MapType::values);
     public static final StreamCodec<ByteBuf, MapType> STREAM_CODEC =
             ByteBufCodecs.idMapper(value -> MapType.values()[value], Enum::ordinal);
 
-    private static final Map<Item, MapType> FROM_ITEM = Arrays.stream(values())
-            .collect(Collectors.toMap(t -> t.filled, c -> c, (existing, replacement) -> existing, IdentityHashMap::new));
-
-    private static final Set<Item> EMPTY = Util.make(() -> {
-        var s = new HashSet<Item>();
-        for (var v : MapType.values()) {
-            var t = v.empty;
-            if (t != null) s.add(t);
-            BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("supplementaries:slice_map")).ifPresent(s::add);
+    private static final Supplier<Map<Item, MapType>> FILLED = Suppliers.memoize(() -> {
+        var map = new IdentityHashMap<Item, MapType>();
+        for (var v : values()) {
+            Item filled = v.filled.get();
+            if (filled != null && !map.containsKey(filled)) map.put(filled, v);
         }
-        return s;
+        return map;
     });
 
-    private static final Set<Item> FILLED = Util.make(() -> {
-        var s = new HashSet<Item>();
-        for (var v : MapType.values()) {
-            var t = v.filled;
-            if (t != null) s.add(t);
+    private static final Supplier<Map<Item, MapType>> EMPTY = Suppliers.memoize(() -> {
+        var map = new IdentityHashMap<Item, MapType>();
+        for (var v : values()) {
+            Item filled = v.empty.get();
+            if (filled != null) map.put(filled, v);
         }
-        return s;
+        BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("supplementaries:slice_map")).ifPresent(i -> map.put(i, VANILLA));
+
+        return map;
     });
 
-    public final Item filled;
-    public final Item empty;
-    public final String translationKey;
-
+    @NotNull
+    private final Supplier<Item> filled;
+    @NotNull
+    private final Supplier<Item> empty;
+    private final String mapIdPrefix;
     private final String id;
 
-    MapType(String keyPrefix, Item filled, Item empty) {
+
+    MapType(String keyPrefix, @NotNull Supplier<Item> filled, @NotNull Supplier<Item> empty) {
         this.filled = filled;
         this.empty = empty;
-        this.translationKey = filled == null ? "Missing" : filled.getDescriptionId();
+        this.mapIdPrefix = keyPrefix;
         this.id = this.name().toLowerCase(Locale.ROOT);
     }
 
-    public static boolean isEmptyMap(Item i) {
-        return EMPTY.contains(i);
+    public String getMapIdPrefix() {
+        return mapIdPrefix;
     }
 
-    public static boolean isFilledMap(Item i) {
-        return FILLED.contains(i);
+    public MapItem getFilled() {
+        return (MapItem) filled.get();
     }
 
-    public static MapType fromItem(Item item) {
-        return FROM_ITEM.get(item);
+    public Item getEmpty() {
+        return empty.get();
     }
 
-    private static Item tf(String id) {
-        if (MapAtlasesMod.TWILIGHTFOREST) {
-            return BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", id))
-                    .orElse(null);
-        }
-        return null;
+    @Nullable
+    public static MapType fromEmptyMap(Item item) {
+        return EMPTY.get().get(item);
+    }
+
+    @Nullable
+    public static MapType fromFilledMap(Item item) {
+        return FILLED.get().get(item);
+    }
+
+    private static Supplier<Item> tf(String id) {
+        return Suppliers.memoize(() -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", id))
+                .orElse(null));
+    }
+
+    private static Supplier<Item> sup(String id) {
+        return Suppliers.memoize(() -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", id))
+                .orElse(null));
     }
 
     @Nullable
     public MapItemSavedData getMapData(Level level, MapId id) {
         MapItemSavedData data = null;
-        if (this == VANILLA) {
+        if (this == VANILLA || this == SLICED) {
             data = level.getMapData(id);
         }
         if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
@@ -108,7 +126,7 @@ public enum MapType implements StringRepresentable {
 
     public Integer getHeight(@NotNull MapItemSavedData data) {
         return switch (this) {
-            case VANILLA -> MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data).orElse(null) : null;
+            case VANILLA, SLICED -> MapAtlasesMod.SUPPLEMENTARIES ? SupplementariesCompat.getSlice(data).orElse(null) : null;
             case MAZE, ORE_MAZE -> MapAtlasesMod.TWILIGHTFOREST ? TwilightForestCompat.getSlice(data) : null;
             case MAGIC -> null;
         };
@@ -127,21 +145,20 @@ public enum MapType implements StringRepresentable {
         }
     }
 
-    public ItemStack createExistingMapItem(MapId id, Optional<Integer> height){
+    public ItemStack createExistingMapItem(MapId id, Optional<Integer> height) {
         ItemStack map = ItemStack.EMPTY;
         if (this == VANILLA) {
             if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
                 map = SupplementariesCompat.createExistingSliced(id);
-            }else {
+            } else {
                 map = new ItemStack(Items.FILLED_MAP);
-                map.set(DataComponents.MAP_ID,id);
+                map.set(DataComponents.MAP_ID, id);
             }
         } else if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             map = TwilightForestCompat.makeExistingMagic(id);
         } else if ((this == MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
             map = TwilightForestCompat.makeExistingMaze(id);
-        }
-        else if ((this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
+        } else if ((this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
             map = TwilightForestCompat.makeExistingOre(id);
         }
         return map;
@@ -167,7 +184,7 @@ public enum MapType implements StringRepresentable {
                         true,
                         false);
             }
-            if(MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)){
+            if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)) {
                 SupplementariesCompat.setMapAntique(newMap, level);
             }
         } else if (this == MapType.MAZE && MapAtlasesMod.TWILIGHTFOREST) {
@@ -188,7 +205,7 @@ public enum MapType implements StringRepresentable {
 
     public int getDiscoveryReach(Optional<Integer> height) {
         return switch (this) {
-            case VANILLA -> {
+            case VANILLA, SLICED -> {
                 if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
                     yield SupplementariesCompat.getSliceReach();
                 } else {
@@ -207,7 +224,9 @@ public enum MapType implements StringRepresentable {
 
 
     public Component getName() {
-        return Component.translatable(this.translationKey);
+        Item d = filled.get();
+        if (d == null) return Component.empty();
+        return Component.translatable(d.getDescriptionId());
     }
 
     @Override

@@ -4,14 +4,11 @@ package pepjebs.mapatlases;
 import com.mojang.serialization.Codec;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
-import net.mehvahdjukaar.moonlight.core.misc.IMapDataPacketExtension;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Unit;
@@ -20,7 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -29,15 +25,15 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
-import pepjebs.mapatlases.utils.SelectedSlice;
+import pepjebs.mapatlases.map_collection.SelectedSlice;
 import pepjebs.mapatlases.utils.TriState;
-import twilightforest.item.mapdata.TFMagicMapData;
 
 import java.util.function.Supplier;
 
@@ -70,10 +66,10 @@ public class MapAtlasesMod {
                     .persistent(Unit.CODEC).build()
     );
 
-    public static final Supplier<DataComponentType<Integer>> EMPTY_MAPS = RegHelper.registerDataComponent(
-            res("empty_maps"), () -> DataComponentType.<Integer>builder()
-                    .networkSynchronized(ByteBufCodecs.VAR_INT)
-                    .persistent(Codec.INT).build()
+    public static final Supplier<DataComponentType<EmptyMaps>> EMPTY_MAPS = RegHelper.registerDataComponent(
+            res("empty_maps"), () -> DataComponentType.<EmptyMaps>builder()
+                    .networkSynchronized(EmptyMaps.STREAM_CODEC)
+                    .persistent(EmptyMaps.CODEC).build()
     );
 
     public static final Supplier<DataComponentType<Integer>> HEIGHT = RegHelper.registerDataComponent(
@@ -135,7 +131,7 @@ public class MapAtlasesMod {
         // Register items
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
                 () -> new MapAtlasItem(new Item.Properties()
-                        .component(EMPTY_MAPS.get(), 0)
+                        .component(EMPTY_MAPS.get(), EmptyMaps.EMPTY)
                         .component(MAP_COLLECTION.get(), MapCollection.EMPTY)
                         .stacksTo(16)));
 

@@ -72,9 +72,9 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
             } else if (
                     (slotOneItem.is(Items.MAP)
                             || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOneItem.is(Items.PAPER)))) {
-                int amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level());
+                var amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level());
                 // onTakeItem already calls takeStack(1) so we subtract that out
-                slotOne.remove(amountToTake - 1);
+                slotOne.remove(amountToTake.getSecond() - 1);
             } else if (MapAtlasesAccessUtils.isValidFilledMap(slotOneItem)) {
                 slotOne.remove(1);
             }

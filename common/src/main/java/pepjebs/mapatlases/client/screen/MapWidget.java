@@ -144,7 +144,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 var d = mapScreen.findMapContaining(pos.x(), pos.z());
                 if (d != null) {
                     MapAtlasesHUD.drawScaledComponent(
-                            graphics, mc.font, x, y + height + 8 + 10, "Map: " + d.id, 1, width, width);
+                            graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id()+", type="+d.type+", y="+d.height+"]", 1, width, width);
                 }
             }
         }

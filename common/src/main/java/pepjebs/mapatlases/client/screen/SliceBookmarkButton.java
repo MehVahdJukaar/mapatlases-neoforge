@@ -57,7 +57,7 @@ public class SliceBookmarkButton extends BookmarkButton {
 
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         ResourceLocation sprite = switch(slice.type()){
-            case VANILLA -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
+            case VANILLA, SLICED -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
             case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
             case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;
             case MAGIC -> MapAtlasesClient.MAP_TYPE_MAGIC_SPRITE;

@@ -26,12 +26,14 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -75,7 +77,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 if (mapatlases$selectedMapIndex > maps.getCount()) {
                     mapatlases$selectedMapIndex = 0;
                 }
-                MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
+                MapDataHolder map = maps.getAllFound().get(mapatlases$selectedMapIndex);
                 ItemStack result = map.createExistingMapItem();
                 this.mapatlases$selectedSlice = map.slice;
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -93,7 +95,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 var idsToADd = bottomMaps.getIdsCopy();
                 resultMaps.addAndAssigns(result, world, idsToADd);
 
-                MapAtlasItem.setEmptyMaps(result, (int) Math.ceil((MapAtlasItem.getEmptyMaps(result) + MapAtlasItem.getEmptyMaps(bottomItem)) / 2f));
+                EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(result);
+                emptyMaps.addAndAssigns(result, MapAtlasItem.getEmptyMaps(bottomItem).getAll());
 
                 result.grow(1);
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -107,8 +110,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && bottomItem.getItem() == Items.PAPER)) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                int amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);
-                MapAtlasItem.increaseEmptyMaps(result, amountToAdd);
+                var amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);
+                if (amountToAdd != null) {
+                    MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, Map.of(amountToAdd.getFirst(), amountToAdd.getSecond()));
+                }
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();
                 info.cancel();
@@ -175,7 +180,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
             MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-            MapDataHolder m = maps.getAll().get(mapatlases$selectedMapIndex);
+            MapDataHolder m = maps.getAllFound().get(mapatlases$selectedMapIndex);
             maps.removeAndAssigns(atlas, level, m.id, m.type);
         });
     }
@@ -201,7 +206,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
                             + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
                     try {
-                        MapDataHolder map = maps.getAll().get(mapatlases$selectedMapIndex);
+                        MapDataHolder map = maps.getAllFound().get(mapatlases$selectedMapIndex);
                         if (map != null) {
                             this.mapatlases$selectedSlice = map.slice;
                         } else {

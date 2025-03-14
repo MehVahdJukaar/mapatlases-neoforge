@@ -149,11 +149,11 @@ public abstract class AbstractAtlasWidget {
             VertexConsumer outlineVC = MapAtlasesClient.MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             //using this so we use mipmap. cant use blit sprite
             for (var matrix4f : outlineHack.getFirst()) {
-                drawOutline(matrix4f, outlineVC, 50);
+                drawOutline(matrix4f, outlineVC);
             }
             VertexConsumer outlineVC2 = MapAtlasesClient.MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             for (var matrix4f : outlineHack.getSecond()) {
-                drawOutline(matrix4f, outlineVC2, 200);
+                drawOutline(matrix4f, outlineVC2);
             }
             vcp.endBatch();
 
@@ -166,21 +166,21 @@ public abstract class AbstractAtlasWidget {
         MapAtlasesClient.setIsDrawingAtlas(false);
     }
 
-    private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC, int a) {
+    private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC) {
         //cause of vertex consumer chaining bug...
+        RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
         float zOffset = -1;
-        outlineVC.addVertex(matrix4f, 0.0F, 128.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.addVertex(matrix4f, 0.0F, 128.0F, zOffset).setColor(255, 255, 255, 255);
         outlineVC.setUv(0.0F, 1.0F)
                 .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 128.0F, 128.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.addVertex(matrix4f, 128.0F, 128.0F, zOffset).setColor(255, 255, 255, 255);
         outlineVC.setUv(1.0F, 1.0F)
                 .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 128.0F, 0.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.addVertex(matrix4f, 128.0F, 0.0F, zOffset).setColor(255, 255, 255, 255);
         outlineVC.setUv(1.0F, 0.0F)
                 .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 0.0F, 0.0F, zOffset).setColor(255, 255, 255, a);
+        outlineVC.addVertex(matrix4f, 0.0F, 0.0F, zOffset).setColor(255, 255, 255, 255);
         outlineVC.setUv(0.0F, 0.0F)
                 .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
     }
