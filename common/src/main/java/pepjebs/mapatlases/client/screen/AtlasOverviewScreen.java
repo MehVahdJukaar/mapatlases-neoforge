@@ -450,7 +450,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public Vector4d transformMousePos(double mouseX, double mouseZ) {
-        return scaleVector(mouseX, mouseZ, 1 / globalScale, width, height);
+        return scaleVector(mouseX, mouseZ, 1 / (globalScale), width, height);
     }
 
     public Vector4d transformPos(double mouseX, double mouseZ) {
@@ -539,6 +539,10 @@ public class AtlasOverviewScreen extends Screen {
             v.setSelected(v.getDimension().equals(dimension));
         }
         recalculateDecorationWidgets();
+
+        TreeSet<Integer> tree = currentMaps.getHeightTree(selectedSlice.dimension(), selectedSlice.type());
+        this.sliceDown.setMaxSlice(tree);
+        this.sliceUp.setMaxSlice(tree);
     }
 
     public void recalculateDecorationWidgets() {
@@ -631,15 +635,23 @@ public class AtlasOverviewScreen extends Screen {
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
         Integer newHeight = currentMaps.getHeightTree(dim, type).floor(current - 1);
-        return updateSlice(Slice.of(type, newHeight, dim));
+        if (newHeight != null) {
+            return updateSlice(Slice.of(type, newHeight, dim));
+        }
+        return false;
     }
 
     public boolean increaseSlice() {
         int current = selectedSlice.heightOrTop();
         MapType type = selectedSlice.type();
         ResourceKey<Level> dim = selectedSlice.dimension();
-        Integer newHeight = currentMaps.getHeightTree(dim, type).ceiling(current + 1);
-        return updateSlice(Slice.of(type, newHeight, dim));
+        TreeSet<Integer> tree = currentMaps.getHeightTree(dim, type);
+        Integer newHeight = tree.ceiling(current + 1);
+        if (newHeight != null) {
+            return updateSlice(Slice.of(type, newHeight, dim));
+        }
+        return false;
+
     }
 
     public void cycleSliceType() {

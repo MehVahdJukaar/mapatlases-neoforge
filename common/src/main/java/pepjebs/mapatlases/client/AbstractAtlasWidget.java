@@ -151,6 +151,13 @@ public abstract class AbstractAtlasWidget {
             for (var matrix4f : outlineHack.getFirst()) {
                 drawOutline(matrix4f, outlineVC);
             }
+            if (showMapBackground()) {
+                VertexConsumer backVC = MapAtlasesClient.MAP_BACKGROUND_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
+                //using this so we use mipmap. cant use blit sprite
+                for (var matrix4f : outlineHack.getFirst()) {
+                    drawOutline(matrix4f.translate(0, 0, 1), backVC);
+                }
+            }
             VertexConsumer outlineVC2 = MapAtlasesClient.MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             for (var matrix4f : outlineHack.getSecond()) {
                 drawOutline(matrix4f, outlineVC2);
@@ -165,6 +172,8 @@ public abstract class AbstractAtlasWidget {
 
         MapAtlasesClient.setIsDrawingAtlas(false);
     }
+
+    protected abstract boolean showMapBackground();
 
     private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC) {
         //cause of vertex consumer chaining bug...

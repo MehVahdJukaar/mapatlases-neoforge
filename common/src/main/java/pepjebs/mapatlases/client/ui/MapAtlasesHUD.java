@@ -68,6 +68,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         this.zoomLevel = 1;
     }
 
+
+    @Override
+    protected boolean showMapBackground() {
+        return false;
+    }
+
     @Nullable
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {

@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -26,6 +27,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             C2S2COpenAtlasScreenPacket::new
     );
 
+    @NotNull
     private final Optional<BlockPos> lecternPos;
     private final boolean pinOnly;
 
@@ -38,7 +40,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
         this(Optional.empty(), false);
     }
 
-    public C2S2COpenAtlasScreenPacket(Optional<BlockPos> lecternPos, boolean pinOnly) {
+    public C2S2COpenAtlasScreenPacket(@NotNull Optional<BlockPos> lecternPos, boolean pinOnly) {
         this.lecternPos = lecternPos;
         this.pinOnly = pinOnly;
     }

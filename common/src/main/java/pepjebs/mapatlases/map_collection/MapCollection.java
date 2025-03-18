@@ -119,6 +119,7 @@ public class MapCollection {
         return t;
     });
 
+    //DONT MODIFY THIS SET
     public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType kind) {
         assertInitialized();
         Map<MapType, TreeSet<Integer>> d = mapHeights.get(dimension);

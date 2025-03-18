@@ -61,6 +61,10 @@ public class MapAtlasesClient {
             ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
+    public static final Material MAP_BACKGROUND_TEXTURE = new Material(
+            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            MapAtlasesMod.res("gui/screen/map_background"));
+
     //sprites
     public static final ResourceLocation PLAYER_MARKER_SPRITE = MapAtlasesMod.res("player_marker");
     public static final ResourceLocation BOOKMARK_LEFT_SPRITE = MapAtlasesMod.res("bookmark_left");

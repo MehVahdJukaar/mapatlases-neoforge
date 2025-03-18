@@ -1,1 +1,4 @@
-fixed a crash with map cut recipe
+- fixes issues with select slice packet
+- fixed issues with open screen packet
+- improved slice selection in map screen
+- added a config to show map background in map screen

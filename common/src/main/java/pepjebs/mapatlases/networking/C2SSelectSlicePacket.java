@@ -5,12 +5,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamDecoder;
-import net.minecraft.network.codec.StreamEncoder;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -26,10 +24,11 @@ public class C2SSelectSlicePacket implements Message {
             C2SSelectSlicePacket::new
     );
 
+    @NotNull
     private final Optional<BlockPos> lecternPos;
     private final Slice slice;
 
-    public C2SSelectSlicePacket(Slice slice, Optional<BlockPos> lecternPos) {
+    public C2SSelectSlicePacket(Slice slice, @NotNull Optional<BlockPos> lecternPos) {
         this.slice = slice;
         this.lecternPos = lecternPos;
     }

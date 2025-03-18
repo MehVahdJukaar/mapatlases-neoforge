@@ -16,6 +16,8 @@ public class MapAtlasesConfig {
 
 
         builder.push("general");
+
+
         maxMapCount = builder
                 .comment("The maximum number of Maps (Filled & Empty combined) allowed to be inside an Atlas.")
                 .define("max_map_count", 512, 0, 10000);

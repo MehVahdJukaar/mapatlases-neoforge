@@ -173,6 +173,11 @@ public class MapAtlasItem extends Item {
             }
 
         } else {
+            //validate:
+            MapCollection maps = getMaps(stack, MapAtlasesClient.getLevel());
+            if (!maps.getHeightTree(dimension, t).contains(slice.heightOrTop())) {
+                return;
+            }
             SelectedSlice selectedSlice = stack.getOrDefault(MapAtlasesMod.SELECTED_SLICE.get(), SelectedSlice.EMPTY);
             selectedSlice.addAndAssigns(stack, dimension, slice);
         }

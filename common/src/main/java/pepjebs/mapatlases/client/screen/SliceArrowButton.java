@@ -9,22 +9,30 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
+import java.util.TreeSet;
+
 public class SliceArrowButton extends BookmarkButton {
 
     private static final int BUTTON_H = 5;
     private static final int BUTTON_W = 8;
 
+    private final SliceBookmarkButton button;
     private final boolean down;
     private final ResourceLocation inactiveSprite;
+    private Integer maxSlice;
+
 
     protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
         super(getpX(button), getpY(down, button),
                 BUTTON_W, BUTTON_H,
                 screen, down ? MapAtlasesClient.SLICE_DOWN_SPRITE : MapAtlasesClient.SLICE_UP_SPRITE,
                 down ? MapAtlasesClient.SLICE_DOWN_HOVERED_SPRITE : MapAtlasesClient.SLICE_UP_HOVERED_SPRITE);
+        this.button = button;
         this.down = down;
         this.inactiveSprite = down ? MapAtlasesClient.SLICE_DOWN_INACTIVE_SPRITE : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
         this.setSelected(false);
+
+        maxSlice = down ? Integer.MIN_VALUE : Integer.MAX_VALUE;
     }
 
     private static int getpX(SliceBookmarkButton button) {
@@ -41,6 +49,9 @@ public class SliceArrowButton extends BookmarkButton {
 
     @Override
     public ResourceLocation getSprite() {
+        int h = button.getSlice().heightOrTop();
+        if (h == maxSlice) return inactiveSprite;
+
         return super.getSprite();
     }
 
@@ -57,6 +68,15 @@ public class SliceArrowButton extends BookmarkButton {
         pose.popPose();
     }
 
+    @Override
+    protected boolean clicked(double mouseX, double mouseY) {
+        boolean b = super.clicked(mouseX, mouseY);
+        if (b) {
+            int h = button.getSlice().heightOrTop();
+            if (h == maxSlice) return false;
+        }
+        return b;
+    }
 
     @Override
     public void onClick(double mouseX, double mouseY) {
@@ -75,5 +95,10 @@ public class SliceArrowButton extends BookmarkButton {
         super.playDownSound(pHandler);
         pHandler.play(SimpleSoundInstance.forUI(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
                 (float) (double) MapAtlasesClientConfig.soundScalar.get()));
+    }
+
+    public void setMaxSlice(TreeSet<Integer> heightTree) {
+        if (heightTree.isEmpty()) return;
+        maxSlice = down ? heightTree.first() : heightTree.last();
     }
 }

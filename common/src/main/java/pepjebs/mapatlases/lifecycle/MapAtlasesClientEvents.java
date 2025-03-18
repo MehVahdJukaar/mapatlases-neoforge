@@ -26,6 +26,7 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.Optional;
 import java.util.TreeSet;
 
 public class MapAtlasesClientEvents {
@@ -66,7 +67,7 @@ public class MapAtlasesClientEvents {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {
-                    NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
+                    NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(Optional.empty(), true));
                 }
             }
         }
@@ -88,7 +89,7 @@ public class MapAtlasesClientEvents {
                 int current = selectedSlice.heightOrTop();
                 MapType type = selectedSlice.type();
                 Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
-                maybeSyncNewSlice(atlas, selectedSlice, newHeight);
+                if (newHeight != null) maybeSyncNewSlice(atlas, selectedSlice, newHeight);
             }
 
             if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
@@ -98,7 +99,7 @@ public class MapAtlasesClientEvents {
                 int current = selectedSlice.heightOrTop();
                 MapType type = selectedSlice.type();
                 Integer newHeight = maps.getHeightTree(dim, type).floor(current - 1);
-                maybeSyncNewSlice(atlas, selectedSlice, newHeight);
+                if (newHeight != null) maybeSyncNewSlice(atlas, selectedSlice, newHeight);
             }
         }
     }
@@ -106,13 +107,13 @@ public class MapAtlasesClientEvents {
     private static void maybeSyncNewSlice(ItemStack atlas, Slice oldSlice, Integer newHeight) {
         Slice newSlice = Slice.of(oldSlice.type(), newHeight, oldSlice.dimension());
         if (!newSlice.equals(oldSlice)) {
-            NetworkHelper.sendToServer(new C2SSelectSlicePacket(newSlice, null));
+            NetworkHelper.sendToServer(new C2SSelectSlicePacket(newSlice, Optional.empty()));
         }
         //update the client immediately
         MapAtlasItem.setSelectedSlice(atlas, newSlice);
     }
 
-    public static void  onLoggedOut(RegistryAccess registryAccess) {
+    public static void onLoggedOut(RegistryAccess registryAccess) {
         if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers(registryAccess);
     }
 

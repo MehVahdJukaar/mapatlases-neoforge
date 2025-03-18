@@ -3,7 +3,6 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
-import net.mehvahdjukaar.supplementaries.reg.ModTextures;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -28,11 +27,8 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
-import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
-
-import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
 
 public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
 
@@ -144,7 +140,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 var d = mapScreen.findMapContaining(pos.x(), pos.z());
                 if (d != null) {
                     MapAtlasesHUD.drawScaledComponent(
-                            graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id()+", type="+d.type+", y="+d.height+"]", 1, width, width);
+                            graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id() + ", type=" + d.type + ", y=" + d.height + "]", 1, width, width);
                 }
             }
         }
@@ -169,6 +165,11 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 poseStack.popPose();
             }
         }
+    }
+
+    @Override
+    protected boolean showMapBackground() {
+        return MapAtlasesClientConfig.showsMapBackground.get();
     }
 
     @Override
