@@ -102,7 +102,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
         //initialize tag
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, mapHolder.slice);
+        MapAtlasItem.setSelectedSlice(atlas, mapHolder.slice, level);
         maps.addAndAssigns(atlas, level, mapHolder.type, mapHolder.id);
 
         return atlas;

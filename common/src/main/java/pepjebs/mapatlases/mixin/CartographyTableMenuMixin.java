@@ -106,8 +106,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
 
         }
         // add empty
-        else if (bottomItem.getItem() == Items.MAP
-                || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && bottomItem.getItem() == Items.PAPER)) {
+        else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(bottomItem)) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
                 var amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);

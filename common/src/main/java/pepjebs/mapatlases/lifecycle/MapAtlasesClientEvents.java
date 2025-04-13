@@ -110,7 +110,7 @@ public class MapAtlasesClientEvents {
             NetworkHelper.sendToServer(new C2SSelectSlicePacket(newSlice, Optional.empty()));
         }
         //update the client immediately
-        MapAtlasItem.setSelectedSlice(atlas, newSlice);
+        MapAtlasItem.setSelectedSlice(atlas, newSlice, MapAtlasesClient.getLevel());
     }
 
     public static void onLoggedOut(RegistryAccess registryAccess) {

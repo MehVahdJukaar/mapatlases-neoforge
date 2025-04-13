@@ -677,7 +677,7 @@ public class AtlasOverviewScreen extends Screen {
             NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice,
                     Optional.ofNullable(lectern).map(BlockEntity::getBlockPos)));
             //update the client immediately
-            MapAtlasItem.setSelectedSlice(atlas, selectedSlice);
+            MapAtlasItem.setSelectedSlice(atlas, selectedSlice, level);
             recalculateDecorationWidgets();
             changed = true;
         }

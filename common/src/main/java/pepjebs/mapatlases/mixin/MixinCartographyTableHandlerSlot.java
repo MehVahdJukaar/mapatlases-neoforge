@@ -7,9 +7,7 @@
 package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.inventory.Slot;
@@ -51,7 +49,8 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$5")
 class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
 
-    @Shadow @Final
+    @Shadow
+    @Final
     CartographyTableMenu field_17303;
 
     @Inject(method = "onTake", at = @At("HEAD"))
@@ -65,16 +64,16 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                 menu.mapatlases$removeSelectedMap(atlas);
                 atlas.grow(1);
                 slotOneItem.grow(1);
-                if(player instanceof ServerPlayer sp){
-                    slotOneItem.hurtAndBreak(1, sp.serverLevel(), sp, b->{});
+                if (player instanceof ServerPlayer sp) {
+                    slotOneItem.hurtAndBreak(1, sp.serverLevel(), sp, b -> {
+                    });
                 }
                 menu.mapatlases$setSelectedMapIndex(0);
-            } else if (
-                    (slotOneItem.is(Items.MAP)
-                            || (MapAtlasesConfig.acceptPaperForEmptyMaps.get() && slotOneItem.is(Items.PAPER)))) {
+            } else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(slotOneItem)) {
                 var amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level());
                 // onTakeItem already calls takeStack(1) so we subtract that out
-                slotOne.remove(amountToTake.getSecond() - 1);
+                if (amountToTake != null)
+                    slotOne.remove(amountToTake.getSecond() - 1);
             } else if (MapAtlasesAccessUtils.isValidFilledMap(slotOneItem)) {
                 slotOne.remove(1);
             }

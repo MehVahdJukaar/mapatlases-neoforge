@@ -5,6 +5,7 @@ import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -162,7 +163,7 @@ public class MapAtlasItem extends Item {
         NetworkHelper.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
-    public static void setSelectedSlice(ItemStack stack, Slice slice) {
+    public static void setSelectedSlice(ItemStack stack, Slice slice, Level level) {
         MapType t = slice.type();
         var h = slice.height();
         var dimension = slice.dimension();
@@ -174,7 +175,7 @@ public class MapAtlasItem extends Item {
 
         } else {
             //validate:
-            MapCollection maps = getMaps(stack, MapAtlasesClient.getLevel());
+            MapCollection maps = getMaps(stack, level);
             if (!maps.getHeightTree(dimension, t).contains(slice.heightOrTop())) {
                 return;
             }
@@ -250,7 +251,7 @@ public class MapAtlasItem extends Item {
             for (var k : maps.getAvailableTypes(d)) {
                 var av = maps.getHeightTree(d, k);
                 if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
-                    setSelectedSlice(pStack, Slice.of(k, av.first(), d));
+                    setSelectedSlice(pStack, Slice.of(k, av.first(), d), level);
                 }
             }
         }

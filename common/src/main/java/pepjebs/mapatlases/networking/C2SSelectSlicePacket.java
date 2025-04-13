@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
@@ -58,7 +59,7 @@ public class C2SSelectSlicePacket implements Message {
 
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (!atlas.isEmpty()) {
-            MapAtlasItem.setSelectedSlice(atlas, slice);
+            MapAtlasItem.setSelectedSlice(atlas, slice, player.level());
         }
     }
 

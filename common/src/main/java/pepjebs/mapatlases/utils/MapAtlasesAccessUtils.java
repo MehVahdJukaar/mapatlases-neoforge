@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +17,6 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-
-import java.util.Map;
 
 public class MapAtlasesAccessUtils {
 
@@ -95,11 +94,25 @@ public class MapAtlasesAccessUtils {
         return ItemStack.EMPTY;
     }
 
+
+    //must match the one below
+    public static boolean isValidEmptyMapIngredient(ItemStack bottomItem) {
+        int amountToAdd = bottomItem.getCount();
+        MapType bottomType = MapType.fromEmptyMap(bottomItem.getItem());
+        if (bottomItem.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()) {
+            bottomType = MapType.VANILLA;
+        }
+        return bottomType != null && amountToAdd > 0;
+    }
+
     @Nullable
     public static Pair<MapType, Integer> getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
         int amountToAdd = bottomItem.getCount();
         MapType bottomType = MapType.fromEmptyMap(bottomItem.getItem());
-        if (bottomType == null) return null;
+        if (bottomItem.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()) {
+            bottomType = MapType.VANILLA;
+        }
+        if (bottomType == null || amountToAdd == 0) return null;
         int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas).getSize();
         if (MapAtlasItem.getMaxMapCount() != -1
                 && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {
@@ -133,7 +146,7 @@ public class MapAtlasesAccessUtils {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
                 //send crappy wrapper if we dont.
-               // NetworkHelper.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
+                // NetworkHelper.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
             }
         }
     }

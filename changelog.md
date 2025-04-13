@@ -1,4 +1,3 @@
-- fixes issues with select slice packet
-- fixed issues with open screen packet
-- improved slice selection in map screen
-- added a config to show map background in map screen
+fixed a server crash
+
+increased map limit. I challenge any of you to add all those maps without having your game crash

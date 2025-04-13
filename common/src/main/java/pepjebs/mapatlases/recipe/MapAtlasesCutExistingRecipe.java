@@ -149,7 +149,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                         if (first.isPresent()) {
                             Integer newH = first.get();
                             MapAtlasItem.setSelectedSlice(stack, Slice.of(slice.type(),
-                                    newH, slice.dimension()));
+                                    newH, slice.dimension()), levelRef.get());
                         }
                     }
                     didRemoveFilled = true;
