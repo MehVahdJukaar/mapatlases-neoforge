@@ -27,9 +27,8 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
         super(pMenu, pPlayerInventory, pTitle);
     }
 
-    @Override
-    protected void init() {
-        super.init();
+    @Inject(method = "<init>", at = @At("RETURN"))
+    public void init(CartographyTableMenu menu, Inventory playerInventory, Component title, CallbackInfo ci) {
         this.addRenderableWidget(new CartographyTableAtlasButton(this, true, this.menu));
         this.addRenderableWidget(new CartographyTableAtlasButton(this, false, this.menu));
     }
