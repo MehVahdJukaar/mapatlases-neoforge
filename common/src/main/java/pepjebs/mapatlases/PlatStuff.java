@@ -13,6 +13,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -34,7 +35,6 @@ public class PlatStuff {
     @Environment(EnvType.CLIENT)
     @ExpectPlatform
     public static void drawString(GuiGraphics g, Font font, String text, float x, float y, int i, boolean b) {
-
         throw new AssertionError();
     }
 

@@ -140,7 +140,7 @@ public class MapAtlasesServerEvents {
         MapDataHolder activeInfo = maps.select(activeKey);
         if (activeInfo == null && !MapAtlasItem.isLocked(atlas)) {
             // no map. we try creating a new one for this dimension
-            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
             activeInfo = maps.select(activeKey);
         }
 
@@ -182,14 +182,14 @@ public class MapAtlasesServerEvents {
 
         //TODO : this isnt accurate and can be improved
         if (isPlayerTooFarAway(activeKey, player, scaleWidth)) {
-            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()),
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, slice, Mth.floor(player.getX()),
                     Mth.floor(player.getZ()));
         }
         //remove existing maps and tries to fill in remaining ones
         discoveringEdges.removeIf(e -> nearbyExistentMaps.stream().anyMatch(
                 d -> d.data.centerX == e.x && d.data.centerZ == e.y));
         for (var edge : discoveringEdges) {
-            createdNewMap |= maybeCreateNewMapEntry(player, atlas, maps, slice, edge.x, edge.y);
+            createdNewMap |= maybeCreateNewMapEntry(player, atlas, slice, edge.x, edge.y);
         }
 
         if (createdNewMap) {
@@ -289,11 +289,11 @@ public class MapAtlasesServerEvents {
     private static boolean maybeCreateNewMapEntry(
             ServerPlayer player,
             ItemStack atlas,
-            MapCollection maps,
             Slice slice,
             int destX,
             int destZ
     ) {
+        MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         Level level = player.level();
         if (maps.getCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
@@ -307,10 +307,7 @@ public class MapAtlasesServerEvents {
             mutex.lock();
 
             // Make the new map
-            if (!player.isCreative() && !bypassEmptyMaps) {
-                //remove 1 map
-                MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
-            }
+
             //validate height
             var height = slice.height();
             if (height.isPresent() && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height.get())) {
@@ -329,6 +326,11 @@ public class MapAtlasesServerEvents {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, TriState.SET_TRUE);
                 }
                 addedMap = maps.addAndAssigns(atlas, level, slice.type(), newMapId) != maps;
+
+                if (addedMap && !player.isCreative() && !bypassEmptyMaps) {
+                    //remove 1 map
+                    MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
+                }
             }
             mutex.unlock();
         }

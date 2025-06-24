@@ -21,8 +21,8 @@ public class EmptyMaps {
     public static final EmptyMaps EMPTY = new EmptyMaps(Map.of());
 
     private final Map<MapType, Integer> maps;
-    private int size;
-    private boolean hasNonVanilla;
+    private final int size;
+    private final boolean hasNonVanilla;
 
     private EmptyMaps(Map<MapType, Integer> maps) {
         this.maps = maps;

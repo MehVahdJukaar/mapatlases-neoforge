@@ -57,15 +57,15 @@ public class MapAtlasesConfig {
         lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
                 .define("light_map", false);
 
-        shearButton = builder.comment("Adds a shear button to the atlas screen which allows you to cut maps")
-                .define("shear_button", true);
-
         builder.pop();
         builder.push("update_logic");
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
                 .define("round_robin", false);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
                 .define("map_updates_per_tick", 1, 0, 9);
+
+        mapRange = builder.comment("Range multiplier of the map update. Logic affects all maps, atlas or not. Change to make the range smaller or bigger")
+                .define("map_range_multiplier", 1, 0.0001, 10);
 
         mapUpdateMultithreaded = builder.comment("Makes map update on different threads, speeding up the process. Disable if it causes issues. Especially on servers. Try turning on for a big performance improvement regarding map atlas update")
                 .define("multithreaded_update", UpdateType.SINGLE_PLAYER_ONLY);
@@ -93,8 +93,8 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> roundRobinUpdate;
     public static final Supplier<Boolean> lightMap;
     public static final Supplier<String> pinMarkerId;
-    public static final Supplier<Boolean> shearButton;
     public static final Supplier<Integer> mapUpdatePerTick;
+    public static final Supplier<Double> mapRange;
     public static final Supplier<ActivationLocation> activationLocation;
 
     public static final ModConfigHolder SPEC;

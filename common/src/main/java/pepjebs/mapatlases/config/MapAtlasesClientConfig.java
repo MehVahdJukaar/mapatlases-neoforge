@@ -1,13 +1,8 @@
 package pepjebs.mapatlases.config;
 
-import com.mojang.realmsclient.util.TextRenderingUtils;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.world.entity.Entity;
-import org.apache.logging.log4j.core.pattern.TextRenderer;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.InHandMode;
@@ -103,6 +98,14 @@ public class MapAtlasesClientConfig {
         builder.pop();
 
         builder.push("world_map");
+
+        shearButton = builder.comment("Adds a shear button to the atlas screen which allows you to cut maps")
+                .define("shear_button", true);
+
+        compass = builder.comment("Shows a compass icon on the map screen")
+                .define("compass_icon", false);
+        clock = builder.comment("Shows a clock icon on the map screen")
+                .define("clock_icon", false);
 
         worldMapCrossair = builder.define("crossair", false);
         worldMapBigTexture = builder
@@ -215,6 +218,9 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> worldMapZoomScrollSpeed;
     public static final Supplier<Boolean> worldMapBigTexture;
     public static final Supplier<Boolean> worldMapCrossair;
+    public static final Supplier<Boolean> compass;
+    public static final Supplier<Boolean> clock;
+    public static final Supplier<Boolean> shearButton;
     public static final Supplier<Boolean> hideWhenInHand;
     public static final Supplier<InHandMode> inHandMode;
     public static final Supplier<Double> miniMapScale;

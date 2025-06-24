@@ -17,6 +17,7 @@ import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
@@ -190,10 +191,22 @@ public class AtlasOverviewScreen extends Screen {
             this.addRenderableWidget(pinButton);
             by += 20;
         }
-        if (MapAtlasesConfig.shearButton.get()) {
+        if (MapAtlasesClientConfig.shearButton.get()) {
             ShearButton shearButton = new ShearButton((width + BOOK_WIDTH) / 2 + 20,
                     (height - BOOK_HEIGHT) / 2 + 16 + by, this);
             this.addRenderableWidget(shearButton);
+        }
+        int bby = 0;
+
+        if (MapAtlasesClientConfig.compass.get()) {
+            this.addRenderableWidget(new ItemWidget((width - BOOK_WIDTH) / 2 - 20 - 16,
+                    (height - BOOK_HEIGHT) / 2 + 16, this, Items.COMPASS.getDefaultInstance()));
+            bby += 20;
+        }
+
+        if (MapAtlasesClientConfig.clock.get()) {
+            this.addRenderableWidget(new ItemWidget((width - BOOK_WIDTH) / 2 - 20 - 16,
+                    (height - BOOK_HEIGHT) / 2 + 16 + bby, this, Items.CLOCK.getDefaultInstance()));
         }
 
         this.selectDimension(level.dimension());

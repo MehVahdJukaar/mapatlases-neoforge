@@ -1,1 +1,2 @@
-fixed a mixin type being incorrect
+- fixed map adding logic failing to updated the atlas item while adding new maps resulting in wasted maps
+- added compas and clock item option to the screen
