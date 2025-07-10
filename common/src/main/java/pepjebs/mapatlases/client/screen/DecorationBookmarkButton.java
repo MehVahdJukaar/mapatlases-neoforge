@@ -21,6 +21,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.utils.DecorationHolder;
@@ -147,9 +148,12 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
         Component mapIconComponent = getDecorationName();
+        Tooltip t = Tooltip.create(mapIconComponent);
+        if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) {
+            return t;
+        }
         Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())
                 .withStyle(ChatFormatting.GRAY);
-        Tooltip t = Tooltip.create(mapIconComponent);
         Tooltip t2 = Tooltip.create(coordsComponent);
         return CompoundTooltip.create(t, t2);
     }

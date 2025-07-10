@@ -1,2 +1,1 @@
-- fixed map adding logic failing to updated the atlas item while adding new maps resulting in wasted maps
-- added compas and clock item option to the screen
+- change map marker tooltip to not show coordinates when config is off
