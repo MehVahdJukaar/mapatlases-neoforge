@@ -16,6 +16,9 @@ public class MapAtlasesClientConfig {
         ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.CLIENT);
 
         builder.push("minimap");
+        hideWhenInventoryOpen = builder
+                .comment("Hides minimap when inventory is open")
+                .define("hide_when_inventory_is_open", false);
         showsMapBackground = builder
                 .comment("Shows a background texture for each map, useful to see where each map ends")
                 .define("shows_map_background", false);
@@ -235,6 +238,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
     public static final Supplier<Boolean> showsMapBackground;
+    public static final Supplier<Boolean> hideWhenInventoryOpen;
 
     public static final ModConfigHolder SPEC;
 
