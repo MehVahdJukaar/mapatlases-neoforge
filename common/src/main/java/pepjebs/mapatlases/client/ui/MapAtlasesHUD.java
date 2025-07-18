@@ -100,6 +100,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         }
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
 
+        if (MapAtlasesClientConfig.hideWhenInventoryOpen.get() && mc.screen != null) {
+            return;
+        }
+
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (atlas.isEmpty()) return;
 

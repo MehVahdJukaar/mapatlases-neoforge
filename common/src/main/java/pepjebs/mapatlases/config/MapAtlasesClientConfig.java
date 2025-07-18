@@ -17,6 +17,12 @@ public class MapAtlasesClientConfig {
 
 
         builder.push("minimap");
+        hideWhenInventoryOpen = builder
+                .comment("Hides minimap when inventory is open")
+                .define("hide_when_inventory_is_open", false);
+        showsMapBackground = builder
+                .comment("Shows a background texture for each map, useful to see where each map ends")
+                .define("shows_map_background", false);
 
         hideWhenInHand = builder.comment("Hide minimap when holding the atlas in hand")
                 .define("hide_when_in_hand", true);
@@ -221,6 +227,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> nightLightMap;
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
+    public static final Supplier<Boolean> showsMapBackground;
 
     public static final ConfigSpec SPEC;
 
