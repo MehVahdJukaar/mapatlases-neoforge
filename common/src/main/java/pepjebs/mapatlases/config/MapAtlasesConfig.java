@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 public class MapAtlasesConfig {
 
     static {
-        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON);
+        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON_SYNCED);
 
 
         builder.push("general");
@@ -57,6 +57,9 @@ public class MapAtlasesConfig {
         lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
                 .define("light_map", false);
 
+        entityRadar = builder.comment("Show nearby mobs on minimap. Needs matching client config also set")
+                .define("mob_radar", false);
+
         builder.pop();
         builder.push("update_logic");
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
@@ -92,6 +95,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> creativeTeleport;
     public static final Supplier<Boolean> roundRobinUpdate;
     public static final Supplier<Boolean> lightMap;
+    public static final Supplier<Boolean> entityRadar;
     public static final Supplier<String> pinMarkerId;
     public static final Supplier<Integer> mapUpdatePerTick;
     public static final Supplier<Double> mapRange;

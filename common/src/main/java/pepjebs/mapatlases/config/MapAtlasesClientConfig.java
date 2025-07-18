@@ -166,7 +166,7 @@ public class MapAtlasesClientConfig {
                 .define("enabled", true);
         moonlightPinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
                 .define("pin_tracking", true);
-        entityRadar = builder.comment("Show nearby mobs on minimap")
+        entityRadar = builder.comment("Show nearby mobs on minimap. Also requires matching server config")
                 .define("mob_radar", false);
         radarRadius = builder.define("radar_radius", 64, 0, 256);
         radarRotation = builder.comment("Entities on radar will have their icon rotate")
