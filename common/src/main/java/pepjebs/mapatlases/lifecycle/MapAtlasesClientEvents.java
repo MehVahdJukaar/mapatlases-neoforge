@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesClientCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
@@ -44,7 +45,7 @@ public class MapAtlasesClientEvents {
                 maybeChangeSlice(client.player, level, maps, s, atlas);
             }
         }
-        else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get()) {
+        else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get() && MapAtlasesConfig.entityRadar.get()) {
             EntityRadar.onClientTick(client.player);
         }
     }

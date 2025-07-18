@@ -1,1 +1,1 @@
-- change map marker tooltip to not show coordinates when config is off
+- added server side config for entity radar too
