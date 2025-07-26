@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class MapAtlasesConfig {
 
     static {
-        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON_SYNCED);
+        ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON);
 
 
         builder.push("general");
@@ -76,7 +76,7 @@ public class MapAtlasesConfig {
 
         builder.pop();
 
-
+builder.setSynced();
 
         SPEC = builder.buildAndRegister();
     }

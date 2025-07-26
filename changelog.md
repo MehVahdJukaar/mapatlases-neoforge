@@ -1,1 +1,1 @@
-- added server side config for entity radar too
+- backported some configs

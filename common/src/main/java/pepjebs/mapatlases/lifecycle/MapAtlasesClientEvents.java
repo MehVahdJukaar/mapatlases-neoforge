@@ -46,7 +46,10 @@ public class MapAtlasesClientEvents {
             }
         }
         else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get() && MapAtlasesConfig.entityRadar.get()) {
-            EntityRadar.onClientTick(client.player);
+            Player player = client.player;
+            if (player != null) {
+                EntityRadar.onClientTick(player);
+            }
         }
     }
 

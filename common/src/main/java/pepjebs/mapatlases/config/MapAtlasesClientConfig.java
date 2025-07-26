@@ -228,6 +228,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
     public static final Supplier<Boolean> showsMapBackground;
+    public static final Supplier<Boolean> hideWhenInventoryOpen;
 
     public static final ConfigSpec SPEC;
 
