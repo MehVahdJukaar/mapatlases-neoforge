@@ -126,6 +126,9 @@ public class MapAtlasesClientConfig {
         drawWorldMapCoords = builder
                 .comment("When enabled, the Atlas world map coordinates will be displayed")
                 .define("draw_coordinates", true);
+        drawPinMapCoords = builder
+                .comment("When enabled, the Atlas world map pins will have their coordinates displayed when hovered")
+                .define("draw_coordinates_pin", true);
         worldMapCoordsScale = builder
                 .comment("Sets the scale of the text rendered for Coords world-map data")
                 .define("coordinates_scale", 1, 0, 10d);
@@ -189,6 +192,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> drawMinimapChunkCoords;
     public static final Supplier<Boolean> drawMinimapBiome;
     public static final Supplier<Boolean> drawWorldMapCoords;
+    public static final Supplier<Boolean> drawPinMapCoords;
     public static final Supplier<Boolean> drawMinimapCardinals;
     public static final Supplier<Boolean> miniMapOnlyNorth;
     public static final Supplier<Boolean> miniMapBorder;
