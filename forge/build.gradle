@@ -141,7 +141,7 @@ dependencies {
 
     modCompileOnly("curse.maven:supplementaries-412082:5066761")
     modCompileOnly("curse.maven:config-menus-forge-544048:4672356")
-    modCompileOnly("curse.maven:the-twilight-forest-227639:4802174")
+    modImplementation("curse.maven:the-twilight-forest-227639:5468648")
     modCompileOnly("curse.maven:xaeros-world-map-317780:4749572")
     modCompileOnly("curse.maven:xaeros-minimap-263420:4812568")
     modRuntimeOnly("curse.maven:spark-361579:4738952")

@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 // The purpose of this object is to save a datastructures with all available maps so we dont have to keep deserializing nbt
 public class MapCollection implements IMapCollection {
 
-
     public static final String MAP_LIST_NBT = "maps";
 
     private final Map<MapKey, MapDataHolder> maps = new HashMap<>();
@@ -47,7 +46,7 @@ public class MapCollection implements IMapCollection {
         notSyncedIds.removeIf(i -> add(i, level));
     }
 
-    // we need leven context
+    // we need level context
     public void initialize(Level level) {
         if (lazyNbt != null) {
             int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);

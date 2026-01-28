@@ -55,7 +55,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         boolean hasMap = false;
         for (int j = 0; j < inv.getContainerSize(); ++j) {
             ItemStack itemstack = inv.getItem(j);
-            if ( MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
+            if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 if (hasMap || MapItem.getSavedData(itemstack, level) == null) {
                     return false;
                 }
@@ -81,7 +81,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
         ItemStack mapItemStack = null;
         for (var item : inv.getItems()) {
-            if( MapAtlasesAccessUtils.isValidFilledMap(item)){
+            if (MapAtlasesAccessUtils.isValidFilledMap(item)) {
                 mapItemStack = item;
                 break;
             }

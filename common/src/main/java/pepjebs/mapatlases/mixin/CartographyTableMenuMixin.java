@@ -63,10 +63,11 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     protected CartographyTableMenuMixin(@Nullable MenuType<?> arg, int i) {
         super(arg, i);
     }
+    //TODO: TF maps cant go here
 
 
     @Inject(method = "setupResultSlot", at = @At("HEAD"), cancellable = true)
-    void mapAtlasUpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
+    void mapAtlas$UpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
         if (!topItem.is(MapAtlasesMod.MAP_ATLAS.get())) return;
         // cut map
         if (PlatStuff.isShear(bottomItem)) {
@@ -132,7 +133,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     }
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
-    void mapAtlasTransferSlot(Player player, int index, CallbackInfoReturnable<ItemStack> info) {
+    void mapAtlas$TransferSlot(Player player, int index, CallbackInfoReturnable<ItemStack> info) {
         if (index >= 0 && index <= 2) return;
 
         Slot slot = this.slots.get(index);
@@ -189,12 +190,13 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             access.execute((level, pos) -> {
                 l.set(level);
             });
-            if(l.get() == null){
-                try{
+            if (l.get() == null) {
+                try {
                     MapAtlasesClient.getClientAccess().execute((level, pos) -> l.set(level));
-                }catch (Exception ignored){}
+                } catch (Exception ignored) {
+                }
             }
-            if(l.get() != null) {
+            if (l.get() != null) {
                 if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
                     var maps = MapAtlasItem.getMaps(atlas, l.get());
                     mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
@@ -206,7 +208,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                         } else {
                             this.mapatlases$selectedSlice = null;
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         //aa ERROR
                         int a = 1;
                     }
