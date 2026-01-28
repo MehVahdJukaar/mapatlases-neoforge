@@ -87,7 +87,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     protected void focusMarker() {
-        ClientMarkers.focusMarker(mapData, decoration, !ClientMarkers.isDecorationFocused(mapData, decoration));
+        ClientMarkers.focusClientDeco(mapData, decoration, !ClientMarkers.isClientDecoFocused(mapData, decoration));
     }
 
     @Override
@@ -101,7 +101,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         MLMapDecoration d = decorations.get(decorationId);
         if (d != null) {
             //in case this is is a pin
-            if (!ClientMarkers.removeDeco(mapData.id, decorationId)) {
+            if (!ClientMarkers.removeClientDeco(mapData.id, decorationId)) {
                 //we cant use string id because server has them diferent...
                 NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(mapData.id, mapData.type, d.hashCode(), true));
                 //also removes immediately from client side

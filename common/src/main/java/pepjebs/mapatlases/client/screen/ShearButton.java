@@ -29,7 +29,7 @@ public class ShearButton extends BookmarkButton {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        parentScreen.toggleShearing();
+        parentScreen.toggleCursorAction(CursorAction.SHEARING);
     }
 
 }
