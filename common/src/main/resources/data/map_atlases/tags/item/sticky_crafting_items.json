@@ -6,6 +6,22 @@
     {
       "id": "#c:slimeballs",
       "required": false
+    },
+    {
+      "id": "#c:slime_balls",
+      "required": false
+    },
+    {
+      "id": "enderscape:drift_jelly_bottle",
+      "required": false
+    },
+    {
+      "id": "crittersandcompanions:sea_bunny_slime_bottle",
+      "required": false
+    },
+    {
+      "id": "autumnity:snail_goo",
+      "required": false
     }
   ]
 }
