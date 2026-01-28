@@ -38,7 +38,7 @@ public class MapAtlasesAccessUtils {
         if (type == null) return null;
         MapId id = type.getMapId(itemStack);
         if (id == null) return null;
-        return MapDataHolder.get(id, type, level);
+        return MapDataHolder.find(id, type, level);
     }
 
     @NotNull

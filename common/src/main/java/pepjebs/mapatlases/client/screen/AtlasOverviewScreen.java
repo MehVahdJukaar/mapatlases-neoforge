@@ -9,6 +9,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.CommandBlockEditScreen;
+import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -36,6 +38,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
+import pepjebs.mapatlases.networking.C2SRemoveSlicePacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
 import pepjebs.mapatlases.utils.*;
@@ -77,7 +80,8 @@ public class AtlasOverviewScreen extends Screen {
     private final boolean isPinOnly;
     private Slice selectedSlice;
     private boolean initialized = false;
-    private CursorAction cursorAction;
+    private CursorAction selectedCursorAction;
+    private boolean canPerformCursorAction;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
     private PinButton pinButton;
 
@@ -105,7 +109,7 @@ public class AtlasOverviewScreen extends Screen {
         this.selectedSlice = closest.slice;
 
         this.isPinOnly = placingPin;
-        this.cursorAction = placingPin ? CursorAction.PLACING_PIN : CursorAction.NONE;
+        this.selectedCursorAction = placingPin ? CursorAction.PLACING_PIN : CursorAction.NONE;
         if (!isPinOnly) {
             // Play open sound
             this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
@@ -285,11 +289,8 @@ public class AtlasOverviewScreen extends Screen {
                     this.onClose();
                 }
                 return true;
-            } else if (placingPin) {
-                placingPin = false;
-                return true;
-            } else if (shearing) {
-                shearing = false;
+            } else if (this.selectedCursorAction != CursorAction.NONE) {
+                this.selectedCursorAction = CursorAction.NONE;
                 return true;
             }
         }
@@ -321,8 +322,8 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    protected void renderMenuBackground(GuiGraphics graphics, int x, int y, int width, int height) {
-        super.renderMenuBackground(graphics, x, y, width, height);
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        this.renderTransparentBackground(graphics);
 
         graphics.pose().pushPose();
         graphics.pose().translate(width / 2f, height / 2f, 0);
@@ -424,6 +425,23 @@ public class AtlasOverviewScreen extends Screen {
 
             poseStack.popPose();
         }
+
+        //render cursor
+
+        if (isPlacingPin()) {
+            poseStack.pushPose();
+            poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
+            graphics.blitSprite(canPerformCursorAction ? PLACE_PIN_READY_SPRITE :
+                    PLACE_PIN_SPRITE, 0, 0, 8, 8);
+            poseStack.popPose();
+        } else if (isShearing()) {
+            poseStack.pushPose();
+            poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
+            graphics.blitSprite(canPerformCursorAction ? SHEAR_MAP_READY_SPRITE :
+                    SHEAR_MAP_SPRITE, 0, 0, 8, 8);
+            poseStack.popPose();
+        }
+        this.canPerformCursorAction = false;
     }
 
     // ================== Mouse Functions ==================
@@ -706,23 +724,27 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean isPlacingPin() {
-        return this.cursorAction == CursorAction.PLACING_PIN;
+        return this.selectedCursorAction == CursorAction.PLACING_PIN;
     }
 
     public void clearCursorAction() {
-        this.cursorAction = CursorAction.NONE;
+        this.selectedCursorAction = CursorAction.NONE;
     }
 
     public void toggleCursorAction(CursorAction targetAction) {
-        if (this.cursorAction == targetAction) {
-            this.cursorAction = CursorAction.NONE;
+        if (this.selectedCursorAction == targetAction) {
+            this.selectedCursorAction = CursorAction.NONE;
         } else {
-            this.cursorAction = targetAction;
+            this.selectedCursorAction = targetAction;
         }
     }
 
+    public void notifyOfClickActionUsage() {
+        this.canPerformCursorAction = true;
+    }
+
     public boolean isShearing() {
-      return this.cursorAction == CursorAction.SHEARING;
+        return this.selectedCursorAction == CursorAction.SHEARING;
     }
 
     public void shearMapAt(ColumnPos pos) {
@@ -730,9 +752,17 @@ public class AtlasOverviewScreen extends Screen {
         if (selected != null) {
             NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type));
             //also remove immediately
-            currentMaps.removeAndAssigns(atlas, level, selected.id, selected.type);
+            currentMaps.removeDataAndAssign(atlas, level, selected);
             recalculateDecorationWidgets();
         }
+        this.clearCursorAction();
+    }
+
+    public void shearSlice(Slice slice) {
+        NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice));
+        //also remove immediately
+        currentMaps.removeSliceAndAssign(atlas, level, slice);
+        recalculateDecorationWidgets();
         this.clearCursorAction();
     }
 
@@ -775,7 +805,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public boolean canTeleport() {
         return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
-                cursorAction == CursorAction.NONE && !editBox.active;
+                selectedCursorAction == CursorAction.NONE && !editBox.active;
     }
 
 
@@ -808,12 +838,5 @@ public class AtlasOverviewScreen extends Screen {
         return minecraft;
     }
 
-    public void removeMapAt(double mouseX, double mouseY) {
-        //find map at pos
-        Vector4d v = transformMousePos(mouseX, mouseY);
-        MapDataHolder map = currentMaps.select((int) v.x, (int) v.y, selectedSlice);
-        if (map != null) {
-            NetworkHelper.sendToServer(new C2SRemoveMapPacket(map.id, map.type));
-        }
-    }
+
 }

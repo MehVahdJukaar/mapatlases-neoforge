@@ -69,7 +69,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
         MapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
         var map = oldMaps.getIdsCopy();
         for (MapDataHolder holder : maps.getAllFound()) {
-            oldMaps = oldMaps.removeAndAssigns(oldAtlas, level, holder.id, holder.type);
+            oldMaps = oldMaps.removeDataAndAssign(oldAtlas, level, holder);
             MapId newId = SupplementariesCompat.createAntiqueMapData(holder.data, level, true, false);
             if (newId != null) {
                 oldMaps = oldMaps.addAndAssigns(oldAtlas, level, holder.type, newId);

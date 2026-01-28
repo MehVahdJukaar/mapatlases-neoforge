@@ -95,14 +95,16 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         MapAtlasesClient.setDecorationsTextScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationTextScale.get());
 
         MapItemSavedData hoveredData = null;
-        if (mapScreen.isShearing()) {
+        boolean shearing = mapScreen.isShearing();
+        boolean placingPin = mapScreen.isPlacingPin();
+        if (shearing || placingPin) {
             ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
-            var d = mapScreen.findMapContaining(pos.x(), pos.z());
+            MapDataHolder d = mapScreen.findMapContaining(pos.x(), pos.z());
             hoveredData = d != null ? d.data : null;
         }
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
                 MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type(),
-                LightTexture.FULL_BRIGHT, hoveredData);
+                LightTexture.FULL_BRIGHT, shearing ? hoveredData : null);
 
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
@@ -111,19 +113,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 (zoomLevel / 2) * mapBlocksSize, followingPlayer);
 
-        if (isHovered && mapScreen.isPlacingPin()) {
-            PoseStack poseStack = graphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
-            graphics.blitSprite(MapAtlasesClient.PLACE_PIN_SPRITE, 0, 0, 8, 8);
-            poseStack.popPose();
-        }
-        if (isHovered && mapScreen.isShearing()) {
-            PoseStack poseStack = graphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
-            graphics.blitSprite(MapAtlasesClient.SHEAR_MAP_SPRITE, 0, 0, 8, 8);
-            poseStack.popPose();
+        if (isHovered && hoveredData != null) {
+            mapScreen.notifyOfClickActionUsage();
         }
 
         if (this.isHovered && !mapScreen.isEditingText()) {

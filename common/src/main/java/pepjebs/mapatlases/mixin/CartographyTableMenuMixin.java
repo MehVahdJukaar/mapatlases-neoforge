@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -180,7 +179,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         access.execute((level, pos) -> {
             MapCollection maps = MapAtlasItem.getMaps(atlas, level);
             MapDataHolder m = maps.getAllFound().get(mapatlases$selectedMapIndex);
-            maps.removeAndAssigns(atlas, level, m.id, m.type);
+            maps.removeDataAndAssign(atlas, level, m);
         });
     }
 

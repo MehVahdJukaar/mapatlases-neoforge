@@ -16,6 +16,7 @@ public class MapAtlasesNetworking {
         event.registerServerBound(C2SRemoveMarkerPacket.TYPE);
         event.registerServerBound(C2STakeAtlasPacket.TYPE);
         event.registerServerBound(C2SRemoveMapPacket.TYPE);
+        event.registerServerBound(C2SRemoveSlicePacket.TYPE);
     }
 
     public static void init() {

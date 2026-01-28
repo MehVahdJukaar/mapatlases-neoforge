@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapBanner;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -20,6 +19,7 @@ import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -46,7 +46,7 @@ public class MapDataHolder {
     }
 
     @Nullable
-    public static MapDataHolder get(MapId id, MapType type, Level level) {
+    public static MapDataHolder find(MapId id, MapType type, Level level) {
         MapItemSavedData data = type.getMapData(level, id);
         if (data == null) return null;
         return new MapDataHolder(id, type, data);

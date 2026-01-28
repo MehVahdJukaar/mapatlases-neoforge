@@ -142,7 +142,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                 if (!maps.isEmpty()) {
                     MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
-                    maps = maps.removeAndAssigns(stack, levelRef.get(), toRemove.id, toRemove.type);
+                    maps = maps.removeDataAndAssign(stack, levelRef.get(), toRemove);
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());
                     if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();

@@ -320,7 +320,7 @@ public class MapAtlasesServerEvents {
             MapId newMapId = newMap.get(DataComponents.MAP_ID);
 
             if (newMapId != null) {
-                MapDataHolder newData = MapDataHolder.get(newMapId, slice.type(), level);
+                MapDataHolder newData = MapDataHolder.find(newMapId, slice.type(), level);
                 // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
                 if (newData != null) {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, TriState.SET_TRUE);

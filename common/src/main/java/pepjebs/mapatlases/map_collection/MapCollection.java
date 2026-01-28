@@ -136,15 +136,17 @@ public class MapCollection {
 
     public List<MapDataHolder> selectSection(Slice slice) {
         assertInitialized();
-        return maps.entrySet().stream().filter(e -> e.getKey().isSameSlice(slice))
-                .map(Map.Entry::getValue).toList();
+        return filter(m -> Objects.equals(m.slice, slice));
     }
 
     public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
         assertInitialized();
-        return new ArrayList<>(maps.entrySet().stream().filter(e -> e.getKey().isSameSlice(slice)
-                        && predicate.test(e.getValue().data))
-                .map(Map.Entry::getValue).toList());
+        return filter(m -> Objects.equals(m.slice, slice) && predicate.test(m.data));
+    }
+
+    public List<MapDataHolder> filter(Predicate<MapDataHolder> predicate) {
+        assertInitialized();
+        return new ArrayList<>(maps.values().stream().filter(predicate).toList());
     }
 
     @Nullable
@@ -192,7 +194,7 @@ public class MapCollection {
     }
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
-        MapDataHolder found = MapDataHolder.get(intId, type, level);
+        MapDataHolder found = MapDataHolder.find(intId, type, level);
         if (!initialized && found != null) {
             scale = found.data.scale;
             initialized = true;
@@ -236,8 +238,26 @@ public class MapCollection {
         return initialized;
     }
 
-    public MapCollection removeAndAssigns(ItemStack atlas, Level level, MapId id, MapType type) {
+    public MapCollection removeSliceAndAssign(ItemStack atlas, Level level, Slice slice) {
+        var blacklist = selectSection(slice);
+        if (blacklist.isEmpty()) return this;
+        //make copy and remove
+        Map<MapType, List<MapId>> mapCopy = getIdsCopy();
+        for (var m : blacklist) {
+            var l = mapCopy.get(m.type);
+            if (l != null) {
+                l.remove(m.id);
+            }
+        }
+        MapCollection newColl = new MapCollection(mapCopy, level);
+        atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
+        return newColl;
+    }
+
+    public MapCollection removeDataAndAssign(ItemStack atlas, Level level, MapDataHolder holder) {
         //make id copy
+        MapType type = holder.type;
+        MapId id = holder.id;
         var l = ids.get(type);
         if (l == null || !l.contains(id)) return this;
         //make copy and remove

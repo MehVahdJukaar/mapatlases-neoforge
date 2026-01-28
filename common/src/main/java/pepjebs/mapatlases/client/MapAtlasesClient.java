@@ -87,7 +87,9 @@ public class MapAtlasesClient {
     public static final ResourceLocation SHEAR_BUTTON_SPRITE = MapAtlasesMod.res("shear_button");
     public static final ResourceLocation SHEAR_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("shear_button_hovered");
     public static final ResourceLocation SHEAR_MAP_SPRITE = MapAtlasesMod.res("shear_map");
+    public static final ResourceLocation SHEAR_MAP_READY_SPRITE = MapAtlasesMod.res("shear_map_ready");
     public static final ResourceLocation PLACE_PIN_SPRITE = MapAtlasesMod.res("place_pin");
+    public static final ResourceLocation PLACE_PIN_READY_SPRITE = MapAtlasesMod.res("place_pin_ready");
     public static final ResourceLocation ZOOM_IN_BUTTON_SPRITE = MapAtlasesMod.res("zoom_in_button");
     public static final ResourceLocation ZOOM_IN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("zoom_in_button_hovered");
 

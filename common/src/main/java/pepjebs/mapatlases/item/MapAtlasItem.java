@@ -5,7 +5,6 @@ import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,6 +34,7 @@ import pepjebs.mapatlases.map_collection.SelectedSlice;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,14 +46,27 @@ public class MapAtlasItem extends Item {
         super(settings);
     }
 
+    public static void removeAndDropSliceMaps(Slice slice, ItemStack atlas, ServerPlayer player) {
+        MapCollection data = getMaps(atlas, player.level());
+        Collection<MapDataHolder> allInSlice = data.selectSection(slice);
+        data.removeSliceAndAssign(atlas, player.level(), slice);
+        for (MapDataHolder holder : allInSlice) {
+            giveMapToPlayer(player, holder);
+        }
+    }
+
     public static void removeAndDropMap(MapId id, MapType type, ItemStack atlas, ServerPlayer player) {
         MapCollection data = getMaps(atlas, player.level());
-        MapDataHolder holder = MapDataHolder.get(id, type, player.level());
-        if (holder != null && data != data.removeAndAssigns(atlas, player.level(), id, type)) {
-            ItemStack item = holder.createExistingMapItem();
-            if (!player.getInventory().add(item)) {
-                player.drop(item, false);
-            }
+        MapDataHolder holder = MapDataHolder.find(id, type, player.level());
+        if (holder != null && data != data.removeDataAndAssign(atlas, player.level(), holder)) {
+            giveMapToPlayer(player, holder);
+        }
+    }
+
+    private static void giveMapToPlayer(ServerPlayer player, MapDataHolder holder) {
+        ItemStack item = holder.createExistingMapItem();
+        if (!player.getInventory().add(item)) {
+            player.drop(item, false);
         }
     }
 
@@ -94,7 +107,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            boolean locked = !stack.has(MapAtlasesMod.LOCKED.get());
+            boolean locked = stack.has(MapAtlasesMod.LOCKED.get());
             if (locked) {
                 stack.remove(MapAtlasesMod.LOCKED.get());
             } else {
@@ -149,7 +162,7 @@ public class MapAtlasItem extends Item {
     }
 
 
-    // Utilities functions
+// Utilities functions
 
 
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @NotNull Optional<BlockPos> lecternPos, boolean pinOnly) {

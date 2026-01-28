@@ -1,3 +1,6 @@
 - updated and improved client pin saving. saving uses now a temporary file to prevent data corruption incase something would go wrong on world close
 - backported the place pin icon
-- cleanups
+- you can now remove entire slice with the shear button on the slice bookmark
+- shear and pin have a new icon when hovering stuff you can click on
+- fixed not being able to lock atlas
+- atlas screen doesnt have a blurry background anymore

@@ -10,8 +10,6 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.Slice;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-
 public class SliceBookmarkButton extends BookmarkButton {
 
     private static final int BUTTON_H = 21;
@@ -24,7 +22,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     private boolean hasMoreThan1Slice = true;
 
     protected SliceBookmarkButton(int pX, int pY, Slice slice, AtlasOverviewScreen screen) {
-        super(pX, pY, BUTTON_W, BUTTON_H,  screen, MapAtlasesClient.SLICE_BOOKMARK_SPRITE, MapAtlasesClient.SLICE_BOOKMARK_SPRITE);
+        super(pX, pY, BUTTON_W, BUTTON_H, screen, MapAtlasesClient.SLICE_BOOKMARK_SPRITE, MapAtlasesClient.SLICE_BOOKMARK_SPRITE);
         this.slice = slice;
         this.selected = false;
         this.setTooltip(createTooltip());
@@ -56,7 +54,7 @@ public class SliceBookmarkButton extends BookmarkButton {
         RenderSystem.enableDepthTest();
 
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        ResourceLocation sprite = switch(slice.type()){
+        ResourceLocation sprite = switch (slice.type()) {
             case VANILLA, SLICED -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
             case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
             case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;
@@ -74,12 +72,19 @@ public class SliceBookmarkButton extends BookmarkButton {
                     text, this.getX() + (compact ? 17 : 39), this.getY() + 7, -1);
         }
 
+        if (isHovered && parentScreen.isShearing()) {
+            parentScreen.notifyOfClickActionUsage();
+        }
+
         pose.popPose();
     }
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        parentScreen.cycleSliceType();
+        if (parentScreen.isShearing()) {
+            parentScreen.shearSlice(slice);
+        } else parentScreen.cycleSliceType();
+
     }
 
     //@Override

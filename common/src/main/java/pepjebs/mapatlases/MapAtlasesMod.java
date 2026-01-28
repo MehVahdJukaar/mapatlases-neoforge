@@ -104,6 +104,7 @@ public class MapAtlasesMod {
         RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
 
         //TODO
+        //fix text scaling not being pixel multiple
         //make map texture updates happen way less frequently. Delay upload maybe
         //lectern marker
         //sound
