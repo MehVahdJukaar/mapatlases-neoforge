@@ -118,8 +118,8 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             PoseStack poseStack = graphics.pose();
             poseStack.pushPose();
             poseStack.translate(pMouseX - 2.5f, pMouseY - 2.5f, 10);
-            graphics.blit(MAP_ICON_TEXTURE, 0, 0,
-                    40, 0, 8, 8, 128, 128);
+            graphics.blit(ATLAS_BACKGROUND_TEXTURE,  0, 0,
+                    74, 172, 8, 8);
             poseStack.popPose();
         }
         if (isHovered && mapScreen.isShearing()) {

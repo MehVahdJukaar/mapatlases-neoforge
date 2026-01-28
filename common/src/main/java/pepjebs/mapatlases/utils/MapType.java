@@ -181,7 +181,7 @@ public enum MapType {
     }
 
     public boolean hasMarkers() {
-        return this != MAGIC;
+        return this != MAGIC;//why? to exclude twilight forest world markers. I guess we could have used a tag here
     }
 
     public int getDiscoveryReach(@Nullable Integer height) {

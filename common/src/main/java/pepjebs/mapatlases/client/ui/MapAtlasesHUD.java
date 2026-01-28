@@ -30,6 +30,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
@@ -301,7 +302,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             poseStack.pushPose();
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
-            ClientMarkers.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
+            ClientMarkersRenderer.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
                     currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
                     mapBlocksSize * zoomLevel, player, rotatesWithPlayer, currentMaps);
             RenderSystem.disableDepthTest();

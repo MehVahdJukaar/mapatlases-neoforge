@@ -26,12 +26,12 @@ public class PinButton extends BookmarkButton {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        parentScreen.togglePlacingPin();
+        parentScreen.toggleCursorAction(CursorAction.PLACING_PIN);
     }
 
     public static void placePin(MapDataHolder map, ColumnPos pos, String text, int index) {
         if (MapAtlasesMod.MOONLIGHT) {
-            ClientMarkers.addMarker(map, pos, text, index);
+            ClientMarkers.addPin(map, pos, text, index);
         } else
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text));
     }

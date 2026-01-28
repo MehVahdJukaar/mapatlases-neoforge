@@ -77,7 +77,7 @@ public class XaeroMinimapCompat {
                     MapBlockMarker<?> marker = MapDataRegistry.getDefaultType().createEmptyMarker();
                     marker.setPos(new BlockPos(w.x, w.y, w.z));
                     if (marker.createDecorationFromMarker(data) != null) {
-                        ClientMarkers.addMarker(holder, new ColumnPos(w.x, w.z), w.name, w.color);
+                        ClientMarkers.addPin(holder, new ColumnPos(w.x, w.z), w.name, w.color);
                         //toRemove.add(w);
                         //MapAtlasesMod.LOGGER.info("Added converted Xaero waypoint {} to pins ", w);
                     }

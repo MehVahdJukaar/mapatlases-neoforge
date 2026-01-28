@@ -13,6 +13,7 @@ import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 
 import java.util.Random;
 
@@ -77,7 +78,7 @@ public class PinNameBox extends EditBox {
             p.translate(0, remainder * popIn, 0);
             int alphaDecrement = 120;
             int aa = (int) Mth.lerp(Mth.abs(remainder), 255, alphaDecrement);
-            ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, 0,
+            ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, 0,
                     closestInd, this.markerHovered, aa);
 
             if (popIn != 0) {
@@ -86,7 +87,7 @@ public class PinNameBox extends EditBox {
                     int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
                     p.translate(0, 0, -0.01);
                     if (al <= 0) break;
-                    ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
+                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
                             false, al);
                 }
                 p.popPose();
@@ -95,7 +96,7 @@ public class PinNameBox extends EditBox {
                     int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
                     p.translate(0, 0, -0.01);
                     if (al <= 0) break;
-                    ClientMarkers.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
+                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
                             false, al);
                 }
                 p.popPose();

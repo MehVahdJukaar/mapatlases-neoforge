@@ -75,8 +75,7 @@ public class AtlasOverviewScreen extends Screen {
     private final boolean isPinOnly;
     private Slice selectedSlice;
     private boolean initialized = false;
-    private boolean placingPin;
-    private boolean shearing;
+    private CursorAction cursorAction;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
     private PinButton pinButton;
 
@@ -104,7 +103,7 @@ public class AtlasOverviewScreen extends Screen {
         this.selectedSlice = closest.slice;
 
         this.isPinOnly = placingPin;
-        this.placingPin = placingPin;
+        this.cursorAction = placingPin ? CursorAction.PLACING_PIN : CursorAction.NONE;
         if (!isPinOnly) {
             // Play open sound
             this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
@@ -274,7 +273,7 @@ public class AtlasOverviewScreen extends Screen {
         }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) {
-                this.togglePlacingPin();
+                this.toggleCursorAction(CursorAction.PLACING_PIN);
             }
             return true;
         }
@@ -484,7 +483,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected MapDataHolder findMapContaining(int x , int z){
+    protected MapDataHolder findMapContaining(int x, int z) {
         return currentMaps.select(MapKey.at(currentMaps.getScale(), x, z, selectedSlice));
     }
 
@@ -524,12 +523,44 @@ public class AtlasOverviewScreen extends Screen {
         recalculateDecorationWidgets();
     }
 
-    public void recalculateDecorationWidgets() {
+    protected void recalculateDecorationWidgets() {
         for (var v : decorationBookmarks) {
             this.removeWidget(v);
         }
         decorationBookmarks.clear();
-        addDecorationWidgets();
+
+        if (!selectedSlice.hasMarkers()) return;
+        List<DecorationHolder> mapIcons = new ArrayList<>();
+
+        boolean ml = MapAtlasesMod.MOONLIGHT;
+        for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
+            MapItemSavedData data = holder.data;
+            for (var d : data.decorations.entrySet()) {
+                MapDecoration deco = d.getValue();
+                if (deco.renderOnFrame()) {
+                    mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
+                }
+            }
+            if (ml) {
+                mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
+            }
+        }
+        int i = 0;
+
+        int separation = Math.min(17, (int) ((BOOK_HEIGHT - 22f) / mapIcons.size()));
+        List<DecorationBookmarkButton> widgets = new ArrayList<>();
+        for (var e : mapIcons) {
+            DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
+                    (width - BOOK_WIDTH) / 2 + 10,
+                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e, this);
+            pWidget.setIndex(i);
+            widgets.add(pWidget);
+            this.decorationBookmarks.add(pWidget);
+            i++;
+        }
+        //add widget in order so they render optimized without unneded texture swaps
+        widgets.sort(Comparator.comparingInt(DecorationBookmarkButton::getBatchGroup));
+        widgets.forEach(this::addRenderableWidget);
     }
 
     public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
@@ -566,41 +597,6 @@ public class AtlasOverviewScreen extends Screen {
                 index++;
             }
         }
-    }
-
-    private void addDecorationWidgets() {
-        if (!this.selectedSlice.hasMarkers()) return;
-        List<DecorationHolder> mapIcons = new ArrayList<>();
-
-        boolean ml = MapAtlasesMod.MOONLIGHT;
-        for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
-            MapItemSavedData data = holder.data;
-            for (var d : data.decorations.entrySet()) {
-                MapDecoration deco = d.getValue();
-                if (deco.renderOnFrame()) {
-                    mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
-                }
-            }
-            if (ml) {
-                mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
-            }
-        }
-        int i = 0;
-
-        int separation = Math.min(17, (int) ((BOOK_HEIGHT - 22f) / mapIcons.size()));
-        List<DecorationBookmarkButton> widgets = new ArrayList<>();
-        for (var e : mapIcons) {
-            DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
-                    (width - BOOK_WIDTH) / 2 + 10,
-                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e, this);
-            pWidget.setIndex(i);
-            widgets.add(pWidget);
-            this.decorationBookmarks.add(pWidget);
-            i++;
-        }
-        //add widget in order so they render optimized without unneded texture swaps
-        widgets.sort(Comparator.comparingInt(DecorationBookmarkButton::getBatchGroup));
-        widgets.forEach(this::addRenderableWidget);
     }
 
     public void centerOnDecoration(DecorationBookmarkButton button) {
@@ -669,28 +665,26 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean isPlacingPin() {
-        return placingPin;
+        return this.cursorAction == CursorAction.PLACING_PIN;
     }
 
-    public void togglePlacingPin() {
-        this.placingPin = !this.placingPin;
-        if(this.placingPin){
-            this.shearing = false;
+    public void clearCursorAction() {
+        this.cursorAction = CursorAction.NONE;
+    }
+
+    public void toggleCursorAction(CursorAction targetAction) {
+        if (this.cursorAction == targetAction) {
+            this.cursorAction = CursorAction.NONE;
+        } else {
+            this.cursorAction = targetAction;
         }
     }
 
     public boolean isShearing() {
-        return shearing;
+      return this.cursorAction == CursorAction.SHEARING;
     }
 
-    public void toggleShearing() {
-        this.shearing = !this.shearing;
-        if(this.shearing){
-            this.placingPin = false;
-        }
-    }
-
-    public void shearMapAt(ColumnPos pos){
+    public void shearMapAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(selected.id));
@@ -698,7 +692,7 @@ public class AtlasOverviewScreen extends Screen {
             currentMaps.remove(selected);
             recalculateDecorationWidgets();
         }
-        shearing = false;
+        this.clearCursorAction();
     }
 
     public void placePinAt(ColumnPos pos) {
@@ -712,7 +706,7 @@ public class AtlasOverviewScreen extends Screen {
                 addNewPin();
             }
         }
-        placingPin = false;
+        this.clearCursorAction();
     }
 
     private void focusEditBox(boolean on) {
@@ -739,7 +733,8 @@ public class AtlasOverviewScreen extends Screen {
 
 
     public boolean canTeleport() {
-        return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() && !placingPin && !editBox.active;
+        return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
+                cursorAction == CursorAction.NONE && !editBox.active;
     }
 
 
