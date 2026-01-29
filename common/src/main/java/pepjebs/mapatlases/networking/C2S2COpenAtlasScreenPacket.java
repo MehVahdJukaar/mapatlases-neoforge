@@ -15,7 +15,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 import java.util.Optional;
 

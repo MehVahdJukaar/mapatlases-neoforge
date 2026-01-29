@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
-import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class AtlasInHandRenderer {
 

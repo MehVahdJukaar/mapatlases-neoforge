@@ -11,9 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.misc.MapType;
-import pepjebs.mapatlases.misc.Slice;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Optional;
 

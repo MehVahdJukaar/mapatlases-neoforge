@@ -20,8 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
-import pepjebs.mapatlases.misc.AtlasCartographyTable;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasCartographyTable;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$3")
 class MixinCartographyTableHandlerFirstSlot {

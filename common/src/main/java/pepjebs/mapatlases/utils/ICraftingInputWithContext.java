@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.misc;
+package pepjebs.mapatlases.utils;
 
 import net.minecraft.world.inventory.AbstractContainerMenu;
 

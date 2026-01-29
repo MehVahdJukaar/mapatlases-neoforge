@@ -17,8 +17,8 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.misc.MapDataHolder;
-import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;

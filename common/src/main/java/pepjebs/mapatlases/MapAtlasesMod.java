@@ -34,7 +34,7 @@ import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.item.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.item.recipe.MapAtlasesCutExistingRecipe;
 import pepjebs.mapatlases.map_collection.SelectedSlices;
-import pepjebs.mapatlases.misc.TriState;
+import pepjebs.mapatlases.utils.TriState;
 
 import java.util.function.Supplier;
 

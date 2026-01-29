@@ -5,7 +5,7 @@ import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.misc.ActivationLocation;
+import pepjebs.mapatlases.utils.ActivationLocation;
 
 import java.util.function.Supplier;
 

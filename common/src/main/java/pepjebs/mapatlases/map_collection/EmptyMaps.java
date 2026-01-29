@@ -11,8 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.misc.MapType;
-import pepjebs.mapatlases.misc.Slice;
+import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
 

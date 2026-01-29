@@ -16,8 +16,8 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

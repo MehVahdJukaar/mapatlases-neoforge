@@ -12,7 +12,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
 

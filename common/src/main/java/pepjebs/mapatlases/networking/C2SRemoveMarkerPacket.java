@@ -11,7 +11,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
-import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.utils.MapType;
 
 public class C2SRemoveMarkerPacket implements Message {
 

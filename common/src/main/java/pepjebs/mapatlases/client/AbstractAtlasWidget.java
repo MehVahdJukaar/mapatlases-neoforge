@@ -20,8 +20,8 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
-import pepjebs.mapatlases.misc.MapDataHolder;
-import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;

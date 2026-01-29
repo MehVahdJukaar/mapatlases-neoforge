@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.misc;
+package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;

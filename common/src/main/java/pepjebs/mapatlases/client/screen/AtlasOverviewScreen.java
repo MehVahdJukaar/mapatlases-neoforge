@@ -39,7 +39,7 @@ import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SRemoveSlicePacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
-import pepjebs.mapatlases.misc.*;
+import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
 

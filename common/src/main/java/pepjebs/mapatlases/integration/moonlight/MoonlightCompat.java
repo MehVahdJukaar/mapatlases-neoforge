@@ -22,8 +22,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.misc.DecorationHolder;
-import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.utils.DecorationHolder;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.*;
 

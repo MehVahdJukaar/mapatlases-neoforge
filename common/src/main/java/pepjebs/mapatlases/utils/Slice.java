@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.misc;
+package pepjebs.mapatlases.utils;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

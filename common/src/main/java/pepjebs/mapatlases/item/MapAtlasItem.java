@@ -32,7 +32,7 @@ import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.map_collection.SelectedSlices;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
-import pepjebs.mapatlases.misc.*;
+import pepjebs.mapatlases.utils.*;
 
 import java.util.Collection;
 import java.util.List;

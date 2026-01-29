@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
-import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.io.InputStream;
 import java.io.OutputStream;

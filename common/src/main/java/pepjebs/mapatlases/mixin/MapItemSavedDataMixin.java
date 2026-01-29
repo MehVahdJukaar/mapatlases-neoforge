@@ -15,8 +15,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.misc.TriState;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.TriState;
 
 import java.util.Map;
 import java.util.function.Predicate;

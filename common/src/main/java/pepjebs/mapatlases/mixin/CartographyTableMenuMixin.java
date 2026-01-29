@@ -27,10 +27,10 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.misc.AtlasCartographyTable;
-import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.misc.MapDataHolder;
-import pepjebs.mapatlases.misc.Slice;
+import pepjebs.mapatlases.utils.AtlasCartographyTable;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;

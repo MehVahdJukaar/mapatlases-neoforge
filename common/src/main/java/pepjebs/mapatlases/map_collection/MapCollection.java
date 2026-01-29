@@ -19,9 +19,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.misc.MapDataHolder;
-import pepjebs.mapatlases.misc.MapType;
-import pepjebs.mapatlases.misc.Slice;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.*;
 import java.util.function.Predicate;

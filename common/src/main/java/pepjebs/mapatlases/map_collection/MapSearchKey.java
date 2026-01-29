@@ -2,7 +2,7 @@
 package pepjebs.mapatlases.map_collection;
 
 import net.minecraft.world.entity.player.Player;
-import pepjebs.mapatlases.misc.Slice;
+import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
 

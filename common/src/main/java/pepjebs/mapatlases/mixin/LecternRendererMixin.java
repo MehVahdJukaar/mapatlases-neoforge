@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import pepjebs.mapatlases.misc.AtlasLectern;
+import pepjebs.mapatlases.utils.AtlasLectern;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.*;
 
