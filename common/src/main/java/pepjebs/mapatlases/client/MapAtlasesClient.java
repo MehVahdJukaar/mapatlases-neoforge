@@ -33,10 +33,10 @@ import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.List;
 import java.util.Optional;

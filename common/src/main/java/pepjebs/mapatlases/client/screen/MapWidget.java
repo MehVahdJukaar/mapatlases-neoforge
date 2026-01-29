@@ -27,8 +27,8 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.misc.Slice;
 
 public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
 

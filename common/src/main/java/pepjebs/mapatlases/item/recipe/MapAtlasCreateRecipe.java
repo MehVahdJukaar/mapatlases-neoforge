@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.recipe;
+package pepjebs.mapatlases.item.recipe;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -16,8 +16,8 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.misc.MapDataHolder;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

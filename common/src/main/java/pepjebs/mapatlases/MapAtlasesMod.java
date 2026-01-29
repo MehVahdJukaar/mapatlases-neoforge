@@ -17,6 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -28,12 +29,12 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
-import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
-import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
-import pepjebs.mapatlases.recipe.MapAtlasesAddRecipe;
-import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
-import pepjebs.mapatlases.map_collection.SelectedSlice;
-import pepjebs.mapatlases.utils.TriState;
+import pepjebs.mapatlases.item.recipe.AntiqueAtlasRecipe;
+import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
+import pepjebs.mapatlases.item.recipe.MapAtlasesAddRecipe;
+import pepjebs.mapatlases.item.recipe.MapAtlasesCutExistingRecipe;
+import pepjebs.mapatlases.map_collection.SelectedSlices;
+import pepjebs.mapatlases.misc.TriState;
 
 import java.util.function.Supplier;
 
@@ -78,13 +79,15 @@ public class MapAtlasesMod {
                     .persistent(Codec.INT).build()
     );
 
-    public static final Supplier<DataComponentType<SelectedSlice>> SELECTED_SLICE = RegHelper.registerDataComponent(
-            res("selected_slice"), () -> DataComponentType.<SelectedSlice>builder()
-                    .networkSynchronized(SelectedSlice.STREAM_CODEC)
-                    .persistent(SelectedSlice.CODEC).build()
+    public static final Supplier<DataComponentType<SelectedSlices>> SELECTED_SLICES = RegHelper.registerDataComponent(
+            res("selected_slices"), () -> DataComponentType.<SelectedSlices>builder()
+                    .networkSynchronized(SelectedSlices.STREAM_CODEC)
+                    .persistent(SelectedSlices.CODEC).build()
     );
 
     public static final TagKey<Item> STICKY_ITEMS = TagKey.create(Registries.ITEM, res("sticky_crafting_items"));
+    public static final TagKey<MapDecorationType> NON_REMOVABLE_DECORATIONS = TagKey.create(Registries.MAP_DECORATION_TYPE, res("no_button_on_atlas"));
+
 
     public static final boolean CURIOS = PlatHelper.isModLoaded("curios");
     public static final boolean TRINKETS = PlatHelper.isModLoaded("trinkets");

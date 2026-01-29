@@ -5,7 +5,7 @@ import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigBuilder;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ConfigType;
 import net.mehvahdjukaar.moonlight.api.platform.configs.ModConfigHolder;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.ActivationLocation;
+import pepjebs.mapatlases.misc.ActivationLocation;
 
 import java.util.function.Supplier;
 
@@ -65,7 +65,7 @@ public class MapAtlasesConfig {
         roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
                 .define("round_robin", false);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
-                .define("map_updates_per_tick", 1, 0, 9);
+                .define("map_updates_per_tick", 1, 0, 100);
 
         mapRange = builder.comment("Range multiplier of the map update. Logic affects all maps, atlas or not. Change to make the range smaller or bigger")
                 .define("map_range_multiplier", 1, 0.0001, 10);

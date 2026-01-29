@@ -19,7 +19,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
-import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.misc.MapType;
 
 import java.util.Optional;
 

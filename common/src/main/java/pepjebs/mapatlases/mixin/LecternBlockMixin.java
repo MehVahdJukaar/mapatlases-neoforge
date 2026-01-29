@@ -2,7 +2,6 @@ package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.AtlasLectern;
+import pepjebs.mapatlases.misc.AtlasLectern;
 
 import java.util.Optional;
 

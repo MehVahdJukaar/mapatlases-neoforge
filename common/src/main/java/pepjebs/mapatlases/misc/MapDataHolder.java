@@ -1,6 +1,7 @@
-package pepjebs.mapatlases.utils;
+package pepjebs.mapatlases.misc;
 
 import com.google.common.base.Preconditions;
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,7 +20,6 @@ import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -71,7 +71,7 @@ public class MapDataHolder {
         } else {
             type.getFilled().update(player.level(), player, data);
         }
-        if (MapAtlasesConfig.debugUpdate.get()) {
+        if (MapAtlasesConfig.debugUpdate.get() || PlatHelper.isDev()) {
             NetworkHelper.sendToClientPlayer(player, new S2CDebugUpdateMapPacket(id, type));
         }
     }

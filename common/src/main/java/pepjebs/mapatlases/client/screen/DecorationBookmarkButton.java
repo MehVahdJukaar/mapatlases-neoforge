@@ -24,8 +24,8 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.utils.DecorationHolder;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.misc.DecorationHolder;
+import pepjebs.mapatlases.misc.MapDataHolder;
 
 import java.util.Locale;
 import java.util.Map;

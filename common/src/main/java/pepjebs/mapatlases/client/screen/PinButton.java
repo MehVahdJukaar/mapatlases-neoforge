@@ -12,7 +12,7 @@ import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.networking.C2SMarkerPacket;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.misc.MapDataHolder;
 
 public class PinButton extends BookmarkButton {
 

@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,9 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
-import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.utils.AtlasCartographyTable;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.misc.AtlasCartographyTable;
+import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$3")
 class MixinCartographyTableHandlerFirstSlot {

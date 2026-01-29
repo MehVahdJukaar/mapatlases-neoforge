@@ -30,9 +30,9 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
-import pepjebs.mapatlases.map_collection.SelectedSlice;
+import pepjebs.mapatlases.map_collection.SelectedSlices;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
-import pepjebs.mapatlases.utils.*;
+import pepjebs.mapatlases.misc.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -181,7 +181,7 @@ public class MapAtlasItem extends Item {
         var h = slice.height();
         var dimension = slice.dimension();
         if (h.isEmpty() && t == MapType.VANILLA) {
-            SelectedSlice selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICE.get());
+            SelectedSlices selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICES.get());
             if (selectedSlice != null) {
                 selectedSlice.removeAndAssigns(stack, dimension);
             }
@@ -192,7 +192,7 @@ public class MapAtlasItem extends Item {
             if (!maps.getHeightTree(dimension, t).contains(slice.heightOrTop())) {
                 return;
             }
-            SelectedSlice selectedSlice = stack.getOrDefault(MapAtlasesMod.SELECTED_SLICE.get(), SelectedSlice.EMPTY);
+            SelectedSlices selectedSlice = stack.getOrDefault(MapAtlasesMod.SELECTED_SLICES.get(), SelectedSlices.EMPTY);
             selectedSlice.addAndAssigns(stack, dimension, slice);
         }
     }
@@ -241,7 +241,7 @@ public class MapAtlasItem extends Item {
 
     @NotNull
     public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
-        SelectedSlice selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICE.get());
+        SelectedSlices selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICES.get());
         if (selectedSlice != null) {
             Slice slice = selectedSlice.get(dimension);
             if (slice != null) return slice;

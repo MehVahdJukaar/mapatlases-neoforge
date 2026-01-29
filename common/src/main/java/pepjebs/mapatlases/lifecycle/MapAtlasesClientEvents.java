@@ -23,9 +23,9 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.Optional;
 import java.util.TreeSet;

@@ -20,8 +20,8 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.phys.Vec3;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.WeakHashMap;
 

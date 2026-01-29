@@ -8,7 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.AtlasLectern;
+import pepjebs.mapatlases.misc.AtlasLectern;
 
 public class C2STakeAtlasPacket implements Message {
 

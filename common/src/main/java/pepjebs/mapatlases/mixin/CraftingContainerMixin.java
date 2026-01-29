@@ -6,7 +6,7 @@ import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.crafting.CraftingInput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import pepjebs.mapatlases.utils.ICraftingInputWithContext;
+import pepjebs.mapatlases.misc.ICraftingInputWithContext;
 
 @Mixin(CraftingContainer.class)
 public interface CraftingContainerMixin {

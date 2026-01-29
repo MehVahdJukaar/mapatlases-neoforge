@@ -10,29 +10,29 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class SelectedSlice {
+public class SelectedSlices {
 
-    public static final SelectedSlice EMPTY = new SelectedSlice(Map.of());
+    public static final SelectedSlices EMPTY = new SelectedSlices(Map.of());
 
     private final Map<ResourceKey<Level>, Slice> map;
 
-    private SelectedSlice(Map<ResourceKey<Level>, Slice> map) {
+    private SelectedSlices(Map<ResourceKey<Level>, Slice> map) {
         this.map = map;
     }
 
-    public static final Codec<SelectedSlice> CODEC = Codec.unboundedMap(
+    public static final Codec<SelectedSlices> CODEC = Codec.unboundedMap(
                     ResourceKey.codec(Registries.DIMENSION), Slice.CODEC)
-            .xmap(SelectedSlice::new, s -> s.map);
+            .xmap(SelectedSlices::new, s -> s.map);
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, SelectedSlice> STREAM_CODEC = ByteBufCodecs.map(
-                    SelectedSlice::makeMap, ResourceKey.streamCodec(Registries.DIMENSION), Slice.STREAM_CODEC)
-            .map(SelectedSlice::new, s -> s.map);
+    public static final StreamCodec<RegistryFriendlyByteBuf, SelectedSlices> STREAM_CODEC = ByteBufCodecs.map(
+                    SelectedSlices::makeMap, ResourceKey.streamCodec(Registries.DIMENSION), Slice.STREAM_CODEC)
+            .map(SelectedSlices::new, s -> s.map);
 
     private static Map<ResourceKey<Level>, Slice> makeMap(int i) {
         return new HashMap<>(i);
@@ -47,21 +47,21 @@ public class SelectedSlice {
         //copy map,remove and assign new comp
         Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
         newMap.remove(location);
-        SelectedSlice newSlice = new SelectedSlice(newMap);
-        stack.set(MapAtlasesMod.SELECTED_SLICE.get(), newSlice);
+        SelectedSlices newSlice = new SelectedSlices(newMap);
+        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), newSlice);
     }
 
     public void addAndAssigns(ItemStack stack, ResourceKey<Level> location, Slice slice) {
         Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
         newMap.put(location, slice);
-        SelectedSlice newSlice = new SelectedSlice(newMap);
-        stack.set(MapAtlasesMod.SELECTED_SLICE.get(), newSlice);
+        SelectedSlices newSlice = new SelectedSlices(newMap);
+        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), newSlice);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SelectedSlice that)) return false;
+        if (!(o instanceof SelectedSlices that)) return false;
         return Objects.equals(map, that.map);
     }
 

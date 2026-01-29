@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
+import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
 
 import java.util.ArrayList;
 import java.util.List;

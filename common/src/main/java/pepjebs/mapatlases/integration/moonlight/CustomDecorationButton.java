@@ -8,7 +8,6 @@ import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
-import net.mehvahdjukaar.moonlight.api.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.Holder;
@@ -16,7 +15,7 @@ import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.misc.MapDataHolder;
 
 import java.util.Locale;
 

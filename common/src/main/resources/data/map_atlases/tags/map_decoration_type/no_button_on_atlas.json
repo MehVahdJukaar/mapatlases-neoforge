@@ -1,0 +1,65 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "twilightforest:hedge_maze",
+      "required": false
+    },
+    {
+      "id": "twilightforest:small_hollow_hill",
+      "required": false
+    },
+    {
+      "id": "twilightforest:medium_hollow_hill",
+      "required": false
+    },
+    {
+      "id": "twilightforest:large_hollow_hill",
+      "required": false
+    },
+    {
+      "id": "twilightforest:quest_grove",
+      "required": false
+    },
+    {
+      "id": "twilightforest:naga_courtyard",
+      "required": false
+    },
+    {
+      "id": "twilightforest:lich_tower",
+      "required": false
+    },
+    {
+      "id": "twilightforest:labyrinth",
+      "required": false
+    },
+    {
+      "id": "twilightforest:hydra_lair",
+      "required": false
+    },
+    {
+      "id": "twilightforest:knight_stronghold",
+      "required": false
+    },
+    {
+      "id": "twilightforest:dark_tower",
+      "required": false
+    },
+    {
+      "id": "twilightforest:yeti_lair",
+      "required": false
+    },
+    {
+      "id": "twilightforest:aurora_palace",
+      "required": false
+    },
+    {
+      "id": "twilightforest:troll_caves",
+      "required": false
+    },
+    {
+      "id": "twilightforest:final_castle",
+      "required": false
+    }
+  ]
+}

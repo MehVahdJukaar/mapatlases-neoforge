@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.Slice;
 
 public class SliceBookmarkButton extends BookmarkButton {
 

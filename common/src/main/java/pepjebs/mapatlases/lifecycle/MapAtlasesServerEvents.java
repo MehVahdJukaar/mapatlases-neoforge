@@ -23,7 +23,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
-import pepjebs.mapatlases.utils.*;
+import pepjebs.mapatlases.misc.*;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -155,7 +155,8 @@ public class MapAtlasesServerEvents {
                 selected.updateMap(player);
 
             } else {
-                for (int j = 0; j < MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
+                int updatesPerTick = MapAtlasesConfig.mapUpdatePerTick.get();
+                for (int j = 0; j < updatesPerTick; j++) {
                     selected = getMapToUpdate(nearbyExistentMaps, player);
                     if (selected != null) selected.updateMap(player);
                 }

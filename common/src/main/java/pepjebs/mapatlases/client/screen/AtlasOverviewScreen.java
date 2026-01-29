@@ -9,8 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.CommandBlockEditScreen;
-import net.minecraft.client.gui.screens.inventory.FurnaceScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -41,7 +39,7 @@ import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SRemoveSlicePacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
-import pepjebs.mapatlases.utils.*;
+import pepjebs.mapatlases.misc.*;
 
 import java.util.*;
 
@@ -408,7 +406,6 @@ public class AtlasOverviewScreen extends Screen {
         poseStack.pushPose();
         RenderSystem.enableDepthTest();
         poseStack.translate(0, 0, editBox.active ? 22 : -20);
-        //renderBackground(graphics);
         poseStack.popPose();
 
         if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
@@ -428,17 +425,11 @@ public class AtlasOverviewScreen extends Screen {
 
         //render cursor
 
-        if (isPlacingPin()) {
+        ResourceLocation cursorIcon = selectedCursorAction.getIcon(canPerformCursorAction);
+        if (cursorIcon != null) {
             poseStack.pushPose();
             poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
-            graphics.blitSprite(canPerformCursorAction ? PLACE_PIN_READY_SPRITE :
-                    PLACE_PIN_SPRITE, 0, 0, 8, 8);
-            poseStack.popPose();
-        } else if (isShearing()) {
-            poseStack.pushPose();
-            poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
-            graphics.blitSprite(canPerformCursorAction ? SHEAR_MAP_READY_SPRITE :
-                    SHEAR_MAP_SPRITE, 0, 0, 8, 8);
+            graphics.blitSprite(cursorIcon, 0, 0, 8, 8);
             poseStack.popPose();
         }
         this.canPerformCursorAction = false;
@@ -581,7 +572,6 @@ public class AtlasOverviewScreen extends Screen {
         }
         decorationBookmarks.clear();
 
-        if (!selectedSlice.hasMarkers()) return;
         List<DecorationHolder> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
@@ -589,7 +579,7 @@ public class AtlasOverviewScreen extends Screen {
             MapItemSavedData data = holder.data;
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
-                if (deco.renderOnFrame()) {
+                if (deco.renderOnFrame() && !deco.type().is(MapAtlasesMod.NON_REMOVABLE_DECORATIONS)) {
                     mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
                 }
             }

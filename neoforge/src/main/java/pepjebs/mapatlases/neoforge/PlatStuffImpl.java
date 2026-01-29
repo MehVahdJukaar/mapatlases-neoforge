@@ -21,6 +21,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.RecipeMatcher;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import twilightforest.init.TFMapDecorations;
 
 import java.util.List;
 

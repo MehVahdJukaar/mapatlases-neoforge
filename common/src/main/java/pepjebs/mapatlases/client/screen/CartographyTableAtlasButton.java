@@ -18,9 +18,9 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.utils.AtlasCartographyTable;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.AtlasCartographyTable;
+import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.misc.Slice;
 
 public class CartographyTableAtlasButton extends AbstractWidget {
 

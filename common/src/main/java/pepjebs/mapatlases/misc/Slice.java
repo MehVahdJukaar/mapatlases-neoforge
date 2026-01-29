@@ -1,9 +1,8 @@
-package pepjebs.mapatlases.utils;
+package pepjebs.mapatlases.misc;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,10 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Optional;
-
-import static pepjebs.mapatlases.item.MapAtlasItem.TYPE_NBT;
 
 // this is a pair of map item type + y levels basically
 public record Slice(MapType type, Optional<Integer> height, ResourceKey<Level> dimension) {
@@ -42,10 +38,6 @@ public record Slice(MapType type, Optional<Integer> height, ResourceKey<Level> d
 
     public int heightOrTop() {
         return height.orElse(Integer.MAX_VALUE);
-    }
-
-    public boolean hasMarkers() {
-        return type.hasMarkers();
     }
 
     public int getDiscoveryReach() {

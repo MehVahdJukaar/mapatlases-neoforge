@@ -18,9 +18,10 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.misc.MapType;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -251,6 +252,7 @@ public class MapCollection {
         }
         MapCollection newColl = new MapCollection(mapCopy, level);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
+        atlas.remove(MapAtlasesMod.SELECTED_SLICES.get());
         return newColl;
     }
 
@@ -264,7 +266,10 @@ public class MapCollection {
         Map<MapType, List<MapId>> mapCopy = getIdsCopy();
         mapCopy.get(type).remove(id);
         MapCollection newColl = new MapCollection(mapCopy, level);
+        Slice oldSelected = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+        var newList = newColl.selectSection(oldSelected);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
+        if (newList.isEmpty()) atlas.remove(MapAtlasesMod.SELECTED_SLICES.get());
         return newColl;
     }
 

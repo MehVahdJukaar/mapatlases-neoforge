@@ -32,13 +32,12 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
-import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapSearchKey;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.Slice;
+import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.misc.Slice;
 
 import java.util.Objects;
 

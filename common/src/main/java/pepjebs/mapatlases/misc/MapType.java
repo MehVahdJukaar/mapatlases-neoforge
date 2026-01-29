@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.utils;
+package pepjebs.mapatlases.misc;
 
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
@@ -197,10 +197,6 @@ public enum MapType implements StringRepresentable {
             newMap = TwilightForestCompat.makeMagic(destX, destZ, scale, level);
         }
         return newMap;
-    }
-
-    public boolean hasMarkers() {
-        return this != MAGIC;//why? to exclude twilight forest world markers. I guess we could have used a tag here
     }
 
     public int getDiscoveryReach(Optional<Integer> height) {

@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.utils;
+package pepjebs.mapatlases.misc;
 
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;

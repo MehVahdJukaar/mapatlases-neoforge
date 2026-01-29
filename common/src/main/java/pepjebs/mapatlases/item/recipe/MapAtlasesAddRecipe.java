@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.recipe;
+package pepjebs.mapatlases.item.recipe;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
@@ -12,9 +12,9 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.misc.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.misc.MapDataHolder;
+import pepjebs.mapatlases.misc.MapType;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

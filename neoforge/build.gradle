@@ -96,7 +96,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
 
     modImplementation("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
-    //modImplementation("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
+    modImplementation("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}"){
+        transitive = false
+    }
     modImplementation("curse.maven:the-twilight-forest-227639:6087105")
     modImplementation("curse.maven:curios-309927:6274154")
 

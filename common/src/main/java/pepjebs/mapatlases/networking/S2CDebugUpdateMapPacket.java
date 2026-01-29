@@ -7,7 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.utils.MapType;
+import pepjebs.mapatlases.misc.MapType;
 
 public class S2CDebugUpdateMapPacket implements Message {
 
