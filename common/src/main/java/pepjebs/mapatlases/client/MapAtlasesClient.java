@@ -32,7 +32,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.map_collection.MapSearchKey;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -173,7 +173,7 @@ public class MapAtlasesClient {
     private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
 
     @Nullable
-    private static MapSearchKey currentActiveMapKey = null;
+    private static MapGridKey currentActiveMapKey = null;
     private static MapDataHolder currentActiveMap = null;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
     private static boolean isDrawingAtlas = false;
@@ -191,7 +191,7 @@ public class MapAtlasesClient {
             maps.updateNotSynced(player.level());
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
-            currentActiveMapKey = MapSearchKey.at(maps.getScale(), player, slice);
+            currentActiveMapKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
             MapDataHolder select = maps.select(currentActiveMapKey);
             if (select == null) {
                 select = maps.getClosest(player, slice);
@@ -207,7 +207,7 @@ public class MapAtlasesClient {
         return currentActiveAtlas;
     }
 
-    public static MapSearchKey getActiveMapKey() {
+    public static MapGridKey getActiveMapKey() {
         return currentActiveMapKey;
     }
 

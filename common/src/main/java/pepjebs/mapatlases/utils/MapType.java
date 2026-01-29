@@ -132,15 +132,15 @@ public enum MapType implements StringRepresentable {
         };
     }
 
-    public ColumnPos getCenter(double px, double pz, int scale) {
+    public ColumnPos getCenter(double px, double pz, int width) {
         if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             return TwilightForestCompat.getMagicMapCenter((int) px, (int) pz);
         } else {
             //map logic
-            int j = Mth.floor((px + 64.0D) / scale);
-            int k = Mth.floor((pz + 64.0D) / scale);
-            int mapCenterX = j * scale + scale / 2 - 64;
-            int mapCenterZ = k * scale + scale / 2 - 64;
+            int j = Mth.floor((px + 64.0D) / width);
+            int k = Mth.floor((pz + 64.0D) / width);
+            int mapCenterX = j * width + width / 2 - 64;
+            int mapCenterZ = k * width + width / 2 - 64;
             return new ColumnPos(mapCenterX, mapCenterZ);
         }
     }

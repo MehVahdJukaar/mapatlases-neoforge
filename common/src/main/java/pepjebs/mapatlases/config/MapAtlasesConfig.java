@@ -32,7 +32,7 @@ public class MapAtlasesConfig {
 
         pityActivationMapCount = builder
                 .comment("Controls how many free Empty Maps you get for 'activating' an Inactive Atlas")
-                .define("pity_activation_map_count", 9, 0, 64);
+                .define("pity_activation_map_count", 0, 0, 64);
 
 
         requireSliceMaps = !PlatHelper.isModLoaded("supplementaries") ? () -> false :
@@ -62,8 +62,8 @@ public class MapAtlasesConfig {
 
         builder.pop();
         builder.push("update_logic");
-        roundRobinUpdate = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer. Overrides configs below")
-                .define("round_robin", false);
+        updateFashion = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer")
+                .define("update_priority", UpdateFashion.SMART);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
                 .define("map_updates_per_tick", 1, 0, 100);
 
@@ -93,7 +93,7 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> acceptPaperForEmptyMaps;
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<Boolean> creativeTeleport;
-    public static final Supplier<Boolean> roundRobinUpdate;
+    public static final Supplier<UpdateFashion> updateFashion;
     public static final Supplier<Boolean> lightMap;
     public static final Supplier<Boolean> entityRadar;
     public static final Supplier<String> pinMarkerId;
@@ -102,10 +102,6 @@ public class MapAtlasesConfig {
     public static final Supplier<ActivationLocation> activationLocation;
 
     public static final ModConfigHolder SPEC;
-
-    public enum UpdateType {
-        OFF, SINGLE_PLAYER_ONLY, ALWAYS_ON
-    }
 
     public static void init() {
 

@@ -29,7 +29,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.map_collection.MapSearchKey;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.map_collection.SelectedSlices;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
@@ -147,7 +147,7 @@ public class MapAtlasItem extends Item {
             if (!level.isClientSide) {
 
                 MapCollection maps = getMaps(stack, level);
-                MapDataHolder mapState = maps.select(MapSearchKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
+                MapDataHolder mapState = maps.select(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
                 if (mapState == null) return InteractionResult.FAIL;
                 boolean didAdd = mapState.data.toggleBanner(level, blockPos);
                 if (!didAdd)
@@ -171,7 +171,7 @@ public class MapAtlasItem extends Item {
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAllFound()) {
             // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
+            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(info, player, atlas, TriState.PASS);
         }
         NetworkHelper.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }

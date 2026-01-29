@@ -3,13 +3,12 @@ package pepjebs.mapatlases.neoforge;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
-import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.LogicalSide;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -44,10 +43,11 @@ public class MapAtlasesForge {
 
     @SubscribeEvent
     public void mapAtlasesPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity().level().isClientSide) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide) {
             MapAtlasesClient.cachePlayerState(event.getEntity());
-        } else {
-            MapAtlasesServerEvents.onPlayerTick(event.getEntity());
+        } else if (player instanceof ServerPlayer sp) {
+            MapAtlasesServerEvents.onPlayerTick(sp);
         }
     }
 

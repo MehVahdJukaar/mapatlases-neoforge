@@ -35,7 +35,7 @@ import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.map_collection.MapSearchKey;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -53,8 +53,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     //cached stuff
     private boolean needsInit = true;
     private ItemStack currentAtlas = ItemStack.EMPTY;
-    private MapSearchKey currentMapKey = null;
-    private MapSearchKey lastMapKey = null;
+    private MapGridKey currentMapKey = null;
+    private MapGridKey lastMapKey = null;
     private MapCollection currentMaps;
 
 
@@ -77,7 +77,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     @Nullable
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
-        Slice slice = currentMapKey.slice();
+        Slice slice = currentMapKey.slice;
         return currentMaps.select(centerX, centerZ, slice);
     }
 
@@ -220,7 +220,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         drawAtlas(graphics, x + borderSize, y + borderSize,
                 mapWidgetSize, mapWidgetSize, player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light, null);
+                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice.type(), light, null);
 
         // Draws background, player icon, cardinal dir, pos and direction
 
@@ -309,7 +309,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             RenderSystem.enableDepthTest();
             poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
             ClientMarkersRenderer.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
-                    currentZCenter + mapBlocksSize / 2f, currentMapKey.slice(),
+                    currentZCenter + mapBlocksSize / 2f, currentMapKey.slice,
                     mapBlocksSize * zoomLevel, player, rotatesWithPlayer, currentMaps);
             RenderSystem.disableDepthTest();
             poseStack.popPose();

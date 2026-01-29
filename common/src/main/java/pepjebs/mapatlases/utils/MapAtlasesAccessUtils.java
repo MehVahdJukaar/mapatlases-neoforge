@@ -121,7 +121,7 @@ public class MapAtlasesAccessUtils {
         return Pair.of(bottomType, amountToAdd);
     }
 
-    public static void updateMapDataAndSync(
+    public static void tickHoldingPlayerAndSync(
             MapDataHolder holder,
             ServerPlayer player,
             ItemStack atlas,

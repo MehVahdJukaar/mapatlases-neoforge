@@ -15,8 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.config.UpdateType;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
-import pepjebs.mapatlases.map_collection.MapSearchKey;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CDebugUpdateMapPacket;
 
@@ -52,11 +53,11 @@ public class MapDataHolder {
         return new MapDataHolder(id, type, data);
     }
 
-    public MapSearchKey makeKey() {
-        return MapSearchKey.at(data.scale, data.centerX, data.centerZ, slice);
+    public MapGridKey makeKey() {
+        return MapGridKey.at(data.scale, slice, data.centerX, data.centerZ);
     }
 
-    public void updateMap(ServerPlayer player) {
+    public void updateMapColorsAndMarkers(ServerPlayer player) {
         if (canMultiThread(player.level())) {
             EXECUTORS.submit(() -> {
                 //the only unsafe operation that this does is data.getHoldingPlayer
@@ -77,7 +78,7 @@ public class MapDataHolder {
     }
 
     private static boolean canMultiThread(Level level) {
-        MapAtlasesConfig.UpdateType updateType = MapAtlasesConfig.mapUpdateMultithreaded.get();
+        UpdateType updateType = MapAtlasesConfig.mapUpdateMultithreaded.get();
         return switch (updateType) {
             case OFF -> false;
             case ALWAYS_ON -> true;

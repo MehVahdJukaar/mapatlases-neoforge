@@ -39,7 +39,7 @@ public class MapCollection {
     public static final MapCollection EMPTY = new MapCollection(Map.of());
 
     protected final EnumMap<MapType, List<MapId>> ids = new EnumMap<>(MapType.class);
-    protected final Map<MapSearchKey, MapDataHolder> maps = new HashMap<>();
+    protected final Map<MapGridKey, MapDataHolder> maps = new HashMap<>();
     //available dimensions and slices
     protected final Map<ResourceKey<Level>, Map<MapType, TreeSet<Integer>>> mapHeights = new HashMap<>();
     protected final int size;
@@ -151,14 +151,14 @@ public class MapCollection {
     }
 
     @Nullable
-    public MapDataHolder select(MapSearchKey key) {
+    public MapDataHolder select(MapGridKey key) {
         assertInitialized();
         return maps.get(key);
     }
 
     @Nullable
     public MapDataHolder select(int x, int z, Slice slice) {
-        return select(new MapSearchKey(x, z, slice));
+        return select(MapGridKey.at(scale, slice, x, z));
     }
 
     @Nullable
@@ -191,7 +191,7 @@ public class MapCollection {
 
 
     public boolean hasOneSlicedMap() {
-        return maps.keySet().stream().anyMatch(k -> k.slice().height().isPresent());
+        return maps.keySet().stream().anyMatch(k -> k.slice.height().isPresent());
     }
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
@@ -214,7 +214,7 @@ public class MapCollection {
         MapItemSavedData d = found.data;
 
         if (d != null && d.scale == scale) {
-            MapSearchKey key = found.makeKey();
+            MapGridKey key = found.makeKey();
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
                 MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().location());
@@ -228,10 +228,10 @@ public class MapCollection {
         return false;
     }
 
-    protected void addToDimensionMap(MapSearchKey j) {
-        mapHeights.computeIfAbsent(j.slice().dimension(), d -> new EnumMap<>(MapType.class))
-                .computeIfAbsent(j.slice().type(), a -> new TreeSet<>())
-                .add(j.slice().heightOrTop());
+    protected void addToDimensionMap(MapGridKey j) {
+        mapHeights.computeIfAbsent(j.slice.dimension(), d -> new EnumMap<>(MapType.class))
+                .computeIfAbsent(j.slice.type(), a -> new TreeSet<>())
+                .add(j.slice.heightOrTop());
     }
 
 
