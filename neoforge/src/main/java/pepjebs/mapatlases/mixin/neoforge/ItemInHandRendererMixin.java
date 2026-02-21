@@ -42,7 +42,7 @@ public abstract class ItemInHandRendererMixin {
     @Inject(method = "renderArmWithItem", at = @At(value = "INVOKE",
             shift = At.Shift.BEFORE,
             target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), cancellable = true)
-    public void renderMapAtlasItem(AbstractClientPlayer player, float partialTicks, float pitch, InteractionHand hand,
+    public void mapAtlases$renderMapAtlasItem(AbstractClientPlayer player, float partialTicks, float pitch, InteractionHand hand,
                                    float swingProgress, ItemStack stack, float equippedProgress,
                                    PoseStack poseStack, MultiBufferSource buffer, int combinedLight,
                                    CallbackInfo ci, @Local(argsOnly = true) ItemStack pStack,

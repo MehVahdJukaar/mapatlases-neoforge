@@ -32,13 +32,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClientMarkers {
 
     private static final TagKey<MLMapDecorationType<?, ?>> PINS =
-            TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
+            TagKey.create(MapDataRegistry.MAP_DECORATION_REGISTRY_KEY, MapAtlasesMod.res("pins"));
 
-    protected static final Map<MapId, Set<MLMapMarker<?>>> markersPerMap = new HashMap<>();
+    protected static final Map<MapId, Set<MarkerHolder>> markersPerMap = new HashMap<>();
 
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
@@ -146,17 +147,18 @@ public class ClientMarkers {
         RegistryOps<Tag> registryOps = registries.createSerializationContext(NbtOps.INSTANCE);
 
         for (var k : tag.getAllKeys()) {
-            Set<MLMapMarker<?>> l = new HashSet<>();
+            MapId id = mapIdFromString(k);
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
             for (int j = 0; j < listNbt.size(); ++j) {
-                var c = listNbt.getCompound(j);
+                CompoundTag c = listNbt.getCompound(j);
                 MLMapMarker<?> marker = MLMapMarker.REFERENCE_CODEC.
                         parse(registryOps, c).getOrThrow();
                 if (marker != null) {
-                    l.add(marker);
+                    markersPerMap.computeIfAbsent(id, i -> new HashSet<>())
+                            .add(new MarkerHolder(marker, c));
                 }
             }
-            markersPerMap.put(mapIdFromString(k), l);
+
         }
     }
 
@@ -166,12 +168,10 @@ public class ClientMarkers {
 
     private static CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         for (var v : markersPerMap.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
-                Tag markerSaved = MLMapMarker.REFERENCE_CODEC
-                        .encodeStart(ops, marker).getOrThrow();
+                Tag markerSaved = marker.savedMarker;
                 listNBT.add(markerSaved);
             }
             tag.put(v.getKey().key(), listNBT);
@@ -182,7 +182,7 @@ public class ClientMarkers {
     public static Set<MLMapMarker<?>> send(MapId mapId, MapItemSavedData data) {
         var pins = markersPerMap.get(mapId);
         if (pins != null) {
-            return pins;
+            return pins.stream().map(m -> m.marker).collect(Collectors.toSet());
         }
         return Set.of();
     }
@@ -200,15 +200,16 @@ public class ClientMarkers {
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
         //aaa not correct
-        var marker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
-        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(marker);
+        var pinMarker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
+        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>())
+                .add(MarkerHolder.of(pinMarker));
         //add immediately
-        ((ExpandedMapData) holder.data).ml$addCustomMarker(marker);
+        ((ExpandedMapData) holder.data).ml$addCustomMarker(pinMarker);
     }
 
     protected static Holder<MLMapDecorationType<?, ?>> getPinWithIndex(int index) {
         Optional<HolderSet.Named<MLMapDecorationType<?, ?>>> tag =
-                MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
+                MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
 
         if (tag.isEmpty()) throw new AssertionError("map_atlases:pins tag missing");
 
@@ -223,7 +224,7 @@ public class ClientMarkers {
     public static synchronized boolean removeClientDeco(MapId mapId, String key) {
         var mr = markersPerMap.get(mapId);
         if (mr != null) {
-            mr.removeIf(m -> m.getMarkerUniqueId().equals(key));
+            mr.removeIf(m -> m.marker.getMarkerUniqueId().equals(key));
             if (mr.isEmpty()) {
                 markersPerMap.remove(mapId);
             }
@@ -249,5 +250,14 @@ public class ClientMarkers {
         return false;
     }
 
+
+    protected record MarkerHolder(MLMapMarker<?> marker, Tag savedMarker) {
+
+        public static MarkerHolder of(MLMapMarker<?> marker) {
+            Tag markerSaved = MLMapMarker.REFERENCE_CODEC
+                    .encodeStart(NbtOps.INSTANCE, marker).getOrThrow();
+            return new MarkerHolder(marker, markerSaved);
+        }
+    }
 
 }

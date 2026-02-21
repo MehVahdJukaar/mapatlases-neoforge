@@ -33,7 +33,6 @@ public abstract class UpdateScheduler {
 
     public void performUpdate(ServerPlayer player, List<MapDataHolder> visible) {
         accumulator += computeUpdateRate(player);
-        ;
 
         while (accumulator >= 1f) {
             MapDataHolder next = poll();

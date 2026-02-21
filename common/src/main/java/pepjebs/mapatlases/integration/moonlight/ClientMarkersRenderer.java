@@ -6,6 +6,7 @@ import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,7 +39,7 @@ public class ClientMarkersRenderer {
 
         if (slice.type() != MapType.VANILLA) return;
 
-        Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getRegistry(player.level().registryAccess());
+        Registry<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getMapDecorationRegistry(player.level().registryAccess());
         PoseStack matrixStack = graphics.pose();
         int i = 0;
         VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
@@ -48,7 +49,8 @@ public class ClientMarkersRenderer {
             MapId mapId = entry.getKey();
             if (!collection.hasMap(mapId, MapType.VANILLA)) continue;
             var pins = entry.getValue();
-            for (var marker : pins) {
+            for (var clientMarker : pins) {
+                MLMapMarker<?> marker = clientMarker.marker();
                 BlockPos pos = marker.getPos();
                 Vec3 dist = playerPos.getCenter().subtract(pos.getCenter());
                 if (marker instanceof PinMarker mp && mp.isFocused() && !isOffscreen(widgetWorldLen, yRot, dist)) {
