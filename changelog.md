@@ -1,3 +1,1 @@
-- updated and improved client pin saving. saving uses now a temporary file to prevent data corruption incase something would go wrong on world close
-- backported the place pin icon
-- cleanups
+- improved pin saving
