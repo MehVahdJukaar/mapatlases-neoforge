@@ -4,6 +4,7 @@ import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.map.decoration.SimpleMapMarker;
+import net.mehvahdjukaar.moonlight.api.misc.HolderRef;
 import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.client.Minecraft;
@@ -69,9 +70,9 @@ public class XaeroMinimapCompat {
         }
     }
 
-    private static final HolderReference<MLMapDecorationType<?, ?>> DEF_TYPE = HolderReference.of(
+    private static final HolderRef<MLMapDecorationType<?, ?>> DEF_TYPE = HolderRef.of(
             ResourceLocation.fromNamespaceAndPath("moonlight", "generic_structure"),
-            MapDataRegistry.REGISTRY_KEY);
+            MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
 
     public static void loadXaeroWaypoints(MapId pMapName, MapItemSavedData data, RegistryAccess registries) {
         if (!WAYPOINTS_MAP.isEmpty()) {

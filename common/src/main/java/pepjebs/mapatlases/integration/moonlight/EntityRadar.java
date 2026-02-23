@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.mehvahdjukaar.moonlight.api.map.MapDataRegistry;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
-import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
+import net.mehvahdjukaar.moonlight.api.misc.HolderRef;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.EntityType;
@@ -29,19 +29,19 @@ import java.util.WeakHashMap;
 
 public class EntityRadar {
 
-    private static final HolderReference<MLMapDecorationType<?, ?>> PASSIVE_PIN =
-            HolderReference.of(MapAtlasesMod.res("passive_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final HolderReference<MLMapDecorationType<?, ?>> HOSTILE_PIN =
-            HolderReference.of(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final HolderReference<MLMapDecorationType<?, ?>> NEUTRAL_PIN =
-            HolderReference.of(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.REGISTRY_KEY);
-    private static final HolderReference<MLMapDecorationType<?, ?>> BOSS_PIN =
-            HolderReference.of(MapAtlasesMod.res("boss_entity"), MapDataRegistry.REGISTRY_KEY);
+    private static final HolderRef<MLMapDecorationType<?, ?>> PASSIVE_PIN =
+            HolderRef.of(MapAtlasesMod.res("passive_entity"), MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
+    private static final HolderRef<MLMapDecorationType<?, ?>> HOSTILE_PIN =
+            HolderRef.of(MapAtlasesMod.res("hostile_entity"), MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
+    private static final HolderRef<MLMapDecorationType<?, ?>> NEUTRAL_PIN =
+            HolderRef.of(MapAtlasesMod.res("neutral_entity"), MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
+    private static final HolderRef<MLMapDecorationType<?, ?>> BOSS_PIN =
+            HolderRef.of(MapAtlasesMod.res("boss_entity"), MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
 
     private static final WeakHashMap<Level, Set<MLMapMarker<?>>> nearbyEntityMarkers = new WeakHashMap<>();
 
     // we dont clear as just bosses use tags...too bad
-    private static final Map<Class<? extends LivingEntity>, HolderReference<MLMapDecorationType<?, ?>>> entityTypeMap = new Object2ObjectOpenHashMap<>();
+    private static final Map<Class<? extends LivingEntity>, HolderRef<MLMapDecorationType<?, ?>>> entityTypeMap = new Object2ObjectOpenHashMap<>();
 
     public static void onClientTick(Player player) {
         Level level = player.level();
@@ -68,7 +68,7 @@ public class EntityRadar {
 
 
     @Nullable
-    public static HolderReference<MLMapDecorationType<?, ?>> getMarkerForType(LivingEntity entity) {
+    public static HolderRef<MLMapDecorationType<?, ?>> getMarkerForType(LivingEntity entity) {
         return entityTypeMap.computeIfAbsent(entity.getClass(), clazz -> {
             EntityType<?> type = entity.getType();
             if (type == EntityType.PLAYER)
