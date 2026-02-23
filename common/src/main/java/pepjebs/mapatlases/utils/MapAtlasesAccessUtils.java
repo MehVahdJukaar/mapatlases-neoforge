@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -17,8 +18,25 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 
 public class MapAtlasesAccessUtils {
+
+    //Helper function
+    @Nullable
+    public static MapItemSavedData getSavedDataAt(ItemStack atlas, Level level, int x, int z) {
+        if (atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
+            MapCollection maps = MapAtlasItem.getMaps(atlas, level);
+            Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+            MapGridKey key = MapGridKey.at(maps.getScale(), slice, x, z);
+            MapDataHolder select = maps.select(key);
+            if (select != null) {
+                return select.data;
+            }
+        }
+        return null;
+    }
 
     public static boolean isValidFilledMap(ItemStack item) {
         MapType mapType = MapType.fromFilledMap(item.getItem());

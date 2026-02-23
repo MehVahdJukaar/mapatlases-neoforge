@@ -219,7 +219,7 @@ public class MapAtlasItem extends Item {
     }*/
     public static MapCollection getMaps(ItemStack stack, Level level) {
         //gets and assure initialized
-        var comp = stack.get(MapAtlasesMod.MAP_COLLECTION.get());
+        MapCollection comp = stack.get(MapAtlasesMod.MAP_COLLECTION.get());
         Preconditions.checkNotNull(comp, "Map collection component was null");
         if (!comp.isInitialized()) {
             comp.initialize(level);
