@@ -115,7 +115,10 @@ public class MapAtlasesClientEvents {
     }
 
     public static void onLoggedOut(RegistryAccess registryAccess) {
-        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers(registryAccess);
+        if (MapAtlasesMod.MOONLIGHT){
+            ClientMarkers.saveClientMarkers(registryAccess);
+            ClientMarkers.clearClientMarkers();
+        }
     }
 
     //make this client sided

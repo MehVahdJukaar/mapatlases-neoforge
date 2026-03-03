@@ -45,7 +45,7 @@ public class ClientMarkersRenderer {
         VertexConsumer vertexBuilder = graphics.bufferSource().getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
         float yRot = rotateWithPlayer ? player.getYRot() : 180;
         BlockPos playerPos = rotateWithPlayer ? player.blockPosition() : BlockPos.containing(mapCenterX, 0, mapCenterZ);
-        for (var entry : ClientMarkers.markersPerMap.entrySet()) {
+        for (var entry : ClientMarkers.MARKERS_PER_MAP.entrySet()) {
             MapId mapId = entry.getKey();
             if (!collection.hasMap(mapId, MapType.VANILLA)) continue;
             var pins = entry.getValue();

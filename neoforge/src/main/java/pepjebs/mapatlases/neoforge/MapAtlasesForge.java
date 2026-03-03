@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.neoforge;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -27,7 +28,6 @@ public class MapAtlasesForge {
     public MapAtlasesForge(IEventBus bus) {
         RegHelper.startRegisteringFor(bus);
         MapAtlasesMod.init();
-
         NeoForge.EVENT_BUS.register(this);
 
         if (PlatHelper.getPhysicalSide().isClient()) {

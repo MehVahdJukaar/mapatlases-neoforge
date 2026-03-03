@@ -39,7 +39,7 @@ public class ClientMarkers {
     private static final TagKey<MLMapDecorationType<?, ?>> PINS =
             TagKey.create(MapDataRegistry.MAP_DECORATION_REGISTRY_KEY, MapAtlasesMod.res("pins"));
 
-    protected static final Map<MapId, Set<MarkerHolder>> markersPerMap = new HashMap<>();
+    protected static final Map<MapId, Set<MarkerHolder>> MARKERS_PER_MAP = new HashMap<>();
 
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
@@ -64,7 +64,7 @@ public class ClientMarkers {
     @ApiStatus.Internal
     public static synchronized void loadClientMarkers(long seed, String levelName, HolderLookup.Provider registries) {
 
-        markersPerMap.clear();
+        MARKERS_PER_MAP.clear();
 
         if (lastFolderNameOrIP == null) {
             throw new RuntimeException("Could not load client markers data. Folder name is null");
@@ -109,6 +109,10 @@ public class ClientMarkers {
                 .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
     }
 
+    public static void clearClientMarkers() {
+        MARKERS_PER_MAP.clear();
+    }
+
     public static void saveClientMarkers(RegistryAccess registryAccess) {
         Path path = currentPath;
         if (path == null) return;
@@ -118,9 +122,9 @@ public class ClientMarkers {
 
         // Only lock long enough to snapshot
         synchronized (ClientMarkers.class) {
-            if (markersPerMap.isEmpty()) return;
+            if (MARKERS_PER_MAP.isEmpty()) return;
             snapshot = save(registryAccess);
-            count = markersPerMap.size();
+            count = MARKERS_PER_MAP.size();
         }
 
         Path tmp = path.resolveSibling(path.getFileName() + ".tmp");
@@ -154,7 +158,7 @@ public class ClientMarkers {
                 MLMapMarker<?> marker = MLMapMarker.REFERENCE_CODEC.
                         parse(registryOps, c).getOrThrow();
                 if (marker != null) {
-                    markersPerMap.computeIfAbsent(id, i -> new HashSet<>())
+                    MARKERS_PER_MAP.computeIfAbsent(id, i -> new HashSet<>())
                             .add(new MarkerHolder(marker, c));
                 }
             }
@@ -168,7 +172,7 @@ public class ClientMarkers {
 
     private static CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        for (var v : markersPerMap.entrySet()) {
+        for (var v : MARKERS_PER_MAP.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
                 Tag markerSaved = marker.savedMarker;
@@ -179,10 +183,18 @@ public class ClientMarkers {
         return tag;
     }
 
-    public static Set<MLMapMarker<?>> send(MapId mapId, MapItemSavedData data) {
-        var pins = markersPerMap.get(mapId);
+    public static Set<MLMapMarker<?>> getAll(MapId mapId, MapItemSavedData data) {
+        var pins = MARKERS_PER_MAP.get(mapId);
         if (pins != null) {
-            return pins.stream().map(m -> m.marker).collect(Collectors.toSet());
+            Set<MLMapMarker<?>> set = pins.stream().map(m -> m.marker).collect(Collectors.toSet());
+            HolderOwner<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess()).holderOwner();
+            for (var s : set) {
+                if (!s.getType().canSerializeIn(reg)) {
+                    MapAtlasesMod.LOGGER.error("Found a marker that does not belong to this registry. How? Skipping all client pins");
+                    return Set.of();
+                }
+            }
+            return set;
         }
         return Set.of();
     }
@@ -201,7 +213,7 @@ public class ClientMarkers {
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
         //aaa not correct
         var pinMarker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
-        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>())
+        MARKERS_PER_MAP.computeIfAbsent(holder.id, k -> new HashSet<>())
                 .add(MarkerHolder.of(pinMarker));
         //add immediately
         ((ExpandedMapData) holder.data).ml$addCustomMarker(pinMarker);
@@ -222,11 +234,11 @@ public class ClientMarkers {
 
 
     public static synchronized boolean removeClientDeco(MapId mapId, String key) {
-        var mr = markersPerMap.get(mapId);
+        var mr = MARKERS_PER_MAP.get(mapId);
         if (mr != null) {
             mr.removeIf(m -> m.marker.getMarkerUniqueId().equals(key));
             if (mr.isEmpty()) {
-                markersPerMap.remove(mapId);
+                MARKERS_PER_MAP.remove(mapId);
             }
             return true;
         }
