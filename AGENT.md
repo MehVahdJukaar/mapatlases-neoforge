@@ -136,6 +136,61 @@ Known baseline caveats before 26.1 work:
 - the build still uses the old Architectury Loom / Java 17-era multiloader setup and must be replaced for Minecraft `26.1`
 - Moonlight is only restored for the `1.20.1` baseline; it is not assumed to be available for the final `26.1` target
 
+## 26.1 toolchain conversion checkpoint
+
+Recorded on `2026-03-30` after the baseline checkpoint.
+
+What changed:
+
+- Switched the project to a Fabric-only `26.1` toolchain:
+  - Gradle wrapper: `9.4.1`
+  - Fabric Loom: `1.15.5`
+  - Fabric Loader: `0.18.5`
+  - Fabric API: `0.144.4+26.1`
+  - Java toolchain target: `25`
+- Removed the old root Architectury / CurseGradle / Modrinth multiloader build logic from the active build
+- Kept the on-disk `common/` + `fabric/` source layout, but changed the active build so `fabric` now compiles:
+  - `fabric/src/main/java`
+  - `fabric/src/main/resources`
+  - `common/src/main/java`
+  - `common/src/main/resources`
+- Removed the active `:common` Gradle project from the `26.1` build graph and folded shared sources into the `fabric` module source sets
+- Disabled the access widener path temporarily for the `26.1` build because Loom now expects the widener to be in the `official` namespace and the existing file is still `named`
+
+Build result after toolchain conversion:
+
+- `./gradlew.bat :fabric:build`
+  - now configures and compiles against real Minecraft `26.1` sources
+  - no longer fails in old dependency resolution / Forge / Architectury setup
+  - currently fails during Java compilation, which is the expected next stage
+
+Current `26.1` compile blocker categories:
+
+1. Mojang-name / 26.1 API renames in vanilla classes
+   - confirmed examples from compile output:
+     - `net.minecraft.resources.ResourceLocation` no longer resolves
+       - `26.1` uses `net.minecraft.resources.Identifier`
+     - `GuiGraphics` no longer resolves
+       - `26.1` exposes `GuiGraphicsExtractor`
+     - `RenderType` moved under `net.minecraft.client.renderer.rendertype.RenderType`
+     - `Material` moved under `net.minecraft.client.resources.model.sprite.Material`
+     - `RecipeSerializer` is now a record-like value instead of the old interface shape
+     - `InteractionResultHolder` no longer exists in the old form
+2. Planned dependency removals that now need internal replacements
+   - `Moonlight`
+   - `Architectury @ExpectPlatform`
+   - optional integrations whose old dependencies are not yet reintroduced for `26.1`
+3. `26.1` resource/build migration follow-ups
+   - access widener must be converted from `named` to `official` or replaced with another access strategy later
+
+Important interpretation:
+
+- The project is now past the build-system migration stage.
+- Remaining failures are source porting work:
+  - internal Moonlight replacement
+  - Architectury replacement
+  - 26.1 vanilla/Fabric API adaptation
+
 ## Recommended next steps
 
 1. Fix or replace the unresolved Moonlight dependency so the current baseline can build.

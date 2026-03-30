@@ -1,74 +1,41 @@
+plugins {
+    id "net.fabricmc.fabric-loom"
+}
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
+base {
+    archivesName = "${rootProject.mod_id}-fabric"
+}
+
+sourceSets {
+    main {
+        java.srcDirs += ["../common/src/main/java"]
+        resources.srcDirs += ["../common/src/main/resources"]
+    }
 }
 
 loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
-}
-
-configurations {
-    common
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
-    compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
-    developmentFabric.extendsFrom common
+    mods {
+        "${rootProject.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
 
-    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixin_extras_version}")))
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
-
-    modImplementation("curse.maven:selene-499980:5942982")
-    //modImplementation("net.mehvahdjukaar:supplementaries-fabric:${supplementaries_version}")
-    modImplementation("curse.maven:supplementaries-412082:5458839")
-
-
-
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_version}") {
-        exclude group: 'net.fabricmc.fabric-api'
-    }
-    modImplementation("curse.maven:yacl-667299:4574163")
-
-    modImplementation("maven.modrinth:modmenu:7.2.2")
-
-    modCompileOnly("maven.modrinth:immediatelyfast:1.2.8+1.20.4-fabric")
-    modRuntimeOnly("curse.maven:spark-361579:4738953")
-
-    modImplementation("curse.maven:jei-238222:5846809")
-    //modImplementation("curse.maven:roughly-enough-items-310111:4440734")
-    modRuntimeOnly("curse.maven:architectury-419699:4581904")
-    modCompileOnly("curse.maven:flan-404578:3902630")
-    modImplementation("curse.maven:farmers-delight-fabric-482834:4640640")
-    modCompileOnly("curse.maven:decorative-blocks-362528:3941637")
-    modCompileOnly("curse.maven:cc-tweaked-282001:4579773")
-    modCompileOnly("curse.maven:jei-238222:4405345")
-    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:${project.cca_version}"
-    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-item:${project.cca_version}"
-    modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${project.cca_version}"
-    modImplementation "dev.emi:trinkets:${project.trinkets_version}"
-    //modImplementation("curse.maven:biome-makeover-412182:4572458")
-    //modImplementation("curse.maven:twigs-496913:3943447")
-    //modImplementation("curse.maven:frame-api-580137:3943404")
-    modCompileOnly("dev.emi:emi:${project.emi_version}+1.19.4:api")
-
-
+    annotationProcessor "io.github.llamalad7:mixinextras-common:${mixin_extras_version}"
+    implementation "io.github.llamalad7:mixinextras-fabric:${mixin_extras_version}"
 }
 
-
 processResources {
-    // input variables of this task:
-    var replaceProperties = [
+    def replaceProperties = [
             minecraft_version    : minecraft_version,
             minecraft_min_version: minecraft_min_version,
             minecraft_max_version: minecraft_max_version,
-
             mod_id               : mod_id,
             mod_name             : mod_name,
             mod_version          : mod_version,
@@ -78,78 +45,12 @@ processResources {
             mod_credits          : mod_credits,
             mod_homepage         : mod_homepage,
             mod_github           : mod_github,
-
-            required_moonlight_version : required_moonlight_version,
-            cca_version : cca_version
+            cca_version          : cca_version
     ]
-    // setting them as input
+
     inputs.properties replaceProperties
 
     filesMatching("fabric.mod.json") {
         expand replaceProperties + [project: project]
     }
-}
-
-shadowJar {
-    exclude "architectury.common.json"
-
-    configurations = [project.configurations.shadowCommon]
-    archiveClassifier = "dev-shadow"
-
-    zip64 = true
-}
-
-remapJar {
-    injectAccessWidener = true
-    input.set shadowJar.archiveFile
-    dependsOn shadowJar
-    archiveClassifier = "fabric"
-}
-
-jar {
-    archiveClassifier = "dev"
-}
-
-sourcesJar {
-    def commonSources = project(":common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
-}
-
-components.java {
-    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-        skip()
-    }
-}
-
-publishing {
-    publications {
-        mavenFabric(MavenPublication) {
-            artifactId = rootProject.mod_id + "-" + project.name
-            from components.java
-        }
-    }
-
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        maven {
-            url = "https://www.cursemaven.com"
-            allowInsecureProtocol = true
-        }
-        maven {
-            name = "TerraformersMC"
-            url = "https://maven.terraformersmc.com/releases"
-        }
-        maven {
-            url = "https://maven.shedaniel.me"
-        }
-        maven { url 'https://maven.ladysnake.org/releases' }
-
-    }
-}
-repositories {
-    maven { url "https://maven.shedaniel.me/" }
-    maven { url "https://maven.terraformersmc.com/releases" }
-    maven { url 'https://maven.ladysnake.org/releases' }
 }
