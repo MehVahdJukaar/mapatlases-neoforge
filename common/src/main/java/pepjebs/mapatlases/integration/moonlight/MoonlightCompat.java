@@ -14,9 +14,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -81,7 +83,7 @@ public class MoonlightCompat {
 
 
     public static boolean maybePlaceMarkerInFront(Player player, ItemStack atlas) {
-        var hit = Utils.rayTrace(player, true, 0);
+        BlockHitResult hit = (BlockHitResult) Utils.rayTrace(player, player.level(), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE);
         var resoult = MapHelper.toggleMarkersAtPos(player.level(), hit.getBlockPos(), atlas, player);
         if (!resoult) {
             //check for vanilla banners
