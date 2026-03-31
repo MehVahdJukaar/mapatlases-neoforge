@@ -12,9 +12,9 @@ public class ShearButton extends BookmarkButton {
         super(pX, pY, 16, 16, 47, 152, screen);
         Tooltip tooltip = Tooltip.create(Component.translatable("message.map_atlases.shear"));
         if (Minecraft.getInstance().options.advancedItemTooltips) {
-            Tooltip t2 = Tooltip.create(Component.translatable("message.map_atlases.shear.info")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip = CompoundTooltip.create(tooltip, t2);
+            tooltip = CompoundTooltip.create(
+                    Component.translatable("message.map_atlases.shear"),
+                    Component.translatable("message.map_atlases.shear.info").withStyle(ChatFormatting.GRAY));
         }
         this.setTooltip(tooltip);
     }

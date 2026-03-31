@@ -3,7 +3,6 @@ package pepjebs.mapatlases.client.screen;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -40,8 +39,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, 0, 167 + 36, parentScreen);
         this.mapData = data;
         this.decorationId = id;
-        this.shfting = Screen.hasShiftDown();
-        this.control = Screen.hasShiftDown();
+        this.shfting = AtlasOverviewScreen.isShiftDown();
+        this.control = AtlasOverviewScreen.isControlDown();
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
@@ -54,16 +53,16 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public boolean keyReleased(KeyEvent event) {
-        this.shfting = Screen.hasShiftDown();
-        this.control = Screen.hasControlDown();
+        this.shfting = AtlasOverviewScreen.isShiftDown();
+        this.control = AtlasOverviewScreen.isControlDown();
         this.setTooltip(this.createTooltip());
         return false;
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        this.shfting = Screen.hasShiftDown();
-        this.control = Screen.hasControlDown();
+        this.shfting = AtlasOverviewScreen.isShiftDown();
+        this.control = AtlasOverviewScreen.isControlDown();
         this.setTooltip(this.createTooltip());
         return false;
     }
@@ -139,8 +138,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
         Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())
                 .withStyle(ChatFormatting.GRAY);
-        Tooltip t2 = Tooltip.create(coordsComponent);
-        return CompoundTooltip.create(t, t2);
+        return CompoundTooltip.create(mapIconComponent, coordsComponent);
     }
 
     protected boolean canFocusMarker() {

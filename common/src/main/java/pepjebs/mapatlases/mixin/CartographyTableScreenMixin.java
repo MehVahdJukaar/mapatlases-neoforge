@@ -29,8 +29,8 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
 
     @Inject(method = "<init>", at = @At("RETURN"))
     public void init(CartographyTableMenu menu, Inventory playerInventory, Component title, CallbackInfo ci) {
-        this.addRenderableWidget(new CartographyTableAtlasButton(this, true, this.menu));
-        this.addRenderableWidget(new CartographyTableAtlasButton(this, false, this.menu));
+        this.addRenderableWidget(new CartographyTableAtlasButton(this.leftPos, this.topPos, true, this.menu));
+        this.addRenderableWidget(new CartographyTableAtlasButton(this.leftPos, this.topPos, false, this.menu));
     }
 
     @Inject(method = "renderResultingMap", at = @At(value = "HEAD"))
@@ -48,12 +48,12 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double scrollX, double pDelta) {
         int pId = pDelta > 0 ? 4 : 5;
         if (this.menu.clickMenuButton(Minecraft.getInstance().player, pId)) {
             Minecraft.getInstance().gameMode.handleInventoryButtonClick((this.menu).containerId, pId);
             return true;
         }
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+        return super.mouseScrolled(pMouseX, pMouseY, scrollX, pDelta);
     }
 }

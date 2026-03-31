@@ -12,16 +12,13 @@ sourceSets {
         resources.srcDirs += ["../common/src/main/resources"]
         java.exclude(
                 "pepjebs/mapatlases/client/AtlasInHandRenderer.java",
-                "pepjebs/mapatlases/client/CompoundTooltip.java",
                 "pepjebs/mapatlases/client/MapVertexConsumer.java",
-                "pepjebs/mapatlases/client/screen/**",
                 "pepjebs/mapatlases/integration/fabric/**",
                 "pepjebs/mapatlases/map_collection/fabric/CCStuff.java",
                 "pepjebs/mapatlases/integration/JEICompat.java",
                 "pepjebs/mapatlases/integration/REICompat.java",
                 "pepjebs/mapatlases/integration/SpecialRecipeDisplays.java",
                 "pepjebs/mapatlases/integration/moonlight/AtlasOnlyDecorationRenderer.java",
-                "pepjebs/mapatlases/integration/moonlight/CustomDecorationButton.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinDecoration.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinDecorationRenderer.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinMarker.java",

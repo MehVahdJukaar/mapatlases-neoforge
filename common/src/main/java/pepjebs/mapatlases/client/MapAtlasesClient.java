@@ -26,7 +26,9 @@ import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
@@ -189,9 +191,40 @@ public class MapAtlasesClient {
     }
 
     public static void openScreen(@Nullable BlockPos lecternPos, boolean pinOnly) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = minecraft.player;
+        if (player == null) {
+            return;
+        }
+
+        LecternBlockEntity lectern = null;
+        ItemStack atlas;
+        if (lecternPos == null) {
+            atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        } else if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lecternBlockEntity) {
+            lectern = lecternBlockEntity;
+            atlas = lecternBlockEntity.getBook();
+        } else {
+            atlas = ItemStack.EMPTY;
+        }
+
+        if (atlas.getItem() instanceof MapAtlasItem) {
+            openScreen(atlas, lectern, pinOnly);
+        }
     }
 
     public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (level == null) {
+            return;
+        }
+
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.addNotSynced(level);
+        if (!maps.isEmpty()) {
+            minecraft.setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
+        }
     }
 
     public static ContainerLevelAccess getClientAccess() {

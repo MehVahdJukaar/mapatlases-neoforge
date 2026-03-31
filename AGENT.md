@@ -863,3 +863,51 @@ Important findings:
 
 - The old reflection hack was not faithful to Fabric `26.1` and is the most likely reason the keybindings were not appearing in Controls
 - The right-click atlas overview and full world-map GUI are still blocked by the excluded `client/screen/**` port, not by the keybinding registration path
+
+## Atlas overview reintegration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas screen opening flow and screen construction rules
+- local Fabric Loom `26.1` transformed client API metadata for `KeyEvent`, `MouseButtonEvent`, `MouseButtonInfo`, `AbstractWidget`, `EditBox`, and `Screen`
+
+Work completed in this pass:
+
+- Re-enabled the atlas overview client sources in the active Fabric build by removing the temporary source-set exclusions for:
+  - `common/src/main/java/pepjebs/mapatlases/client/CompoundTooltip.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/**`
+  - `common/src/main/java/pepjebs/mapatlases/integration/moonlight/CustomDecorationButton.java`
+- Restored the atlas screen stack to the real `26.1` transformed input API:
+  - `AtlasOverviewScreen`
+  - `MapWidget`
+  - `PinNameBox`
+  - `DecorationBookmarkButton`
+  - `SliceBookmarkButton`
+  - `SliceArrowButton`
+  - `DimensionBookmarkButton`
+  - `PinButton`
+  - `ShearButton`
+- Replaced old `Screen.hasShiftDown()` / `hasControlDown()` / `hasAltDown()` usage with explicit modifier checks that work in the current `26.1` client surface
+- Fixed the temporary `CompoundTooltip` callsite drift in `DecorationBookmarkButton`
+- Fixed `CartographyTableAtlasButton` to stop reaching `AbstractContainerScreen.leftPos` / `topPos` directly from outside the screen class
+- Implemented the real atlas screen open path in `MapAtlasesClient.openScreen(...)`
+  - atlas from player inventory config when no lectern position is supplied
+  - atlas from lectern book when a lectern position is supplied
+  - `maps.addNotSynced(level)` before screen open, matching the reference branch behavior
+  - `Minecraft#setScreen(new AtlasOverviewScreen(...))` only when the atlas has maps to show
+
+Verification results:
+
+- `./gradlew.bat :fabric:compileJava --console=plain`
+  - passes successfully with the atlas screen package included in the active Fabric source set
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes successfully, reaches title screen, creates and enters a world, and shuts down cleanly
+
+Important findings:
+
+- The earlier event-style `KeyEvent` / `MouseButtonEvent` direction was correct; the failed old-style signature backtrack was caused by checking raw jar APIs instead of the transformed compile surface Loom is actually exposing in this toolchain
+- The right-click atlas GUI path is no longer blocked by source-set exclusions or a stubbed `openScreen(...)`; the next parity work can move on to the remaining excluded client mixin/render layers instead of the overview screen bootstrap

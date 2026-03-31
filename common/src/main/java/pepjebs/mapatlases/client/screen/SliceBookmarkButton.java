@@ -3,7 +3,6 @@ package pepjebs.mapatlases.client.screen;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -75,7 +74,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    protected boolean isValidClickButton(MouseButtonInfo button) {
+    protected boolean isValidClickButton(net.minecraft.client.input.MouseButtonInfo button) {
         return hasMoreThan1Type && button.button() == 0;
     }
 }

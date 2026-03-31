@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -26,8 +25,8 @@ public class CartographyTableAtlasButton extends AbstractWidget {
     protected final boolean left;
     protected final AbstractContainerMenu menu;
 
-    public CartographyTableAtlasButton(AbstractContainerScreen<?> screen, boolean left, AbstractContainerMenu menu) {
-        super(screen.leftPos + (left ? 71 : 122), screen.topPos + 65, 7, 11, Component.empty());
+    public CartographyTableAtlasButton(int leftPos, int topPos, boolean left, AbstractContainerMenu menu) {
+        super(leftPos + (left ? 71 : 122), topPos + 65, 7, 11, Component.empty());
         this.menu = menu;
         this.left = left;
     }

@@ -18,9 +18,9 @@ public class PinButton extends BookmarkButton {
         super(pX, pY, 16, 16, 30, 152, screen);
         Tooltip tooltip = Tooltip.create(Component.translatable("message.map_atlases.pin"));
         if (Minecraft.getInstance().options.advancedItemTooltips) {
-            Tooltip t2 = Tooltip.create(Component.translatable("message.map_atlases.pin.info")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip = CompoundTooltip.create(tooltip, t2);
+            tooltip = CompoundTooltip.create(
+                    Component.translatable("message.map_atlases.pin"),
+                    Component.translatable("message.map_atlases.pin.info").withStyle(ChatFormatting.GRAY));
         }
         this.setTooltip(tooltip);
     }

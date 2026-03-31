@@ -1,14 +1,14 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -23,8 +23,10 @@ import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
+import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -263,7 +265,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (event.key() == 256 && editBox.active) {
+        if (event.key() == GLFW.GLFW_KEY_ESCAPE && editBox.active) {
             editBox.active = false;
             editBox.visible = false;
             partialPin = null;
@@ -300,22 +302,21 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        PoseStack poseStack = graphics.pose();
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack poseStack = graphics.pose();
 
         if (!isPinOnly) {
 
-            poseStack.pushPose();
+            poseStack.pushMatrix();
 
-            poseStack.translate(width / 2f, height / 2f, 0);
-            poseStack.scale(globalScale, globalScale, 1);
+            poseStack.translate(width / 2f, height / 2f);
+            poseStack.scale(globalScale, globalScale);
 
 
-            poseStack.pushPose();
+            poseStack.pushMatrix();
 
-            RenderSystem.enableDepthTest();
-            //background
             graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     texture,
                     -H_BOOK_WIDTH,
                     -H_BOOK_HEIGHT,
@@ -326,8 +327,8 @@ public class AtlasOverviewScreen extends Screen {
                     TEXTURE_W,
                     256
             );
-            // Draw foreground
             graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     ATLAS_OVERLAY_TEXTURE,
                     -H_BOOK_WIDTH,
                     -H_BOOK_HEIGHT,
@@ -339,9 +340,9 @@ public class AtlasOverviewScreen extends Screen {
                     256
             );
 
-            poseStack.translate(0, 0, 1);
-            //background overlay
+            graphics.nextStratum();
             graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     texture,
                     H_BOOK_WIDTH - 10,
                     -H_BOOK_HEIGHT,
@@ -353,6 +354,7 @@ public class AtlasOverviewScreen extends Screen {
                     256
             );
             graphics.blit(
+                    RenderPipelines.GUI_TEXTURED,
                     texture,
                     -H_BOOK_WIDTH + 5,
                     -H_BOOK_HEIGHT,
@@ -363,49 +365,39 @@ public class AtlasOverviewScreen extends Screen {
                     TEXTURE_W,
                     256
             );
-            poseStack.popPose();
+            poseStack.popMatrix();
 
-            //render widgets
-            poseStack.pushPose();
-            RenderSystem.enableDepthTest();
+            poseStack.pushMatrix();
 
-            poseStack.translate(-width / 2f, -height / 2f, 0.2);
+            poseStack.translate(-width / 2f, -height / 2f);
             var v = transformMousePos(mouseX, mouseY);
-            super.render(graphics, (int) v.x, (int) v.y, delta);
-            poseStack.popPose();
+            super.extractRenderState(graphics, (int) v.x, (int) v.y, delta);
+            poseStack.popMatrix();
 
-            poseStack.popPose();
+            poseStack.popMatrix();
         }
-        poseStack.pushPose();
-        RenderSystem.enableDepthTest();
-        poseStack.translate(0, 0, editBox.active ? 22 : -20);
-        renderBackground(graphics);
-        poseStack.popPose();
+        poseStack.pushMatrix();
+        poseStack.popMatrix();
 
-        if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
+        if (editBox.active) editBox.extractWidgetRenderState(graphics, mouseX, mouseY, delta);
 
         else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
-            poseStack.pushPose();
-            poseStack.translate(0, 0, 5);
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                    GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            graphics.blit(GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2,
-                    0, 0, 15, 15);
-            RenderSystem.defaultBlendFunc();
-
-            poseStack.popPose();
+            poseStack.pushMatrix();
+            graphics.nextStratum();
+            graphics.blit(RenderPipelines.GUI_TEXTURED, GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2,
+                    0, 0, 15, 15, 256, 256);
+            poseStack.popMatrix();
         }
     }
 
     // ================== Mouse Functions ==================
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (!editBox.active) {
-            return super.mouseScrolled(mouseX, mouseY, amount);
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        return editBox.mouseScrolled(mouseX, mouseY, amount);
+        return editBox.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -417,19 +409,19 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (!editBox.active) {
-            var v = transformMousePos(pMouseX, pMouseY);
-            return super.mouseClicked(v.x, v.y, pButton);
-        } else return editBox.mouseClicked(pMouseX, pMouseY, pButton);
+            var v = transformMousePos(event.x(), event.y());
+            return super.mouseClicked(new MouseButtonEvent(v.x, v.y, event.buttonInfo()), doubleClick);
+        } else return editBox.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double pDragX, double pDragY) {
         if (!editBox.active) {
-            var v = transformMousePos(pMouseX, pMouseY);
-            return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
-        } else return editBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+            var v = transformMousePos(event.x(), event.y());
+            return super.mouseDragged(new MouseButtonEvent(v.x, v.y, event.buttonInfo()), pDragX, pDragY);
+        } else return editBox.mouseDragged(event, pDragX, pDragY);
     }
 
     public Vector4d transformMousePos(double mouseX, double mouseZ) {
@@ -455,7 +447,14 @@ public class AtlasOverviewScreen extends Screen {
                 averageX += d.centerX;
                 averageZ += d.centerZ;
                 count++;
-                if (d.decorations.values().stream().anyMatch(e -> e.getType().isRenderedOnFrame())) {
+                boolean hasRenderable = false;
+                for (MapDecoration decoration : d.getDecorations()) {
+                    if (decoration.renderOnFrame()) {
+                        hasRenderable = true;
+                        break;
+                    }
+                }
+                if (hasRenderable) {
                     if (best != null) {
                         if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
                             best = d;
@@ -536,7 +535,7 @@ public class AtlasOverviewScreen extends Screen {
         boolean ml = MapAtlasesMod.MOONLIGHT;
         for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
             MapItemSavedData data = holder.data;
-            for (var d : data.decorations.entrySet()) {
+            for (var d : MapAtlasesClient.getMutableDecorations(data).entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame()) {
                     mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
@@ -701,7 +700,7 @@ public class AtlasOverviewScreen extends Screen {
         if (selected != null) {
             editBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
-            if (hasShiftDown() || hasAltDown()) {
+            if (isShiftDown() || isAltDown()) {
                 focusEditBox(true);
             } else {
                 addNewPin();
@@ -734,8 +733,26 @@ public class AtlasOverviewScreen extends Screen {
 
 
     public boolean canTeleport() {
-        return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
+        return isShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
                 cursorAction == CursorAction.NONE && !editBox.active;
+    }
+
+    public static boolean isShiftDown() {
+        var window = Minecraft.getInstance().getWindow();
+        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT)
+                || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+    }
+
+    public static boolean isControlDown() {
+        var window = Minecraft.getInstance().getWindow();
+        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL)
+                || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_CONTROL);
+    }
+
+    public static boolean isAltDown() {
+        var window = Minecraft.getInstance().getWindow();
+        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_ALT)
+                || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_ALT);
     }
 
 
