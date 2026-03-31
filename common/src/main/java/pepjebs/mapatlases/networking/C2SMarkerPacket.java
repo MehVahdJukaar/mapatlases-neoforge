@@ -6,7 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -65,7 +65,7 @@ public class C2SMarkerPacket implements Message {
             double d1 = pos.z() + 0.5D;
             String str = MapAtlasesConfig.pinMarkerId.get();
             if (!str.isEmpty()) {
-                ResourceLocation id = new ResourceLocation(str);
+                Identifier id = Identifier.parse(str);
 
                 MutableComponent literal = name == null ? null : Component.literal(name);
                 if (id.getNamespace().equals("minecraft")) {

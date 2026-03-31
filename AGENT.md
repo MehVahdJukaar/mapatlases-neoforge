@@ -240,6 +240,71 @@ Conclusion from this checkpoint:
   - rewrite recipe serializers for 26.1
   - replace the old Moonlight marker layer with internal classes or temporary no-op shims while the atlas UI is brought forward
 
+## Client isolation checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Replaced several optional integration classes with temporary local no-op shims so absent companion mods stop dominating the `26.1` compile:
+  - `CuriosCompat`
+  - `TrinketsCompat`
+  - `ImmediatelyFastCompat`
+  - `SupplementariesCompat`
+  - `SupplementariesClientCompat`
+  - `TwilightForestCompat`
+  - `XaeroMinimapCompat`
+- Replaced the old Moonlight-heavy marker/client classes with temporary internal placeholders to keep core code compiling while the real marker port is deferred:
+  - `MoonlightCompat`
+  - `ClientMarkers`
+  - `ClientMarkersRenderer`
+  - `EntityRadar`
+  - `CustomDecorationButton`
+- Updated the active Fabric source set to exclude the heaviest client-only screen/render sources and some client-only mixins so the build can focus on core `26.1` gameplay/data migrations first
+- Started moving shared code toward `26.1` names in a few core places:
+  - `MapAtlasesMod.res(...)` now returns `Identifier`
+  - packet wrapper / marker packet identifiers updated to `Identifier`
+  - `Util` imports updated to `net.minecraft.util.Util`
+  - `PlatStuff` render helper signatures switched to `GuiGraphicsExtractor`
+- Replaced the top-level client bootstrap classes with temporary compile-oriented shims:
+  - `MapAtlasesClient`
+  - `fabric/.../MapAtlasesClientImpl`
+
+Compile result after this checkpoint:
+
+- `./gradlew.bat :fabric:compileJava`
+  - still fails
+  - but the failure surface is now more clearly concentrated in actual `26.1` core migrations rather than missing optional dependencies
+
+Dominant remaining blocker categories now:
+
+1. Recipe system migration
+   - old custom recipe constructors still expect `ResourceLocation`
+   - `RecipeSerializer` is no longer an interface and the old serializer implementation shape must be rewritten
+   - `SimpleCraftingRecipeSerializer` no longer exists in the old form
+2. Core item / NBT / map API changes
+   - `ItemStack` tag accessors changed
+   - some NBT getters now return `Optional`
+   - `Level` and `ResourceKey` accessors changed shape
+   - map packet and map saved-data APIs changed
+3. Remaining client-only stragglers still entering compile
+   - `MapVertexConsumer`
+   - `CompoundTooltip`
+   - residual references to excluded screen classes
+4. Networking / teleport / mixin drift
+   - `C2STeleportPacket`
+   - `MapItemSavedDataAccessor`
+   - packet constructor / codec changes around map packets
+
+Conclusion from this checkpoint:
+
+- The port is now past the “missing dependency / missing compat library” phase.
+- The next productive chunk is a focused `26.1` API rewrite for:
+  - recipes
+  - item/NBT access
+  - map packet handling
+  - the minimal remaining client glue needed for compile
+
 ## Recommended next steps
 
 1. Fix or replace the unresolved Moonlight dependency so the current baseline can build.

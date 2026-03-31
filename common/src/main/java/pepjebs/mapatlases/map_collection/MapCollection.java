@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.map_collection;
 
 import com.google.common.base.Preconditions;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;

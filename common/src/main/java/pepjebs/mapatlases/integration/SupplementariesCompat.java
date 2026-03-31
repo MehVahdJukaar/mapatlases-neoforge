@@ -1,11 +1,5 @@
 package pepjebs.mapatlases.integration;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.mehvahdjukaar.supplementaries.common.items.AntiqueInkItem;
-import net.mehvahdjukaar.supplementaries.common.items.SliceMapItem;
-import net.mehvahdjukaar.supplementaries.common.misc.MapLightHandler;
-import net.mehvahdjukaar.supplementaries.common.misc.map_markers.WeatheredMap;
-import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -15,53 +9,43 @@ import org.jetbrains.annotations.NotNull;
 public class SupplementariesCompat {
 
     public static void init() {
-        if (PlatHelper.getPhysicalSide().isClient()) {
-            SupplementariesClientCompat.init();
-        }
-        // turn on map light
-        MapLightHandler.setActive(true);
     }
 
     public static Integer getSlice(@NotNull MapItemSavedData data) {
-        int i = SliceMapItem.getMapHeight(data);
-        return i == Integer.MAX_VALUE ? null : i;
+        return null;
     }
 
     public static ItemStack createSliced(Level level, int destX, int destZ, byte scale, boolean b, boolean b1, Integer slice) {
-        return SliceMapItem.createSliced(level, destX, destZ, scale, b, b1, slice);
+        return ItemStack.EMPTY;
     }
 
     public static ItemStack createExistingSliced(int id) {
-        ItemStack stack = new ItemStack(ModRegistry.SLICE_MAP.get());
-        stack.getOrCreateTag().putInt("map", id);
-        return stack;
+        return ItemStack.EMPTY;
     }
 
     public static int getSliceReach() {
-        return (int) (SliceMapItem.getRangeMultiplier() * 128);
+        return 128;
     }
 
     public static boolean canPlayerSeeDeathMarker(Player p) {
-        return false;// TODO  !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
+        return false;
     }
 
     public static boolean hasAntiqueInk(ItemStack itemstack) {
-        return AntiqueInkItem.hasAntiqueInk(itemstack);
+        return false;
     }
 
     public static void setAntiqueInk(ItemStack stacks) {
-        AntiqueInkItem.setAntiqueInk(stacks, true);
     }
 
     public static void setMapAntique(ItemStack newMap, Level level) {
-        WeatheredMap.setAntique(level, newMap, true);
     }
 
     public static boolean isAntiqueInk(ItemStack itemstack) {
-        return itemstack.is(ModRegistry.ANTIQUE_INK.get());
+        return false;
     }
 
     public static Integer createAntiqueMapData(MapItemSavedData data, Level level, boolean on, boolean replaceOld) {
-        return WeatheredMap.createAntiqueMapData(data, level, on, replaceOld);
+        return null;
     }
 }

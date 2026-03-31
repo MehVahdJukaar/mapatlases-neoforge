@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
@@ -36,7 +36,7 @@ public enum MapType {
         for (var v : MapType.values()) {
             var t = v.empty;
             if (t != null) s.add(t);
-            BuiltInRegistries.ITEM.getOptional(new ResourceLocation("supplementaries:slice_map")).ifPresent(s::add);
+            BuiltInRegistries.ITEM.getOptional(Identifier.parse("supplementaries:slice_map")).ifPresent(s::add);
         }
         return s;
     });
@@ -83,7 +83,7 @@ public enum MapType {
 
     private static Item tf(String id) {
         if (MapAtlasesMod.TWILIGHTFOREST) {
-            return BuiltInRegistries.ITEM.getOptional(new ResourceLocation("twilightforest", id))
+            return BuiltInRegistries.ITEM.getOptional(Identifier.fromNamespaceAndPath("twilightforest", id))
                     .orElse(null);
         }
         return null;
