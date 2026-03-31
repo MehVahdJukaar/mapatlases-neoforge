@@ -9,17 +9,24 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -29,6 +36,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
+    public static final Identifier MAP_ICON_TEXTURE = Identifier.withDefaultNamespace("textures/map/map_icons.png");
+    public static final Identifier ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
+    public static final Identifier ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
+    public static final Identifier ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
+    public static final Identifier GUI_ICONS_TEXTURE = Identifier.withDefaultNamespace("textures/gui/icons.png");
+    public static final Identifier MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
+    public static final Identifier MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
     public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(
             Level.OVERWORLD.identifier().toString(),
@@ -153,6 +167,20 @@ public class MapAtlasesClient {
     }
 
     public static void handleMapPacketWrapperPacket(S2CMapPacketWrapper packet) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Level level = minecraft.level;
+        if (level == null || minecraft.player == null) {
+            return;
+        }
+
+        minecraft.player.connection.handleMapItemData(packet.packet);
+
+        var data = level.getMapData(new MapId(packet.mapId));
+        if (data instanceof MapItemSavedDataAccessor accessor) {
+            accessor.setCenterX(packet.centerX);
+            accessor.setCenterZ(packet.centerZ);
+            accessor.setDimension(ResourceKey.create(Registries.DIMENSION, packet.dimension));
+        }
     }
 
     public static void openScreen(@Nullable BlockPos lecternPos, boolean pinOnly) {
@@ -195,6 +223,17 @@ public class MapAtlasesClient {
     }
 
     public static int debugIsMapUpdated(int light, String stringId) {
+        Integer value = CACHE.getIfPresent(stringId);
+        if (value != null) {
+            value--;
+            if (value <= 0) {
+                CACHE.invalidate(stringId);
+            } else {
+                CACHE.put(stringId, value);
+            }
+            int packedLight = Mth.clamp((int) (value / 10.0F * 15.0F), 0, 15);
+            return packedLight | packedLight << 20;
+        }
         return light;
     }
 

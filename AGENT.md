@@ -556,3 +556,33 @@ Important findings:
 
 - For this `26.1` toolchain, a proper Fabric client entrypoint is the cleanest place to restore client-only registration instead of conditionally running client init from the main initializer
 - The cached standalone Fabric keybinding helper artifact is built against intermediary names and is not directly usable from the current deobfuscated compile path, so local registration had to avoid that dependency
+
+## Wrapped map packet sync checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for intended wrapped map update behavior
+
+Work completed in this pass:
+
+- Restored the wrapped map packet payload path in `common/src/main/java/pepjebs/mapatlases/networking/S2CMapPacketWrapper.java`
+  - the wrapper now serializes and deserializes the full `ClientboundMapItemDataPacket` instead of only carrying atlas-side metadata
+  - `26.1` packet encode/decode now goes through `ClientboundMapItemDataPacket.STREAM_CODEC`
+  - added a strict `RegistryFriendlyByteBuf` guard because the packet codec requires registry-aware buffers
+- Replaced the placeholder no-op map wrapper handler in `common/src/main/java/pepjebs/mapatlases/client/MapAtlasesClient.java`
+  - the client now forwards the wrapped packet into the vanilla client connection handler
+  - atlas-side map metadata is then patched back onto the client map saved data using the existing accessor mixin
+- Restored the texture identifier constants in `MapAtlasesClient` that the later `26.1` client UI/HUD restore will need
+- Replaced the temporary `debugIsMapUpdated(...)` stub with the fading packed-light behavior used to highlight recently updated maps
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The prior Fabric-only bootstrap path could build and launch, but it was not preserving the actual wrapped map update payloads that drive client-side map refresh behavior
+- The next atlas parity steps can now build on top of a real map data update path instead of a metadata-only placeholder
