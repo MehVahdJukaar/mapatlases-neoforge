@@ -43,7 +43,15 @@ public class MapCollection implements IMapCollection {
     // if a duplicate exists its likely that its data was not synced yet
     @Override
     public void addNotSynced(Level level) {
-        notSyncedIds.removeIf(i -> add(i, level));
+        if (notSyncedIds.isEmpty()) {
+            return;
+        }
+        var pending = List.copyOf(notSyncedIds);
+        for (int id : pending) {
+            if (add(id, level)) {
+                notSyncedIds.remove(id);
+            }
+        }
     }
 
     // we need level context

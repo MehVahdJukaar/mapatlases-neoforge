@@ -169,6 +169,39 @@ Current caveat after this checkpoint:
 
 - The internal pin path is now wired into the atlas UI flow, but it still needs deeper in-game parity validation and likely more work on marker preview / tracking / HUD rendering to fully match the multiloader reference.
 
+## Not-synced atlas crash fix
+
+Recorded on `2026-03-31`.
+
+Crash reported by user:
+
+- `./gradlew.bat :fabric:runClient`
+  - client crashed in-world with:
+    - `java.util.ConcurrentModificationException`
+    - `pepjebs.mapatlases.map_collection.MapCollection.addNotSynced(MapCollection.java:46)`
+
+Root cause:
+
+- `MapCollection.addNotSynced(...)` used:
+  - `notSyncedIds.removeIf(i -> add(i, level));`
+- `add(...)` also mutates `notSyncedIds`, so the set was being modified while its own iterator was active.
+
+Fix applied:
+
+- `common/src/main/java/pepjebs/mapatlases/map_collection/MapCollection.java`
+  - replaced the `removeIf(...)` logic with snapshot iteration over `List.copyOf(notSyncedIds)`
+  - now removes ids only after a successful `add(...)` call returns
+
+Verification:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes
+  - reaches title screen
+  - creates and enters a singleplayer world
+  - no longer crashes with `ConcurrentModificationException` in `addNotSynced(...)`
+
 ## Baseline checkpoint: 1.20.1 Fabric restored
 
 Recorded on `2026-03-30`.
