@@ -178,7 +178,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         MapAtlasesClient.setDecorationsTextScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationTextScale.get()));
         float yRot = mc.player.getYRot();
         if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(yRot - 180);
+            MapAtlasesClient.setDecorationRotation(180 - yRot);
         }
         int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? 0x00F000F0 :
                 packSkyLight(mc.level.getBrightness(LightLayer.SKY, mc.player.getOnPos().above()));
@@ -296,7 +296,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         pose.pushMatrix();
         pose.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f);
 
-        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
+        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? 360 - yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
         drawLetter(graphics, mc.font, a, b, "N");

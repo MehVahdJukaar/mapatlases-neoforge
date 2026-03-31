@@ -88,7 +88,7 @@ public abstract class AbstractAtlasWidget {
         double mapCenterOffsetZ = currentZCenter - centerMapZ;
 
         if (rotatesWithPlayer) {
-            pose.rotate((float) Math.toRadians(180 - player.getYRot()));
+            pose.rotate((float) Math.toRadians(player.getYRot() - 180));
         }
         pose.translate((float) (-mapCenterOffsetX / scaleIndex), (float) (-mapCenterOffsetZ / scaleIndex));
 

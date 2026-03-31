@@ -83,6 +83,9 @@ public class MapAtlasItem extends Item {
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
             return InteractionResult.CONSUME;
         }
+        if (player instanceof ServerPlayer sp) {
+            syncAndOpenGui(sp, stack, null, false);
+        }
         return InteractionResult.SUCCESS_SERVER;
     }
 

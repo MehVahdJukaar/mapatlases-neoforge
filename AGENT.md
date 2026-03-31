@@ -1125,3 +1125,32 @@ Important findings:
 - The minimap only showing when the atlas is not held is currently expected from config, not a regression
   - `hide_when_in_hand` defaults to `true` in `MapAtlasesClientConfig`, matching the reference behavior
 - The right-click failure was more likely a parity drift between the held-item use flow and the already-working `M` open packet path than a screen/render issue
+
+## Held open and minimap rotation checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for held atlas use flow and minimap/HUD orientation behavior
+
+Work completed in this pass:
+
+- Tightened held-item atlas open fallback in `common/src/main/java/pepjebs/mapatlases/item/MapAtlasItem.java`
+  - client still sends the open packet, matching the working `M` path
+  - server once again also performs direct `syncAndOpenGui(...)` when `Item#use` runs server-side
+  - this keeps the port resilient to `26.1` item-use dispatch differences instead of depending on only one side executing the open flow
+- Corrected the 2D minimap rotation math in:
+  - `common/src/main/java/pepjebs/mapatlases/client/AbstractAtlasWidget.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/ui/MapAtlasesHUD.java`
+- The minimap map rotation, decoration rotation, and cardinal overlay now use the inverted sign that matches the transformed `26.1` 2D renderer rather than the old 3D pose-stack sign carried over from the reference implementation
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The original multiloader sign conventions do not transfer 1:1 to the `26.1` `Matrix3x2fStack` path
+- The reversed minimap behavior is most plausibly caused by the old Z-axis rotation sign being applied directly to the new 2D GUI rotation API
