@@ -586,3 +586,38 @@ Important findings:
 
 - The prior Fabric-only bootstrap path could build and launch, but it was not preserving the actual wrapped map update payloads that drive client-side map refresh behavior
 - The next atlas parity steps can now build on top of a real map data update path instead of a metadata-only placeholder
+
+## Atlas UI prep checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for intended atlas UI and map-decoration behavior
+- local `26.1` deobfuscated client jars to confirm the current screen, widget, and map rendering APIs
+
+Work completed in this pass:
+
+- Re-opened the excluded atlas UI compile path briefly to capture the real `26.1` failure set, then restored the exclusions to keep the Fabric baseline green
+- Added missing `26.1` atlas render texture identifiers to `common/src/main/java/pepjebs/mapatlases/client/MapAtlasesClient.java`
+  - `map_border`
+  - `map_hovered`
+- Added common helpers in `MapAtlasesClient` for mutable map-decoration access and dirtying:
+  - `getMutableDecorations(MapItemSavedData)`
+  - `markDecorationsDirty(MapItemSavedData)`
+- Extended `common/src/main/java/pepjebs/mapatlases/mixin/MapItemSavedDataAccessor.java` with:
+  - `@Accessor("decorations")`
+  - `@Invoker("setDecorationsDirty")`
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The atlas UI/HUD port is blocked less by widget polish and more by core `26.1` API shifts:
+  - `Screen` and `AbstractWidget` now render through `extractRenderState(GuiGraphicsExtractor, ...)`
+  - `MapRenderer` now uses `MapRenderState` extraction instead of the old direct render path
+  - `MapItemSavedData.decorations` is private and must be reached through accessors instead of direct field mutation
+- With the new accessor and helper layer in place, the next UI port steps can target the actual `26.1` APIs instead of carrying old direct-field assumptions forward

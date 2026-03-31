@@ -19,6 +19,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapId;
+import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +35,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
@@ -43,6 +46,8 @@ public class MapAtlasesClient {
     public static final Identifier GUI_ICONS_TEXTURE = Identifier.withDefaultNamespace("textures/gui/icons.png");
     public static final Identifier MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final Identifier MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
+    public static final Identifier MAP_BORDER_TEXTURE = MapAtlasesMod.res("textures/gui/screen/map_border.png");
+    public static final Identifier MAP_HOVERED_TEXTURE = MapAtlasesMod.res("textures/gui/screen/map_hovered.png");
 
     public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(
             Level.OVERWORLD.identifier().toString(),
@@ -239,6 +244,21 @@ public class MapAtlasesClient {
 
     public static int uploadFrequency() {
         return 1;
+    }
+
+    public static Map<String, MapDecoration> getMutableDecorations(MapItemSavedData data) {
+        if (data instanceof MapItemSavedDataAccessor accessor) {
+            return accessor.getDecorations();
+        }
+        throw new IllegalStateException("Expected accessor-backed MapItemSavedData for atlas decoration access");
+    }
+
+    public static void markDecorationsDirty(MapItemSavedData data) {
+        if (data instanceof MapItemSavedDataAccessor accessor) {
+            accessor.invokeSetDecorationsDirty();
+            return;
+        }
+        throw new IllegalStateException("Expected accessor-backed MapItemSavedData for atlas decoration dirtying");
     }
 
     public static void decreaseHoodZoom() {

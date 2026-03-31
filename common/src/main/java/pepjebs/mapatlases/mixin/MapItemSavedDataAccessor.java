@@ -39,6 +39,12 @@ public interface MapItemSavedDataAccessor {
     @Accessor("bannerMarkers")
     Map<String, MapBanner> getBannerMarkers();
 
+    @Accessor("decorations")
+    Map<String, MapDecoration> getDecorations();
+
+    @Invoker("setDecorationsDirty")
+    void invokeSetDecorationsDirty();
+
     @Invoker("removeDecoration")
     void invokeRemoveDecoration(String pIdentifier);
 
