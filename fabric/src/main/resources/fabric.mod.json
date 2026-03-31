@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "pepjebs.mapatlases.fabric.MapAtlasesFabric"
+    ],
+    "client": [
+      "pepjebs.mapatlases.fabric.MapAtlasesFabricClient"
     ]
   },
   "mixins": [

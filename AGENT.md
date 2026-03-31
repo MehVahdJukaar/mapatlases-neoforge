@@ -522,3 +522,37 @@ Important findings:
 
 - The `26.1` HUD port is a larger rendering rewrite because GUI HUD drawing now runs through `GuiGraphicsExtractor` and Fabric’s new HUD element registry, not the old `GuiGraphics` callback path
 - The Fabric helper shim was still carrying placeholder returns from the earlier bootstrapping pass; restoring real ingredient matching removes a latent source of atlas recipe regressions while keeping the working baseline stable
+
+## Fabric client bootstrap checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch
+
+Work completed in this pass:
+
+- Moved Fabric client-only startup out of the main mod initializer and into a real Fabric `client` entrypoint
+- Updated `fabric.mod.json` to declare `pepjebs.mapatlases.fabric.MapAtlasesFabricClient` under `entrypoints.client`
+- Simplified `MapAtlasesFabric` so the main initializer now only owns common/server wiring
+- Updated `MapAtlasesFabricClient` to own:
+  - client tick hooks
+  - disconnect cleanup
+  - atlas keybinding registration
+- Registered atlas keybindings on `26.1` by extending `Minecraft.options.keyMappings` during client bootstrap and then calling `KeyMapping.resetMapping()`
+- Used a reflective field write for `Options.keyMappings` because the old Fabric keybinding helper route available in cache was not usable in this deobfuscated `26.1` setup
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - launches successfully
+  - loads resources and datapacks successfully
+  - reaches title screen, creates and enters a singleplayer world, and shuts down cleanly
+
+Important findings:
+
+- For this `26.1` toolchain, a proper Fabric client entrypoint is the cleanest place to restore client-only registration instead of conditionally running client init from the main initializer
+- The cached standalone Fabric keybinding helper artifact is built against intermediary names and is not directly usable from the current deobfuscated compile path, so local registration had to avoid that dependency
