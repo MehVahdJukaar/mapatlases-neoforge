@@ -3,15 +3,16 @@ package pepjebs.mapatlases;
 
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -83,16 +84,18 @@ public class MapAtlasesMod {
     static {
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RegHelper.registerRecipeSerializer(res("crafting_atlas"),
-                MapAtlasCreateRecipe.Serializer::new);
+                () -> MapAtlasCreateRecipe.SERIALIZER);
         MAP_ATLAS_ADD_RECIPE = RegHelper.registerRecipeSerializer(res("adding_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
+                () -> MapAtlasesAddRecipe.SERIALIZER);
         MAP_ATLAS_CUT_RECIPE = RegHelper.registerRecipeSerializer(res("cutting_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
+                () -> MapAtlasesCutExistingRecipe.SERIALIZER);
         MAP_ANTIQUE_RECIPE = RegHelper.registerRecipeSerializer(res("antique_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(AntiqueAtlasRecipe::new));
+                () -> AntiqueAtlasRecipe.SERIALIZER);
         // Register items
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
-                () -> new MapAtlasItem(new Item.Properties().stacksTo(16)));
+                () -> new MapAtlasItem(new Item.Properties()
+                        .setId(ResourceKey.create(Registries.ITEM, res("atlas")))
+                        .stacksTo(16)));
 
     }
 

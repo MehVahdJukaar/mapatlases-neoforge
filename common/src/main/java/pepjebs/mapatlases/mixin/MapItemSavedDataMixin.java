@@ -21,6 +21,7 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
 @Mixin(value = MapItemSavedData.class, priority = 1100)
 public class MapItemSavedDataMixin {
@@ -31,14 +32,15 @@ public class MapItemSavedDataMixin {
 
     @WrapOperation(
             method = "tickCarriedBy",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;contains(Lnet/minecraft/world/item/ItemStack;)Z")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;contains(Ljava/util/function/Predicate;)Z")
     )
-    private boolean mapAtlases$containsProxy(Inventory instance, ItemStack stack, Operation<Boolean> contains, @Local(argsOnly = true) Player player) {
+    private boolean mapAtlases$containsProxy(Inventory instance, Predicate<ItemStack> predicate, Operation<Boolean> contains, @Local(argsOnly = true) Player player) {
         TriState state = MapAtlasesMod.containsHack();
         if (state == TriState.SET_FALSE) return false;
-        //needs to call these for some reason... before the rest
-        return (state == TriState.SET_TRUE) || contains.call(instance, stack)
-                || (MapAtlasesAccessUtils.getAtlasFromCurioOrTrinket(player) == stack);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromCurioOrTrinket(player);
+        return (state == TriState.SET_TRUE)
+                || contains.call(instance, predicate)
+                || (!atlas.isEmpty() && predicate.test(atlas));
 
     }
 
@@ -54,10 +56,6 @@ public class MapItemSavedDataMixin {
                                                      CallbackInfoReturnable<MapItemSavedData.HoldingPlayer> cir) {
         if (player.level() instanceof ServerLevel l && !l.getServer().isSameThread()) {
             var value = this.carriedByPlayers.get(player);
-            if (value == null) {
-                //we cant modify the map so we return a dummy. updateMarkers will update this properly on thread
-                value = ((MapItemSavedData) (Object) this).new HoldingPlayer(player);
-            }
             cir.setReturnValue(value);
         }
 

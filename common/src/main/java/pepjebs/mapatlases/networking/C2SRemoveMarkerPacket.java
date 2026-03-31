@@ -6,9 +6,11 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 
 public class C2SRemoveMarkerPacket implements Message {
 
@@ -43,7 +45,7 @@ public class C2SRemoveMarkerPacket implements Message {
         if (!(context.getSender() instanceof ServerPlayer player)) return;
 
         Level level = player.level();
-        MapItemSavedData data = level.getMapData(mapId);
+        MapItemSavedData data = level.getMapData(new MapId(MapAtlasesAccessUtils.findMapIntFromString(mapId)));
 
         if (data != null) {
             if (!isCustom) {
@@ -67,8 +69,8 @@ public class C2SRemoveMarkerPacket implements Message {
             // recreates deco...
             float rotation = 180;
             int i = 1 << data.scale;
-            float f = (float) (mapBanner.getPos().getX() - (double) data.centerX) / i;
-            float g = (float) (mapBanner.getPos().getZ() - (double) data.centerZ) / i;
+            float f = (float) (mapBanner.pos().getX() - (double) data.centerX) / i;
+            float g = (float) (mapBanner.pos().getZ() - (double) data.centerZ) / i;
             byte b = (byte) ((int) ((f * 2.0F) + 0.5));
             byte c = (byte) ((int) ((g * 2.0F) + 0.5));
 
@@ -77,7 +79,7 @@ public class C2SRemoveMarkerPacket implements Message {
                 rotation += 8.0;
                 d = (byte) ((int) (rotation * 16.0 / 360.0));
                 if (data.dimension == Level.NETHER && level != null) {
-                    int k = (int) (level.getLevelData().getDayTime() / 10L);
+                    int k = (int) (level.getGameTime() / 10L);
                     d = (byte) (k * k * 34187121 + k * 121 >> 15 & 15);
                 }
             } else {
@@ -98,10 +100,10 @@ public class C2SRemoveMarkerPacket implements Message {
                     c = 127;
                 }
             }
-            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b+1), (byte) (c+1), d, mapBanner.getName());
+            MapDecoration mapDecoration = new MapDecoration(type, (byte) (b + 1), (byte) (c + 1), d, mapBanner.name());
 
             if (mapDecoration.hashCode() == hash) {
-                data.toggleBanner(level, mapBanner.getPos());
+                data.toggleBanner(level, mapBanner.pos());
                 return true;
             }
         }

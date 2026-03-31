@@ -24,7 +24,7 @@
     "${mod_id}-common.mixins.json"
   ],
   "depends": {
-    "fabric": "*",
+    "fabricloader": "*",
     "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}"
   }
 }

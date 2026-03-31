@@ -26,7 +26,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
     private final boolean pinOnly;
 
     public C2S2COpenAtlasScreenPacket(FriendlyByteBuf buf) {
-        lecternPos = buf.readOptional(FriendlyByteBuf::readBlockPos).orElse(null);
+        lecternPos = buf.readOptional(b -> b.readBlockPos()).orElse(null);
         pinOnly = buf.readBoolean();
     }
 
@@ -41,7 +41,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
 
     @Override
     public void writeToBuffer(FriendlyByteBuf buf) {
-        buf.writeOptional(Optional.ofNullable(lecternPos), FriendlyByteBuf::writeBlockPos);
+        buf.writeOptional(Optional.ofNullable(lecternPos), (b, pos) -> b.writeBlockPos(pos));
         buf.writeBoolean(pinOnly);
     }
 

@@ -105,7 +105,7 @@ public class MapDataHolder {
             Level level = player.level();
             while (iterator.hasNext()) {
                 var banner = iterator.next();
-                BlockPos pos = banner.getPos();
+                BlockPos pos = banner.pos();
                 //update all loaded in range
                 if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
                     if (level.isLoaded(pos)) {

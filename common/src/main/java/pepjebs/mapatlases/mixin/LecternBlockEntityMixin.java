@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -36,13 +39,13 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
     }
 
     @Inject(method = "saveAdditional", at = @At("TAIL"))
-    public void onSave(CompoundTag pTag, CallbackInfo ci) {
-        if (mapatlases$hasAtlas) pTag.putBoolean("has_atlas", true);
+    public void onSave(ValueOutput output, CallbackInfo ci) {
+        if (mapatlases$hasAtlas) output.putBoolean("has_atlas", true);
     }
 
-    @Inject(method = "load", at = @At("TAIL"))
-    public void onLoad(CompoundTag pTag, CallbackInfo ci) {
-        if (pTag.contains("has_atlas")) mapatlases$hasAtlas = pTag.getBoolean("has_atlas");
+    @Inject(method = "loadAdditional", at = @At("TAIL"))
+    public void onLoad(ValueInput input, CallbackInfo ci) {
+        mapatlases$hasAtlas = input.getBooleanOr("has_atlas", false);
     }
 
     @Override
@@ -75,8 +78,8 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return this.saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return this.saveWithoutMetadata(registries);
     }
 
     @Override

@@ -69,31 +69,31 @@ public class MapAtlasItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = ItemStackData.getOrEmpty(stack);
         convertOldAtlas(level, stack);
         if (player.isSecondaryUseActive()) {
-            boolean locked = !tag.getBoolean(LOCKED_NBT);
-            tag.putBoolean(LOCKED_NBT, locked);
-            if (player.level().isClientSide) {
-                player.displayClientMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
+            boolean locked = !tag.getBoolean(LOCKED_NBT).orElse(false);
+            ItemStackData.update(stack, t -> t.putBoolean(LOCKED_NBT, locked));
+            if (player.level().isClientSide()) {
+                player.sendSystemMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"));
             }
-            return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (player instanceof ServerPlayer sp) {
             syncAndOpenGui(sp, stack, null, false);
         }
-        return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private static void convertOldAtlas(Level level, ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = ItemStackData.getTag(stack);
         //convert old atlas
-        if (tag.contains("maps")) {
+        if (tag != null && tag.contains("maps")) {
             IMapCollection maps = getMaps(stack, level);
-            for (var i : tag.getIntArray("maps")) {
+            for (var i : tag.getIntArray("maps").orElseGet(() -> new int[0])) {
                 maps.add(i, level);
             }
-            tag.remove("maps");
+            ItemStackData.update(stack, t -> t.remove("maps"));
         }
     }
 
@@ -114,10 +114,10 @@ public class MapAtlasItem extends Item {
                 ah.mapatlases$setAtlas(player, stack);
                 //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (blockState.is(BlockTags.BANNERS)) {
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
 
                 IMapCollection maps = getMaps(stack, level);
                 MapDataHolder mapState = maps.select(MapKey.at(maps.getScale(), player, getSelectedSlice(stack, level.dimension())));
@@ -126,7 +126,7 @@ public class MapAtlasItem extends Item {
                 if (!didAdd)
                     return InteractionResult.FAIL;
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         } else {
             //others deco
 
@@ -153,15 +153,22 @@ public class MapAtlasItem extends Item {
         MapType t = slice.type();
         Integer h = slice.height();
         var dimension = slice.dimension();
+        String dimensionId = dimension.identifier().toString();
         if (h == null && t == MapType.VANILLA) {
-            CompoundTag tag = stack.getTagElement(SELECTED_NBT);
+            CompoundTag tag = ItemStackData.getTag(stack);
             if (tag != null) {
-                tag.remove(dimension.location().toString());
+                CompoundTag selected = tag.getCompound(SELECTED_NBT).orElse(null);
+                if (selected != null) {
+                    ItemStackData.update(stack, fullTag -> fullTag.getCompound(SELECTED_NBT).ifPresent(s -> s.remove(dimensionId)));
+                }
             }
 
         } else {
-            CompoundTag tag = stack.getOrCreateTagElement(SELECTED_NBT);
-            tag.put(dimension.location().toString(), slice.save());
+            ItemStackData.update(stack, fullTag -> {
+                CompoundTag selected = fullTag.getCompound(SELECTED_NBT).orElseGet(CompoundTag::new);
+                selected.put(dimensionId, slice.save());
+                fullTag.put(SELECTED_NBT, selected);
+            });
         }
     }
     //TODO:
@@ -193,12 +200,12 @@ public class MapAtlasItem extends Item {
     }
 
     public static int getEmptyMaps(ItemStack atlas) {
-        CompoundTag tag = atlas.getTag();
-        return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT) : 0;
+        CompoundTag tag = ItemStackData.getTag(atlas);
+        return tag != null && tag.contains(EMPTY_MAPS_NBT) ? tag.getInt(EMPTY_MAPS_NBT).orElse(0) : 0;
     }
 
     public static void setEmptyMaps(ItemStack stack, int count) {
-        stack.getOrCreateTag().putInt(EMPTY_MAPS_NBT, count);
+        ItemStackData.update(stack, tag -> tag.putInt(EMPTY_MAPS_NBT, count));
     }
 
     public static void increaseEmptyMaps(ItemStack stack, int count) {
@@ -206,18 +213,21 @@ public class MapAtlasItem extends Item {
     }
 
     public static boolean isLocked(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.getBoolean(LOCKED_NBT);
+        CompoundTag tag = ItemStackData.getTag(stack);
+        return tag != null && tag.getBoolean(LOCKED_NBT).orElse(false);
     }
 
     @NotNull
     public static Slice getSelectedSlice(ItemStack stack, ResourceKey<Level> dimension) {
-        CompoundTag tag = stack.getTagElement(SELECTED_NBT);
+        CompoundTag fullTag = ItemStackData.getTag(stack);
+        CompoundTag tag = fullTag == null ? null : fullTag.getCompound(SELECTED_NBT).orElse(null);
         if (tag != null) {
-            String string = dimension.location().toString();
+            String string = dimension.identifier().toString();
             if (tag.contains(string)) {
-                var t = tag.getCompound(string);
-                return Slice.parse(t, dimension);
+                var t = tag.getCompound(string).orElse(null);
+                if (t != null) {
+                    return Slice.parse(t, dimension);
+                }
             }
         }
         return Slice.of(MapType.VANILLA, null, dimension);

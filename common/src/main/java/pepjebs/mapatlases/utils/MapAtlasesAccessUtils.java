@@ -3,12 +3,15 @@ package pepjebs.mapatlases.utils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
@@ -21,7 +24,7 @@ public class MapAtlasesAccessUtils {
 
 
     public static boolean isValidFilledMap(ItemStack item) {
-        return MapType.fromItem(item.getItem()) != null && MapItem.getMapId(item) != null;
+        return MapType.fromItem(item.getItem()) != null && getMapId(item) != null;
     }
 
     public static boolean isValidEmptyMap(ItemStack item) {
@@ -30,7 +33,14 @@ public class MapAtlasesAccessUtils {
 
 
     public static MapDataHolder findMapFromItemStack(Level level, ItemStack item) {
-        return MapDataHolder.findFromId(level, MapItem.getMapId(item));
+        Integer mapId = getMapId(item);
+        return mapId == null ? null : MapDataHolder.findFromId(level, mapId);
+    }
+
+    @Nullable
+    public static Integer getMapId(ItemStack item) {
+        MapId mapId = item.get(DataComponents.MAP_ID);
+        return mapId == null ? null : mapId.id();
     }
 
     public static int findMapIntFromString(String id) {
@@ -110,7 +120,7 @@ public class MapAtlasesAccessUtils {
     ) {
         MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
         //hack. just to be sure so contains will fail
-        holder.data.tickCarriedBy(player, atlas);
+        holder.data.tickCarriedBy(player, atlas, null);
         MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
         MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
     }
@@ -121,7 +131,7 @@ public class MapAtlasesAccessUtils {
         //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
         // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
         //TODO: maybe use isComplex  update packet and inventory tick
-        Packet<?> p = holder.data.getUpdatePacket(holder.id, player);
+        Packet<?> p = holder.data.getUpdatePacket(new MapId(holder.id), player);
         if (p != null) {
             if (MapAtlasesMod.MOONLIGHT) {
                 player.connection.send(p);

@@ -7,12 +7,13 @@
 package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,7 +50,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$5")
 class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
 
-    @Shadow @Final
+    @Shadow(aliases = "this$0") @Final
     CartographyTableMenu field_17303;
 
     @Inject(method = "onTake", at = @At("HEAD"))
@@ -63,7 +64,10 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                 menu.mapatlases$removeSelectedMap(atlas);
                 atlas.grow(1);
                 slotOneItem.grow(1);
-                slotOneItem.hurt(1, RandomSource.create(), null);
+                if (player instanceof ServerPlayer serverPlayer && player.level() instanceof ServerLevel serverLevel) {
+                    slotOneItem.hurtAndBreak(1, serverLevel, serverPlayer, item -> {
+                    });
+                }
                 menu.mapatlases$setSelectedMapIndex(0);
             } else if (
                     (slotOneItem.is(Items.MAP)

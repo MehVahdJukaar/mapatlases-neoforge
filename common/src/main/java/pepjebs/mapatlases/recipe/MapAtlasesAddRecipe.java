@@ -1,12 +1,13 @@
 package pepjebs.mapatlases.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -22,20 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapAtlasesAddRecipe extends CustomRecipe {
+    public static final MapCodec<MapAtlasesAddRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            CraftingBookCategory.CODEC.optionalFieldOf("category", CraftingBookCategory.MISC).forGetter(MapAtlasesAddRecipe::category)
+    ).apply(instance, MapAtlasesAddRecipe::new));
 
+    public static final StreamCodec<RegistryFriendlyByteBuf, MapAtlasesAddRecipe> STREAM_CODEC = StreamCodec.of(
+            (buffer, recipe) -> buffer.writeEnum(recipe.category()),
+            buffer -> new MapAtlasesAddRecipe(buffer.readEnum(CraftingBookCategory.class))
+    );
+
+    public static final RecipeSerializer<MapAtlasesAddRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+
+    private final CraftingBookCategory category;
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public MapAtlasesAddRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public MapAtlasesAddRecipe(CraftingBookCategory category) {
+        super();
+        this.category = category;
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level level) {
+    public boolean matches(CraftingInput inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMaps = 0;
         List<MapDataHolder> filledMaps = new ArrayList<>();
         // ensure 1 and one only atlas
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 if (!atlas.isEmpty()) return false;
@@ -83,21 +96,24 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingInput inv) {
 
         Level level = levelRef.get();
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMapCount = 0;
         List<Integer> mapIds = new ArrayList<>();
         // ensure 1 and one only atlas
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 atlas = itemstack.copyWithCount(1);
             } else if (isEmptyMap(itemstack)) {
                 emptyMapCount++;
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
-                mapIds.add(MapItem.getMapId(itemstack));
+                Integer mapId = MapAtlasesAccessUtils.getMapId(itemstack);
+                if (mapId != null) {
+                    mapIds.add(mapId);
+                }
             }
         }
 
@@ -114,11 +130,15 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return MapAtlasesMod.MAP_ATLAS_ADD_RECIPE.get();
+    public RecipeSerializer<MapAtlasesAddRecipe> getSerializer() {
+        return SERIALIZER;
     }
 
     @Override
+    public CraftingBookCategory category() {
+        return category;
+    }
+
     public boolean canCraftInDimensions(int width, int height) {
         return width * height >= 2;
     }

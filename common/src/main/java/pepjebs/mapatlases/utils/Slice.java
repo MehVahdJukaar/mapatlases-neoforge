@@ -31,9 +31,9 @@ public final class Slice {
     }
 
     public static Slice parse(CompoundTag t, ResourceKey<Level> dimension) {
-        int anInt = t.getInt(TYPE_NBT);
+        int anInt = t.getInt(TYPE_NBT).orElse(0);
         if (anInt >= MapType.values().length) anInt = 0;
-        return of(MapType.values()[anInt], t.getInt(HEIGHT_NBT), dimension);
+        return of(MapType.values()[anInt], t.getInt(HEIGHT_NBT).orElse(Integer.MAX_VALUE), dimension);
     }
 
     public CompoundTag save() {

@@ -5,6 +5,7 @@ import net.minecraft.util.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
@@ -13,6 +14,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.level.saveddata.maps.MapId;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -94,7 +97,7 @@ public enum MapType {
         String key = keyPrefix + id;
         MapItemSavedData data = null;
         if (this == VANILLA) {
-            data = level.getMapData(key);
+            data = level.getMapData(new MapId(id));
         }
         if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             data = TwilightForestCompat.getMagic(level, key);
@@ -132,7 +135,7 @@ public enum MapType {
                 map = SupplementariesCompat.createExistingSliced(id);
             }else {
                 map = new ItemStack(Items.FILLED_MAP);
-                map.getOrCreateTag().putInt("map", id);
+                map.set(DataComponents.MAP_ID, new MapId(id));
             }
         } else if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
             map = TwilightForestCompat.makeExistingMagic(id);
@@ -157,8 +160,11 @@ public enum MapType {
                         true,
                         false, height);
             } else {
+                if (!(level instanceof ServerLevel serverLevel)) {
+                    return ItemStack.EMPTY;
+                }
                 newMap = MapItem.create(
-                        level,
+                        serverLevel,
                         destX,
                         destZ,
                         scale,

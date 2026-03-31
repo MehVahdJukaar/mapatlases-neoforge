@@ -13,6 +13,8 @@ sourceSets {
         java.exclude(
                 "pepjebs/mapatlases/client/AbstractAtlasWidget.java",
                 "pepjebs/mapatlases/client/AtlasInHandRenderer.java",
+                "pepjebs/mapatlases/client/CompoundTooltip.java",
+                "pepjebs/mapatlases/client/MapVertexConsumer.java",
                 "pepjebs/mapatlases/client/screen/**",
                 "pepjebs/mapatlases/client/ui/**",
                 "pepjebs/mapatlases/integration/fabric/**",
@@ -21,6 +23,7 @@ sourceSets {
                 "pepjebs/mapatlases/integration/REICompat.java",
                 "pepjebs/mapatlases/integration/SpecialRecipeDisplays.java",
                 "pepjebs/mapatlases/integration/moonlight/AtlasOnlyDecorationRenderer.java",
+                "pepjebs/mapatlases/integration/moonlight/CustomDecorationButton.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinDecoration.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinDecorationRenderer.java",
                 "pepjebs/mapatlases/integration/moonlight/EntityPinMarker.java",

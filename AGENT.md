@@ -329,3 +329,41 @@ When in doubt:
 - prefer the `multiloader` reference implementation
 - preserve behavior and visuals
 - adapt only the parts forced by `26.1` API changes
+
+## 26.1 baseline runtime checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Ported the remaining server-side and data-path compile blockers so the active `26.1` baseline now builds again:
+  - packet buffer optional handling moved to explicit lambdas for `FriendlyByteBuf`
+  - map id handling moved to `MapId` / `DataComponents.MAP_ID`
+  - banner marker removal logic updated for modern `MapBanner` / `MapDecoration`
+  - teleport packet updated to the modern server / level APIs
+  - lectern and cartography mixins retargeted to modern vanilla methods and value IO APIs
+  - `MapItemSavedDataMixin` retargeted from `Inventory.contains(ItemStack)` to `Inventory.contains(Predicate<ItemStack>)`
+- Replaced the previous stubbed registry helper behavior with real registry writes in the local `RegHelper` shim
+- Updated atlas item construction to set its `Item.Properties` id up front, which is required by modern item initialization
+- Fixed Fabric metadata drift:
+  - `fabric.mod.json` now depends on `fabricloader`, not the nonexistent `fabric` mod id
+  - common mixin config was pruned to match the currently excluded client-only mixins
+
+Verification results:
+
+- `./gradlew.bat :fabric:compileJava --console=plain`
+  - passes
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - now launches successfully
+  - reached title screen, created and entered a singleplayer world, and shut down cleanly
+
+Current state after this checkpoint:
+
+- The active Fabric `26.1` baseline is now buildable and launchable again.
+- Remaining work is primarily feature restoration and parity work:
+  - re-enable and port the excluded atlas UI / HUD / in-hand rendering classes
+  - reintroduce the excluded client mixins one by one against `26.1`
+  - replace the temporary Moonlight marker/render placeholders with behavior-matching internal implementations
+  - restore creative-tab wiring and other non-critical registry-side polish that is still stubbed

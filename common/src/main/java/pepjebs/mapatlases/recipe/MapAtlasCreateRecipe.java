@@ -1,17 +1,15 @@
 package pepjebs.mapatlases.recipe;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -21,6 +19,7 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.ItemStackData;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
@@ -28,32 +27,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapAtlasCreateRecipe extends CustomRecipe {
+    public static final MapCodec<MapAtlasCreateRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            CraftingBookCategory.CODEC.optionalFieldOf("category", CraftingBookCategory.MISC).forGetter(MapAtlasCreateRecipe::category),
+            Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
+    ).apply(instance, (category, ingredients) -> new MapAtlasCreateRecipe(category, copyIngredients(ingredients))));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, MapAtlasCreateRecipe> STREAM_CODEC = StreamCodec.of(
+            MapAtlasCreateRecipe::encode,
+            MapAtlasCreateRecipe::decode
+    );
+
+    public static final RecipeSerializer<MapAtlasCreateRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
     // some logic copied from shapeless recipes
+    private final CraftingBookCategory category;
     private final NonNullList<Ingredient> ingredients;
     private final boolean isSimple;
 
     // to prevent the world from not being unloaded
     private WeakReference<Level> levelReference = new WeakReference<>(null);
 
-    public MapAtlasCreateRecipe(ResourceLocation id, CraftingBookCategory category, NonNullList<Ingredient> ingredients) {
-        super(id, category);
+    public MapAtlasCreateRecipe(CraftingBookCategory category, NonNullList<Ingredient> ingredients) {
+        super();
+        this.category = category;
         this.ingredients = ingredients;
         this.isSimple = PlatStuff.isSimple(ingredients);
     }
 
-    @Override
     public NonNullList<Ingredient> getIngredients() {
         return ingredients;
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level level) {
-        StackedContents stackedcontents = new StackedContents();
+    public boolean matches(CraftingInput inv, Level level) {
+        StackedItemContents stackedcontents = new StackedItemContents();
         List<ItemStack> inputs = new ArrayList<>();
         int i = 0;
         boolean hasMap = false;
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 if (hasMap || MapItem.getSavedData(itemstack, level) == null) {
@@ -78,19 +89,19 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingInput inv) {
         ItemStack mapItemStack = null;
-        for (var item : inv.getItems()) {
+        for (var item : inv.items()) {
             if (MapAtlasesAccessUtils.isValidFilledMap(item)) {
                 mapItemStack = item;
                 break;
             }
         }
         Level level = levelReference.get();
-        if (mapItemStack == null || level == null || mapItemStack.getTag() == null) {
+        if (mapItemStack == null || level == null || ItemStackData.getTag(mapItemStack) == null) {
             return ItemStack.EMPTY; //this should never happen
         }
-        Integer mapId = MapItem.getMapId(mapItemStack);
+        Integer mapId = MapAtlasesAccessUtils.getMapId(mapItemStack);
         if (mapId == null) {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
@@ -99,8 +110,6 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         if (holder == null) return ItemStack.EMPTY;
 
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
-        //initialize tag
-        atlas.getOrCreateTag();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapAtlasItem.setSelectedSlice(atlas, holder.slice);
         if (!maps.add(mapId, level)) {
@@ -112,52 +121,44 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return MapAtlasesMod.MAP_ATLAS_CREATE_RECIPE.get();
+    public RecipeSerializer<MapAtlasCreateRecipe> getSerializer() {
+        return SERIALIZER;
     }
 
     @Override
+    public CraftingBookCategory category() {
+        return category;
+    }
+
     public boolean canCraftInDimensions(int width, int height) {
         return width * height >= 3;
     }
 
-    public static class Serializer implements RecipeSerializer<MapAtlasCreateRecipe> {
-
-        @Override
-        public MapAtlasCreateRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf buffer) {
-            CraftingBookCategory craftingbookcategory = buffer.readEnum(CraftingBookCategory.class);
-
-            NonNullList<Ingredient> ingredients = NonNullList.withSize(buffer.readVarInt(), Ingredient.EMPTY);
-            ingredients.replaceAll(ignored -> Ingredient.fromNetwork(buffer));
-
-            return new MapAtlasCreateRecipe(pRecipeId, craftingbookcategory, ingredients);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf pBuffer, MapAtlasCreateRecipe pRecipe) {
-            pBuffer.writeEnum(pRecipe.category());
-
-            pBuffer.writeVarInt(pRecipe.ingredients.size());
-            for (Ingredient ingredient : pRecipe.ingredients) {
-                ingredient.toNetwork(pBuffer);
-            }
-        }
-
-        @Override
-        public MapAtlasCreateRecipe fromJson(ResourceLocation pRecipeId, JsonObject pSerializedRecipe) {
-            CraftingBookCategory craftingbookcategory = CraftingBookCategory.CODEC.byName(GsonHelper.getAsString(pSerializedRecipe, "category", null), CraftingBookCategory.MISC);
-            NonNullList<Ingredient> nonnulllist = itemsFromJson(GsonHelper.getAsJsonArray(pSerializedRecipe, "ingredients"));
-
-            return new MapAtlasCreateRecipe(pRecipeId, craftingbookcategory, nonnulllist);
-        }
-
-        private static NonNullList<Ingredient> itemsFromJson(JsonArray pIngredientArray) {
-            NonNullList<Ingredient> nonnulllist = NonNullList.create();
-            for (int i = 0; i < pIngredientArray.size(); ++i) {
-                nonnulllist.add(Ingredient.fromJson(pIngredientArray.get(i), false));
-            }
-            return nonnulllist;
-        }
-
+    private static NonNullList<Ingredient> copyIngredients(List<Ingredient> ingredients) {
+        NonNullList<Ingredient> list = NonNullList.create();
+        list.addAll(ingredients);
+        return list;
     }
+
+    private static MapAtlasCreateRecipe decode(RegistryFriendlyByteBuf buffer) {
+        CraftingBookCategory craftingbookcategory = buffer.readEnum(CraftingBookCategory.class);
+
+        int size = buffer.readVarInt();
+        NonNullList<Ingredient> ingredients = NonNullList.create();
+        for (int i = 0; i < size; i++) {
+            ingredients.add(Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
+        }
+
+        return new MapAtlasCreateRecipe(craftingbookcategory, ingredients);
+    }
+
+    private static void encode(RegistryFriendlyByteBuf buffer, MapAtlasCreateRecipe recipe) {
+        buffer.writeEnum(recipe.category());
+
+        buffer.writeVarInt(recipe.ingredients.size());
+        for (Ingredient ingredient : recipe.ingredients) {
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
+        }
+    }
+
 }

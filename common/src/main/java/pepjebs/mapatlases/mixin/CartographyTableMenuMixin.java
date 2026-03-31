@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.MapItem;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -121,7 +120,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         else if (bottomItem.getItem() == Items.FILLED_MAP) {
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
-                Integer mapId = MapItem.getMapId(bottomItem);
+                Integer mapId = MapAtlasesAccessUtils.getMapId(bottomItem);
                 IMapCollection maps = MapAtlasItem.getMaps(result, world);
                 if (mapId != null && maps.add(mapId, world)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);

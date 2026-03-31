@@ -39,8 +39,8 @@ public final class ConfigBuilder {
         return () -> defaultValue;
     }
 
-    public Supplier<Float> define(String name, float defaultValue, float min, float max) {
-        return () -> defaultValue;
+    public Supplier<Double> define(String name, float defaultValue, float min, float max) {
+        return () -> (double) defaultValue;
     }
 
     public Supplier<String> define(String name, String defaultValue) {

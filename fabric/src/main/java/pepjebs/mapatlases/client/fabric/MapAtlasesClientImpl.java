@@ -26,7 +26,7 @@ public class MapAtlasesClientImpl {
     private static void mapAtlasClientTick(Minecraft minecraft) {
         for (var k : KEYBINDS) {
             if (k.consumeClick()) {
-                MapAtlasesClientEvents.onKeyPressed(k.key.getValue(), k.key.getValue());
+                MapAtlasesClientEvents.onKeyPressed(k);
             }
         }
     }

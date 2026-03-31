@@ -45,7 +45,7 @@ public class MapItemMixin {
         }
         //return empty
         return new EmptyLevelChunk(level, new ChunkPos(chunkX, chunkZ),
-                level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
+                level.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.FOREST));
     }
 
 

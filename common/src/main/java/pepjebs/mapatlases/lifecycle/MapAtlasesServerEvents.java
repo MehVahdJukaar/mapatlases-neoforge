@@ -98,7 +98,7 @@ public class MapAtlasesServerEvents {
         //not needed?
         //if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
 
-        var server = player.server;
+        var server = player.level().getServer();
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
@@ -215,8 +215,8 @@ public class MapAtlasesServerEvents {
             range = 128 / i;
         }
         Level level = player.level();
-        int rx = level.random.nextIntBetweenInclusive(-range, range);
-        int rz = level.random.nextIntBetweenInclusive(-range, range);
+        int rx = level.getRandom().nextIntBetweenInclusive(-range, range);
+        int rz = level.getRandom().nextIntBetweenInclusive(-range, range);
         int x = (int) Mth.clamp((player.getX() + rx - data.centerX) / i + 64, 0, 127);
         int z = (int) Mth.clamp((player.getZ() + rz - data.centerZ) / i + 64, 0, 127);
         boolean filled = data.colors[x + z * 128] != 0;
@@ -286,7 +286,7 @@ public class MapAtlasesServerEvents {
             int destZ
     ) {
         Level level = player.level();
-        if (atlas.getTag() == null) {
+        if (ItemStackData.getTag(atlas) == null) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.setEmptyMaps(atlas, MapAtlasesConfig.pityActivationMapCount.get());
         }
@@ -313,7 +313,7 @@ public class MapAtlasesServerEvents {
             //TODO: create custom ones
 
             ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
-            Integer mapId = MapItem.getMapId(newMap);
+            Integer mapId = MapAtlasesAccessUtils.getMapId(newMap);
 
             if (mapId != null) {
                 MapDataHolder newData = MapDataHolder.findFromId(level, mapId);

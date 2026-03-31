@@ -15,14 +15,6 @@
     "MixinCartographyTableHandlerFirstSlot"
   ],
   "client": [
-    "CartographyTableScreenMixin",
-    "ClientBoundMapPacketMixin",
-    "CompatTFMapRendererMixin",
-    "ItemInHandRendererMixin",
-    "LecternRendererMixin",
-    "MapRendererMixin",
-    "QuickPlayLogHackMixin",
-    "WorldSelectionListMixin"
   ],
   "injectors": {
     "defaultRequire": 1

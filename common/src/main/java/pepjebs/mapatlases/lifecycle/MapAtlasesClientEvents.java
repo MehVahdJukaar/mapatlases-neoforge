@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.lifecycle;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
@@ -54,19 +55,21 @@ public class MapAtlasesClientEvents {
     }
 
     public static void onKeyPressed(int key, int code) {
+    }
 
+    public static void onKeyPressed(KeyMapping keyMapping) {
         Minecraft client = Minecraft.getInstance();
-        if (client.screen != null ) return;
-        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
+        if (client.screen != null) return;
+
+        if (keyMapping == MapAtlasesClient.OPEN_ATLAS_KEYBIND) {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
-                // needed as we might not have all mas needed
                 MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
             }
         }
 
-        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code)) {
+        if (keyMapping == MapAtlasesClient.PLACE_PIN_KEYBIND) {
             if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
@@ -78,15 +81,15 @@ public class MapAtlasesClientEvents {
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (!atlas.isEmpty()) {
-            if (MapAtlasesClient.DECREASE_MINIMAP_ZOOM.matches(key, code)) {
+            if (keyMapping == MapAtlasesClient.DECREASE_MINIMAP_ZOOM) {
                 MapAtlasesClient.decreaseHoodZoom();
             }
 
-            if (MapAtlasesClient.INCREASE_MINIMAP_ZOOM.matches(key, code)) {
+            if (keyMapping == MapAtlasesClient.INCREASE_MINIMAP_ZOOM) {
                 MapAtlasesClient.increaseHoodZoom();
             }
 
-            if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
+            if (keyMapping == MapAtlasesClient.INCREASE_SLICE) {
                 IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
@@ -96,7 +99,7 @@ public class MapAtlasesClientEvents {
                 maybeSyncNewSlice(atlas, selectedSlice, newHeight);
             }
 
-            if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
+            if (keyMapping == MapAtlasesClient.DECREASE_SLICE) {
                 IMapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 ResourceKey<Level> dim = client.level.dimension();
                 Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);

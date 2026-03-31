@@ -4,7 +4,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -32,49 +31,52 @@ import java.util.concurrent.TimeUnit;
 public class MapAtlasesClient {
 
     public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(
-            Level.OVERWORLD.location().toString(),
-            Level.NETHER.location().toString(),
-            Level.END.location().toString()
+            Level.OVERWORLD.identifier().toString(),
+            Level.NETHER.identifier().toString(),
+            Level.END.identifier().toString()
     );
+
+    private static final KeyMapping.Category MAP_ATLASES_CATEGORY =
+            KeyMapping.Category.register(pepjebs.mapatlases.MapAtlasesMod.res("minimap"));
 
     public static final KeyMapping OPEN_ATLAS_KEYBIND = new KeyMapping(
             "key.map_atlases.open_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_M,
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     public static final KeyMapping PLACE_PIN_KEYBIND = new KeyMapping(
             "key.map_atlases.place_pin",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_B,
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     public static final KeyMapping INCREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_in_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_KP_ADD,
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     public static final KeyMapping DECREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_out_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_KP_SUBTRACT,
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     public static final KeyMapping INCREASE_SLICE = new KeyMapping(
             "key.map_atlases.increase_slice",
             InputConstants.UNKNOWN.getValue(),
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     public static final KeyMapping DECREASE_SLICE = new KeyMapping(
             "key.map_atlases.decrease_slice",
             InputConstants.UNKNOWN.getValue(),
-            "category.map_atlases.minimap"
+            MAP_ATLASES_CATEGORY
     );
 
     @Nullable
@@ -143,7 +145,7 @@ public class MapAtlasesClient {
         }
         boolean unlocked = !MapAtlasItem.isLocked(stack);
         ResourceKey<Level> dimension = world.dimension();
-        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.identifier().toString());
         if (i == -1) {
             return unlocked ? 0.96F : 1.0F;
         }

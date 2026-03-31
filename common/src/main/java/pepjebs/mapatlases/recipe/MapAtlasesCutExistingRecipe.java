@@ -1,16 +1,15 @@
 package pepjebs.mapatlases.recipe;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.CraftingMenu;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -25,18 +24,30 @@ import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
+    public static final MapCodec<MapAtlasesCutExistingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            CraftingBookCategory.CODEC.optionalFieldOf("category", CraftingBookCategory.MISC).forGetter(MapAtlasesCutExistingRecipe::category)
+    ).apply(instance, MapAtlasesCutExistingRecipe::new));
 
+    public static final StreamCodec<RegistryFriendlyByteBuf, MapAtlasesCutExistingRecipe> STREAM_CODEC = StreamCodec.of(
+            (buffer, recipe) -> buffer.writeEnum(recipe.category()),
+            buffer -> new MapAtlasesCutExistingRecipe(buffer.readEnum(CraftingBookCategory.class))
+    );
+
+    public static final RecipeSerializer<MapAtlasesCutExistingRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+
+    private final CraftingBookCategory category;
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
-    public MapAtlasesCutExistingRecipe(ResourceLocation id, CraftingBookCategory category) {
-        super(id, category);
+    public MapAtlasesCutExistingRecipe(CraftingBookCategory category) {
+        super();
+        this.category = category;
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level level) {
+    public boolean matches(CraftingInput inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
         ItemStack shears = ItemStack.EMPTY;
-        for (ItemStack i : inv.getItems()) {
+        for (ItemStack i : inv.items()) {
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
                         (MapAtlasItem.getEmptyMaps(i) > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
@@ -56,9 +67,9 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryManager) {
+    public ItemStack assemble(CraftingInput inv) {
         ItemStack atlas = ItemStack.EMPTY;
-        for (ItemStack i : inv.getItems()) {
+        for (ItemStack i : inv.items()) {
             if (i.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 atlas = i;
                 break;
@@ -79,35 +90,19 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static MapDataHolder getMapToRemove(CraftingContainer inv, IMapCollection maps, Slice slice) {
-        if (inv instanceof TransientCraftingContainer tc) {
-            try {
-                if (tc.menu instanceof CraftingMenu cm) {
-                    MapDataHolder c = maps.getClosest(cm.player, slice);
-                    if (c != null) {
-                        return c;
-                    }
-                } else if (tc.menu instanceof InventoryMenu im) {
-                    MapDataHolder c = maps.getClosest(im.owner, slice);
-                    if (c != null) {
-                        return c;
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        }
+    private static MapDataHolder getMapToRemove(CraftingInput inv, IMapCollection maps, Slice slice) {
         return maps.getAll().stream().findAny().get();
     }
 
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
         NonNullList<ItemStack> list = NonNullList.create();
-        for (ItemStack i : inv.getItems()) {
+        for (ItemStack i : inv.items()) {
             ItemStack stack = i.copy();
 
             if (stack.getItem() == Items.SHEARS) {
-                stack.hurt(1, RandomSource.create(), null);
+                stack.setDamageValue(stack.getDamageValue() + 1);
             } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 boolean didRemoveFilled = false;
                 IMapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
@@ -137,13 +132,17 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return list;
     }
 
-    @Override
     public boolean canCraftInDimensions(int width, int height) {
         return width + height >= 2;
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return MapAtlasesMod.MAP_ATLAS_CUT_RECIPE.get();
+    public RecipeSerializer<MapAtlasesCutExistingRecipe> getSerializer() {
+        return SERIALIZER;
+    }
+
+    @Override
+    public CraftingBookCategory category() {
+        return category;
     }
 }

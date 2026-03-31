@@ -49,7 +49,7 @@ public class MapCollection implements IMapCollection {
     // we need level context
     public void initialize(Level level) {
         if (lazyNbt != null) {
-            int[] array = lazyNbt.getIntArray(MAP_LIST_NBT);
+            int[] array = lazyNbt.getIntArray(MAP_LIST_NBT).orElseGet(() -> new int[0]);
             lazyNbt = null;
             for (int i : array) {
                 add(i, level);
@@ -61,13 +61,13 @@ public class MapCollection implements IMapCollection {
     public CompoundTag serializeNBT() {
         if (!isInitialized()) return lazyNbt;
         CompoundTag c = new CompoundTag();
-        c.putIntArray(MAP_LIST_NBT, ids.stream().toList());
+        c.putIntArray(MAP_LIST_NBT, ids.stream().mapToInt(Integer::intValue).toArray());
         return c;
     }
 
     @Override
     public int[] getAllIds() {
-        if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT);
+        if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT).orElseGet(() -> new int[0]);
         return ids.stream().mapToInt(Integer::intValue).toArray();
     }
 
@@ -103,7 +103,7 @@ public class MapCollection implements IMapCollection {
 
         if (found == null) {
             if (level instanceof ServerLevel) {
-                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().location());
+                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().identifier());
             } else {
                 //wait till we receive data from server
                 ids.add(intId);
@@ -119,7 +119,7 @@ public class MapCollection implements IMapCollection {
 
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
-                MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().location());
+                MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().identifier());
                 return false;
 
             }
