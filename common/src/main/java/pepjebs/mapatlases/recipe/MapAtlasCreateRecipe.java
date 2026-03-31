@@ -7,6 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -54,7 +55,10 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         this.category = category;
         this.ingredients = ingredients;
         this.isSimple = PlatStuff.isSimple(ingredients);
-        this.placementInfo = PlacementInfo.create(ingredients);
+        this.placementInfo = PlacementInfo.create(List.of(
+                Ingredient.of(Items.SLIME_BALL, Items.HONEY_BOTTLE),
+                Ingredient.of(Items.BOOK)
+        ));
     }
 
     public NonNullList<Ingredient> getIngredients() {

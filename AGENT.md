@@ -432,3 +432,33 @@ Important findings:
 
 - On `26.1`, matching logic alone is no longer enough for `CustomRecipe`; the crafting UI also needs non-`NOT_PLACEABLE` `placementInfo()` metadata
 - This was the reason the atlas recipe loaded but did not show in the crafting table after the datapack migration
+
+## 26.1 recipe runtime follow-up checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Fixed the `MapAtlasesAddRecipe` and `MapAtlasesCutExistingRecipe` init-order regression caused by eager static placement metadata touching `MapAtlasesMod.MAP_ATLAS` during `MapAtlasesMod` class initialization
+- Changed those recipe classes to build placement metadata lazily in `placementInfo()` instead of static field initialization
+- Fixed a second `26.1` datapack/runtime issue in `MapAtlasCreateRecipe`:
+  - `PlacementInfo.create(ingredients)` was probing the custom sticky-item tag during recipe decode
+  - on `26.1`, that happened before the tag was bound, causing world/datapack load failure
+- Replaced atlas-create placement metadata with a tag-free explicit preview ingredient set:
+  - `slime_ball` / `honey_bottle`
+  - `book`
+- Kept the actual recipe matching logic unchanged so the recipe still uses the real sticky-item tag for behavior
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - launches successfully
+  - loads recipes and datapacks successfully
+  - reaches title screen, creates and enters a singleplayer world, and shuts down cleanly
+
+Important findings:
+
+- `placementInfo()` on `26.1` must avoid touching custom tag-backed ingredients during early recipe decode if those tags may not be bound yet
+- For atlas create, placement metadata can be a safe preview subset while the real matching logic remains tag-driven

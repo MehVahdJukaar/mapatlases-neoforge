@@ -35,10 +35,6 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     );
 
     public static final RecipeSerializer<MapAtlasesAddRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
-    private static final PlacementInfo PLACEMENT_INFO = PlacementInfo.create(java.util.List.of(
-            Ingredient.of(MapAtlasesMod.MAP_ATLAS.get()),
-            Ingredient.of(Items.MAP, Items.PAPER)
-    ));
 
     private final CraftingBookCategory category;
     private WeakReference<Level> levelRef = new WeakReference<>(null);
@@ -142,7 +138,10 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
     @Override
     public PlacementInfo placementInfo() {
-        return PLACEMENT_INFO;
+        return PlacementInfo.create(java.util.List.of(
+                Ingredient.of(MapAtlasesMod.MAP_ATLAS.get()),
+                Ingredient.of(Items.MAP, Items.PAPER)
+        ));
     }
 
     @Override
