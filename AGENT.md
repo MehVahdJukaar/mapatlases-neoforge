@@ -1177,3 +1177,29 @@ Important findings:
 
 - The nearest-map fallback was useful as a temporary 26.1 tolerance hack, but it diverges from the original atlas overview behavior
 - For the overview screen specifically, that fallback can cause the wrong tile to be drawn in a neighboring slot, which matches the reported “map appears off to the right” symptom
+
+## Atlas screen initial centering checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas overview construction and map widget behavior
+
+Work completed in this pass:
+
+- Removed the temporary player-position override from `common/src/main/java/pepjebs/mapatlases/client/screen/MapWidget.java`
+  - the widget now preserves the selected map center established during initialization instead of immediately replacing it with the local player position
+- Adjusted `common/src/main/java/pepjebs/mapatlases/client/screen/AtlasOverviewScreen.java`
+  - the overview now opens centered on the selected map first
+  - player-follow only activates after initialization, only in the player’s current dimension, and only if `worldMapFollowPlayer` is enabled
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The atlas overview was still inheriting an immediate player-center override even when the selected map center was the correct initial anchor
+- That override is a strong match for the reported “blank center, visible map shifted off to the right” behavior

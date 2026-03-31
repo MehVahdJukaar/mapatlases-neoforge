@@ -69,10 +69,6 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
         this.mapScreen = screen;
         this.drawBigPlayerMarker = false;
-
-        var player = Minecraft.getInstance().player;
-        this.currentXCenter = player.getX();
-        this.currentZCenter = player.getZ();
     }
 
     @Override
