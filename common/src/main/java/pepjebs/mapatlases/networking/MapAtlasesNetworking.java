@@ -25,6 +25,10 @@ public class MapAtlasesNetworking {
             .build();
 
     public static void init() {
+        CHANNEL.init();
+    }
 
+    public static void initClient() {
+        CHANNEL.initClient();
     }
 }

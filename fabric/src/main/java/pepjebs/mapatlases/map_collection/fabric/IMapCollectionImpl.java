@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.utils.ItemStackData;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -40,13 +41,19 @@ public class IMapCollectionImpl implements IMapCollection {
     protected IMapCollection getOrCreateInstance(Level level) {
         if (instance == null) {
             instance = new MapCollection();
+            var tag = ItemStackData.getTag(stack);
+            if (tag != null) {
+                instance.deserializeNBT(tag);
+            }
             instance.initialize(level);
         }
         return this;
     }
 
     private void markDirty() {
-        // TODO 26.1: replace this temporary in-memory storage with proper item-backed persistence.
+        if (instance != null) {
+            ItemStackData.update(stack, tag -> tag.putIntArray(MapCollection.MAP_LIST_NBT, instance.getAllIds()));
+        }
     }
 
     @Override

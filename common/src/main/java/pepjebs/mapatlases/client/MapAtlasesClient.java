@@ -31,6 +31,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
+import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -110,6 +111,7 @@ public class MapAtlasesClient {
     private static float decorationRotation;
 
     public static void init() {
+        MapAtlasesNetworking.initClient();
     }
 
     public static void cachePlayerState(Player player) {

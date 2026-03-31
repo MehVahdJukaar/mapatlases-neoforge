@@ -89,6 +89,43 @@ This means the first practical task is to repair dependency resolution for the c
    - feature parity
 7. Do not simplify features just to get a green build unless absolutely necessary; prefer porting the real implementation forward.
 
+## Atlas networking and item-data checkpoint
+
+Recorded on `2026-03-31`.
+
+This pass fixed the missing client atlas behavior at the data and transport layers.
+
+What changed:
+
+- Replaced the old no-op Moonlight-style networking shim with a real Fabric payload transport in:
+  - `common/src/main/java/net/mehvahdjukaar/moonlight/api/platform/network/ChannelHandler.java`
+- Wired common and client packet registration into atlas bootstrap:
+  - `common/src/main/java/pepjebs/mapatlases/networking/MapAtlasesNetworking.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/MapAtlasesClient.java`
+- Replaced the temporary in-memory atlas map collection storage with real item-backed persistence using `ItemStack` custom data:
+  - `fabric/src/main/java/pepjebs/mapatlases/map_collection/fabric/IMapCollectionImpl.java`
+
+Important findings:
+
+- The missing HUD / atlas screen path was not only a UI/render problem.
+- The old temporary `ChannelHandler` stub was still dropping all C2S and S2C atlas packets.
+- The temporary `IMapCollectionImpl` was also not deserializing atlas map ids from the atlas item itself, so client-side atlas collections were often empty even when the atlas item existed.
+- The first Fabric payload implementation initially disconnected the client on `clientbound/minecraft:custom_payload`; this was fixed by decoding directly from the original `RegistryFriendlyByteBuf` instead of copying into a plain buffer first.
+
+Verification:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes
+  - reaches title screen
+  - creates and enters a singleplayer world
+  - no longer disconnects on atlas custom payload decode during join
+
+Current caveat after this checkpoint:
+
+- The log still reports duplicate atlas map keys once atlas data begins syncing in-world. This is no longer disconnecting the client, but it likely indicates a remaining atlas collection/state-sync issue that should be cleaned up next while validating HUD and atlas overview behavior in-game.
+
 ## Baseline checkpoint: 1.20.1 Fabric restored
 
 Recorded on `2026-03-30`.
