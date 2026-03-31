@@ -494,3 +494,31 @@ Important findings:
 
 - The prior atlas create path still assumed old-style map custom data and could return `ItemStack.EMPTY` for perfectly valid `26.1` filled maps
 - The `F:/MapAtlases` reference confirms that the robust `26.1` atlas create path should key off `DataComponents.MAP_ID` instead
+
+## Fabric helper parity checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for behavior expectations
+- `F:/MapAtlases` only as a spot-check for atlas create history, not as the primary source of truth
+
+Work completed in this pass:
+
+- Backed out an incomplete `26.1` HUD/client render migration attempt that was not yet compatible with the new extracted GUI pipeline
+- Restored the clean working baseline by re-excluding the unfinished HUD/widget classes from the active Fabric compile set
+- Replaced the placeholder Fabric platform helper implementation in `fabric/src/main/java/pepjebs/mapatlases/fabric/PlatStuffImpl.java` with live behavior:
+  - `drawString(...)` now renders through `GuiGraphicsExtractor`
+  - `isSimple(...)` now forces the custom atlas-create recipe down the explicit ingredient-matching path instead of relying on an unfinished simple-recipe shortcut
+  - `findMatches(...)` now performs real one-to-one ingredient matching for non-simple shapeless inputs
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The `26.1` HUD port is a larger rendering rewrite because GUI HUD drawing now runs through `GuiGraphicsExtractor` and Fabric’s new HUD element registry, not the old `GuiGraphics` callback path
+- The Fabric helper shim was still carrying placeholder returns from the earlier bootstrapping pass; restoring real ingredient matching removes a latent source of atlas recipe regressions while keeping the working baseline stable

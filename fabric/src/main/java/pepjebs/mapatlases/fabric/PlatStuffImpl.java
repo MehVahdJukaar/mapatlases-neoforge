@@ -23,17 +23,44 @@ public class PlatStuffImpl {
     }
 
     public static void drawString(GuiGraphicsExtractor g, Font font, String text, float x, float y, int i, boolean b) {
+        g.text(font, text, Math.round(x), Math.round(y), i, b);
     }
 
     public static boolean isSimple(NonNullList<Ingredient> ingredients) {
-        return true;
+        return false;
     }
 
     public static boolean findMatches(List<ItemStack> inputs, NonNullList<Ingredient> ingredients) {
-        return false;
+        if (inputs.size() != ingredients.size()) {
+            return false;
+        }
+        return findMatches(inputs, ingredients, new boolean[inputs.size()], 0);
     }
 
     public static Pair<Boolean, Vec3> fireTeleportEvent(ServerPlayer player, double pX, double pY, double pZ) {
         return Pair.of(false, new Vec3(pX,pY,pZ));
+    }
+
+    private static boolean findMatches(List<ItemStack> inputs, NonNullList<Ingredient> ingredients, boolean[] used, int ingredientIndex) {
+        if (ingredientIndex >= ingredients.size()) {
+            return true;
+        }
+
+        Ingredient ingredient = ingredients.get(ingredientIndex);
+        for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+            if (used[inputIndex]) {
+                continue;
+            }
+            if (!ingredient.test(inputs.get(inputIndex))) {
+                continue;
+            }
+
+            used[inputIndex] = true;
+            if (findMatches(inputs, ingredients, used, ingredientIndex + 1)) {
+                return true;
+            }
+            used[inputIndex] = false;
+        }
+        return false;
     }
 }
