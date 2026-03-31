@@ -1,23 +1,19 @@
 package pepjebs.mapatlases.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.state.MapRenderState;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
+import org.joml.Matrix3x2fStack;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -33,7 +29,6 @@ public abstract class AbstractAtlasWidget {
 
     public static final int MAP_DIMENSION = 128;
 
-    //internally controls how many maps are displayed
     protected final int atlasesCount;
     protected int mapBlocksSize;
     protected MapDataHolder mapWherePlayerIs;
@@ -50,7 +45,7 @@ public abstract class AbstractAtlasWidget {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize( MapDataHolder newCenter) {
+    protected void initialize(MapDataHolder newCenter) {
         if (mapWherePlayerIs == null || !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
             this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
         }
@@ -61,57 +56,44 @@ public abstract class AbstractAtlasWidget {
         this.currentZCenter = mapWherePlayerIs.data.centerZ;
     }
 
-    public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
+    public void drawAtlas(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
                           Player player, float zoomLevelDim, boolean showBorders, MapType type, int light,
                           @Nullable MapItemSavedData selectedKey) {
 
         MapAtlasesClient.setIsDrawingAtlas(true);
 
-        PoseStack poseStack = graphics.pose();
-        poseStack.pushPose();
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
 
         float widgetScale = width / (float) (atlasesCount * MAP_DIMENSION);
         float zoomScale = atlasesCount / zoomLevelDim;
 
-        int intXCenter = (int) (currentXCenter);
-        int intZCenter = (int) (currentZCenter);
+        int intXCenter = (int) currentXCenter;
+        int intZCenter = (int) currentZCenter;
         int scaleIndex = mapBlocksSize / MAP_DIMENSION;
 
         ColumnPos c = type.getCenter(intXCenter, intZCenter, mapBlocksSize);
         int centerMapX = c.x();
         int centerMapZ = c.z();
 
-        //translate to center
-        poseStack.translate(x + width / 2f, y + height / 2f, 0);
-        //widget scale + zoom
+        pose.translate(x + width / 2f, y + height / 2f);
+        pose.scale(widgetScale * zoomScale, widgetScale * zoomScale);
 
-        poseStack.scale(widgetScale * zoomScale, widgetScale * zoomScale, -1);
+        List<Pair<Integer, Integer>> normalBorders = new ArrayList<>();
+        List<Pair<Integer, Integer>> selectedBorders = new ArrayList<>();
 
-        // Draw maps, putting active map in middle of grid
-
-        MultiBufferSource.BufferSource vcp = graphics.bufferSource();
-
-        Pair<List<Matrix4f>,List<Matrix4f>> outlineHack = Pair.of(new ArrayList<>(), new ArrayList<>());
-
-        applyScissors(graphics, x, y, (x + width), (y + height));
+        applyScissors(graphics, x, y, x + width, y + height);
 
         double mapCenterOffsetX = currentXCenter - centerMapX;
         double mapCenterOffsetZ = currentZCenter - centerMapZ;
 
-        //zoom leve is essentially maps on screen
-        //dont ask me why all this stuff is like that
-
         if (rotatesWithPlayer) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
+            pose.rotate((float) Math.toRadians(180 - player.getYRot()));
         }
-        poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
+        pose.translate((float) (-mapCenterOffsetX / scaleIndex), (float) (-mapCenterOffsetZ / scaleIndex));
 
-        //grid side len
         double sideLength = mapBlocksSize * zoomScale;
-        //radius of widget
-        int radius = (int) (mapBlocksSize * atlasesCount * 0.71f); // radius using hyp
-
-        // Calculate the distance from the circle's center to the center of each grid square
+        int radius = (int) (mapBlocksSize * atlasesCount * 0.71f);
         int o = Mth.ceil(zoomLevelDim);
         double maxDist = rotatesWithPlayer ?
                 Mth.square(radius + (sideLength * 0.71)) :
@@ -123,84 +105,54 @@ public abstract class AbstractAtlasWidget {
                 double gridCenterJ = j * sideLength;
 
                 boolean shouldDraw;
-                // Calculate the distance between the grid square center and the circle's center
                 if (rotatesWithPlayer) {
                     double distance = Mth.lengthSquared(
                             gridCenterI - mapCenterOffsetZ * zoomScale,
                             gridCenterJ - mapCenterOffsetX * zoomScale);
-                    //circle dist
-                    shouldDraw = (distance <= maxDist);
+                    shouldDraw = distance <= maxDist;
                 } else {
-                    //square dist
                     shouldDraw = Math.abs(gridCenterI - mapCenterOffsetZ * zoomScale) < maxDist &&
                             Math.abs(gridCenterJ - mapCenterOffsetX * zoomScale) < maxDist;
                 }
                 if (shouldDraw) {
-                    getAndDrawMap(player, poseStack, centerMapX, centerMapZ, vcp, outlineHack, i, j, light, selectedKey);
+                    getAndDrawMap(player, graphics, centerMapX, centerMapZ, normalBorders, selectedBorders,
+                            i, j, light, selectedKey);
                 }
             }
         }
-        vcp.endBatch();
 
         if (showBorders) {
-
-            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
-
-            VertexConsumer outlineVC = MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-            //using this so we use mipmap
-            for (var matrix4f : outlineHack.getFirst()) {
-                drawOutline(matrix4f, outlineVC, 50);
+            for (var border : normalBorders) {
+                graphics.nextStratum();
+                graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_BORDER_TEXTURE, border.getFirst(), border.getSecond(),
+                        0, 0, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION);
             }
-            VertexConsumer outlineVC2 = MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-            for (var matrix4f : outlineHack.getSecond()) {
-                drawOutline(matrix4f, outlineVC2, 200);
+            for (var border : selectedBorders) {
+                graphics.nextStratum();
+                graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_HOVERED_TEXTURE, border.getFirst(), border.getSecond(),
+                        0, 0, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION);
             }
-            vcp.endBatch();
-
-            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
         }
 
-        poseStack.popPose();
+        pose.popMatrix();
         graphics.disableScissor();
-
         MapAtlasesClient.setIsDrawingAtlas(false);
-
     }
 
-    private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC, int a) {
-        //cause of vertex consumer chaining bug...
-        float zOffset = -0.01F;
-        outlineVC.vertex(matrix4f, 0.0F, 128.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(0.0F, 1.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 128.0F, 128.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(1.0F, 1.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 128.0F, 0.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(1.0F, 0.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-        outlineVC.vertex(matrix4f, 0.0F, 0.0F, zOffset).color(255, 255, 255, a);
-        outlineVC.uv(0.0F, 0.0F)
-                .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
-    }
-
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
+    protected void applyScissors(GuiGraphicsExtractor graphics, int x, int y, int x1, int y1) {
         graphics.enableScissor(x, y, x1, y1);
     }
 
-    //TODO: in 1.21 refactor and render all at same time since its all a sprite
-    private void getAndDrawMap(Player player, PoseStack poseStack, int centerMapX, int centerMapZ,
-                               MultiBufferSource.BufferSource vcp,
-                              Pair<List<Matrix4f>, List<Matrix4f>> outlineHack, int i, int j, int light,
-                               @Nullable MapItemSavedData selectedData) {
+    private void getAndDrawMap(Player player, GuiGraphicsExtractor graphics, int centerMapX, int centerMapZ,
+                               List<Pair<Integer, Integer>> normalBorders, List<Pair<Integer, Integer>> selectedBorders,
+                               int i, int j, int light, @Nullable MapItemSavedData selectedData) {
         int reqXCenter = centerMapX + (j * mapBlocksSize);
         int reqZCenter = centerMapZ + (i * mapBlocksSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.data;
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
-            // drawPlayerIcons = drawPlayerIcons && originalCenterMap == state.getSecond();
-            this.drawMap(player, poseStack, vcp, outlineHack, i, j, state, drawPlayerIcons, light, selectedData);
+            this.drawMap(player, graphics, normalBorders, selectedBorders, i, j, state, drawPlayerIcons, light, selectedData);
         }
     }
 
@@ -211,80 +163,68 @@ public abstract class AbstractAtlasWidget {
         this.followingPlayer = followingPlayer;
     }
 
-    private void drawMap(
-            Player player,
-            PoseStack poseStack,
-            MultiBufferSource.BufferSource vcp,
-            Pair<List<Matrix4f>,List<Matrix4f>> outlineHack,
-            int ix, int iy,
-            MapDataHolder state,
-            boolean drawPlayerIcons,
-            int light,
-            @Nullable MapItemSavedData selectedData
-    ) {
-        // Draw the map
+    private void drawMap(Player player, GuiGraphicsExtractor graphics,
+                         List<Pair<Integer, Integer>> normalBorders,
+                         List<Pair<Integer, Integer>> selectedBorders,
+                         int ix, int iy, MapDataHolder state, boolean drawPlayerIcons,
+                         int light, @Nullable MapItemSavedData selectedData) {
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
         int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;
-        poseStack.pushPose();
-        poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
 
-        // Remove the off-map player icons temporarily during render
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(curMapComponentX, curMapComponentY);
+
         MapItemSavedData data = state.data;
+        Map<String, MapDecoration> decorations = MapAtlasesClient.getMutableDecorations(data);
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
-        // Only remove the off-map icon if it's not the active map, or it's not the active dimension
-        for (var e : data.decorations.entrySet()) {
+        for (var e : decorations.entrySet()) {
             MapDecoration dec = e.getValue();
-            MapDecoration.Type type = dec.getType();
-            if (type == MapDecoration.Type.PLAYER_OFF_MAP || type == MapDecoration.Type.PLAYER_OFF_LIMITS) {
+            var type = dec.type();
+            if (type.equals(MapDecorationTypes.PLAYER_OFF_MAP) || type.equals(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     removed.add(e);
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
-                            dec.getX(), dec.getY(), getPlayerMarkerRot(player), dec.getName())));
-                } else removed.add(e);
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
+                            dec.x(), dec.y(), getPlayerMarkerRot(player), dec.name())));
+                } else {
+                    removed.add(e);
+                }
 
-            } else if (type == MapDecoration.Type.PLAYER) {
+            } else if (type.equals(MapDecorationTypes.PLAYER)) {
                 if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
                     removed.add(e);
                 } else {
-                    int i = 1 << data.scale;
-                    float f = (float) (player.getX() - data.centerX) / i;
-                    float f1 = (float) (player.getZ() - data.centerZ) / i;
+                    int scale = 1 << data.scale;
+                    float f = (float) (player.getX() - data.centerX) / scale;
+                    float f1 = (float) (player.getZ() - data.centerZ) / scale;
                     byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
                     byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecoration.Type.PLAYER,
-                            b0, b1, getPlayerMarkerRot(player), dec.getName())));
-                    //add accurate player
+                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
+                            b0, b1, getPlayerMarkerRot(player), dec.name())));
                 }
             }
         }
 
-        removed.forEach(d -> data.decorations.remove(d.getKey()));
-        added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
+        removed.forEach(d -> decorations.remove(d.getKey()));
+        added.forEach(d -> decorations.put(d.getKey(), d.getValue()));
 
         light = MapAtlasesClient.debugIsMapUpdated(light, state.stringId);
 
-        Minecraft.getInstance().gameRenderer.getMapRenderer()
-                .render(
-                        poseStack,
-                        vcp,
-                        state.id,
-                        data,
-                        false,//(1+ix+iy)*50
-                        light //
-                );
+        MapRenderState renderState = new MapRenderState();
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.getMapRenderer().extractRenderState(new MapId(state.id), data, renderState);
+        graphics.map(renderState);
 
-        if (state.data == selectedData){
-            outlineHack.getSecond().add(new Matrix4f(poseStack.last().pose()));
-        }else {
-            outlineHack.getFirst().add(new Matrix4f(poseStack.last().pose()));
+        if (state.data == selectedData) {
+            selectedBorders.add(Pair.of(curMapComponentX, curMapComponentY));
+        } else {
+            normalBorders.add(Pair.of(curMapComponentX, curMapComponentY));
         }
 
-        poseStack.popPose();
-        // Re-add the off-map player icons after render
-        for (Map.Entry<String, MapDecoration> e : removed) {
-            data.decorations.put(e.getKey(), e.getValue());
-        }
+        removed.forEach(d -> decorations.put(d.getKey(), d.getValue()));
+        MapAtlasesClient.markDecorationsDirty(data);
+        pose.popMatrix();
     }
 
     private static byte getPlayerMarkerRot(Player p) {
@@ -294,11 +234,10 @@ public abstract class AbstractAtlasWidget {
     }
 
     public static int round(int num, int mod) {
-        //return Math.round((float) num / mod) * mod
         int t = num % mod;
-        if (t < (int) Math.floor(mod / 2.0))
+        if (t < (int) Math.floor(mod / 2.0)) {
             return num - t;
-        else
-            return num + mod - t;
+        }
+        return num + mod - t;
     }
 }

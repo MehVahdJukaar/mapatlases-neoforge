@@ -11,12 +11,10 @@ sourceSets {
         java.srcDirs += ["../common/src/main/java"]
         resources.srcDirs += ["../common/src/main/resources"]
         java.exclude(
-                "pepjebs/mapatlases/client/AbstractAtlasWidget.java",
                 "pepjebs/mapatlases/client/AtlasInHandRenderer.java",
                 "pepjebs/mapatlases/client/CompoundTooltip.java",
                 "pepjebs/mapatlases/client/MapVertexConsumer.java",
                 "pepjebs/mapatlases/client/screen/**",
-                "pepjebs/mapatlases/client/ui/**",
                 "pepjebs/mapatlases/integration/fabric/**",
                 "pepjebs/mapatlases/map_collection/fabric/CCStuff.java",
                 "pepjebs/mapatlases/integration/JEICompat.java",

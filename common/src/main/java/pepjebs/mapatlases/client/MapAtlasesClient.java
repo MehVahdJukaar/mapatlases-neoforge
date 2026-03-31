@@ -262,9 +262,11 @@ public class MapAtlasesClient {
     }
 
     public static void decreaseHoodZoom() {
+        pepjebs.mapatlases.client.fabric.MapAtlasesClientImpl.decreaseHoodZoom();
     }
 
     public static void increaseHoodZoom() {
+        pepjebs.mapatlases.client.fabric.MapAtlasesClientImpl.increaseHoodZoom();
     }
 
     private static final Cache<String, Integer> CACHE = CacheBuilder.newBuilder()

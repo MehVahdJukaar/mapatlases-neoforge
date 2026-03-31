@@ -776,3 +776,56 @@ Important findings:
 
 - The missing atlas item texture was not a code registration issue; it was a `26.1` asset layout problem because the repo only had the old `models/item/*.json` path and not the required `items/atlas.json` indirection
 - This restores the atlas item’s basic visible model path, but locked-state and extended-dimension item variant parity still need a follow-up pass if we want the full old selector behavior back under the `26.1` item model system
+
+## Minimap HUD restoration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for minimap layout, behavior, text placement, anchoring, and sound flow
+- local `26.1` Fabric rendering API (`fabric-rendering-v1`) for HUD element registration and extracted GUI rendering
+
+Work completed in this pass:
+
+- Re-enabled the atlas render core in the Fabric source set:
+  - `common/src/main/java/pepjebs/mapatlases/client/AbstractAtlasWidget.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/ui/MapAtlasesHUD.java`
+- Replaced the old `GuiGraphics` / `PoseStack` HUD path in `MapAtlasesHUD` with the real `26.1` HUD API:
+  - `HudElement`
+  - `GuiGraphicsExtractor`
+  - `Matrix3x2fStack`
+  - `RenderPipelines.GUI_TEXTURED`
+- Restored actual minimap HUD registration in `fabric/src/main/java/pepjebs/mapatlases/client/fabric/MapAtlasesClientImpl.java` through `HudElementRegistry.attachElementAfter(...)`
+- Restored minimap zoom key behavior by wiring `MapAtlasesClient.decreaseHoodZoom()` / `increaseHoodZoom()` back to the Fabric HUD instance
+- Preserved the original minimap layout logic:
+  - anchoring and offsets
+  - background texture usage
+  - player arrow/icon handling
+  - cardinal letters
+  - coords / chunk coords / biome text
+  - follow-player / rotate-player behavior
+  - atlas page-turn sound on active-map change
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes successfully
+  - reaches title screen
+  - creates and enters a singleplayer world
+  - shuts down cleanly
+
+Important findings:
+
+- The minimap HUD path is now compatible with the `26.1` extracted rendering model and no longer depends on the old pre-`26.1` Fabric HUD callback style
+- The right-click atlas overview is still blocked by the screen stack, not by HUD registration or map rendering itself
+- I performed a compile probe with `client/screen/**` temporarily re-included to measure the remaining overview-screen blockers
+  - the first failures are concentrated in `AtlasOverviewScreen.java` and `MapWidget.java`
+  - the main remaining issues are:
+    - old `GuiGraphics`-based render methods
+    - old blend / `GlStateManager` usage
+    - dependencies on still-excluded helper classes such as `CompoundTooltip`
+    - the remaining `26.1` screen extraction and input-signature migration
+- The screen package was re-excluded after the probe so the branch stays green while the overview screen is ported intentionally instead of half-enabled
