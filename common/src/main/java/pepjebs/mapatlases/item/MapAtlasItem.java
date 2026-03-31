@@ -79,10 +79,11 @@ public class MapAtlasItem extends Item {
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
-        if (player instanceof ServerPlayer sp) {
-            syncAndOpenGui(sp, stack, null, false);
+        if (level.isClientSide()) {
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
+            return InteractionResult.CONSUME;
         }
-        return level.isClientSide() ? InteractionResult.CONSUME : InteractionResult.SUCCESS_SERVER;
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     private static void convertOldAtlas(Level level, ItemStack stack) {

@@ -1103,3 +1103,25 @@ Important findings:
 
 - One plausible reason for the blank atlas panel was exact center mismatch between rendered tile requests and the current Fabric 26.1 client atlas collection state
 - The right-click atlas open path on 26.1 is sensitive to the returned `InteractionResult`; treating it as a consumed action is safer for GUI-open behavior than a plain client-side success
+
+## Held atlas open parity checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Fixed the held-item atlas open path in `common/src/main/java/pepjebs/mapatlases/item/MapAtlasItem.java`
+  - normal atlas right-click now uses the same client-to-server open packet flow as the working `M` keybind path
+  - client side sends `C2S2COpenAtlasScreenPacket`
+  - server side no longer tries to open directly from `Item#use`; it only returns `SUCCESS_SERVER` and lets the packet path drive sync + screen open
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The minimap only showing when the atlas is not held is currently expected from config, not a regression
+  - `hide_when_in_hand` defaults to `true` in `MapAtlasesClientConfig`, matching the reference behavior
+- The right-click failure was more likely a parity drift between the held-item use flow and the already-working `M` open packet path than a screen/render issue
