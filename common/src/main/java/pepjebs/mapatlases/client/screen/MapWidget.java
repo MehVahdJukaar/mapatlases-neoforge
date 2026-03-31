@@ -172,20 +172,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
-        MapDataHolder exact = mapScreen.findMapWithCenter(centerX, centerZ);
-        if (exact != null) {
-            return exact;
-        }
-        MapDataHolder closest = mapScreen.findClosestMap(centerX, centerZ);
-        if (closest == null) {
-            return null;
-        }
-        int maxOffset = mapBlocksSize / 2;
-        if (Math.abs(closest.data.centerX - centerX) <= maxOffset &&
-                Math.abs(closest.data.centerZ - centerZ) <= maxOffset) {
-            return closest;
-        }
-        return null;
+        return mapScreen.findMapWithCenter(centerX, centerZ);
     }
 
     private void renderPositionText(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {

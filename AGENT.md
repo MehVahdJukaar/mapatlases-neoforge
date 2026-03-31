@@ -1154,3 +1154,26 @@ Important findings:
 
 - The original multiloader sign conventions do not transfer 1:1 to the `26.1` `Matrix3x2fStack` path
 - The reversed minimap behavior is most plausibly caused by the old Z-axis rotation sign being applied directly to the new 2D GUI rotation API
+
+## Atlas screen centering checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas overview tile lookup behavior
+
+Work completed in this pass:
+
+- Restored the atlas overview widget in `common/src/main/java/pepjebs/mapatlases/client/screen/MapWidget.java` to the original exact-center tile lookup behavior
+- Removed the temporary nearest-map fallback from the world-map GUI path
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The nearest-map fallback was useful as a temporary 26.1 tolerance hack, but it diverges from the original atlas overview behavior
+- For the overview screen specifically, that fallback can cause the wrong tile to be drawn in a neighboring slot, which matches the reported “map appears off to the right” symptom
