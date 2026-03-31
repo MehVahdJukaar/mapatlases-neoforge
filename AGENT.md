@@ -653,3 +653,34 @@ Important findings:
 
 - The atlas UI package can be migrated incrementally while still excluded from the active Fabric source set, which lets the branch stay buildable between `26.1` UI port slices
 - The button layer is a good fit for direct `26.1` adaptation because its logic is still close to the reference branch; the more expensive work remains the map widget, HUD, and full overview screen render path
+
+## Atlas screen helper migration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas screen control flow and helper behavior
+- local `26.1` deobfuscated client jars for `KeyEvent` and resource identifier API changes
+
+Work completed in this pass:
+
+- Updated the small atlas screen control buttons to the `26.1` click signature:
+  - `PinButton`
+  - `ShearButton`
+- Began migrating `AtlasOverviewScreen` off the old pre-`26.1` helper signatures:
+  - switched atlas background texture field from `ResourceLocation` to `Identifier`
+  - updated dimension sorting to use `ResourceKey.identifier()`
+  - updated screen keyboard handling from integer key parameters to `KeyEvent`
+  - updated keybind matching to use `KeyMapping.matches(KeyEvent)`
+  - updated the local readable-name helper to accept `Identifier`
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The next atlas overview screen work is now concentrated in the render path and decoration/map-widget logic, not the basic input or identifier plumbing
+- Keeping these helper migrations committed in small slices is reducing the eventual `26.1` compile burst when the atlas screen package is re-included

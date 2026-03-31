@@ -8,10 +8,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -46,7 +47,7 @@ import static pepjebs.mapatlases.client.MapAtlasesClient.*;
 public class AtlasOverviewScreen extends Screen {
 
     private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
-    private final ResourceLocation texture = bigTexture ? ATLAS_BACKGROUND_TEXTURE_BIG : ATLAS_BACKGROUND_TEXTURE;
+    private final Identifier texture = bigTexture ? ATLAS_BACKGROUND_TEXTURE_BIG : ATLAS_BACKGROUND_TEXTURE;
 
     private final int BOOK_WIDTH = bigTexture ? 290 : 162;
     private final int BOOK_HEIGHT = bigTexture ? 231 : 167;
@@ -158,7 +159,7 @@ public class AtlasOverviewScreen extends Screen {
         Collection<ResourceKey<Level>> dimensions = currentMaps.getAvailableDimensions();
         int separation = (int) Math.min(22, (BOOK_HEIGHT - 50f) / dimensions.size());
         for (var d : dimensions.stream().sorted(Comparator.comparingInt(e -> {
-                    var s = e.location().toString();
+                    var s = e.identifier().toString();
                     if (MapAtlasesClient.DIMENSION_TEXTURE_ORDER.contains(s)) {
                         return MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(s);
                     }
@@ -261,8 +262,8 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (pKeyCode == 256 && editBox.active) {
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 256 && editBox.active) {
             editBox.active = false;
             editBox.visible = false;
             partialPin = null;
@@ -271,31 +272,31 @@ public class AtlasOverviewScreen extends Screen {
             }
             return true;
         }
-        if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(event)) {
             if (!isPinOnly && pinButton != null) {
                 this.toggleCursorAction(CursorAction.PLACING_PIN);
             }
             return true;
         }
-        if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || editBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
+        if (super.keyPressed(event) || editBox.keyPressed(event)) {
             return true;
         }
-        if (!editBox.active && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (!editBox.active && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(event)) {
             this.onClose();
             return true;
         }
         for (var v : decorationBookmarks) {
-            if (v.keyPressed(pKeyCode, pScanCode, pModifiers)) return true;
+            if (v.keyPressed(event)) return true;
         }
         return false;
     }
 
     @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyReleased(KeyEvent event) {
         for (var v : decorationBookmarks) {
-            v.keyReleased(pKeyCode, pScanCode, pModifiers);
+            v.keyReleased(event);
         }
-        return super.keyReleased(pKeyCode, pScanCode, pModifiers);
+        return super.keyReleased(event);
     }
 
     @Override
@@ -487,7 +488,7 @@ public class AtlasOverviewScreen extends Screen {
         return currentMaps.select(MapKey.at(currentMaps.getScale(), x, z, selectedSlice));
     }
 
-    public static String getReadableName(ResourceLocation id) {
+    public static String getReadableName(Identifier id) {
         return getReadableName(id.getPath());
     }
 

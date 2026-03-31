@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.CompoundTooltip;
 
@@ -19,7 +20,7 @@ public class ShearButton extends BookmarkButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         parentScreen.toggleCursorAction(CursorAction.SHEARING);
     }
 
