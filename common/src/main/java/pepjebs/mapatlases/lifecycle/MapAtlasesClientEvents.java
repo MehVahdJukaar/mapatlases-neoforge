@@ -70,7 +70,7 @@ public class MapAtlasesClientEvents {
         }
 
         if (keyMapping == MapAtlasesClient.PLACE_PIN_KEYBIND) {
-            if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
+            if (MapAtlasesClientConfig.moonlightCompat.get()) {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {

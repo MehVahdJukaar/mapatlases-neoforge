@@ -14,9 +14,9 @@ import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
@@ -39,7 +39,7 @@ public class IMapCollectionImpl implements IMapCollection {
     }
 
     protected IMapCollection getOrCreateInstance(Level level) {
-        if (instance == null) {
+        if (instance == null || !matchesStackData()) {
             instance = new MapCollection();
             var tag = ItemStackData.getTag(stack);
             if (tag != null) {
@@ -48,6 +48,15 @@ public class IMapCollectionImpl implements IMapCollection {
             instance.initialize(level);
         }
         return this;
+    }
+
+    private boolean matchesStackData() {
+        if (instance == null) {
+            return false;
+        }
+        var tag = ItemStackData.getTag(stack);
+        int[] stackIds = tag != null ? tag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
+        return Arrays.equals(stackIds, instance.getAllIds());
     }
 
     private void markDirty() {

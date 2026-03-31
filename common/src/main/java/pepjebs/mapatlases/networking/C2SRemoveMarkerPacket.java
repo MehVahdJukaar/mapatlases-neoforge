@@ -52,7 +52,7 @@ public class C2SRemoveMarkerPacket implements Message {
                 if(!removeBannerMarker(data, level, decoHash)){
                     MapAtlasesMod.LOGGER.warn("Tried to delete banner marker but none was found");
                 }
-            } else if (MapAtlasesMod.MOONLIGHT) {
+            } else {
                 MoonlightCompat.removeCustomDecoration(data, decoHash);
             }
         }

@@ -13,6 +13,7 @@ import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.utils.DecorationHolder;
@@ -44,7 +45,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
-        if (holder.deco() instanceof MapDecoration md)
+        if (holder.deco() instanceof MapDecoration md && !MoonlightCompat.isCustomDecoration(holder.id(), holder.deco()))
             return new Vanilla(px, py, screen, holder.data(), md, holder.id());
         else {
             return CustomDecorationButton.create(px, py, screen, holder.data(), holder.deco(), holder.id());

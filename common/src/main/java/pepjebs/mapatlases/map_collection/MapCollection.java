@@ -97,11 +97,10 @@ public class MapCollection implements IMapCollection {
         assertInitialized();
 
         MapDataHolder found = MapDataHolder.findFromId(level, intId);
-        if (this.isEmpty() && found != null) {
-            scale = found.data.scale;
-        }
-
         if (found == null) {
+            if (ids.contains(intId)) {
+                return false;
+            }
             if (level instanceof ServerLevel) {
                 MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().identifier());
             } else {
@@ -112,19 +111,31 @@ public class MapCollection implements IMapCollection {
             return false;
         }
 
+        if (this.isEmpty() && found != null) {
+            scale = found.data.scale;
+        }
+
         MapItemSavedData d = found.data;
 
         if (d != null && d.scale == scale) {
             MapKey key = found.makeKey();
+            MapDataHolder existing = maps.get(key);
 
             //from now on we assume that all client maps cant have their center and data unfilled
-            if (maps.containsKey(key)) {
+            if (existing != null) {
+                if (existing.id == intId || ids.contains(intId)) {
+                    notSyncedIds.remove(intId);
+                    return false;
+                }
                 MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().identifier());
                 return false;
-
             }
-            ids.add(intId);
+            if (!ids.add(intId)) {
+                notSyncedIds.remove(intId);
+                return false;
+            }
             maps.put(key, found);
+            notSyncedIds.remove(intId);
             addToDimensionMap(key);
             return true;
         }

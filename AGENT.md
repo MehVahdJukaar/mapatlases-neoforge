@@ -126,6 +126,49 @@ Current caveat after this checkpoint:
 
 - The log still reports duplicate atlas map keys once atlas data begins syncing in-world. This is no longer disconnecting the client, but it likely indicates a remaining atlas collection/state-sync issue that should be cleaned up next while validating HUD and atlas overview behavior in-game.
 
+## Atlas collection sync and internal pin checkpoint
+
+Recorded on `2026-03-31`.
+
+This pass improved atlas screen behavior beyond simply opening.
+
+What changed:
+
+- Atlas item map collections now refresh from the current `ItemStack` custom data instead of holding stale in-memory state forever:
+  - `fabric/src/main/java/pepjebs/mapatlases/map_collection/fabric/IMapCollectionImpl.java`
+- Atlas map collection inserts now treat repeated syncs as expected instead of logging false duplicate-key errors for already-known maps:
+  - `common/src/main/java/pepjebs/mapatlases/map_collection/MapCollection.java`
+- Internal pin support was partially restored without requiring the external Moonlight mod:
+  - `common/src/main/java/pepjebs/mapatlases/integration/moonlight/MoonlightCompat.java`
+  - `common/src/main/java/pepjebs/mapatlases/integration/moonlight/CustomDecorationButton.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/AtlasOverviewScreen.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/PinButton.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/PinNameBox.java`
+  - `common/src/main/java/pepjebs/mapatlases/lifecycle/MapAtlasesClientEvents.java`
+  - `common/src/main/java/pepjebs/mapatlases/networking/C2SMarkerPacket.java`
+  - `common/src/main/java/pepjebs/mapatlases/networking/C2SRemoveMarkerPacket.java`
+
+Important findings:
+
+- The atlas GUI feeling “minimal” was partly a state-sync issue, not just a missing render feature.
+- The temporary item-backed atlas collection layer needed to re-read live stack data to stay aligned with atlas map updates.
+- The previous duplicate map key spam is gone after de-duping repeated map syncs.
+- The pin UI was still hard-gated on external Moonlight presence even though the Fabric-only port needs an internal replacement path.
+
+Verification:
+
+- `./gradlew.bat :fabric:compileJava --console=plain`
+  - passes
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes
+  - reaches title screen
+  - creates and enters a singleplayer world
+  - no duplicate atlas map key spam observed in the latest launch log
+
+Current caveat after this checkpoint:
+
+- The internal pin path is now wired into the atlas UI flow, but it still needs deeper in-game parity validation and likely more work on marker preview / tracking / HUD rendering to fully match the multiloader reference.
+
 ## Baseline checkpoint: 1.20.1 Fabric restored
 
 Recorded on `2026-03-30`.

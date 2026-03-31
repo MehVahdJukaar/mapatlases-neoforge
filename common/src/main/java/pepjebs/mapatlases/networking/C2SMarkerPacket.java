@@ -79,9 +79,7 @@ public class C2SMarkerPacket implements Message {
                             "pin_" + pos,
                             d0, d1, 180.0D, literal));
                 } else {
-                    if (MapAtlasesMod.MOONLIGHT) {
-                        MoonlightCompat.addDecoration(data, new BlockPos(pos.x(), 0, pos.z()), id, literal);
-                    }
+                    MoonlightCompat.addDecoration(data, new BlockPos(pos.x(), 0, pos.z()), id, literal);
                 }
             }
         }
