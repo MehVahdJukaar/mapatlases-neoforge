@@ -1,0 +1,7 @@
+{
+  "type": "map_atlases:crafting_atlas",
+  "ingredients": [
+    "#map_atlases:sticky_crafting_items",
+    "minecraft:book"
+  ]
+}

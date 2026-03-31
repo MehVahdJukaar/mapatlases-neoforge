@@ -4,7 +4,7 @@
     "minecraft:slime_ball",
     "minecraft:honey_bottle",
     {
-      "id": "#forge:slimeballs",
+      "id": "#c:slime_balls",
       "required": false
     }
   ]

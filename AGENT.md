@@ -367,3 +367,40 @@ Current state after this checkpoint:
   - reintroduce the excluded client mixins one by one against `26.1`
   - replace the temporary Moonlight marker/render placeholders with behavior-matching internal implementations
   - restore creative-tab wiring and other non-critical registry-side polish that is still stubbed
+
+## 26.1 recipe and datapack layout checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Updated atlas recipe datapack files to the `26.1` resource layout:
+  - moved custom recipes from `data/map_atlases/recipes/` to `data/map_atlases/recipe/`
+  - moved the sticky crafting tag from `data/map_atlases/tags/items/` to `data/map_atlases/tags/item/`
+- Updated the sticky item tag contents for the Fabric-only target:
+  - replaced the legacy optional `#forge:slimeballs` entry with optional `#c:slime_balls`
+- Updated the optional Supplementaries antique atlas recipe condition to Fabric resource conditions:
+  - replaced the old Forge `mod_loaded` condition with `fabric:load_conditions`
+- Updated the custom atlas crafting recipe ingredient JSON to the actual `26.1` ingredient format:
+  - string item ids instead of legacy object ingredients
+  - `#map_atlases:sticky_crafting_items` for the tag ingredient
+- Replaced the temporary `PlatStuff` assertion stubs with direct Fabric-only delegation so recipe codec decode and other platform calls work again at runtime
+- Added an English translation for the sticky atlas item tag to avoid Fabric convention-tag warning noise in recipe viewers
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully after the datapack path and ingredient-format migration
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - launches successfully
+  - loads atlas recipes without parse errors
+  - reaches title screen, creates and enters a singleplayer world, and shuts down cleanly
+
+Important findings:
+
+- Minecraft `26.1` recipe data is loaded from `data/<namespace>/recipe/`, not `data/<namespace>/recipes/`
+- Minecraft `26.1` item tags are loaded from `data/<namespace>/tags/item/`, not `tags/items/`
+- `26.1` ingredient JSON for recipes now uses string forms such as:
+  - `"minecraft:book"`
+  - `"#map_atlases:sticky_crafting_items"`
+- The prior placeholder `PlatStuff` implementation was still reachable during custom recipe codec decode and had to be replaced with direct Fabric delegation before datapack loading would succeed
