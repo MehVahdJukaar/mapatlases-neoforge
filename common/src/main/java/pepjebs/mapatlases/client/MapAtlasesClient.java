@@ -105,6 +105,8 @@ public class MapAtlasesClient {
     private static MapKey currentActiveMapKey;
     private static MapDataHolder currentActiveMap;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
+    @Nullable
+    private static PendingOpenScreen pendingOpenScreen;
     private static boolean isDrawingAtlas;
     private static float decorationScale = 1.0F;
     private static float decorationTextScale = 1.0F;
@@ -135,6 +137,11 @@ public class MapAtlasesClient {
             if (selected != null) {
                 currentActiveMapKey = selected.makeKey();
                 currentActiveMap = selected;
+            }
+            if (pendingOpenScreen != null && currentActiveMap != null) {
+                PendingOpenScreen pending = pendingOpenScreen;
+                pendingOpenScreen = null;
+                openScreen(atlas, pending.lectern(), pending.pinOnly());
             }
         }
     }
@@ -226,7 +233,13 @@ public class MapAtlasesClient {
         maps.addNotSynced(level);
         if (!maps.isEmpty()) {
             minecraft.setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
+        } else if (maps.getAllIds().length > 0) {
+            pendingOpenScreen = new PendingOpenScreen(lectern, pinOnly);
         }
+    }
+
+    public static void clearPendingOpenScreen() {
+        pendingOpenScreen = null;
     }
 
     public static ContainerLevelAccess getClientAccess() {
@@ -308,4 +321,7 @@ public class MapAtlasesClient {
             .maximumSize(100)
             .expireAfterAccess(10, TimeUnit.SECONDS)
             .build();
+
+    private record PendingOpenScreen(@Nullable LecternBlockEntity lectern, boolean pinOnly) {
+    }
 }

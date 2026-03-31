@@ -121,6 +121,7 @@ public class MapAtlasesClientEvents {
     }
 
     public static void onLoggedOut() {
+        MapAtlasesClient.clearPendingOpenScreen();
         if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
     }
 

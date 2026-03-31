@@ -202,6 +202,35 @@ Verification:
   - creates and enters a singleplayer world
   - no longer crashes with `ConcurrentModificationException` in `addNotSynced(...)`
 
+## Delayed atlas open retry
+
+Recorded on `2026-03-31`.
+
+Regression reported by user:
+
+- atlas no longer opened from right click after the recent atlas collection / internal pin changes
+
+Likely cause:
+
+- the atlas open packet can arrive on the client before the client has fully received and materialized the atlas map data
+- `MapAtlasesClient.openScreen(...)` was bailing out if `maps.isEmpty()` at that exact moment, so the open request was lost permanently
+
+Fix applied:
+
+- `common/src/main/java/pepjebs/mapatlases/client/MapAtlasesClient.java`
+  - added a small pending open-screen state
+  - when an atlas has ids but no resolved client maps yet, the open request is deferred instead of discarded
+  - the next `cachePlayerState(...)` tick fulfills that pending open once the client atlas map data is available
+- `common/src/main/java/pepjebs/mapatlases/lifecycle/MapAtlasesClientEvents.java`
+  - clear pending atlas-open state on logout
+
+Verification:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes in a clean single run after the fix
+
 ## Baseline checkpoint: 1.20.1 Fabric restored
 
 Recorded on `2026-03-30`.
