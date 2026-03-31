@@ -462,3 +462,35 @@ Important findings:
 
 - `placementInfo()` on `26.1` must avoid touching custom tag-backed ingredients during early recipe decode if those tags may not be bound yet
 - For atlas create, placement metadata can be a safe preview subset while the real matching logic remains tag-driven
+
+## Atlas create recipe data-component checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/MapAtlases`
+
+Work completed in this pass:
+
+- Compared the atlas create flow against `F:/MapAtlases` and confirmed the key behavioral difference:
+  - the reference implementation does not depend on old filled-map custom NBT
+  - it builds the crafted atlas from the map id data component directly
+- Updated `MapAtlasCreateRecipe.assemble(...)` to stop rejecting valid filled maps that do not carry old custom data
+- Reworked atlas creation so the crafted result stores the selected map id directly into the atlas item data using the old `maps` int-array compatibility path
+- Updated `MapAtlasItem.onCraftedBy(...)` so atlas conversion runs before selected-slice validation
+  - this lets crafted atlases hydrate their stored map ids into the live map collection before validation logic runs
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - launches successfully
+  - loads recipes and datapacks successfully
+  - reaches title screen, creates and enters a singleplayer world, and shuts down cleanly
+
+Important findings:
+
+- The prior atlas create path still assumed old-style map custom data and could return `ItemStack.EMPTY` for perfectly valid `26.1` filled maps
+- The `F:/MapAtlases` reference confirms that the robust `26.1` atlas create path should key off `DataComponents.MAP_ID` instead

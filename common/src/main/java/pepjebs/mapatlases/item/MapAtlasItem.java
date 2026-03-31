@@ -238,8 +238,8 @@ public class MapAtlasItem extends Item {
         super.onCraftedBy(stack, pPlayer);
 
         Level level = pPlayer.level();
-        validateSelectedSlices(stack, level);
         convertOldAtlas(level, stack);
+        validateSelectedSlices(stack, level);
     }
 
     private static void validateSelectedSlices(ItemStack pStack, Level level) {
