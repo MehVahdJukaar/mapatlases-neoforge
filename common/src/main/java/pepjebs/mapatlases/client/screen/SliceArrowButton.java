@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -36,28 +36,19 @@ public class SliceArrowButton extends BookmarkButton {
 
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
-
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (selected()) {
-            pose.translate(0, 0, 2);
+            graphics.nextStratum();
         }
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTick);
         this.setSelected(this.isHovered);
-        pose.popPose();
     }
 
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         if(down) this.parentScreen.decreaseSlice();
         else this.parentScreen.increaseSlice();
-    }
-
-    //@Override
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 
 

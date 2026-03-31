@@ -621,3 +621,35 @@ Important findings:
   - `MapRenderer` now uses `MapRenderState` extraction instead of the old direct render path
   - `MapItemSavedData.decorations` is private and must be reached through accessors instead of direct field mutation
 - With the new accessor and helper layer in place, the next UI port steps can target the actual `26.1` APIs instead of carrying old direct-field assumptions forward
+
+## Atlas widget migration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas screen behavior and layout
+- local `26.1` deobfuscated client jars for the new widget/input API signatures
+
+Work completed in this pass:
+
+- Ported the staged atlas bookmark/button classes from the old `GuiGraphics` / integer-click API to the `26.1` widget surface:
+  - `BookmarkButton`
+  - `SliceBookmarkButton`
+  - `SliceArrowButton`
+  - `DimensionBookmarkButton`
+  - `CartographyTableAtlasButton`
+- Updated those classes to render through `GuiGraphicsExtractor` and `RenderPipelines.GUI_TEXTURED`
+- Updated click handling to the `MouseButtonEvent` / `MouseButtonInfo` signatures used by `AbstractWidget` in `26.1`
+- Removed the remaining Moonlight UI-only helper usage from `CartographyTableAtlasButton`
+  - replaced `LangBuilder.getReadableName(...)` with the mod’s own atlas screen name helper path
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The atlas UI package can be migrated incrementally while still excluded from the active Fabric source set, which lets the branch stay buildable between `26.1` UI port slices
+- The button layer is a good fit for direct `26.1` adaptation because its logic is still close to the reference branch; the more expensive work remains the map widget, HUD, and full overview screen render path

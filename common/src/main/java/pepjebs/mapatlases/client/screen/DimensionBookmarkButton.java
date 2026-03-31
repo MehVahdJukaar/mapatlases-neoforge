@@ -1,12 +1,13 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -27,14 +28,14 @@ public class DimensionBookmarkButton extends BookmarkButton {
         super(pX, pY, BUTTON_W, BUTTON_H, 0, 167, screen);
         this.dimension = dimension;
         this.setTooltip(createTooltip());
-        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.identifier().toString());
         if (i == -1) i = 10;
         this.dimY = 16 * i;
     }
 
     @Override
     public Tooltip createTooltip() {
-        return Tooltip.create(Component.literal(AtlasOverviewScreen.getReadableName(dimension.location())));
+        return Tooltip.create(Component.literal(AtlasOverviewScreen.getReadableName(dimension.identifier())));
     }
 
     public ResourceKey<Level> getDimension() {
@@ -42,32 +43,23 @@ public class DimensionBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
-
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (selected()) {
-            pose.translate(0, 0, 2);
+            graphics.nextStratum();
         }
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blit(ATLAS_BACKGROUND_TEXTURE,
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ATLAS_BACKGROUND_TEXTURE,
                 this.getX() + 4, this.getY() + 2,
                 162,
                 dimY,
-                16, 16);
-        pose.popPose();
+                16, 16, 256, 256);
 
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         this.setSelected(true);
         parentScreen.selectDimension(dimension);
-    }
-
-    //@Override
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 
     @Override
