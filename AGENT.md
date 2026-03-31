@@ -191,6 +191,55 @@ Important interpretation:
   - Architectury replacement
   - 26.1 vanilla/Fabric API adaptation
 
+## Internal compatibility shim checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Added local replacement stubs for the small subset of Architectury / Moonlight platform APIs that the mod imports directly:
+  - `dev.architectury.injectables.annotations.ExpectPlatform`
+  - `net.mehvahdjukaar.moonlight.api.platform.PlatHelper`
+  - `net.mehvahdjukaar.moonlight.api.platform.ClientHelper`
+  - `net.mehvahdjukaar.moonlight.api.platform.RegHelper`
+  - `net.mehvahdjukaar.moonlight.api.platform.network.*`
+  - `net.mehvahdjukaar.moonlight.api.platform.configs.*`
+- Rewired `IMapCollection.get(...)` to the Fabric implementation directly instead of the old Architectury expectation path
+- Replaced the old CCA-backed `IMapCollectionImpl` superclass dependency with a temporary in-memory implementation so the code can keep compiling while the real 26.1 persistence replacement is still pending
+- Reduced active compile noise by removing optional integration entrypoints from `fabric.mod.json` and excluding currently non-essential integration source files from the active `26.1` compile
+
+Current compile state after this pass:
+
+- `./gradlew.bat :fabric:compileJava`
+  - still fails
+  - but the failure surface has shifted further away from missing external platform classes and more toward real `26.1` source migration
+
+Dominant remaining blocker categories now:
+
+1. Vanilla/Mojang class moves and renames
+   - `ResourceLocation` -> `Identifier`
+   - `GuiGraphics` -> `GuiGraphicsExtractor`
+   - `RenderType` package move
+   - `Material` package move
+   - `Util` package move
+   - `InteractionResultHolder` removal/replacement
+2. Rendering and HUD API changes
+   - old Fabric HUD callback usage
+   - old client texture/material helper usage
+3. Recipe serializer migration
+   - old serializer interface-style code no longer matches 26.1
+4. Still-unported optional/common integrations
+   - old Moonlight map/marker implementation files
+   - old Curios / ImmediatelyFast / other compat classes
+
+Conclusion from this checkpoint:
+
+- The remaining work is now mostly real code porting, not build setup.
+- The next practical steps are:
+  - migrate vanilla identifiers and GUI/render types
+  - rewrite recipe serializers for 26.1
+  - replace the old Moonlight marker layer with internal classes or temporary no-op shims while the atlas UI is brought forward
+
 ## Recommended next steps
 
 1. Fix or replace the unresolved Moonlight dependency so the current baseline can build.

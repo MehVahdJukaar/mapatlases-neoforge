@@ -10,6 +10,13 @@ sourceSets {
     main {
         java.srcDirs += ["../common/src/main/java"]
         resources.srcDirs += ["../common/src/main/resources"]
+        java.exclude(
+                "pepjebs/mapatlases/integration/fabric/**",
+                "pepjebs/mapatlases/map_collection/fabric/CCStuff.java",
+                "pepjebs/mapatlases/integration/JEICompat.java",
+                "pepjebs/mapatlases/integration/REICompat.java",
+                "pepjebs/mapatlases/integration/SpecialRecipeDisplays.java"
+        )
     }
 }
 

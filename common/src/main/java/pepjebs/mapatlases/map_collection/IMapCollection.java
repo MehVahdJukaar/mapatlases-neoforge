@@ -1,12 +1,12 @@
 package pepjebs.mapatlases.map_collection;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.map_collection.fabric.IMapCollectionImpl;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -18,9 +18,8 @@ import java.util.function.Predicate;
 
 public interface IMapCollection {
 
-    @ExpectPlatform
     static IMapCollection get(ItemStack stack, Level level) {
-        throw new AssertionError();
+        return IMapCollectionImpl.get(stack, level);
     }
 
     boolean add(int mapId, Level level);

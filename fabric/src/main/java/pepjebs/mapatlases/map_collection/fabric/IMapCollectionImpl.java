@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.map_collection.fabric;
 
-import dev.onyxstudios.cca.api.v3.item.ItemComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -14,58 +13,40 @@ import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
 // Proxy class
-public class IMapCollectionImpl extends ItemComponent implements IMapCollection {
-    private static final String COMPONENT_KEY = "map_collection";
+public class IMapCollectionImpl implements IMapCollection {
+
+    private static final IdentityHashMap<ItemStack, IMapCollectionImpl> INSTANCES = new IdentityHashMap<>();
 
     @Nullable
     private MapCollection instance = null;
 
+    private final ItemStack stack;
+
     public IMapCollectionImpl(ItemStack stack) {
-        super(stack);
+        this.stack = stack;
     }
 
     public static IMapCollection get(ItemStack stack, Level level) {
-        try {
-            Optional<IMapCollectionImpl> resolve = CCStuff.MAP_COLLECTION_COMPONENT.maybeGet(stack);
-
-            if (resolve.isEmpty()) {
-                throw new AssertionError("Map Atlas cca was empty. How is this possible? Culprit itemstack " + stack);
-            }
-            IMapCollectionImpl cap = resolve.get();
-            return cap.getOrCreateInstance(level);
-        } catch (Exception e) {
-            throw new AssertionError("Cardinal Component for Map Atlases could not be gathered." +
-                    "This is a Cardinal Component bug! ", e);
-        }
-
+        return INSTANCES.computeIfAbsent(stack, IMapCollectionImpl::new).getOrCreateInstance(level);
     }
 
     protected IMapCollection getOrCreateInstance(Level level) {
         if (instance == null) {
             instance = new MapCollection();
-            instance.deserializeNBT(this.getCompound(COMPONENT_KEY));
             instance.initialize(level);
         }
         return this;
     }
 
-
-    @Override
-    public void onTagInvalidated() {
-        super.onTagInvalidated();
-        instance = null;
-    }
-
     private void markDirty() {
-        if (instance != null) {
-            this.putCompound(COMPONENT_KEY, instance.serializeNBT());
-        }
+        // TODO 26.1: replace this temporary in-memory storage with proper item-backed persistence.
     }
 
     @Override

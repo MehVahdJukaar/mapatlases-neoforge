@@ -17,26 +17,6 @@
   "entrypoints": {
     "main": [
       "pepjebs.mapatlases.fabric.MapAtlasesFabric"
-    ],
-    "modmenu": [
-      "pepjebs.mapatlases.integration.fabric.ModMenuCompat"
-    ],
-    "rei_client": [
-      "pepjebs.mapatlases.integration.REICompat"
-    ],
-    "jei_mod_plugin": [
-      "pepjebs.mapatlases.integration.JEICompat"
-    ],
-    "emi": [
-      "pepjebs.mapatlases.integration.fabric.EMICompat"
-    ],
-    "cardinal-components-item": [
-      "pepjebs.mapatlases.map_collection.fabric.CCStuff"
-    ]
-  },
-  "custom": {
-    "cardinal-components": [
-      "${mod_id}:map_collection"
     ]
   },
   "mixins": [
@@ -45,11 +25,6 @@
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}",
-    "moonlight": ">=${required_moonlight_version}",
-    "cardinal-components-item": ">=${cca_version}"
-  },
-  "suggests": {
-    "supplementaries": "*"
+    "minecraft": ">=${minecraft_min_version} <${minecraft_max_version}"
   }
 }
