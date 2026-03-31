@@ -69,14 +69,14 @@ public class MapCollection implements IMapCollection {
     public CompoundTag serializeNBT() {
         if (!isInitialized()) return lazyNbt;
         CompoundTag c = new CompoundTag();
-        c.putIntArray(MAP_LIST_NBT, ids.stream().mapToInt(Integer::intValue).toArray());
+        c.putIntArray(MAP_LIST_NBT, getAllIds());
         return c;
     }
 
     @Override
     public int[] getAllIds() {
         if (!isInitialized()) return lazyNbt.getIntArray(MAP_LIST_NBT).orElseGet(() -> new int[0]);
-        return ids.stream().mapToInt(Integer::intValue).toArray();
+        return ids.stream().sorted().mapToInt(Integer::intValue).toArray();
     }
 
     public boolean hasId(int id) {

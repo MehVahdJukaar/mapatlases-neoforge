@@ -154,7 +154,11 @@ public class IMapCollectionImpl implements IMapCollection {
     @Override
     public void addNotSynced(Level level) {
         if (instance != null) {
+            int[] before = instance.getAllIds();
             instance.addNotSynced(level);
+            if (!Arrays.equals(before, instance.getAllIds())) {
+                markDirty();
+            }
         }
     }
 

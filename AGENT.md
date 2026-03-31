@@ -1053,3 +1053,26 @@ Important findings:
 
 - The earlier event-style `KeyEvent` / `MouseButtonEvent` direction was correct; the failed old-style signature backtrack was caused by checking raw jar APIs instead of the transformed compile surface Loom is actually exposing in this toolchain
 - The right-click atlas GUI path is no longer blocked by source-set exclusions or a stubbed `openScreen(...)`; the next parity work can move on to the remaining excluded client mixin/render layers instead of the overview screen bootstrap
+
+## Atlas GUI persistence checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Fixed a client atlas-state regression in `common/src/main/java/pepjebs/mapatlases/map_collection/MapCollection.java`
+  - atlas map id serialization is now deterministic via sorted ids
+  - `serializeNBT()` now uses the same deterministic `getAllIds()` path
+- Fixed the Fabric item-backed atlas collection sync in `fabric/src/main/java/pepjebs/mapatlases/map_collection/fabric/IMapCollectionImpl.java`
+  - `addNotSynced(level)` now persists newly materialized map ids back onto the atlas `ItemStack`
+  - this prevents late map syncs from being lost on the next `matchesStackData()` refresh
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The atlas GUI reopen regression was likely caused by the client atlas collection rebuilding itself from stale stack data every tick
+- Successful `addNotSynced(...)` resolutions must write back to the stack on Fabric 26.1, otherwise the client can immediately discard the synced map ids and treat the atlas as empty again
