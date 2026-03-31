@@ -829,3 +829,37 @@ Important findings:
     - dependencies on still-excluded helper classes such as `CompoundTooltip`
     - the remaining `26.1` screen extraction and input-signature migration
 - The screen package was re-excluded after the probe so the branch stays green while the overview screen is ported intentionally instead of half-enabled
+
+## Fabric keybind registration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for Fabric client init behavior
+- local `fabric-key-mapping-api-v1` `2.0.4+e2bdee7847`
+
+Work completed in this pass:
+
+- Replaced the temporary reflection-based keybinding registration path in `fabric/src/main/java/pepjebs/mapatlases/fabric/MapAtlasesFabricClient.java` with the real Fabric API helper:
+  - `KeyMappingHelper.registerKeyMapping(...)`
+- Kept the existing atlas keybindings unchanged:
+  - open atlas
+  - place pin
+  - minimap zoom in / out
+  - slice up / down
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+- `./gradlew.bat :fabric:runClient --console=plain`
+  - passes successfully
+  - reaches title screen
+  - creates and enters a singleplayer world
+  - shuts down cleanly
+
+Important findings:
+
+- The old reflection hack was not faithful to Fabric `26.1` and is the most likely reason the keybindings were not appearing in Controls
+- The right-click atlas overview and full world-map GUI are still blocked by the excluded `client/screen/**` port, not by the keybinding registration path
