@@ -748,3 +748,31 @@ Important findings:
 
 - The atlas UI port is now down to the classes that actually draw and animate the atlas map itself
 - The next high-value work item is the map rendering core in `MapWidget` and `AbstractAtlasWidget`, because that is the biggest remaining technical blocker before the atlas overview screen can be re-included
+
+## Atlas item asset migration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- local `26.1` item asset format under `assets/*/items/*.json`
+- `F:/MapAtlases` only as a structural reference for the new `items/atlas.json` placement and `minecraft:context_dimension` selector shape
+
+Work completed in this pass:
+
+- Added the missing `26.1` item asset entrypoint at `common/src/main/resources/assets/map_atlases/items/atlas.json`
+- Wired the atlas item to the new `minecraft:select` / `minecraft:context_dimension` model format so the existing atlas item models are reachable again at runtime
+  - overworld -> `map_atlases:item/atlas_overworld`
+  - nether -> `map_atlases:item/atlas_nether`
+  - end -> `map_atlases:item/atlas_end`
+  - fallback -> `map_atlases:item/atlas_generic`
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The missing atlas item texture was not a code registration issue; it was a `26.1` asset layout problem because the repo only had the old `models/item/*.json` path and not the required `items/atlas.json` indirection
+- This restores the atlas item’s basic visible model path, but locked-state and extended-dimension item variant parity still need a follow-up pass if we want the full old selector behavior back under the `26.1` item model system

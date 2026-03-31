@@ -1,0 +1,33 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:context_dimension",
+    "cases": [
+      {
+        "when": "minecraft:overworld",
+        "model": {
+          "type": "minecraft:model",
+          "model": "map_atlases:item/atlas_overworld"
+        }
+      },
+      {
+        "when": "minecraft:the_nether",
+        "model": {
+          "type": "minecraft:model",
+          "model": "map_atlases:item/atlas_nether"
+        }
+      },
+      {
+        "when": "minecraft:the_end",
+        "model": {
+          "type": "minecraft:model",
+          "model": "map_atlases:item/atlas_end"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "map_atlases:item/atlas_generic"
+    }
+  }
+}
