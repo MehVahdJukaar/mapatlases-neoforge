@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -43,6 +44,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     private final CraftingBookCategory category;
     private final NonNullList<Ingredient> ingredients;
     private final boolean isSimple;
+    private final PlacementInfo placementInfo;
 
     // to prevent the world from not being unloaded
     private WeakReference<Level> levelReference = new WeakReference<>(null);
@@ -52,6 +54,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         this.category = category;
         this.ingredients = ingredients;
         this.isSimple = PlatStuff.isSimple(ingredients);
+        this.placementInfo = PlacementInfo.create(ingredients);
     }
 
     public NonNullList<Ingredient> getIngredients() {
@@ -123,6 +126,11 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     @Override
     public RecipeSerializer<MapAtlasCreateRecipe> getSerializer() {
         return SERIALIZER;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return placementInfo;
     }
 
     @Override

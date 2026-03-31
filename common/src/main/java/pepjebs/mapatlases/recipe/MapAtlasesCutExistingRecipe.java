@@ -11,6 +11,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -34,6 +36,10 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     );
 
     public static final RecipeSerializer<MapAtlasesCutExistingRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+    private static final PlacementInfo PLACEMENT_INFO = PlacementInfo.create(java.util.List.of(
+            Ingredient.of(MapAtlasesMod.MAP_ATLAS.get()),
+            Ingredient.of(Items.SHEARS)
+    ));
 
     private final CraftingBookCategory category;
     private WeakReference<Level> levelRef = new WeakReference<>(null);
@@ -139,6 +145,11 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     @Override
     public RecipeSerializer<MapAtlasesCutExistingRecipe> getSerializer() {
         return SERIALIZER;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return PLACEMENT_INFO;
     }
 
     @Override

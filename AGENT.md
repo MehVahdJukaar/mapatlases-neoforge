@@ -404,3 +404,31 @@ Important findings:
   - `"minecraft:book"`
   - `"#map_atlases:sticky_crafting_items"`
 - The prior placeholder `PlatStuff` implementation was still reachable during custom recipe codec decode and had to be replaced with direct Fabric delegation before datapack loading would succeed
+
+## 26.1 custom recipe placement checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Fixed atlas custom recipes for the `26.1` crafting contract by overriding `placementInfo()` on:
+  - `MapAtlasCreateRecipe`
+  - `MapAtlasesAddRecipe`
+  - `MapAtlasesCutExistingRecipe`
+  - `AntiqueAtlasRecipe`
+- Root cause:
+  - `26.1` `CustomRecipe` now defaults `placementInfo()` to `PlacementInfo.NOT_PLACEABLE`
+  - that allows the recipe to load but prevents the crafting menu from surfacing a craft result for otherwise valid custom recipes
+- `MapAtlasCreateRecipe` now exposes placement info from its real configured ingredients
+- the other atlas custom recipes now expose minimal placement info so the menu can consider them placeable again
+- the antique atlas recipe still uses conservative placement metadata because Supplementaries is still stubbed on the current Fabric-only `26.1` branch
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully after the custom recipe placement fix
+
+Important findings:
+
+- On `26.1`, matching logic alone is no longer enough for `CustomRecipe`; the crafting UI also needs non-`NOT_PLACEABLE` `placementInfo()` metadata
+- This was the reason the atlas recipe loaded but did not show in the crafting table after the datapack migration

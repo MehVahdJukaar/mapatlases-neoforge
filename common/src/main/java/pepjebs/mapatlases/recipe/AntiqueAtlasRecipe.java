@@ -8,6 +8,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -93,6 +95,16 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
     @Override
     public RecipeSerializer<AntiqueAtlasRecipe> getSerializer() {
         return SERIALIZER;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        if (!MapAtlasesMod.SUPPLEMENTARIES) {
+            return PlacementInfo.NOT_PLACEABLE;
+        }
+        return PlacementInfo.create(java.util.List.of(
+                Ingredient.of(MapAtlasesMod.MAP_ATLAS.get())
+        ));
     }
 
     @Override
