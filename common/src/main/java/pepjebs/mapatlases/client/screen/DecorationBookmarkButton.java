@@ -1,17 +1,17 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
 import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
 
 public abstract class DecorationBookmarkButton extends BookmarkButton {
 
@@ -54,7 +53,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyReleased(KeyEvent event) {
         this.shfting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
@@ -62,7 +61,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyPressed(KeyEvent event) {
         this.shfting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
@@ -70,7 +69,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         this.setSelected(true);
         if (shfting) {
             this.deleteMarker();
@@ -78,11 +77,6 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         } else {
             parentScreen.centerOnDecoration(this);
         }
-    }
-
-    //@Override
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 
     protected abstract void deleteMarker();
@@ -108,29 +102,27 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack matrices = graphics.pose();
-        matrices.pushPose();
-        matrices.translate(0, 0, 0.01 * this.index);
-        super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        if (this.index != 0) {
+            graphics.nextStratum();
+        }
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTick);
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             if (this.control && canFocusMarker()) {
-                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
-                        24, 173, 5, 5);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
+                        24, 173, 5, 5, 256, 256);
             } else if (this.shfting && canDeleteMarker()) {
-                graphics.blit(ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
-                        24, 167, 5, 5);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, ATLAS_BACKGROUND_TEXTURE, getX(), getY(),
+                        24, 167, 5, 5, 256, 256);
             }
         }
-        renderDecoration(graphics, pMouseX, pMouseY);
-
-        matrices.popPose();
+        renderDecoration(graphics, mouseX, mouseY);
 
         //hide waiting to be activated by mapWidget
         setSelected(false);
     }
 
-    protected abstract void renderDecoration(GuiGraphics graphics, int mouseX, int mouseY);
+    protected abstract void renderDecoration(GuiGraphicsExtractor graphics, int mouseX, int mouseY);
 
     @Override
     public Tooltip createTooltip() {
@@ -169,7 +161,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
             super(px, py, screen, data, decoId);
             this.decoration = mapDecoration;
             this.setTooltip(createTooltip());
-            this.isBanner = decoration.getType().name().startsWith("BANNER");
+            this.isBanner = decoration.type().isBound() &&
+                    decoration.type().value().assetId().getPath().startsWith("banner_");
         }
 
         @Override
@@ -179,44 +172,36 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
         @Override
         public double getWorldX() {
-            return mapData.data.centerX - getDecorationPos(decoration.getX(), mapData.data);
+            return mapData.data.centerX - getDecorationPos(decoration.x(), mapData.data);
         }
 
         @Override
         public double getWorldZ() {
-            return mapData.data.centerZ - getDecorationPos(decoration.getY(), mapData.data);
+            return mapData.data.centerZ - getDecorationPos(decoration.y(), mapData.data);
         }
 
 
         @Override
         public Component getDecorationName() {
-            var name = decoration.getName();
-            return name == null
+            var name = decoration.name();
+            return name.isEmpty()
                     ? Component.literal(
-                    AtlasOverviewScreen.getReadableName(decoration.getType().name().toLowerCase(Locale.ROOT)))
-                    : name;
+                    AtlasOverviewScreen.getReadableName(decoration.type().value().assetId().getPath().toLowerCase(Locale.ROOT)))
+                    : name.get();
         }
 
         @Override
-        protected void renderDecoration(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-            PoseStack matrices = pGuiGraphics.pose();
-            byte b = decoration.getImage();
-
-            int u = (b % 16) * 8;
-            int v = (b / 16) * 8;
-
-            matrices.translate(getX() + width / 2f, getY() + height / 2f, 0.001);
-            matrices.mulPose(Axis.ZP.rotationDegrees((decoration.getRot() * 360) / 16.0F));
-            matrices.scale(-1, -1, 1);
-
-            pGuiGraphics.blit(MAP_ICON_TEXTURE, -4, -4, u, v, 8, 8, 128, 128);
-
+        protected void renderDecoration(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+            graphics.nextStratum();
+            graphics.blit(RenderPipelines.GUI_TEXTURED, decoration.getSpriteLocation(),
+                    getX() + width / 2 - 4, getY() + height / 2 - 4,
+                    0, 0, 8, 8, 8, 8);
         }
 
 
         @Override
         protected void deleteMarker() {
-            Map<String, MapDecoration> decorations = mapData.data.decorations;
+            Map<String, MapDecoration> decorations = MapAtlasesClient.getMutableDecorations(mapData.data);
             var d = decorations.get(decorationId);
             if (d != null) {
                 //we cant use string id because server has them different...
@@ -225,6 +210,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
                 //removes immediately from client so we update gui
                 decorations.remove(decorationId);
+                MapAtlasesClient.markDecorationsDirty(mapData.data);
             }
 
         }

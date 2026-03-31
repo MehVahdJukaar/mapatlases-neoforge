@@ -684,3 +684,39 @@ Important findings:
 
 - The next atlas overview screen work is now concentrated in the render path and decoration/map-widget logic, not the basic input or identifier plumbing
 - Keeping these helper migrations committed in small slices is reducing the eventual `26.1` compile burst when the atlas screen package is re-included
+
+## Decoration bookmark migration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas marker/bookmark behavior
+- local `26.1` deobfuscated client jars for decoration record access and widget/input signatures
+
+Work completed in this pass:
+
+- Ported `common/src/main/java/pepjebs/mapatlases/client/screen/DecorationBookmarkButton.java` further toward the `26.1` client API:
+  - updated bookmark key handling from integer key parameters to `KeyEvent`
+  - updated click handling to `MouseButtonEvent`
+  - migrated widget rendering to `GuiGraphicsExtractor`
+  - migrated the bookmark overlay blits to `RenderPipelines.GUI_TEXTURED`
+- Reworked the vanilla decoration branch to use `26.1` `MapDecoration` record accessors:
+  - `type()`
+  - `x()`
+  - `y()`
+  - `name()`
+  - `getSpriteLocation()`
+- Removed direct field mutation of `MapItemSavedData.decorations` in favor of the shared accessor helpers added earlier:
+  - `MapAtlasesClient.getMutableDecorations(...)`
+  - `MapAtlasesClient.markDecorationsDirty(...)`
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- Atlas marker/bookmark behavior is now much closer to the real `26.1` data model because it no longer assumes the old mutable decoration field or pre-record decoration API
+- The remaining atlas UI blockers are increasingly concentrated in the render-heavy classes, especially `PinNameBox`, `MapWidget`, `AbstractAtlasWidget`, `AtlasOverviewScreen`, and `MapAtlasesHUD`
