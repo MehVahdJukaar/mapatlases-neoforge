@@ -82,7 +82,7 @@ public class MapAtlasItem extends Item {
         if (player instanceof ServerPlayer sp) {
             syncAndOpenGui(sp, stack, null, false);
         }
-        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+        return level.isClientSide() ? InteractionResult.CONSUME : InteractionResult.SUCCESS_SERVER;
     }
 
     private static void convertOldAtlas(Level level, ItemStack stack) {

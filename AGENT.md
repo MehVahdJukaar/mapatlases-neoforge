@@ -1076,3 +1076,30 @@ Important findings:
 
 - The atlas GUI reopen regression was likely caused by the client atlas collection rebuilding itself from stale stack data every tick
 - Successful `addNotSynced(...)` resolutions must write back to the stack on Fabric 26.1, otherwise the client can immediately discard the synced map ids and treat the atlas as empty again
+
+## Atlas render and held-open checkpoint
+
+Recorded on `2026-03-31`.
+
+Work completed in this pass:
+
+- Improved atlas map lookup resilience in:
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/MapWidget.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/ui/MapAtlasesHUD.java`
+  - `common/src/main/java/pepjebs/mapatlases/client/screen/AtlasOverviewScreen.java`
+- Atlas map rendering no longer depends on an exact center-key match only
+  - if an exact tile lookup fails, the client now falls back to the nearest map in the same slice, but only when it is still within the expected half-map center tolerance
+  - this keeps the original structure while tolerating center drift in the current 26.1 sync path
+- Tightened held-item atlas use handling in `common/src/main/java/pepjebs/mapatlases/item/MapAtlasItem.java`
+  - normal right-click atlas open now returns `InteractionResult.CONSUME` client-side instead of plain `SUCCESS`
+  - this makes atlas open behave as a fully handled use action instead of a pass-through success
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- One plausible reason for the blank atlas panel was exact center mismatch between rendered tile requests and the current Fabric 26.1 client atlas collection state
+- The right-click atlas open path on 26.1 is sensitive to the returned `InteractionResult`; treating it as a consumed action is safer for GUI-open behavior than a plain client-side success

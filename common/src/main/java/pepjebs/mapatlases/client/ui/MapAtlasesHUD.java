@@ -63,7 +63,20 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         Slice slice = currentMapKey.slice();
-        return currentMaps.select(centerX, centerZ, slice);
+        MapDataHolder exact = currentMaps.select(centerX, centerZ, slice);
+        if (exact != null) {
+            return exact;
+        }
+        MapDataHolder closest = currentMaps.getClosest(centerX, centerZ, slice);
+        if (closest == null) {
+            return null;
+        }
+        int maxOffset = mapBlocksSize / 2;
+        if (Math.abs(closest.data.centerX - centerX) <= maxOffset &&
+                Math.abs(closest.data.centerZ - centerZ) <= maxOffset) {
+            return closest;
+        }
+        return null;
     }
 
     @Override

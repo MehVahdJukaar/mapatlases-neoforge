@@ -487,6 +487,11 @@ public class AtlasOverviewScreen extends Screen {
         return currentMaps.select(MapKey.at(currentMaps.getScale(), x, z, selectedSlice));
     }
 
+    @Nullable
+    protected MapDataHolder findClosestMap(double x, double z) {
+        return currentMaps.getClosest(x, z, selectedSlice);
+    }
+
     public static String getReadableName(Identifier id) {
         return getReadableName(id.getPath());
     }
