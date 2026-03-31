@@ -720,3 +720,31 @@ Important findings:
 
 - Atlas marker/bookmark behavior is now much closer to the real `26.1` data model because it no longer assumes the old mutable decoration field or pre-record decoration API
 - The remaining atlas UI blockers are increasingly concentrated in the render-heavy classes, especially `PinNameBox`, `MapWidget`, `AbstractAtlasWidget`, `AtlasOverviewScreen`, and `MapAtlasesHUD`
+
+## Pin name box migration checkpoint
+
+Recorded on `2026-03-31`.
+
+Reference used in this pass:
+
+- `F:/mapatlases-neoforge-ref` `multiloader` branch for atlas pin naming flow
+- local `26.1` deobfuscated client jars and bundled JOML classes for the new widget/input/render-state API surface
+
+Work completed in this pass:
+
+- Ported `common/src/main/java/pepjebs/mapatlases/client/screen/PinNameBox.java` to the `26.1` widget API:
+  - updated rendering from `GuiGraphics` to `GuiGraphicsExtractor`
+  - updated keyboard handling from integer key params to `KeyEvent`
+  - updated click handling to `MouseButtonEvent`
+  - updated wheel handling to the new `mouseScrolled(double, double, double, double)` signature
+- Preserved the marker index scrolling/animation bookkeeping and the moonlight marker-preview call flow, but adapted it to the extracted GUI render path
+
+Verification results:
+
+- `./gradlew.bat :fabric:build --console=plain`
+  - passes successfully
+
+Important findings:
+
+- The atlas UI port is now down to the classes that actually draw and animate the atlas map itself
+- The next high-value work item is the map rendering core in `MapWidget` and `AbstractAtlasWidget`, because that is the biggest remaining technical blocker before the atlas overview screen can be re-included

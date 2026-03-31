@@ -1,18 +1,17 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 
 import java.util.Random;
@@ -49,61 +48,47 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float partialTicks) {
-        PoseStack p = pGuiGraphics.pose();
-        p.pushPose();
-        p.translate(0, 0, 30);
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, partialTicks);
-        // int col = this.isFocused() ? -1 : -6250336;
-        //  pGuiGraphics.fill(this.getX() - 1 - this.height, this.getY() - 1,
-        //        this.getX() + 1, this.getY() + this.height + 1, col);
-        // pGuiGraphics.fill(this.getX() - this.height, this.getY(),
-        //       this.getX(), this.getY() + this.height, -16777216);
-        this.markerHovered = pMouseX >= (double) this.getX() - height - 1 && pMouseY >= this.getY() &&
-                pMouseX < (this.getX()) && pMouseY < (this.getY() + this.height);
+    public void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        graphics.nextStratum();
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
+
+        this.markerHovered = mouseX >= (double) this.getX() - height - 1 && mouseY >= this.getY() &&
+                mouseX < this.getX() && mouseY < (this.getY() + this.height);
         if (MapAtlasesMod.MOONLIGHT) {
-            p.pushPose();
-            p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f - 1, 0);
-            p.scale(2, 2, 1);
-            RenderSystem.setShaderColor(1, 1, 1, 1);
-
-
             float popIn = Mth.lerp(partialTicks, scrollPopInAnimationO, scrollPopInAnimation) * 3;
             float displayInd = Mth.lerp(partialTicks, displayIndexO, displayIndex);
-
-            //displayInd = 2.3f;
             float remainder = displayInd % 1;
             int closestInd = (int) displayInd;
-
-            p.translate(0, remainder * popIn, 0);
             int alphaDecrement = 120;
             int aa = (int) Mth.lerp(Mth.abs(remainder), 255, alphaDecrement);
-            ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, 0,
+            ClientMarkersRenderer.renderDecorationPreview(graphics,
+                    this.getX() - height / 2f - 2,
+                    this.getY() + height / 2f - 1 + remainder * popIn,
                     closestInd, this.markerHovered, aa);
 
             if (popIn != 0) {
-                p.pushPose();
                 for (int j = 1; j < 4; j++) {
                     int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
-                    p.translate(0, 0, -0.01);
                     if (al <= 0) break;
-                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
+                    graphics.nextStratum();
+                    ClientMarkersRenderer.renderDecorationPreview(graphics,
+                            this.getX() - height / 2f - 2,
+                            this.getY() + height / 2f - 1 + remainder * popIn + j * popIn,
+                            closestInd - j,
                             false, al);
                 }
-                p.popPose();
-                p.pushPose();
                 for (int j = 1; j < 4; j++) {
                     int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
-                    p.translate(0, 0, -0.01);
                     if (al <= 0) break;
-                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
+                    graphics.nextStratum();
+                    ClientMarkersRenderer.renderDecorationPreview(graphics,
+                            this.getX() - height / 2f - 2,
+                            this.getY() + height / 2f - 1 + remainder * popIn - j * popIn,
+                            closestInd + j,
                             false, al);
                 }
-                p.popPose();
             }
-            p.popPose();
         }
-        p.popPose();
     }
 
     @Override
@@ -131,8 +116,8 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if ((pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
+    public boolean keyPressed(KeyEvent event) {
+        if ((event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
             onDone.run();
             scrollVisibleCounter = 0;
             displayIndex = currentIndex;
@@ -141,17 +126,17 @@ public class PinNameBox extends EditBox {
             scrollPopInAnimationO = 0;
             return true;
         }
-        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    protected boolean clicked(double pMouseX, double pMouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         if (this.markerHovered) {
             increasePinIndex();
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            return false;
+            return;
         }
-        return super.clicked(pMouseX, pMouseY);
+        super.onClick(event, doubleClick);
     }
 
     public void increasePinIndex() {
@@ -161,10 +146,10 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         scrollVisibleCounter = 40;
-        this.currentIndex -= (float) pDelta;
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta);
+        this.currentIndex -= (float) scrollY;
+        return true;
     }
 
     private static float smoothStep(float start, float end, float speed) {
