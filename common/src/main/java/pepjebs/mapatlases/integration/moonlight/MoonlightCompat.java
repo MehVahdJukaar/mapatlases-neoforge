@@ -32,15 +32,19 @@ public class MoonlightCompat {
         }
         return accessor.getDecorations().entrySet().stream()
                 .filter(entry -> isCustomDecoration(entry.getKey(), entry.getValue()))
-                .map(entry -> new DecorationHolder(entry.getValue(), entry.getKey(), map))
+                .map(entry -> new DecorationHolder(
+                        new InternalPinDecoration(entry.getValue(), entry.getKey(), getPinIndex(entry.getKey())),
+                        entry.getKey(),
+                        map))
                 .toList();
     }
 
-    public static void addDecoration(MapItemSavedData data, BlockPos pos, Identifier id, @Nullable Component name) {
+    public static void addDecoration(MapItemSavedData data, BlockPos pos, Identifier id, @Nullable Component name, int index) {
         if (data instanceof MapItemSavedDataAccessor accessor) {
             Optional<Holder<MapDecorationType>> type = getInternalDecorationType(id);
             type.ifPresent(holder -> accessor.invokeAddDecoration(holder, null,
-                    INTERNAL_PIN_PREFIX + pos.asLong() + "_" + Integer.toHexString(name == null ? 0 : name.getString().hashCode()),
+                    INTERNAL_PIN_PREFIX + ClientMarkers.normalizePinIndex(index) + "_" + pos.asLong() + "_" +
+                            Integer.toHexString(name == null ? 0 : name.getString().hashCode()),
                     pos.getX() + 0.5D, pos.getZ() + 0.5D, 180.0D, name));
         }
     }
@@ -66,6 +70,22 @@ public class MoonlightCompat {
 
     public static boolean isCustomDecoration(String id, Object decoration) {
         return decoration instanceof MapDecoration && id.startsWith(INTERNAL_PIN_PREFIX);
+    }
+
+    public static int getPinIndex(String id) {
+        if (!id.startsWith(INTERNAL_PIN_PREFIX)) {
+            return 0;
+        }
+        int start = INTERNAL_PIN_PREFIX.length();
+        int end = id.indexOf('_', start);
+        if (end <= start) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(id.substring(start, end));
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     private static Optional<Holder<MapDecorationType>> getInternalDecorationType(Identifier id) {

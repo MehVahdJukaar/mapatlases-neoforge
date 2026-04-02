@@ -14,6 +14,10 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
+import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
+import pepjebs.mapatlases.integration.moonlight.InternalPinDecoration;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -37,6 +41,7 @@ public abstract class AbstractAtlasWidget {
     protected double currentXCenter;
     protected double currentZCenter;
     protected float zoomLevel = 3;
+    protected float mapRotationDegrees = 0;
 
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
@@ -76,19 +81,21 @@ public abstract class AbstractAtlasWidget {
         int centerMapX = c.x();
         int centerMapZ = c.z();
 
+        applyScissors(graphics, x, y, x + width, y + height);
+
         pose.translate(x + width / 2f, y + height / 2f);
         pose.scale(widgetScale * zoomScale, widgetScale * zoomScale);
 
         List<Pair<Integer, Integer>> normalBorders = new ArrayList<>();
         List<Pair<Integer, Integer>> selectedBorders = new ArrayList<>();
 
-        applyScissors(graphics, x, y, x + width, y + height);
-
         double mapCenterOffsetX = currentXCenter - centerMapX;
         double mapCenterOffsetZ = currentZCenter - centerMapZ;
 
         if (rotatesWithPlayer) {
-            pose.rotate((float) Math.toRadians(player.getYRot() - 180));
+            pose.rotate((float) Math.toRadians(180 - player.getYRot() + mapRotationDegrees));
+        } else if (mapRotationDegrees != 0) {
+            pose.rotate((float) Math.toRadians(mapRotationDegrees));
         }
         pose.translate((float) (-mapCenterOffsetX / scaleIndex), (float) (-mapCenterOffsetZ / scaleIndex));
 
@@ -215,6 +222,7 @@ public abstract class AbstractAtlasWidget {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMapRenderer().extractRenderState(new MapId(state.id), data, renderState);
         graphics.map(renderState);
+        renderCustomPins(graphics, state);
 
         if (state.data == selectedData) {
             selectedBorders.add(Pair.of(curMapComponentX, curMapComponentY));
@@ -225,6 +233,18 @@ public abstract class AbstractAtlasWidget {
         removed.forEach(d -> decorations.put(d.getKey(), d.getValue()));
         MapAtlasesClient.markDecorationsDirty(data);
         pose.popMatrix();
+    }
+
+    private void renderCustomPins(GuiGraphicsExtractor graphics, MapDataHolder state) {
+        for (var decorationHolder : MoonlightCompat.getCustomDecorations(state)) {
+            if (!(decorationHolder.deco() instanceof InternalPinDecoration pin)) {
+                continue;
+            }
+            float x = MAP_DIMENSION / 2f + pin.decoration().x() / 2f;
+            float y = MAP_DIMENSION / 2f + pin.decoration().y() / 2f;
+            CustomDecorationButton.renderStaticMarker(graphics, pin, x, y, 1,
+                    ClientMarkers.isClientDecoFocused(state, pin), 255);
+        }
     }
 
     private static byte getPlayerMarkerRot(Player p) {

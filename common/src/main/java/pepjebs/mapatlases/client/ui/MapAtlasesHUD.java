@@ -35,7 +35,8 @@ import pepjebs.mapatlases.utils.Slice;
 import java.util.Objects;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_FOREGROUND_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_PLAYER_DECORATION_TEXTURE;
 
 public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
 
@@ -92,8 +93,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
 
     @Override
     protected void applyScissors(GuiGraphicsExtractor graphics, int x, int y, int x1, int y1) {
-        super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale),
-                (int) (x1 * globalScale), (int) (y1 * globalScale));
+        super.applyScissors(graphics, x, y, x1, y1);
     }
 
     @Override
@@ -178,18 +178,21 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         MapAtlasesClient.setDecorationsTextScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationTextScale.get()));
         float yRot = mc.player.getYRot();
         if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(180 - yRot);
+            MapAtlasesClient.setDecorationRotation(yRot - 180);
         }
         int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? 0x00F000F0 :
                 packSkyLight(mc.level.getBrightness(LightLayer.SKY, mc.player.getOnPos().above()));
         int borderSize = (BG_SIZE - mapWidgetSize) / 2;
+
+        graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_HUD_BACKGROUND_TEXTURE, x, y,
+                0, 0, BG_SIZE, BG_SIZE, BG_SIZE, BG_SIZE);
 
         drawAtlas(graphics, x + borderSize, y + borderSize, mapWidgetSize, mapWidgetSize, mc.player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice().type(), light, null);
 
         graphics.nextStratum();
-        graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_HUD_BACKGROUND_TEXTURE, x, y,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_HUD_FOREGROUND_TEXTURE, x, y,
                 0, 0, BG_SIZE, BG_SIZE, BG_SIZE, BG_SIZE);
 
         MapAtlasesClient.setDecorationsScale(1);
@@ -206,15 +209,19 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         if (drawBigPlayerMarker) {
             pose.translate(-4.5f, -4f);
             graphics.nextStratum();
-            graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_ICON_TEXTURE, 0, 0,
-                    0, 0, 8, 8, 128, 128);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_PLAYER_DECORATION_TEXTURE, 0, 0,
+                    0, 0, 8, 8, 8, 8);
         }
         pose.popMatrix();
 
+        graphics.nextStratum();
         drawHudText(graphics, x, y, screenWidth, mapWidgetSize, anchorLocation);
+
+        graphics.nextStratum();
         drawCardinals(graphics, x, y, yRot);
 
-        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightPinTracking.get()) {
+        if (MapAtlasesClientConfig.moonlightCompat.get() && MapAtlasesClientConfig.moonlightPinTracking.get()) {
+            graphics.nextStratum();
             pose.pushMatrix();
             pose.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f);
             ClientMarkersRenderer.drawSmallPins(graphics, mc.font, currentXCenter + mapBlocksSize / 2f,
@@ -296,7 +303,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         pose.pushMatrix();
         pose.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f);
 
-        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? 360 - yRot : 180);
+        var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
         drawLetter(graphics, mc.font, a, b, "N");
@@ -396,8 +403,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
     }
 
     private static void drawStringWithLighterShadow(GuiGraphicsExtractor context, Font font, String text, float x, float y) {
-        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0x595959, false);
-        PlatStuff.drawString(context, font, text, x, y, 0xE0E0E0, false);
+        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0xFF595959, false);
+        PlatStuff.drawString(context, font, text, x, y, 0xFFE0E0E0, false);
     }
 
     public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {

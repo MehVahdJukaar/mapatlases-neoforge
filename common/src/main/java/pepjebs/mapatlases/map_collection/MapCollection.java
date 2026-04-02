@@ -128,6 +128,8 @@ public class MapCollection implements IMapCollection {
         if (d != null && d.scale == scale) {
             MapKey key = found.makeKey();
             MapDataHolder existing = maps.get(key);
+            boolean knownId = ids.contains(intId);
+            boolean pendingId = notSyncedIds.contains(intId);
 
             //from now on we assume that all client maps cant have their center and data unfilled
             if (existing != null) {
@@ -138,8 +140,11 @@ public class MapCollection implements IMapCollection {
                 MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().identifier());
                 return false;
             }
-            if (!ids.add(intId)) {
+            if (!knownId && !ids.add(intId)) {
                 notSyncedIds.remove(intId);
+                return false;
+            }
+            if (knownId && !pendingId) {
                 return false;
             }
             maps.put(key, found);

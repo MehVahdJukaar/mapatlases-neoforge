@@ -29,11 +29,13 @@ public class C2SMarkerPacket implements Message {
     private final ColumnPos pos;
     private final String mapId;
     private final String name;
+    private final int index;
 
     public C2SMarkerPacket(FriendlyByteBuf buf) {
         this.pos = fromLong(buf.readLong());
         this.mapId = buf.readUtf();
         this.name = buf.readOptional(FriendlyByteBuf::readUtf).orElse(null);
+        this.index = buf.readVarInt();
     }
 
     public ColumnPos fromLong(long combinedValue) {
@@ -42,10 +44,11 @@ public class C2SMarkerPacket implements Message {
         return new ColumnPos(x,z);
     }
 
-    public C2SMarkerPacket(ColumnPos pos, String map, @Nullable String name) {
+    public C2SMarkerPacket(ColumnPos pos, String map, @Nullable String name, int index) {
         this.pos = pos;
         this.mapId = map;
         this.name = name;
+        this.index = index;
     }
 
     @Override
@@ -53,6 +56,7 @@ public class C2SMarkerPacket implements Message {
         buf.writeLong(pos.toLong());
         buf.writeUtf(mapId);
         buf.writeOptional(Optional.ofNullable(name), FriendlyByteBuf::writeUtf);
+        buf.writeVarInt(index);
     }
 
     @Override
@@ -79,7 +83,7 @@ public class C2SMarkerPacket implements Message {
                             "pin_" + pos,
                             d0, d1, 180.0D, literal));
                 } else {
-                    MoonlightCompat.addDecoration(data, new BlockPos(pos.x(), 0, pos.z()), id, literal);
+                    MoonlightCompat.addDecoration(data, new BlockPos(pos.x(), 0, pos.z()), id, literal, index);
                 }
             }
         }

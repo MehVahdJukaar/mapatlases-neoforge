@@ -42,7 +42,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
-    public static final Identifier MAP_ICON_TEXTURE = Identifier.withDefaultNamespace("textures/map/map_icons.png");
+    public static final Identifier MAP_PLAYER_DECORATION_TEXTURE =
+            Identifier.withDefaultNamespace("textures/map/decorations/player.png");
     public static final Identifier ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final Identifier ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final Identifier ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");

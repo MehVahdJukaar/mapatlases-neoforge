@@ -30,8 +30,6 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_ICON_TEXTURE;
-
 public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
 
     private static final int PAN_BUCKET = 25;
@@ -73,9 +71,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
 
     @Override
     protected void applyScissors(GuiGraphicsExtractor graphics, int x, int y, int x1, int y1) {
-        var v = mapScreen.transformPos(x, y);
-        var v2 = mapScreen.transformPos(x1, y1);
-        super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
+        super.applyScissors(graphics, x, y, x1, y1);
     }
 
     public void extractRenderState(GuiGraphicsExtractor graphics, int pMouseX, int pMouseY, float pPartialTick) {

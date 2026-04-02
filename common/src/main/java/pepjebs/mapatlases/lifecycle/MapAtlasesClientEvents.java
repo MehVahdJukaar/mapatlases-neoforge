@@ -122,7 +122,7 @@ public class MapAtlasesClientEvents {
 
     public static void onLoggedOut() {
         MapAtlasesClient.clearPendingOpenScreen();
-        if (MapAtlasesMod.MOONLIGHT) ClientMarkers.saveClientMarkers();
+        ClientMarkers.unloadWorld();
     }
 
     //make this client sided
