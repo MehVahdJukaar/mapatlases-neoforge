@@ -45,6 +45,7 @@ public abstract class AbstractAtlasWidget {
 
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
+    protected boolean drawMapDecorationsFallback = false;
 
     protected AbstractAtlasWidget(int atlasesCount) {
         this.atlasesCount = atlasesCount;
@@ -222,6 +223,9 @@ public abstract class AbstractAtlasWidget {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMapRenderer().extractRenderState(new MapId(state.id), data, renderState);
         graphics.map(renderState);
+        if (drawMapDecorationsFallback) {
+            renderDecorationsFallback(graphics, decorations);
+        }
         renderCustomPins(graphics, state);
 
         if (state.data == selectedData) {
@@ -236,14 +240,49 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void renderCustomPins(GuiGraphicsExtractor graphics, MapDataHolder state) {
+        float scale = drawMapDecorationsFallback ? MapAtlasesClient.getDecorationsScale() : 1.0F;
         for (var decorationHolder : MoonlightCompat.getCustomDecorations(state)) {
             if (!(decorationHolder.deco() instanceof InternalPinDecoration pin)) {
                 continue;
             }
             float x = MAP_DIMENSION / 2f + pin.decoration().x() / 2f;
             float y = MAP_DIMENSION / 2f + pin.decoration().y() / 2f;
-            CustomDecorationButton.renderStaticMarker(graphics, pin, x, y, 1,
+            CustomDecorationButton.renderStaticMarker(graphics, pin, x, y, scale,
                     ClientMarkers.isClientDecoFocused(state, pin), 255);
+        }
+    }
+
+    private void renderDecorationsFallback(GuiGraphicsExtractor graphics, Map<String, MapDecoration> decorations) {
+        Matrix3x2fStack pose = graphics.pose();
+        float scale = MapAtlasesClient.getDecorationsScale();
+        for (var entry : decorations.entrySet()) {
+            MapDecoration decoration = entry.getValue();
+            if (MoonlightCompat.isCustomDecoration(entry.getKey(), decoration)) {
+                continue;
+            }
+
+            float x = MAP_DIMENSION / 2f + decoration.x() / 2f;
+            float y = MAP_DIMENSION / 2f + decoration.y() / 2f;
+            float rotationDegrees = decoration.rot() * 360.0f / 16.0f;
+            if (decoration.type().equals(MapDecorationTypes.PLAYER)) {
+                rotationDegrees += 180.0f;
+            }
+
+            pose.pushMatrix();
+            pose.translate(x, y);
+            if (rotationDegrees != 0) {
+                pose.rotate((float) Math.toRadians(rotationDegrees));
+            }
+            pose.scale(scale, scale);
+            pose.translate(-4f, -4f);
+
+            graphics.nextStratum();
+            graphics.blit(RenderPipelines.GUI_TEXTURED,
+                    decoration.type().equals(MapDecorationTypes.PLAYER)
+                            ? MapAtlasesClient.MAP_PLAYER_DECORATION_TEXTURE
+                            : decoration.getSpriteLocation(),
+                    0, 0, 0, 0, 8, 8, 8, 8);
+            pose.popMatrix();
         }
     }
 

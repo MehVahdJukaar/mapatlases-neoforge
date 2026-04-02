@@ -264,6 +264,10 @@ public class MapAtlasesClient {
         decorationScale = i;
     }
 
+    public static float getDecorationsScale() {
+        return decorationScale;
+    }
+
     public static void setDecorationsTextScale(float i) {
         decorationTextScale = i;
     }

@@ -521,7 +521,7 @@ public class AtlasOverviewScreen extends Screen {
             int error = 0;
             return;
         }
-        boolean followPlayer = initialized && isWherePlayerIs && MapAtlasesClientConfig.worldMapFollowPlayer.get();
+        boolean followPlayer = isWherePlayerIs && MapAtlasesClientConfig.worldMapFollowPlayer.get();
         this.mapWidget.resetAndCenter(center.centerX, center.centerZ, followPlayer, changedDim);
         for (var v : dimensionBookmarks) {
             v.setSelected(v.getDimension().equals(dimension));
