@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,7 +27,7 @@ public abstract class ItemInHandRendererMixin {
 
     @ModifyExpressionValue(method = "renderArmWithItem", at =  @At(value = "INVOKE",
             ordinal = 0,
-            target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
+            target = "Lnet/minecraft/world/item/ItemStack;has(Lnet/minecraft/core/component/DataComponentType;)Z"))
     public boolean renderMapAtlasItem(boolean isNormalMap, @Local ItemStack pStack){
         if(pStack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(pStack)){
             mapatlases$renderingAtlas = true;
@@ -37,9 +37,10 @@ public abstract class ItemInHandRendererMixin {
     }
 
     @Inject(method = "renderMap", at = @At("HEAD"), cancellable = true)
-    public void renderMapAtlasInHand(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, ItemStack pStack, CallbackInfo ci){
+    public void renderMapAtlasInHand(PoseStack pPoseStack, SubmitNodeCollector submitNodeCollector, int pCombinedLight,
+                                     ItemStack pStack, CallbackInfo ci){
         if(mapatlases$renderingAtlas){
-            AtlasInHandRenderer.render(pPoseStack, pBuffer, pCombinedLight, pStack, this.minecraft);
+            AtlasInHandRenderer.render(pPoseStack, submitNodeCollector, pCombinedLight, pStack, this.minecraft);
             mapatlases$renderingAtlas = false;
             ci.cancel();
         }
