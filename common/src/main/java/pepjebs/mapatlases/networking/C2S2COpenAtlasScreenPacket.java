@@ -50,9 +50,18 @@ public class C2S2COpenAtlasScreenPacket implements Message {
         // we need all this craziness as we need to ensure maps are sent before gui is opened
 
         if (context.getDirection() == NetworkDir.PLAY_TO_CLIENT) {
+            MapAtlasesMod.LOGGER.info(
+                    "[atlas-open] packet client handle lecternPos={} pinOnly={}",
+                    lecternPos,
+                    pinOnly);
             // open screen
             MapAtlasesClient.openScreen(lecternPos, pinOnly);
         } else {
+            MapAtlasesMod.LOGGER.info(
+                    "[atlas-open] packet server handle sender={} lecternPos={} pinOnly={}",
+                    context.getSender() instanceof ServerPlayer player ? player.getName().getString() : "<no-sender>",
+                    lecternPos,
+                    pinOnly);
             // sends all atlas and then send this but to client
             if (!(context.getSender() instanceof ServerPlayer player)) return;
 
@@ -64,6 +73,10 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             } else {
                 atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
             }
+            MapAtlasesMod.LOGGER.info(
+                    "[atlas-open] packet server resolved atlas_empty={} atlas_item={}",
+                    atlas.isEmpty(),
+                    atlas.isEmpty() ? "<empty>" : atlas.getItem());
             if (atlas.getItem() instanceof MapAtlasItem) {
                 if (pinOnly) {
                     player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);

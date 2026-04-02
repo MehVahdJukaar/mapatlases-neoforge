@@ -218,6 +218,14 @@ public class MapAtlasesClient {
             atlas = ItemStack.EMPTY;
         }
 
+        MapAtlasesMod.LOGGER.info(
+                "[atlas-open] client openScreen resolve lecternPos={} pinOnly={} atlas_empty={} atlas_ids={} current_active_ids={}",
+                lecternPos,
+                pinOnly,
+                atlas.isEmpty(),
+                atlas.isEmpty() ? 0 : MapAtlasItem.getMaps(atlas, player.level()).getAllIds().length,
+                currentActiveAtlas.isEmpty() ? 0 : MapAtlasItem.getMaps(currentActiveAtlas, player.level()).getAllIds().length);
+
         if (atlas.getItem() instanceof MapAtlasItem) {
             openScreen(atlas, lectern, pinOnly);
         }
@@ -232,6 +240,11 @@ public class MapAtlasesClient {
 
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         maps.addNotSynced(level);
+        MapAtlasesMod.LOGGER.info(
+                "[atlas-open] client openScreen atlas_ids={} synced_maps={} pending_ids={}",
+                maps.getAllIds().length,
+                maps.getAll().size(),
+                Math.max(0, maps.getAllIds().length - maps.getAll().size()));
         if (!maps.isEmpty()) {
             minecraft.setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
         } else if (maps.getAllIds().length > 0) {
