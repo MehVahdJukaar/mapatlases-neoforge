@@ -398,8 +398,8 @@ public class MapAtlasesServerEvents {
         if (PlatHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
                 // After reconnect/reload the client no longer has atlas map data cached.
-                // Resend the atlas maps so the book/hud history is immediately available again.
-                MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
+                // Force a carried-map sync so every atlas page is resent, not just the nearby tail.
+                MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.SET_TRUE);
             }
             // Also refresh the carried inventory stack so the client atlas item keeps its saved map id list.
             player.inventoryMenu.broadcastFullState();

@@ -17,6 +17,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.saveddata.maps.MapId;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +27,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.IMapCollection;
+import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
@@ -63,8 +66,39 @@ public class MapAtlasItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay,
                                 Consumer<Component> tooltip, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltip, isAdvanced);
-        tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_maps", getEmptyMaps(stack))
+        CompoundTag tag = ItemStackData.getTag(stack);
+        int[] mapIds = tag != null ? tag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
+        int mapSize = mapIds.length;
+        int empties = getEmptyMaps(stack);
+        if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
+            tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_full")
+                    .withStyle(ChatFormatting.ITALIC)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize)
                 .withStyle(ChatFormatting.GRAY));
+        if (MapAtlasesConfig.requireEmptyMapsToExpand.get() &&
+                MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
+            if (mapSize + empties == 0) {
+                empties = MapAtlasesConfig.pityActivationMapCount.get();
+            }
+            tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
+        MapItemSavedData firstMap = mapIds.length > 0 ? context.mapData(new MapId(mapIds[0])) : null;
+        int scale = firstMap != null ? 1 << firstMap.scale : 1;
+        tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_scale", scale)
+                .withStyle(ChatFormatting.GRAY));
+
+        if (isLocked(stack)) {
+            tooltip.accept(Component.translatable("item.map_atlases.atlas.tooltip_locked")
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
+            tooltip.accept(Component.translatable("item.map_atlases.atlas.supplementaries_antique")
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Override
@@ -178,8 +212,9 @@ public class MapAtlasItem extends Item {
         //we need to send all data for all dimensions as they are not sent automatically
         IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
-            // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
+            // Force atlas pages to be treated as carried during initial GUI sync so old pages
+            // are resent even if vanilla no longer recognizes atlas stacks as map carriers.
+            MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.SET_TRUE);
         }
         // Fabric 26.1 is not reliably syncing the atlas custom data to the client before GUI open.
         // Force a full inventory/menu refresh so the client atlas stack has the current map id list.

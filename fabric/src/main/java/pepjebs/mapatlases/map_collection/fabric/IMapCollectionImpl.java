@@ -68,8 +68,11 @@ public class IMapCollectionImpl implements IMapCollection {
     @Override
     public boolean add(int mapId, Level level) {
         if (instance != null) {
+            int[] before = instance.getAllIds();
             boolean ret = instance.add(mapId, level);
-            if (ret) markDirty();
+            if (!Arrays.equals(before, instance.getAllIds())) {
+                markDirty();
+            }
             return ret;
         }
         return false;
