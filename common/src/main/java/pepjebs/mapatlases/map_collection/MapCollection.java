@@ -109,13 +109,13 @@ public class MapCollection implements IMapCollection {
             if (ids.contains(intId)) {
                 return false;
             }
+            // Keep unresolved ids around on both sides so atlas history is not discarded during reloads.
+            // The actual map data can become available later and be promoted via addNotSynced.
             if (level instanceof ServerLevel) {
-                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().identifier());
-            } else {
-                //wait till we receive data from server
-                ids.add(intId);
-                notSyncedIds.add(intId);
+                MapAtlasesMod.LOGGER.warn("Map with id {} not yet available in level {}; keeping it pending", intId, level.dimension().identifier());
             }
+            ids.add(intId);
+            notSyncedIds.add(intId);
             return false;
         }
 

@@ -105,6 +105,7 @@ public class MapAtlasesServerEvents {
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.addNotSynced(level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
@@ -294,6 +295,7 @@ public class MapAtlasesServerEvents {
         int emptyCount = MapAtlasItem.getEmptyMaps(atlas);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
         boolean addedMap = false;
+        boolean atlasChanged = false;
         if (!mutex.isLocked() && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
             mutex.lock();
 
@@ -301,6 +303,7 @@ public class MapAtlasesServerEvents {
             if (!player.isCreative() && !bypassEmptyMaps) {
                 //remove 1 map
                 MapAtlasItem.increaseEmptyMaps(atlas, -1);
+                atlasChanged = true;
             }
             //validate height
             Integer height = slice.height();
@@ -322,10 +325,14 @@ public class MapAtlasesServerEvents {
                     MapAtlasesAccessUtils.updateMapDataAndSync(newData, player, newMap, TriState.SET_TRUE);
                 }
                 addedMap = maps.add(mapId, level);
+                atlasChanged |= addedMap;
             }
             mutex.unlock();
         }
 
+        if (atlasChanged) {
+            player.getInventory().setChanged();
+        }
         if (addedMap) {
             // Play the sound
             player.level().playSound(null, player.blockPosition(),
@@ -381,17 +388,23 @@ public class MapAtlasesServerEvents {
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.addNotSynced(level);
 
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         // sets new center map
         MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
 
-        //TODO: figure out why its not synced automatically
         if (PlatHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
-                // update all maps and sends them to player, if needed
-               // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
+                // After reconnect/reload the client no longer has atlas map data cached.
+                // Resend the atlas maps so the book/hud history is immediately available again.
+                MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, TriState.PASS);
+            }
+            // Also refresh the carried inventory stack so the client atlas item keeps its saved map id list.
+            player.inventoryMenu.broadcastFullState();
+            if (player.containerMenu != player.inventoryMenu) {
+                player.containerMenu.broadcastFullState();
             }
         }
     }

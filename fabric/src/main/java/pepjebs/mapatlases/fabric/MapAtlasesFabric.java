@@ -1,8 +1,8 @@
 package pepjebs.mapatlases.fabric;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 
@@ -19,9 +19,8 @@ public class MapAtlasesFabric implements ModInitializer {
             }
         });
 
-        ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
-            if(joined)MapAtlasesServerEvents.onPlayerJoin(player);
-        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                MapAtlasesServerEvents.onPlayerJoin(handler.getPlayer()));
     }
 
 
