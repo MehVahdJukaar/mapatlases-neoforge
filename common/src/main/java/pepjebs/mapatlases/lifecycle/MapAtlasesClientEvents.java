@@ -65,7 +65,7 @@ public class MapAtlasesClientEvents {
             if (client.level == null || client.player == null) return;
             ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
             if (atlas.getItem() instanceof MapAtlasItem) {
-                MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
+                MapAtlasesNetworking.CHANNEL.sendToServer(C2S2COpenAtlasScreenPacket.forActiveAtlas(false));
             }
         }
 
@@ -74,7 +74,7 @@ public class MapAtlasesClientEvents {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {
-                    MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket(null, true));
+                    MapAtlasesNetworking.CHANNEL.sendToServer(C2S2COpenAtlasScreenPacket.forActiveAtlas(true));
                 }
             }
         }

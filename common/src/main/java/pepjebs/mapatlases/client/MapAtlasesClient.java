@@ -13,6 +13,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -31,6 +32,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
+import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.networking.S2CMapPacketWrapper;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
@@ -139,12 +141,8 @@ public class MapAtlasesClient {
                 currentActiveMapKey = selected.makeKey();
                 currentActiveMap = selected;
             }
-            if (pendingOpenScreen != null && currentActiveMap != null) {
-                PendingOpenScreen pending = pendingOpenScreen;
-                pendingOpenScreen = null;
-                openScreen(atlas, pending.lectern(), pending.pinOnly());
-            }
         }
+        tryOpenPendingScreen();
     }
 
     public static ItemStack getCurrentActiveAtlas() {
@@ -200,7 +198,12 @@ public class MapAtlasesClient {
         }
     }
 
-    public static void openScreen(@Nullable BlockPos lecternPos, boolean pinOnly) {
+    public static void openScreen(
+            C2S2COpenAtlasScreenPacket.OpenSource source,
+            @Nullable InteractionHand hand,
+            @Nullable BlockPos lecternPos,
+            boolean pinOnly
+    ) {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         if (player == null) {
@@ -208,30 +211,41 @@ public class MapAtlasesClient {
         }
 
         LecternBlockEntity lectern = null;
-        ItemStack atlas;
-        if (lecternPos == null) {
-            atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-        } else if (player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lecternBlockEntity) {
-            lectern = lecternBlockEntity;
-            atlas = lecternBlockEntity.getBook();
-        } else {
-            atlas = ItemStack.EMPTY;
-        }
+        ItemStack atlas = switch (source) {
+            case HAND -> hand == null ? ItemStack.EMPTY : player.getItemInHand(hand);
+            case ACTIVE_ATLAS -> MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+            case LECTERN -> {
+                if (lecternPos != null && player.level().getBlockEntity(lecternPos) instanceof LecternBlockEntity lecternBlockEntity) {
+                    lectern = lecternBlockEntity;
+                    yield lecternBlockEntity.getBook();
+                }
+                yield ItemStack.EMPTY;
+            }
+        };
 
         MapAtlasesMod.LOGGER.info(
-                "[atlas-open] client openScreen resolve lecternPos={} pinOnly={} atlas_empty={} atlas_ids={} current_active_ids={}",
+                "[atlas-open] client openScreen resolve source={} hand={} lecternPos={} pinOnly={} atlas_empty={} atlas_ids={} current_active_ids={}",
+                source,
+                hand,
                 lecternPos,
                 pinOnly,
                 atlas.isEmpty(),
-                atlas.isEmpty() ? 0 : MapAtlasItem.getMaps(atlas, player.level()).getAllIds().length,
-                currentActiveAtlas.isEmpty() ? 0 : MapAtlasItem.getMaps(currentActiveAtlas, player.level()).getAllIds().length);
+                atlas.isEmpty() ? 0 : MapAtlasItem.getStoredMapIds(atlas, player.level()).length,
+                currentActiveAtlas.isEmpty() ? 0 : MapAtlasItem.getStoredMapIds(currentActiveAtlas, player.level()).length);
 
         if (atlas.getItem() instanceof MapAtlasItem) {
-            openScreen(atlas, lectern, pinOnly);
+            openScreen(source, hand, lecternPos, atlas, lectern, pinOnly);
         }
     }
 
-    public static void openScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean pinOnly) {
+    public static void openScreen(
+            C2S2COpenAtlasScreenPacket.OpenSource source,
+            @Nullable InteractionHand hand,
+            @Nullable BlockPos lecternPos,
+            ItemStack atlas,
+            @Nullable LecternBlockEntity lectern,
+            boolean pinOnly
+    ) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level == null) {
@@ -240,20 +254,31 @@ public class MapAtlasesClient {
 
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         maps.addNotSynced(level);
+        int persistedIds = maps.getAllIds().length;
+        int resolvedMaps = maps.getAll().size();
         MapAtlasesMod.LOGGER.info(
                 "[atlas-open] client openScreen atlas_ids={} synced_maps={} pending_ids={}",
-                maps.getAllIds().length,
-                maps.getAll().size(),
-                Math.max(0, maps.getAllIds().length - maps.getAll().size()));
-        if (!maps.isEmpty()) {
+                persistedIds,
+                resolvedMaps,
+                Math.max(0, persistedIds - resolvedMaps));
+        if (persistedIds > 0 && resolvedMaps == persistedIds) {
             minecraft.setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
-        } else if (maps.getAllIds().length > 0) {
-            pendingOpenScreen = new PendingOpenScreen(lectern, pinOnly);
+            pendingOpenScreen = null;
+        } else if (persistedIds > 0) {
+            pendingOpenScreen = new PendingOpenScreen(source, hand, lecternPos, pinOnly);
         }
     }
 
     public static void clearPendingOpenScreen() {
         pendingOpenScreen = null;
+    }
+
+    private static void tryOpenPendingScreen() {
+        if (pendingOpenScreen == null) {
+            return;
+        }
+        PendingOpenScreen pending = pendingOpenScreen;
+        openScreen(pending.source(), pending.hand(), pending.lecternPos(), pending.pinOnly());
     }
 
     public static ContainerLevelAccess getClientAccess() {
@@ -340,6 +365,11 @@ public class MapAtlasesClient {
             .expireAfterAccess(10, TimeUnit.SECONDS)
             .build();
 
-    private record PendingOpenScreen(@Nullable LecternBlockEntity lectern, boolean pinOnly) {
+    private record PendingOpenScreen(
+            C2S2COpenAtlasScreenPacket.OpenSource source,
+            @Nullable InteractionHand hand,
+            @Nullable BlockPos lecternPos,
+            boolean pinOnly
+    ) {
     }
 }

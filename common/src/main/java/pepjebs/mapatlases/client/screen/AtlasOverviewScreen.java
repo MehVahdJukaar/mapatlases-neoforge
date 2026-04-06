@@ -242,6 +242,7 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public void tick() {
         this.currentMaps = MapAtlasItem.getMaps(atlas, level);
+        this.currentMaps.addNotSynced(level);
 
         if (mapWidget != null) {
             mapWidget.tick();

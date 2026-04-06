@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.AtlasLectern;
 
 @Mixin(LecternBlock.class)
@@ -54,7 +55,7 @@ public abstract class LecternBlockMixin extends Block {
                         //MapAtlasesClient.openScreen(atlas, lbe);
                     }
                 } else {
-                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, pos, false);
+                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, C2S2COpenAtlasScreenPacket.OpenSource.LECTERN, null, pos, false);
                 }
                 cir.setReturnValue(level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER);
             }

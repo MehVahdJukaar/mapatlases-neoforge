@@ -7,7 +7,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 public class MapAtlasesNetworking {
 
     public static final ChannelHandler CHANNEL = ChannelHandler.builder(MapAtlasesMod.MOD_ID)
-            .version(5)
+            .version(6)
             .register(NetworkDir.PLAY_TO_CLIENT, S2CMapPacketWrapper.class, S2CMapPacketWrapper::new)
             .register(NetworkDir.PLAY_TO_CLIENT, S2CWorldHashPacket.class, S2CWorldHashPacket::new)
             .register(NetworkDir.PLAY_TO_CLIENT, S2CDebugUpdateMapPacket.class, S2CDebugUpdateMapPacket::new)

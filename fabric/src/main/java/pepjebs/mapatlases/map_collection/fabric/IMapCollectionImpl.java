@@ -1,10 +1,12 @@
 package pepjebs.mapatlases.map_collection.fabric;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
@@ -13,21 +15,19 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
-// Proxy class
 public class IMapCollectionImpl implements IMapCollection {
 
     private static final IdentityHashMap<ItemStack, IMapCollectionImpl> INSTANCES = new IdentityHashMap<>();
 
     @Nullable
-    private MapCollection instance = null;
-
+    private MapCollection instance;
     private final ItemStack stack;
 
     public IMapCollectionImpl(ItemStack stack) {
@@ -41,27 +41,58 @@ public class IMapCollectionImpl implements IMapCollection {
     protected IMapCollection getOrCreateInstance(Level level) {
         if (instance == null || !matchesStackData()) {
             instance = new MapCollection();
-            var tag = ItemStackData.getTag(stack);
-            if (tag != null) {
-                instance.deserializeNBT(tag);
-            }
+            instance.deserializeNBT(serializedStateFromStack());
             instance.initialize(level);
+            migrateLegacyMapIds();
         }
         return this;
+    }
+
+    private CompoundTag serializedStateFromStack() {
+        CompoundTag tag = new CompoundTag();
+        tag.putIntArray(MapCollection.MAP_LIST_NBT, getPersistedMapIds());
+        return tag;
+    }
+
+    private int[] getPersistedMapIds() {
+        int[] componentIds = getComponentIds();
+        CompoundTag legacyTag = ItemStackData.getTag(stack);
+        int[] legacyIds = legacyTag != null ? legacyTag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
+        if (legacyIds.length == 0) {
+            return componentIds;
+        }
+
+        TreeSet<Integer> merged = new TreeSet<>();
+        Arrays.stream(componentIds).forEach(merged::add);
+        Arrays.stream(legacyIds).forEach(merged::add);
+        return merged.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private int[] getComponentIds() {
+        int[] ids = stack.get(MapAtlasesMod.ATLAS_MAP_IDS.get());
+        return ids == null ? new int[0] : Arrays.copyOf(ids, ids.length);
+    }
+
+    private void migrateLegacyMapIds() {
+        CompoundTag legacyTag = ItemStackData.getTag(stack);
+        if (legacyTag == null || !legacyTag.contains(MapCollection.MAP_LIST_NBT)) {
+            return;
+        }
+        int[] mergedIds = getPersistedMapIds();
+        stack.set(MapAtlasesMod.ATLAS_MAP_IDS.get(), Arrays.copyOf(mergedIds, mergedIds.length));
+        ItemStackData.update(stack, tag -> tag.remove(MapCollection.MAP_LIST_NBT));
     }
 
     private boolean matchesStackData() {
         if (instance == null) {
             return false;
         }
-        var tag = ItemStackData.getTag(stack);
-        int[] stackIds = tag != null ? tag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
-        return Arrays.equals(stackIds, instance.getAllIds());
+        return Arrays.equals(getPersistedMapIds(), instance.getAllIds());
     }
 
     private void markDirty() {
         if (instance != null) {
-            ItemStackData.update(stack, tag -> tag.putIntArray(MapCollection.MAP_LIST_NBT, instance.getAllIds()));
+            stack.set(MapAtlasesMod.ATLAS_MAP_IDS.get(), Arrays.copyOf(instance.getAllIds(), instance.getAllIds().length));
         }
     }
 
@@ -82,7 +113,9 @@ public class IMapCollectionImpl implements IMapCollection {
     public boolean remove(MapDataHolder obj) {
         if (instance != null) {
             boolean ret = instance.remove(obj);
-            if (ret) markDirty();
+            if (ret) {
+                markDirty();
+            }
             return ret;
         }
         return false;
@@ -108,6 +141,7 @@ public class IMapCollectionImpl implements IMapCollection {
         return instance == null ? new int[0] : instance.getAllIds();
     }
 
+    @Override
     public boolean hasId(int id) {
         return instance != null && instance.hasId(id);
     }
@@ -120,7 +154,6 @@ public class IMapCollectionImpl implements IMapCollection {
     @Override
     public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
         return instance == null ? List.of() : instance.getAvailableTypes(dimension);
-
     }
 
     @Override
@@ -131,7 +164,6 @@ public class IMapCollectionImpl implements IMapCollection {
     @Override
     public List<MapDataHolder> selectSection(Slice slice) {
         return instance == null ? List.of() : instance.selectSection(slice);
-
     }
 
     @Override
@@ -169,6 +201,4 @@ public class IMapCollectionImpl implements IMapCollection {
     public boolean hasOneSlice() {
         return instance != null && instance.hasOneSlice();
     }
-
-
 }

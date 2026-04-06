@@ -21,6 +21,6 @@ public abstract class ClientBoundMapPacketMixin {
     @Inject(method = "applyToMap", at = @At("RETURN"))
     public void onClientMapAdded(MapItemSavedData pMapdata, CallbackInfo ci){
         if(MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.convertXaero.get()) XaeroMinimapCompat.loadXaeroWaypoints(
-                MapItem.makeKey(this.mapId), pMapdata);
+                "map_" + this.mapId, pMapdata);
     }
 }

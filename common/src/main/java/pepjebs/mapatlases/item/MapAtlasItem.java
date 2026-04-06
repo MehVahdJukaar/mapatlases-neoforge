@@ -66,8 +66,7 @@ public class MapAtlasItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay,
                                 Consumer<Component> tooltip, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltip, isAdvanced);
-        CompoundTag tag = ItemStackData.getTag(stack);
-        int[] mapIds = tag != null ? tag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
+        int[] mapIds = getStoredMapIds(stack, null);
         int mapSize = mapIds.length;
         int empties = getEmptyMaps(stack);
         if (getMaxMapCount() != -1 && mapSize + empties >= getMaxMapCount()) {
@@ -127,7 +126,7 @@ public class MapAtlasItem extends Item {
                     player.getName().getString(),
                     hand,
                     MapAtlasItem.getMaps(stack, level).getAllIds().length);
-            MapAtlasesNetworking.CHANNEL.sendToServer(new C2S2COpenAtlasScreenPacket());
+            MapAtlasesNetworking.CHANNEL.sendToServer(C2S2COpenAtlasScreenPacket.forHand(hand));
             return InteractionResult.CONSUME;
         }
         return InteractionResult.SUCCESS_SERVER;
@@ -194,7 +193,14 @@ public class MapAtlasItem extends Item {
     // Utilities functions
 
 
-    public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @Nullable BlockPos lecternPos, boolean pinOnly) {
+    public static void syncAndOpenGui(
+            ServerPlayer player,
+            ItemStack atlas,
+            C2S2COpenAtlasScreenPacket.OpenSource source,
+            @Nullable InteractionHand hand,
+            @Nullable BlockPos lecternPos,
+            boolean pinOnly
+    ) {
         if (atlas.isEmpty()) {
             MapAtlasesMod.LOGGER.warn(
                     "[atlas-open] syncAndOpenGui aborted: empty atlas for player={} lecternPos={} pinOnly={}",
@@ -222,7 +228,7 @@ public class MapAtlasItem extends Item {
         if (player.containerMenu != player.inventoryMenu) {
             player.containerMenu.broadcastFullState();
         }
-        MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
+        MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(source, hand, lecternPos, pinOnly));
     }
 
     public static void setSelectedSlice(ItemStack stack, Slice slice) {
@@ -269,6 +275,26 @@ public class MapAtlasItem extends Item {
     }*/
     public static IMapCollection getMaps(ItemStack stack, Level level) {
        return IMapCollection.get(stack, level);
+    }
+
+    public static int[] getStoredMapIds(ItemStack stack, @Nullable Level level) {
+        int[] componentIds = stack.get(MapAtlasesMod.ATLAS_MAP_IDS.get());
+        CompoundTag tag = ItemStackData.getTag(stack);
+        int[] legacyIds = tag != null ? tag.getIntArray(MapCollection.MAP_LIST_NBT).orElseGet(() -> new int[0]) : new int[0];
+        if (componentIds == null || componentIds.length == 0) {
+            return level != null && legacyIds.length == 0 ? getMaps(stack, level).getAllIds() : legacyIds;
+        }
+        if (legacyIds.length == 0) {
+            return componentIds;
+        }
+        java.util.TreeSet<Integer> merged = new java.util.TreeSet<>();
+        for (int id : componentIds) {
+            merged.add(id);
+        }
+        for (int id : legacyIds) {
+            merged.add(id);
+        }
+        return merged.stream().mapToInt(Integer::intValue).toArray();
     }
 
     public static int getMaxMapCount() {

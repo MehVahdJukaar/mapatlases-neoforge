@@ -4,7 +4,10 @@ package pepjebs.mapatlases;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
@@ -29,6 +32,7 @@ import pepjebs.mapatlases.recipe.MapAtlasesCutExistingRecipe;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 
 public class MapAtlasesMod {
@@ -37,6 +41,7 @@ public class MapAtlasesMod {
     public static final Logger LOGGER = LogManager.getLogger("Map Atlases");
 
     public static final Supplier<MapAtlasItem> MAP_ATLAS;
+    public static final Supplier<DataComponentType<int[]>> ATLAS_MAP_IDS;
 
     public static final Supplier<RecipeSerializer<MapAtlasCreateRecipe>> MAP_ATLAS_CREATE_RECIPE;
     public static final Supplier<RecipeSerializer<MapAtlasesAddRecipe>> MAP_ATLAS_ADD_RECIPE;
@@ -96,6 +101,13 @@ public class MapAtlasesMod {
                 () -> new MapAtlasItem(new Item.Properties()
                         .setId(ResourceKey.create(Registries.ITEM, res("atlas")))
                         .stacksTo(16)));
+        ATLAS_MAP_IDS = registerDataComponent(res("atlas_map_ids"),
+                () -> DataComponentType.<int[]>builder()
+                        .persistent(com.mojang.serialization.Codec.INT_STREAM.xmap(IntStream::toArray, java.util.Arrays::stream))
+                        .networkSynchronized(ByteBufCodecs.fromCodecWithRegistries(
+                                com.mojang.serialization.Codec.INT_STREAM.xmap(IntStream::toArray, java.util.Arrays::stream)))
+                        .cacheEncoding()
+                        .build());
 
     }
 
@@ -106,6 +118,11 @@ public class MapAtlasesMod {
 
     public static Identifier res(String name) {
         return Identifier.fromNamespaceAndPath(MOD_ID, name);
+    }
+
+    private static <T> Supplier<DataComponentType<T>> registerDataComponent(Identifier id, Supplier<DataComponentType<T>> supplier) {
+        DataComponentType<T> value = Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, id, supplier.get());
+        return () -> value;
     }
 
     public static TriState containsHack() {

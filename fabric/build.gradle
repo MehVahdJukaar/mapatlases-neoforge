@@ -13,7 +13,6 @@ sourceSets {
         java.exclude(
                 "pepjebs/mapatlases/client/MapVertexConsumer.java",
                 "pepjebs/mapatlases/integration/fabric/**",
-                "pepjebs/mapatlases/map_collection/fabric/CCStuff.java",
                 "pepjebs/mapatlases/integration/JEICompat.java",
                 "pepjebs/mapatlases/integration/REICompat.java",
                 "pepjebs/mapatlases/integration/SpecialRecipeDisplays.java",
@@ -24,13 +23,10 @@ sourceSets {
                 "pepjebs/mapatlases/integration/moonlight/PinDecoration.java",
                 "pepjebs/mapatlases/integration/moonlight/PinDecorationRenderer.java",
                 "pepjebs/mapatlases/integration/moonlight/PinMarker.java",
-                "pepjebs/mapatlases/mixin/CartographyTableScreenMixin.java",
-                "pepjebs/mapatlases/mixin/ClientBoundMapPacketMixin.java",
                 "pepjebs/mapatlases/mixin/CompatTFMapRendererMixin.java",
+                "pepjebs/mapatlases/mixin/CartographyTableScreenMixin.java",
                 "pepjebs/mapatlases/mixin/LecternRendererMixin.java",
-                "pepjebs/mapatlases/mixin/MapRendererMixin.java",
-                "pepjebs/mapatlases/mixin/QuickPlayLogHackMixin.java",
-                "pepjebs/mapatlases/mixin/WorldSelectionListMixin.java"
+                "pepjebs/mapatlases/mixin/MapRendererMixin.java"
         )
     }
 }

@@ -19,9 +19,8 @@ import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.ItemStackData;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.lang.ref.WeakReference;
@@ -104,7 +103,8 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
                 break;
             }
         }
-        if (mapItemStack == null) {
+        Level level = levelReference.get();
+        if (mapItemStack == null || level == null) {
             return ItemStack.EMPTY;
         }
         Integer mapId = MapAtlasesAccessUtils.getMapId(mapItemStack);
@@ -112,8 +112,17 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;
         }
+        MapDataHolder holder = MapDataHolder.findFromId(level, mapId);
+        if (holder == null) {
+            return ItemStack.EMPTY;
+        }
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
-        ItemStackData.update(atlas, tag -> tag.putIntArray(MapCollection.MAP_LIST_NBT, new int[]{mapId}));
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        MapAtlasItem.setSelectedSlice(atlas, holder.slice);
+        if (!maps.add(mapId, level)) {
+            MapAtlasItem.increaseEmptyMaps(atlas, 1);
+        }
+        MapAtlasItem.increaseEmptyMaps(atlas, 0);
         return atlas;
     }
 
