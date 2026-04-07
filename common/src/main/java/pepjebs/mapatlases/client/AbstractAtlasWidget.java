@@ -18,6 +18,7 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.integration.moonlight.InternalPinDecoration;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -185,12 +186,15 @@ public abstract class AbstractAtlasWidget {
 
         MapItemSavedData data = state.data;
         Map<String, MapDecoration> decorations = MapAtlasesClient.getMutableDecorations(data);
+        List<DecorationHolder> customPins = new ArrayList<>(MoonlightCompat.getCustomDecorations(state));
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
         for (var e : decorations.entrySet()) {
             MapDecoration dec = e.getValue();
             var type = dec.type();
-            if (type.equals(MapDecorationTypes.PLAYER_OFF_MAP) || type.equals(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
+            if (MoonlightCompat.isCustomDecoration(e.getKey(), dec)) {
+                removed.add(e);
+            } else if (type.equals(MapDecorationTypes.PLAYER_OFF_MAP) || type.equals(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
                 if (data == mapWherePlayerIs.data && drawPlayerIcons) {
                     removed.add(e);
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
@@ -216,6 +220,7 @@ public abstract class AbstractAtlasWidget {
 
         removed.forEach(d -> decorations.remove(d.getKey()));
         added.forEach(d -> decorations.put(d.getKey(), d.getValue()));
+        MapAtlasesClient.markDecorationsDirty(data);
 
         light = MapAtlasesClient.debugIsMapUpdated(light, state.stringId);
 
@@ -226,7 +231,7 @@ public abstract class AbstractAtlasWidget {
         if (drawMapDecorationsFallback) {
             renderDecorationsFallback(graphics, decorations);
         }
-        renderCustomPins(graphics, state);
+        renderCustomPins(graphics, state, customPins);
 
         if (state.data == selectedData) {
             selectedBorders.add(Pair.of(curMapComponentX, curMapComponentY));
@@ -239,9 +244,9 @@ public abstract class AbstractAtlasWidget {
         pose.popMatrix();
     }
 
-    private void renderCustomPins(GuiGraphicsExtractor graphics, MapDataHolder state) {
+    private void renderCustomPins(GuiGraphicsExtractor graphics, MapDataHolder state, List<DecorationHolder> customPins) {
         float scale = drawMapDecorationsFallback ? MapAtlasesClient.getDecorationsScale() : 1.0F;
-        for (var decorationHolder : MoonlightCompat.getCustomDecorations(state)) {
+        for (var decorationHolder : customPins) {
             if (!(decorationHolder.deco() instanceof InternalPinDecoration pin)) {
                 continue;
             }

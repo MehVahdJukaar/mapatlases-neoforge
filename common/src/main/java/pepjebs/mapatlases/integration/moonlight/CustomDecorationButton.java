@@ -46,7 +46,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     public Component getDecorationName() {
-        return decoration.decoration().name().orElse(Component.translatable("message.map_atlases.pin"));
+        return decoration.decoration().name().orElse(Component.literal(
+                AtlasOverviewScreen.getReadableName(ClientMarkers.getPinTextureName(decoration.index()))));
     }
 
     @Override

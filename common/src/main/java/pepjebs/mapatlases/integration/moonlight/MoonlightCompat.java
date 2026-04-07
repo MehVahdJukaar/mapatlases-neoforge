@@ -6,10 +6,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
 import pepjebs.mapatlases.utils.DecorationHolder;
@@ -30,6 +30,7 @@ public class MoonlightCompat {
         if (!(map.data instanceof MapItemSavedDataAccessor accessor)) {
             return List.of();
         }
+        ClientMarkers.addMissingPinsToMap(map, accessor.getDecorations().keySet());
         return accessor.getDecorations().entrySet().stream()
                 .filter(entry -> isCustomDecoration(entry.getKey(), entry.getValue()))
                 .map(entry -> new DecorationHolder(
@@ -40,13 +41,23 @@ public class MoonlightCompat {
     }
 
     public static void addDecoration(MapItemSavedData data, BlockPos pos, Identifier id, @Nullable Component name, int index) {
+        addDecoration(data, pos, id, name, index, getPinId(pos, name, index));
+    }
+
+    static void addDecoration(MapItemSavedData data, BlockPos pos, Identifier id, @Nullable Component name, int index, String pinId) {
         if (data instanceof MapItemSavedDataAccessor accessor) {
             Optional<Holder<MapDecorationType>> type = getInternalDecorationType(id);
             type.ifPresent(holder -> accessor.invokeAddDecoration(holder, null,
-                    INTERNAL_PIN_PREFIX + ClientMarkers.normalizePinIndex(index) + "_" + pos.asLong() + "_" +
-                            Integer.toHexString(name == null ? 0 : name.getString().hashCode()),
+                    pinId,
                     pos.getX() + 0.5D, pos.getZ() + 0.5D, 180.0D, name));
+            accessor.invokeSetDecorationsDirty();
+            data.setDirty();
         }
+    }
+
+    static String getPinId(BlockPos pos, @Nullable Component name, int index) {
+        return INTERNAL_PIN_PREFIX + ClientMarkers.normalizePinIndex(index) + "_" + pos.asLong() + "_" +
+                Integer.toHexString(name == null ? 0 : name.getString().hashCode());
     }
 
     public static void removeCustomDecoration(MapItemSavedData data, int hash) {
@@ -55,6 +66,7 @@ public class MoonlightCompat {
                 if (isCustomDecoration(entry.getKey(), entry.getValue()) && entry.getValue().hashCode() == hash) {
                     accessor.invokeRemoveDecoration(entry.getKey());
                     accessor.invokeSetDecorationsDirty();
+                    data.setDirty();
                     return;
                 }
             }

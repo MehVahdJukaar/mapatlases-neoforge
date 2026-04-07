@@ -379,9 +379,7 @@ public class MapAtlasesServerEvents {
 
 
     public static void onPlayerJoin(ServerPlayer player) {
-        if (MapAtlasesMod.MOONLIGHT) {
-            MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
-        }
+        MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 

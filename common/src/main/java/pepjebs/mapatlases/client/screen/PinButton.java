@@ -6,7 +6,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.networking.C2SMarkerPacket;
@@ -31,9 +30,7 @@ public class PinButton extends BookmarkButton {
     }
 
     public static void placePin(MapDataHolder map, ColumnPos pos, String text, int index) {
-        if (MapAtlasesMod.MOONLIGHT) {
-            ClientMarkers.addPin(map, pos, text, index);
-        }
+        ClientMarkers.addPin(map, pos, text, index);
         MapAtlasesNetworking.CHANNEL.sendToServer(new C2SMarkerPacket(pos, map.stringId, text.isEmpty() ? null : text, index));
     }
 
