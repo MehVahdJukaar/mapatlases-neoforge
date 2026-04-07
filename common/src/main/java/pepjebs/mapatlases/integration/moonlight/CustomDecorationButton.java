@@ -82,6 +82,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     public static void renderStaticMarker(GuiGraphicsExtractor graphics, Object decorationType, float x, float y,
                                           float scale, boolean outline, int alpha) {
+        int color = withAlpha(alpha);
         if (decorationType instanceof InternalPinDecoration pin) {
             int size = Math.max(1, Math.round(8 * scale));
             int drawX = Math.round(x - size / 2f);
@@ -89,21 +90,27 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
             if (outline) {
                 graphics.nextStratum();
                 graphics.blit(RenderPipelines.GUI_TEXTURED, ClientMarkers.getPinTexture(pin.index(), false),
-                        drawX - 1, drawY - 1, 0, 0, size + 2, size + 2, 8, 8);
+                        drawX - 1, drawY - 1, 0, 0, size + 2, size + 2, 8, 8, 8, 8, color);
             }
             graphics.nextStratum();
             graphics.blit(RenderPipelines.GUI_TEXTURED, ClientMarkers.getPinTexture(pin.index(), false),
-                    drawX, drawY, 0, 0, size, size, 8, 8);
+                    drawX, drawY, 0, 0, size, size, 8, 8, 8, 8, color);
         } else if (decorationType instanceof Integer index) {
+            int size = Math.max(1, Math.round(8 * scale));
             graphics.nextStratum();
             graphics.blit(RenderPipelines.GUI_TEXTURED, ClientMarkers.getPinTexture(index, false),
-                    Math.round(x - 4 * scale), Math.round(y - 4 * scale), 0, 0,
-                    Math.round(8 * scale), Math.round(8 * scale), 8, 8);
+                    Math.round(x - size / 2f), Math.round(y - size / 2f), 0, 0,
+                    size, size, 8, 8, 8, 8, color);
         } else if (decorationType instanceof MapDecoration decoration) {
+            int size = Math.max(1, Math.round(8 * scale));
             graphics.nextStratum();
             graphics.blit(RenderPipelines.GUI_TEXTURED, decoration.getSpriteLocation(),
-                    Math.round(x - 4 * scale), Math.round(y - 4 * scale), 0, 0,
-                    Math.round(8 * scale), Math.round(8 * scale), 8, 8);
+                    Math.round(x - size / 2f), Math.round(y - size / 2f), 0, 0,
+                    size, size, 8, 8, 8, 8, color);
         }
+    }
+
+    private static int withAlpha(int alpha) {
+        return Math.max(0, Math.min(255, alpha)) << 24 | 0x00FFFFFF;
     }
 }

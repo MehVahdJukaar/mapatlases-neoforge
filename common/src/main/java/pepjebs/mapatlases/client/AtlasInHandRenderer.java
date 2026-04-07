@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.MapRenderState;
+import net.minecraft.client.renderer.state.MapRenderState.MapDecorationRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
@@ -21,7 +22,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 public class AtlasInHandRenderer {
 
@@ -89,26 +90,29 @@ public class AtlasInHandRenderer {
     private static void renderMapData(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight,
                                       Minecraft minecraft, MapDataHolder state, MapItemSavedData data) {
         List<DecorationHolder> customPins = new ArrayList<>(MoonlightCompat.getCustomDecorations(state));
-        Map<String, MapDecoration> decorations = MapAtlasesClient.getMutableDecorations(data);
-        List<Map.Entry<String, MapDecoration>> removedPins = new ArrayList<>();
-        for (var entry : decorations.entrySet()) {
-            if (MoonlightCompat.isCustomDecoration(entry.getKey(), entry.getValue())) {
-                removedPins.add(entry);
-            }
-        }
 
-        try {
-            removedPins.forEach(entry -> decorations.remove(entry.getKey()));
-            MapAtlasesClient.markDecorationsDirty(data);
+        var mapRenderer = minecraft.getMapRenderer();
+        mapRenderer.extractRenderState(new MapId(state.id), data, MAP_RENDER_STATE);
+        removeBackingPinStates(MAP_RENDER_STATE, customPins);
+        mapRenderer.render(MAP_RENDER_STATE, poseStack, submitNodeCollector, false, combinedLight);
+        renderCustomPins(poseStack, submitNodeCollector, combinedLight, customPins);
+    }
 
-            var mapRenderer = minecraft.getMapRenderer();
-            mapRenderer.extractRenderState(new MapId(state.id), data, MAP_RENDER_STATE);
-            mapRenderer.render(MAP_RENDER_STATE, poseStack, submitNodeCollector, false, combinedLight);
-            renderCustomPins(poseStack, submitNodeCollector, combinedLight, customPins);
-        } finally {
-            removedPins.forEach(entry -> decorations.put(entry.getKey(), entry.getValue()));
-            MapAtlasesClient.markDecorationsDirty(data);
+    private static void removeBackingPinStates(MapRenderState renderState, List<DecorationHolder> customPins) {
+        if (customPins.isEmpty()) {
+            return;
         }
+        renderState.decorations.removeIf(renderStateDecoration -> customPins.stream()
+                .filter(holder -> holder.deco() instanceof InternalPinDecoration)
+                .map(holder -> ((InternalPinDecoration) holder.deco()).decoration())
+                .anyMatch(decoration -> sameDecoration(renderStateDecoration, decoration)));
+    }
+
+    private static boolean sameDecoration(MapDecorationRenderState renderState, MapDecoration decoration) {
+        return renderState.x == decoration.x()
+                && renderState.y == decoration.y()
+                && renderState.rot == decoration.rot()
+                && Objects.equals(renderState.name, decoration.name().orElse(null));
     }
 
     private static void renderCustomPins(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight,
@@ -125,32 +129,32 @@ public class AtlasInHandRenderer {
 
     private static void renderPin(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight,
                                   InternalPinDecoration pin, float x, float y) {
-        float halfSize = 4.0F;
-        float left = x - halfSize;
-        float right = x + halfSize;
-        float top = y - halfSize;
-        float bottom = y + halfSize;
-        submitNodeCollector.submitCustomGeometry(
+        poseStack.pushPose();
+        poseStack.translate(x, y, -0.02F);
+        poseStack.scale(4.0F, 4.0F, 3.0F);
+        poseStack.translate(-0.125F, 0.125F, 0.0F);
+        submitNodeCollector.order(1).submitCustomGeometry(
                 poseStack,
                 RenderTypes.text(ClientMarkers.getPinTexture(pin.index(), false)),
                 (pose, vertexConsumer) -> {
-                    vertexConsumer.addVertex(pose, left, bottom, -0.01F)
+                    vertexConsumer.addVertex(pose, -1.0F, 1.0F, -0.001F)
                             .setColor(-1)
                             .setUv(0.0F, 1.0F)
                             .setLight(combinedLight);
-                    vertexConsumer.addVertex(pose, right, bottom, -0.01F)
+                    vertexConsumer.addVertex(pose, 1.0F, 1.0F, -0.001F)
                             .setColor(-1)
                             .setUv(1.0F, 1.0F)
                             .setLight(combinedLight);
-                    vertexConsumer.addVertex(pose, right, top, -0.01F)
+                    vertexConsumer.addVertex(pose, 1.0F, -1.0F, -0.001F)
                             .setColor(-1)
                             .setUv(1.0F, 0.0F)
                             .setLight(combinedLight);
-                    vertexConsumer.addVertex(pose, left, top, -0.01F)
+                    vertexConsumer.addVertex(pose, -1.0F, -1.0F, -0.001F)
                             .setColor(-1)
                             .setUv(0.0F, 0.0F)
                             .setLight(combinedLight);
                 }
         );
+        poseStack.popPose();
     }
 }

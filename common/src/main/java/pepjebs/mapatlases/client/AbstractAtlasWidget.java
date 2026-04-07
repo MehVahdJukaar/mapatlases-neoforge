@@ -245,7 +245,7 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void renderCustomPins(GuiGraphicsExtractor graphics, MapDataHolder state, List<DecorationHolder> customPins) {
-        float scale = drawMapDecorationsFallback ? MapAtlasesClient.getDecorationsScale() : 1.0F;
+        float scale = MapAtlasesClient.getDecorationsScale();
         for (var decorationHolder : customPins) {
             if (!(decorationHolder.deco() instanceof InternalPinDecoration pin)) {
                 continue;
