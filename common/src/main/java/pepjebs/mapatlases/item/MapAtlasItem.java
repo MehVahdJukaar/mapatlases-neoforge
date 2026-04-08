@@ -145,11 +145,10 @@ public class MapAtlasItem extends Item {
         BlockState blockState = level.getBlockState(blockPos);
         ItemStack stack = context.getItemInHand();
         if (blockState.is(Blocks.LECTERN)) {
-            if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah) {
-                ah.mapatlases$setAtlas(player, stack);
-                //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
+            if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah && ah.mapatlases$setAtlas(player, stack)) {
+                return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             }
-            return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+            return super.useOn(context);
         }
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide()) {
