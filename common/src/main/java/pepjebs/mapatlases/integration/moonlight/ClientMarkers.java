@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -37,19 +36,19 @@ public class ClientMarkers {
     private static final Set<String> FOCUSED_PINS = new HashSet<>();
     private static final Map<Integer, Map<String, PinData>> PINS_BY_MAP = new HashMap<>();
     private static String lastFolderNameOrIP = null;
-    private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
+    private static SaveTarget lastType = SaveTarget.SINGLEPLAYER;
     private static Path currentPath = null;
 
     @ApiStatus.Internal
-    public static void setWorldFolder(String pId, QuickPlayLog.Type type) {
+    public static void setWorldFolder(String pId, String serializedType) {
         lastFolderNameOrIP = pId;
-        lastType = type;
+        lastType = SaveTarget.fromSerializedName(serializedType);
     }
 
     @ApiStatus.Internal
     public static void deleteAllMarkersData(String folderName) {
         try {
-            Files.deleteIfExists(getFilePath(folderName, QuickPlayLog.Type.SINGLEPLAYER));
+            Files.deleteIfExists(getFilePath(folderName, SaveTarget.SINGLEPLAYER));
         } catch (Exception ignored) {
         }
     }
@@ -71,7 +70,7 @@ public class ClientMarkers {
             }
         }
         lastFolderNameOrIP = null;
-        lastType = QuickPlayLog.Type.SINGLEPLAYER;
+        lastType = SaveTarget.SINGLEPLAYER;
     }
 
     public static void saveClientMarkers() {
@@ -189,8 +188,8 @@ public class ClientMarkers {
         return mapId + ":" + pinId;
     }
 
-    private static Path getFilePath(String id, QuickPlayLog.Type type) {
-        String fileName = (type == QuickPlayLog.Type.SINGLEPLAYER ? id : sanitiseServerName(id));
+    private static Path getFilePath(String id, SaveTarget type) {
+        String fileName = (type == SaveTarget.SINGLEPLAYER ? id : sanitiseServerName(id));
         return PlatHelper.getGamePath()
                 .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".pins");
     }
@@ -200,6 +199,31 @@ public class ClientMarkers {
                 .replaceAll("\\]:\\d+$", "")
                 .replaceAll("[\\[\\]]", "")
                 .replaceAll("[^a-z0-9 ]", "_");
+    }
+
+    private enum SaveTarget {
+        SINGLEPLAYER("singleplayer"),
+        MULTIPLAYER("multiplayer"),
+        REALMS("realms");
+
+        private final String serializedName;
+
+        SaveTarget(String serializedName) {
+            this.serializedName = serializedName;
+        }
+
+        public String getSerializedName() {
+            return serializedName;
+        }
+
+        public static SaveTarget fromSerializedName(String serializedName) {
+            for (SaveTarget target : values()) {
+                if (target.serializedName.equals(serializedName)) {
+                    return target;
+                }
+            }
+            return SINGLEPLAYER;
+        }
     }
 
     private record PinData(String mapStringId, int mapId, BlockPos pos, String markerId, String text, int index, String id) {

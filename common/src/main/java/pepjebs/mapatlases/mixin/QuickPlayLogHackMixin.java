@@ -12,7 +12,7 @@ public class QuickPlayLogHackMixin {
 
     @Inject(method = "setWorldData", at = @At("HEAD"))
     public void associatedFolderNameWithLevelName(QuickPlayLog.Type pType, String pId, String pName, CallbackInfo ci) {
-        ClientMarkers.setWorldFolder(pId, pType);
+        ClientMarkers.setWorldFolder(pId, pType.getSerializedName());
     }
 
 }
