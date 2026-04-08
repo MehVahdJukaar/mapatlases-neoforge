@@ -72,23 +72,10 @@ public class C2S2COpenAtlasScreenPacket implements Message {
     @Override
     public void handle(ChannelHandler.Context context) {
         if (context.getDirection() == NetworkDir.PLAY_TO_CLIENT) {
-            MapAtlasesMod.LOGGER.info(
-                    "[atlas-open] packet client handle source={} hand={} lecternPos={} pinOnly={}",
-                    source,
-                    hand,
-                    lecternPos,
-                    pinOnly);
             MapAtlasesClient.openScreen(source, hand, lecternPos, pinOnly);
             return;
         }
 
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] packet server handle sender={} source={} hand={} lecternPos={} pinOnly={}",
-                context.getSender() instanceof ServerPlayer player ? player.getName().getString() : "<no-sender>",
-                source,
-                hand,
-                lecternPos,
-                pinOnly);
         if (!(context.getSender() instanceof ServerPlayer player)) {
             return;
         }
@@ -104,10 +91,6 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             }
         };
 
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] packet server resolved atlas_empty={} atlas_item={}",
-                atlas.isEmpty(),
-                atlas.isEmpty() ? "<empty>" : atlas.getItem());
         if (atlas.getItem() instanceof MapAtlasItem) {
             if (pinOnly) {
                 player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);

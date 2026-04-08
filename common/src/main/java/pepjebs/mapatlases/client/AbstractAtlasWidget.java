@@ -236,6 +236,9 @@ public abstract class AbstractAtlasWidget {
         MapRenderState renderState = new MapRenderState();
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.getMapRenderer().extractRenderState(new MapId(state.id), data, renderState);
+        if (drawMapDecorationsFallback) {
+            renderState.decorations.clear();
+        }
         graphics.map(renderState);
         if (drawMapDecorationsFallback) {
             renderDecorationsFallback(graphics, decorations);
@@ -278,7 +281,7 @@ public abstract class AbstractAtlasWidget {
 
             float x = MAP_DIMENSION / 2f + decoration.x() / 2f;
             float y = MAP_DIMENSION / 2f + decoration.y() / 2f;
-            float rotationDegrees = decoration.rot() * 360.0f / 16.0f;
+            float rotationDegrees = isBannerDecoration(decoration) ? 0.0f : decoration.rot() * 360.0f / 16.0f;
             if (decoration.type().equals(MapDecorationTypes.PLAYER)) {
                 rotationDegrees += 180.0f;
             }
@@ -295,10 +298,15 @@ public abstract class AbstractAtlasWidget {
             graphics.blit(RenderPipelines.GUI_TEXTURED,
                     decoration.type().equals(MapDecorationTypes.PLAYER)
                             ? MapAtlasesClient.MAP_PLAYER_DECORATION_TEXTURE
-                            : decoration.getSpriteLocation(),
+                            : MapAtlasesClient.getDecorationTexture(decoration),
                     0, 0, 0, 0, 8, 8, 8, 8);
             pose.popMatrix();
         }
+    }
+
+    private static boolean isBannerDecoration(MapDecoration decoration) {
+        return decoration.type().isBound() &&
+                decoration.type().value().assetId().getPath().startsWith("banner_");
     }
 
     private static byte getPlayerMarkerRot(Player p) {

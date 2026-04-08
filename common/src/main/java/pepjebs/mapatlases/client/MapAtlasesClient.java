@@ -224,16 +224,6 @@ public class MapAtlasesClient {
             }
         };
 
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] client openScreen resolve source={} hand={} lecternPos={} pinOnly={} atlas_empty={} atlas_ids={} current_active_ids={}",
-                source,
-                hand,
-                lecternPos,
-                pinOnly,
-                atlas.isEmpty(),
-                atlas.isEmpty() ? 0 : MapAtlasItem.getStoredMapIds(atlas, player.level()).length,
-                currentActiveAtlas.isEmpty() ? 0 : MapAtlasItem.getStoredMapIds(currentActiveAtlas, player.level()).length);
-
         if (atlas.getItem() instanceof MapAtlasItem) {
             openScreen(source, hand, lecternPos, atlas, lectern, pinOnly);
         }
@@ -257,11 +247,6 @@ public class MapAtlasesClient {
         maps.addNotSynced(level);
         int persistedIds = maps.getAllIds().length;
         int resolvedMaps = maps.getAll().size();
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] client openScreen atlas_ids={} synced_maps={} pending_ids={}",
-                persistedIds,
-                resolvedMaps,
-                Math.max(0, persistedIds - resolvedMaps));
         if (persistedIds > 0 && resolvedMaps == persistedIds) {
             minecraft.setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
             pendingOpenScreen = null;
@@ -313,6 +298,15 @@ public class MapAtlasesClient {
 
     public static void setDecorationRotation(float i) {
         decorationRotation = i;
+    }
+
+    public static Identifier getDecorationTexture(MapDecoration decoration) {
+        Identifier sprite = decoration.getSpriteLocation();
+        String path = sprite.getPath();
+        if (path.contains("/") || path.endsWith(".png")) {
+            return sprite;
+        }
+        return Identifier.fromNamespaceAndPath(sprite.getNamespace(), "textures/map/decorations/" + path + ".png");
     }
 
     public static void debugMapUpdated(String mapId) {

@@ -104,7 +104,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         } else if (decorationType instanceof MapDecoration decoration) {
             int size = Math.max(1, Math.round(8 * scale));
             graphics.nextStratum();
-            graphics.blit(RenderPipelines.GUI_TEXTURED, decoration.getSpriteLocation(),
+            graphics.blit(RenderPipelines.GUI_TEXTURED, pepjebs.mapatlases.client.MapAtlasesClient.getDecorationTexture(decoration),
                     Math.round(x - size / 2f), Math.round(y - size / 2f), 0, 0,
                     size, size, 8, 8, 8, 8, color);
         }

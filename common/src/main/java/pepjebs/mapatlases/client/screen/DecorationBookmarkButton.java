@@ -192,7 +192,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         @Override
         protected void renderDecoration(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
             graphics.nextStratum();
-            graphics.blit(RenderPipelines.GUI_TEXTURED, decoration.getSpriteLocation(),
+            graphics.blit(RenderPipelines.GUI_TEXTURED, MapAtlasesClient.getDecorationTexture(decoration),
                     getX() + width / 2 - 4, getY() + height / 2 - 4,
                     0, 0, 8, 8, 8, 8);
         }

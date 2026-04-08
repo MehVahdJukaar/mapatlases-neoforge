@@ -105,13 +105,6 @@ public class MapAtlasItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         CompoundTag tag = ItemStackData.getOrEmpty(stack);
         convertOldAtlas(level, stack);
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] use side={} hand={} secondary={} player={} atlas_empty={}",
-                level.isClientSide() ? "client" : "server",
-                hand,
-                player.isSecondaryUseActive(),
-                player.getName().getString(),
-                stack.isEmpty());
         if (player.isSecondaryUseActive()) {
             boolean locked = !tag.getBoolean(LOCKED_NBT).orElse(false);
             ItemStackData.update(stack, t -> t.putBoolean(LOCKED_NBT, locked));
@@ -121,11 +114,6 @@ public class MapAtlasItem extends Item {
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (level.isClientSide()) {
-            MapAtlasesMod.LOGGER.info(
-                    "[atlas-open] use client sending packet player={} hand={} held_ids={}",
-                    player.getName().getString(),
-                    hand,
-                    MapAtlasItem.getMaps(stack, level).getAllIds().length);
             MapAtlasesNetworking.CHANNEL.sendToServer(C2S2COpenAtlasScreenPacket.forHand(hand));
             return InteractionResult.CONSUME;
         }
@@ -156,15 +144,7 @@ public class MapAtlasItem extends Item {
         Level level = context.getLevel();
         BlockState blockState = level.getBlockState(blockPos);
         ItemStack stack = context.getItemInHand();
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] useOn side={} block={} hand={} player={} atlas_empty={}",
-                level.isClientSide() ? "client" : "server",
-                BuiltInRegistries.BLOCK.getKey(blockState.getBlock()),
-                context.getHand(),
-                player.getName().getString(),
-                stack.isEmpty());
         if (blockState.is(Blocks.LECTERN)) {
-            MapAtlasesMod.LOGGER.info("[atlas-open] useOn lectern branch");
             if (level.getBlockEntity(blockPos) instanceof AtlasLectern ah) {
                 ah.mapatlases$setAtlas(player, stack);
                 //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
@@ -172,7 +152,6 @@ public class MapAtlasItem extends Item {
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (blockState.is(BlockTags.BANNERS)) {
-            MapAtlasesMod.LOGGER.info("[atlas-open] useOn banner branch");
             if (!level.isClientSide()) {
 
                 IMapCollection maps = getMaps(stack, level);
@@ -184,7 +163,6 @@ public class MapAtlasItem extends Item {
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         } else {
-            MapAtlasesMod.LOGGER.info("[atlas-open] useOn fallback to use");
             return this.use(level, player, context.getHand());
         }
     }
@@ -202,19 +180,8 @@ public class MapAtlasItem extends Item {
             boolean pinOnly
     ) {
         if (atlas.isEmpty()) {
-            MapAtlasesMod.LOGGER.warn(
-                    "[atlas-open] syncAndOpenGui aborted: empty atlas for player={} lecternPos={} pinOnly={}",
-                    player.getName().getString(),
-                    lecternPos,
-                    pinOnly);
             return;
         }
-        MapAtlasesMod.LOGGER.info(
-                "[atlas-open] syncAndOpenGui player={} lecternPos={} pinOnly={} map_count={}",
-                player.getName().getString(),
-                lecternPos,
-                pinOnly,
-                MapAtlasItem.getMaps(atlas, player.level()).getAll().size());
         //we need to send all data for all dimensions as they are not sent automatically
         IMapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         for (var info : maps.getAll()) {
