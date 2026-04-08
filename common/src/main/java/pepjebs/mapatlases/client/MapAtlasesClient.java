@@ -197,6 +197,7 @@ public class MapAtlasesClient {
             accessor.setCenterZ(packet.centerZ);
             accessor.setDimension(ResourceKey.create(Registries.DIMENSION, packet.dimension));
         }
+        tryOpenPendingScreen();
     }
 
     public static void openScreen(

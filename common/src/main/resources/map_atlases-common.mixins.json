@@ -15,7 +15,9 @@
     "MixinCartographyTableHandlerFirstSlot"
   ],
   "client": [
-    "ItemInHandRendererMixin"
+    "ItemInHandRendererMixin",
+    "LecternRenderStateMixin",
+    "LecternRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,6 +2,7 @@ package pepjebs.mapatlases.mixin;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -27,8 +28,22 @@ public abstract class LecternBlockMixin extends Block {
         super(arg);
     }
 
+    @Inject(
+            method = "useItemOn",
+            at = @At(value = "HEAD"),
+            cancellable = true
+    )
+    public void injectAtlasPlacement(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                     InteractionHand hand, BlockHitResult hit,
+                                     CallbackInfoReturnable<InteractionResult> cir) {
+        if (!state.getValue(LecternBlock.HAS_BOOK)
+                && stack.getItem() instanceof MapAtlasItem
+                && level.getBlockEntity(pos) instanceof AtlasLectern lectern
+                && lectern.mapatlases$setAtlas(player, stack)) {
+            cir.setReturnValue(level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER);
+        }
+    }
 
-    //use click events?
     @Inject(
             method = "useWithoutItem",
             at = @At(value = "HEAD"),

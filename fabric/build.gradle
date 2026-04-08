@@ -25,7 +25,6 @@ sourceSets {
                 "pepjebs/mapatlases/integration/moonlight/PinMarker.java",
                 "pepjebs/mapatlases/mixin/CompatTFMapRendererMixin.java",
                 "pepjebs/mapatlases/mixin/CartographyTableScreenMixin.java",
-                "pepjebs/mapatlases/mixin/LecternRendererMixin.java",
                 "pepjebs/mapatlases/mixin/MapRendererMixin.java"
         )
     }

@@ -63,6 +63,10 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
                 atlas
         )){
             this.mapatlases$hasAtlas = true;
+            this.setChanged();
+            if (this.level != null) {
+                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+            }
             return true;
         }
         return false;
@@ -74,6 +78,10 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
         ItemStack atlas = this.book;
         this.book = ItemStack.EMPTY;
         this.onBookItemRemove();
+        this.setChanged();
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+        }
         return atlas;
     }
 
