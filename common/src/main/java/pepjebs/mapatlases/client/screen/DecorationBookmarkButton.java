@@ -134,7 +134,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
         Component mapIconComponent = getDecorationName();
         Tooltip t = Tooltip.create(mapIconComponent);
-        if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) {
+        if (!MapAtlasesClientConfig.drawPinMapCoords.get()) {
             return t;
         }
         Component coordsComponent = Component.literal("X: " + (int) getWorldX() + ", Z: " + (int) getWorldZ())

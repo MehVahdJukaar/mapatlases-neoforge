@@ -106,6 +106,12 @@ builder.setSynced();
     }
 
     public static void init(){
-
+        MapAtlasesMod.LOGGER.info(
+                "Common config active at {} | creative_teleport={} | light_map={} | mob_radar={}",
+                SPEC.path(),
+                creativeTeleport.get(),
+                lightMap.get(),
+                entityRadar.get()
+        );
     }
 }

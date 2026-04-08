@@ -737,7 +737,9 @@ public class AtlasOverviewScreen extends Screen {
 
 
     public boolean canTeleport() {
-        return isShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
+        return MapAtlasesConfig.creativeTeleport.get()
+                && isShiftDown()
+                && minecraft.gameMode.getPlayerMode().isCreative() &&
                 cursorAction == CursorAction.NONE && !editBox.active;
     }
 

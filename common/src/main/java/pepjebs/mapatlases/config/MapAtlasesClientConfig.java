@@ -238,5 +238,12 @@ public class MapAtlasesClientConfig {
 
 
     public static void init() {
+        MapAtlasesMod.LOGGER.info(
+                "Client config active at {} | hide_when_inventory_is_open={} | shows_map_background={} | hide_when_in_hand={}",
+                SPEC.path(),
+                hideWhenInventoryOpen.get(),
+                showsMapBackground.get(),
+                hideWhenInHand.get()
+        );
     }
 }

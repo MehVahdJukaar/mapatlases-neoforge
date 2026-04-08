@@ -14,6 +14,8 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.integration.moonlight.InternalPinDecoration;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_BACKGROUND_TEXTURE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_BORDER_TEXTURE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HOVERED_TEXTURE;
 
@@ -222,6 +225,12 @@ public abstract class AbstractAtlasWidget {
         added.forEach(d -> decorations.put(d.getKey(), d.getValue()));
         MapAtlasesClient.markDecorationsDirty(data);
 
+        if (MapAtlasesClientConfig.showsMapBackground.get()) {
+            graphics.nextStratum();
+            graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_BACKGROUND_TEXTURE, 0, 0,
+                    0, 0, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION);
+        }
+
         light = MapAtlasesClient.debugIsMapUpdated(light, state.stringId);
 
         MapRenderState renderState = new MapRenderState();
@@ -232,6 +241,7 @@ public abstract class AbstractAtlasWidget {
             renderDecorationsFallback(graphics, decorations);
         }
         renderCustomPins(graphics, state, customPins);
+        EntityRadar.renderMapMarkers(graphics, state, player);
 
         if (state.data == selectedData) {
             selectedBorders.add(Pair.of(curMapComponentX, curMapComponentY));

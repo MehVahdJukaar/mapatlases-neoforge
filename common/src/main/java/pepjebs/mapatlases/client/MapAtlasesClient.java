@@ -52,6 +52,7 @@ public class MapAtlasesClient {
     public static final Identifier GUI_ICONS_TEXTURE = Identifier.withDefaultNamespace("textures/gui/icons.png");
     public static final Identifier MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final Identifier MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
+    public static final Identifier MAP_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/map_background.png");
     public static final Identifier MAP_BORDER_TEXTURE = MapAtlasesMod.res("textures/gui/screen/map_border.png");
     public static final Identifier MAP_HOVERED_TEXTURE = MapAtlasesMod.res("textures/gui/screen/map_hovered.png");
 

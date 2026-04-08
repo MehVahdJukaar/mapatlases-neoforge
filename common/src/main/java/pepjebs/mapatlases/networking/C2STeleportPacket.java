@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.PlatStuff;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -80,6 +81,7 @@ public class C2STeleportPacket implements Message {
     @Override
     public void handle(ChannelHandler.Context context) {
         if (!(context.getSender() instanceof ServerPlayer player)) return;
+        if (!player.isCreative() || !MapAtlasesConfig.creativeTeleport.get()) return;
 
         var server = player.level().getServer();
         if (server == null) return;
