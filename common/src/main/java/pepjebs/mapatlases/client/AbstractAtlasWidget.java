@@ -281,7 +281,7 @@ public abstract class AbstractAtlasWidget {
 
             float x = MAP_DIMENSION / 2f + decoration.x() / 2f;
             float y = MAP_DIMENSION / 2f + decoration.y() / 2f;
-            float rotationDegrees = isBannerDecoration(decoration) ? 0.0f : decoration.rot() * 360.0f / 16.0f;
+            float rotationDegrees = isBannerDecoration(decoration) ? 180.0f : decoration.rot() * 360.0f / 16.0f;
             if (decoration.type().equals(MapDecorationTypes.PLAYER)) {
                 rotationDegrees += 180.0f;
             }
