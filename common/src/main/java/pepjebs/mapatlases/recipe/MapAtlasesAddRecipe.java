@@ -2,6 +2,7 @@ package pepjebs.mapatlases.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
@@ -47,43 +48,43 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     @Override
     public boolean matches(CraftingInput inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
+        int stickyCount = 0;
         int emptyMaps = 0;
         List<MapDataHolder> filledMaps = new ArrayList<>();
-        // ensure 1 and one only atlas
+
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
+            if (itemstack.isEmpty()) continue;
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 if (!atlas.isEmpty()) return false;
                 atlas = itemstack;
+            } else if (itemstack.is(Items.SLIME_BALL) || itemstack.is(Items.HONEY_BOTTLE)) {
+                stickyCount++;
             } else if (isEmptyMap(itemstack)) {
                 emptyMaps++;
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 filledMaps.add(MapAtlasesAccessUtils.findMapFromItemStack(level, itemstack));
-            } else if (!itemstack.isEmpty()) return false;
-        }
-        if (!atlas.isEmpty() && (emptyMaps != 0 || !filledMaps.isEmpty())) {
-
-            int extraMaps = emptyMaps + filledMaps.size();
-
-            // Ensure we're not trying to add too many Maps
-            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-            int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
-            if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + extraMaps - 1 > MapAtlasItem.getMaxMapCount()) {
+            } else {
                 return false;
             }
-            //ensure no duplicates
-
-            int atlasScale = maps.getScale();
-
-            // Ensure Filled Maps are all same Scale & Dimension
-            for (var d : filledMaps) {
-                if (d.data.scale != atlasScale) return false;
-                if (maps.select(d.makeKey()) != null) return false;
-            }
-            levelRef = new WeakReference<>(level);
-            return true;
         }
-        return false;
+
+        int totalMaps = emptyMaps + filledMaps.size();
+        if (atlas.isEmpty() || stickyCount == 0 || totalMaps == 0) return false;
+        if (stickyCount != totalMaps) return false; // sticky must match maps exactly
+
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        int mapCount = maps.getCount() + MapAtlasItem.getEmptyMaps(atlas);
+        if (MapAtlasItem.getMaxMapCount() != -1 && mapCount + totalMaps > MapAtlasItem.getMaxMapCount()) return false;
+
+        int atlasScale = maps.getScale();
+        for (var d : filledMaps) {
+            if (d.data.scale != atlasScale) return false;
+            if (maps.select(d.makeKey()) != null) return false;
+        }
+
+        levelRef = new WeakReference<>(level);
+        return true;
     }
 
     private boolean isEmptyMap(ItemStack itemstack) {
@@ -99,12 +100,11 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
 
     @Override
     public ItemStack assemble(CraftingInput inv) {
-
         Level level = levelRef.get();
         ItemStack atlas = ItemStack.EMPTY;
         int emptyMapCount = 0;
         List<Integer> mapIds = new ArrayList<>();
-        // ensure 1 and one only atlas
+
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
@@ -113,22 +113,31 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 emptyMapCount++;
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 Integer mapId = MapAtlasesAccessUtils.getMapId(itemstack);
-                if (mapId != null) {
-                    mapIds.add(mapId);
-                }
+                if (mapId != null) mapIds.add(mapId);
             }
         }
 
-        // Get the Map Ids in the Grid
-        // Set NBT Data
         emptyMapCount *= MapAtlasesConfig.mapEntryValueMultiplier.get();
         IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
         for (var i : mapIds) {
             maps.add(i, level);
         }
-
         MapAtlasItem.increaseEmptyMaps(atlas, emptyMapCount);
+
         return atlas;
+    }
+
+    @Override
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
+        NonNullList<ItemStack> remainingItems = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
+
+        for (int j = 0; j < inv.size(); ++j) {
+            if (inv.getItem(j).is(Items.HONEY_BOTTLE)) {
+                remainingItems.set(j, new ItemStack(Items.GLASS_BOTTLE, 1));
+            }
+        }
+
+        return remainingItems;
     }
 
     @Override
@@ -140,6 +149,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     public PlacementInfo placementInfo() {
         return PlacementInfo.create(java.util.List.of(
                 Ingredient.of(MapAtlasesMod.MAP_ATLAS.get()),
+                Ingredient.of(Items.SLIME_BALL, Items.HONEY_BOTTLE),
                 Ingredient.of(Items.MAP, Items.PAPER)
         ));
     }
@@ -150,7 +160,6 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
     }
 
     public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
+        return width * height >= 3;
     }
-
 }

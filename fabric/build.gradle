@@ -11,7 +11,6 @@ sourceSets {
         java.srcDirs += ["../common/src/main/java"]
         resources.srcDirs += ["../common/src/main/resources"]
         java.exclude(
-                "pepjebs/mapatlases/client/MapVertexConsumer.java",
                 "pepjebs/mapatlases/integration/fabric/**",
                 "pepjebs/mapatlases/integration/JEICompat.java",
                 "pepjebs/mapatlases/integration/REICompat.java",
@@ -23,8 +22,6 @@ sourceSets {
                 "pepjebs/mapatlases/integration/moonlight/PinDecoration.java",
                 "pepjebs/mapatlases/integration/moonlight/PinDecorationRenderer.java",
                 "pepjebs/mapatlases/integration/moonlight/PinMarker.java",
-                "pepjebs/mapatlases/mixin/CompatTFMapRendererMixin.java",
-                "pepjebs/mapatlases/mixin/CartographyTableScreenMixin.java",
                 "pepjebs/mapatlases/mixin/MapRendererMixin.java"
         )
     }

@@ -15,6 +15,7 @@
     "MixinCartographyTableHandlerFirstSlot"
   ],
   "client": [
+    "CartographyTableScreenMixin",
     "ItemInHandRendererMixin",
     "LecternRenderStateMixin",
     "LecternRendererMixin"

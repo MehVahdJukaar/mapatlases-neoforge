@@ -99,7 +99,7 @@ public class MapAtlasesServerEvents {
         //if (player.isRemoved() || player.isChangingDimension() || player.hasDisconnected()) continue;
 
         var server = player.level().getServer();
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromInventoryForMinimap(player);
         if (atlas.isEmpty()) return;
 
         Level level = player.level();
@@ -131,10 +131,18 @@ public class MapAtlasesServerEvents {
 
         // Update Map states & colors
         //these also include an active map
-        List<MapDataHolder> nearbyExistentMaps =
-                maps.filterSection(slice, e -> discoveringEdges.stream()
-                        .anyMatch(edge -> edge.x == e.centerX
-                                && edge.y == e.centerZ));
+        List<MapDataHolder> nearbyExistentMaps = new ArrayList<>();
+        int[] offsets = {-1, 0, 1};
+        for (int dx : offsets) {
+            for (int dz : offsets) {
+                MapDataHolder neighbor = maps.select(
+                    activeKey.mapX() + dx * scaleWidth,
+                    activeKey.mapZ() + dz * scaleWidth,
+                    slice
+                );
+                if (neighbor != null) nearbyExistentMaps.add(neighbor);
+            }
+        }
 
         MapDataHolder activeInfo = maps.select(activeKey);
         if (activeInfo == null && !MapAtlasItem.isLocked(atlas)) {
@@ -142,9 +150,8 @@ public class MapAtlasesServerEvents {
             maybeCreateNewMapEntry(player, atlas, maps, slice, Mth.floor(player.getX()), Mth.floor(player.getZ()));
             activeInfo = maps.select(activeKey);
         }
-
-        // adds center map
-        if (activeInfo != null) nearbyExistentMaps.add(activeInfo);
+        // adds center map if not already included
+        if (activeInfo != null && !nearbyExistentMaps.contains(activeInfo)) nearbyExistentMaps.add(activeInfo);
         // updateColors is *easily* the most expensive function in the entire server tick
         // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
         if (!nearbyExistentMaps.isEmpty()) {
@@ -152,7 +159,6 @@ public class MapAtlasesServerEvents {
             if (MapAtlasesConfig.roundRobinUpdate.get()) {
                 selected = nearbyExistentMaps.get(server.getTickCount() % nearbyExistentMaps.size());
                 selected.updateMap(player);
-
             } else {
                 for (int j = 0; j < MapAtlasesConfig.mapUpdatePerTick.get(); j++) {
                     selected = getMapToUpdate(nearbyExistentMaps, player);
@@ -163,7 +169,7 @@ public class MapAtlasesServerEvents {
 
 
         //TODO: old code called this for all maps. Isnt it enough to just call for the visible ones?
-        // this also update banners and decorations so wen dont want to update stuff we cant see
+        // this also update banners and decorations so we do not want to update stuff we cant see
         for (var mapInfo : nearbyExistentMaps) {
             MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, TriState.SET_TRUE);
             //if data has changed, a packet will be sent
@@ -380,7 +386,7 @@ public class MapAtlasesServerEvents {
 
     public static void onPlayerJoin(ServerPlayer player) {
         MapAtlasesNetworking.CHANNEL.sendToClientPlayer(player, new S2CWorldHashPacket(player));
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromInventoryForMinimap(player);
         if (atlas.isEmpty()) return;
 
         Level level = player.level();
@@ -392,6 +398,11 @@ public class MapAtlasesServerEvents {
         // sets new center map
         MapKey activeKey = MapKey.at(maps.getScale(), player, slice);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
+
+        MapDataHolder activeInfo = maps.select(activeKey);
+        if (activeInfo != null) {
+            MapAtlasesAccessUtils.updateMapDataAndSync(activeInfo, player, atlas, TriState.SET_TRUE);
+        }
 
         if (PlatHelper.getPlatform().isFabric()) {
             for (var info : maps.getAll()) {
@@ -407,6 +418,16 @@ public class MapAtlasesServerEvents {
         }
     }
 
+    public static void syncAllMaps(ServerPlayer player) {
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromInventoryForMinimap(player);
+        if (atlas.isEmpty()) return;
+        Level level = player.level();
+        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.addNotSynced(level);
+        for (var mapInfo : maps.getAll()) {
+            MapAtlasesAccessUtils.updateMapDataAndSync(mapInfo, player, atlas, TriState.SET_TRUE);
+        }
+    }
 
     public static void onDimensionUnload() {
         if (MapAtlasesMod.MOONLIGHT) EntityRadar.unloadLevel();

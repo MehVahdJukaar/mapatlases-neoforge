@@ -6,22 +6,64 @@
       {
         "when": "minecraft:overworld",
         "model": {
-          "type": "minecraft:model",
-          "model": "map_atlases:item/atlas_overworld"
+          "type": "minecraft:select",
+          "property": "minecraft:component",
+          "component": "map_atlases:locked",
+          "cases": [
+            {
+              "when": true,
+              "model": {
+                "type": "minecraft:model",
+                "model": "map_atlases:item/atlas_overworld_locked"
+              }
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_overworld"
+          }
         }
       },
       {
         "when": "minecraft:the_nether",
         "model": {
-          "type": "minecraft:model",
-          "model": "map_atlases:item/atlas_nether"
+          "type": "minecraft:select",
+          "property": "minecraft:component",
+          "component": "map_atlases:locked",
+          "cases": [
+            {
+              "when": true,
+              "model": {
+                "type": "minecraft:model",
+                "model": "map_atlases:item/atlas_nether_locked"
+              }
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_nether"
+          }
         }
       },
       {
         "when": "minecraft:the_end",
         "model": {
-          "type": "minecraft:model",
-          "model": "map_atlases:item/atlas_end"
+          "type": "minecraft:select",
+          "property": "minecraft:component",
+          "component": "map_atlases:locked",
+          "cases": [
+            {
+              "when": true,
+              "model": {
+                "type": "minecraft:model",
+                "model": "map_atlases:item/atlas_end_locked"
+              }
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_end"
+          }
         }
       }
     ],

@@ -67,6 +67,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
 
     @Inject(method = "setupResultSlot", at = @At("HEAD"), cancellable = true)
     void mapAtlas$UpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
+        // Never allow stacks in either slot
+        if (topItem.getCount() > 1 || bottomItem.getCount() > 1) {
+            this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, ItemStack.EMPTY);
+            info.cancel();
+            return;
+        }
         if (!topItem.is(MapAtlasesMod.MAP_ATLAS.get())) return;
         // cut map
         if (PlatStuff.isShear(bottomItem)) {
@@ -133,26 +139,82 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
     void mapAtlas$TransferSlot(Player player, int index, CallbackInfoReturnable<ItemStack> info) {
+        // Prevent iterating result slot when extracting a map from atlas+shears
+        if (index == 2) {
+            Slot resultSlot = this.slots.get(2);
+            if (resultSlot.hasItem()) {
+                ItemStack result = resultSlot.getItem().copy();
+                resultSlot.onTake(player, resultSlot.getItem());
+                player.getInventory().add(result);
+            }
+            info.setReturnValue(ItemStack.EMPTY);
+            return;
+        }
         if (index >= 0 && index <= 2) return;
 
         Slot slot = this.slots.get(index);
+        if (!slot.hasItem()) return;
 
-        if (slot.hasItem()) {
-            ItemStack stack = slot.getItem();
+        ItemStack stack = slot.getItem();
 
-            if (PlatStuff.isShear(stack)) {
-                if (!this.moveItemStackTo(stack, 1, 1, false)) {
+        // Shears: only go in bottom slot (slot 1), and only if top slot has an atlas
+        if (PlatStuff.isShear(stack)) {
+            if (this.slots.get(0).hasItem() && this.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
+                if (!this.moveItemStackTo(stack, 1, 2, false)) {
                     info.setReturnValue(ItemStack.EMPTY);
-                    return;
                 }
-            }
-            if (stack.getItem() != MapAtlasesMod.MAP_ATLAS.get()) return;
-
-            boolean result = this.moveItemStackTo(stack, 0, 2, false);
-
-            if (!result) {
+            } else {
                 info.setReturnValue(ItemStack.EMPTY);
             }
+            return;
+        }
+
+        // Paper: bottom slot (slot 1) only if top slot has an atlas or filled map
+        if (stack.getItem() == Items.PAPER) {
+            if (this.slots.get(0).hasItem() && 
+                (this.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get()) || 
+                this.slots.get(0).getItem().getItem() == Items.FILLED_MAP)) {
+                if (!this.moveItemStackTo(stack, 1, 2, false)) {
+                    info.setReturnValue(ItemStack.EMPTY);
+                }
+            } else {
+                info.setReturnValue(ItemStack.EMPTY);
+            }
+            return;
+        }
+
+        // Atlas: top slot first (slot 0), then bottom slot (slot 1) only if top slot has an atlas
+        if (stack.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
+            ItemStack single = stack.copyWithCount(1);
+            if (!this.slots.get(0).hasItem()) {
+                this.slots.get(0).set(single);
+                stack.shrink(1);
+            } else if (this.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get()) && !this.slots.get(1).hasItem()) {
+                this.slots.get(1).set(single);
+                stack.shrink(1);
+            } else {
+                info.setReturnValue(ItemStack.EMPTY);
+            }
+            info.setReturnValue(ItemStack.EMPTY);
+            return;
+        }
+
+        // Filled map: top slot first (slot 0), then bottom slot (slot 1)
+        if (stack.getItem() == Items.FILLED_MAP) {
+            if (!this.slots.get(0).hasItem()) {
+                this.moveItemStackTo(stack, 0, 1, false);
+            } else if (!this.slots.get(1).hasItem()) {
+                this.moveItemStackTo(stack, 1, 2, false);
+            } else {
+                info.setReturnValue(ItemStack.EMPTY);
+            }
+            info.setReturnValue(ItemStack.EMPTY);
+            return;
+        }
+
+        // Everything else: vanilla behaviour, try top slot only
+        if (!this.moveItemStackTo(stack, 0, 1, false)) {
+            info.setReturnValue(ItemStack.EMPTY);
         }
     }
 

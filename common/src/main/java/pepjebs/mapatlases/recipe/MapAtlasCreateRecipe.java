@@ -72,12 +72,21 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
         boolean hasMap = false;
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
+            // Check for filled map
             if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 if (hasMap || MapItem.getSavedData(itemstack, level) == null) {
                     return false;
                 }
                 hasMap = true;
-            } else if (!itemstack.isEmpty()) {
+            } 
+            // Check for empty map
+            else if (MapAtlasesAccessUtils.isValidEmptyMap(itemstack)) {
+                if (hasMap) {
+                    return false;
+                }
+                hasMap = true;
+            }
+            else if (!itemstack.isEmpty()) {
                 ++i;
                 if (isSimple)
                     stackedcontents.accountStack(itemstack, 1);
@@ -97,32 +106,45 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
     @Override
     public ItemStack assemble(CraftingInput inv) {
         ItemStack mapItemStack = null;
+        boolean isFilledMap = false;
+        
         for (var item : inv.items()) {
-            if (MapAtlasesAccessUtils.isValidFilledMap(item)) {
+            if (MapAtlasesAccessUtils.isValidFilledMap(item) || MapAtlasesAccessUtils.isValidEmptyMap(item)) {
                 mapItemStack = item;
+                isFilledMap = MapAtlasesAccessUtils.isValidFilledMap(item);
                 break;
             }
         }
+        
         Level level = levelReference.get();
         if (mapItemStack == null || level == null) {
             return ItemStack.EMPTY;
         }
-        Integer mapId = MapAtlasesAccessUtils.getMapId(mapItemStack);
-        if (mapId == null) {
-            MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
-            return ItemStack.EMPTY;
-        }
-        MapDataHolder holder = MapDataHolder.findFromId(level, mapId);
-        if (holder == null) {
-            return ItemStack.EMPTY;
-        }
+        
         ItemStack atlas = new ItemStack(MapAtlasesMod.MAP_ATLAS.get());
-        IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        MapAtlasItem.setSelectedSlice(atlas, holder.slice);
-        if (!maps.add(mapId, level)) {
+        
+        if (isFilledMap) {
+            // Handle filled map (existing logic)
+            Integer mapId = MapAtlasesAccessUtils.getMapId(mapItemStack);
+            if (mapId == null) {
+                MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
+                return ItemStack.EMPTY;
+            }
+            MapDataHolder holder = MapDataHolder.findFromId(level, mapId);
+            if (holder == null) {
+                return ItemStack.EMPTY;
+            }
+            IMapCollection maps = MapAtlasItem.getMaps(atlas, level);
+            MapAtlasItem.setSelectedSlice(atlas, holder.slice);
+            if (!maps.add(mapId, level)) {
+                MapAtlasItem.increaseEmptyMaps(atlas, 1);
+            }
+            MapAtlasItem.increaseEmptyMaps(atlas, 0);
+        } else {
+            // Handle empty map (new logic)
             MapAtlasItem.increaseEmptyMaps(atlas, 1);
         }
-        MapAtlasItem.increaseEmptyMaps(atlas, 0);
+        
         return atlas;
     }
 

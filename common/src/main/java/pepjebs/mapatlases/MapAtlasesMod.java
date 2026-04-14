@@ -24,6 +24,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.item.MapAtlasLockIcon;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.recipe.MapAtlasCreateRecipe;
@@ -63,7 +64,7 @@ public class MapAtlasesMod {
 
     public static void init() {
         MapAtlasesNetworking.init();
-
+        MapAtlasLockIcon.register();
         MapAtlasesConfig.init();
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesClientConfig.init();

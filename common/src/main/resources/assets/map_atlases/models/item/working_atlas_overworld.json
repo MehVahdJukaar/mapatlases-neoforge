@@ -2,8 +2,9 @@
 	"parent": "minecraft:item/generated",
 	"ambientocclusion": false,
 	"textures": {
-		"layer0": "map_atlases:item/atlas_open_back",
-		"layer1": "map_atlases:item/atlas_open_overworld"
+		"layer0": "atlas_open_back",
+		"layer1": "atlas_open_overworld",
+		"particle": "atlas_open_back"
 	},
 	"elements": [
 		{

@@ -7,6 +7,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -106,10 +108,17 @@ public class MapAtlasItem extends Item {
         CompoundTag tag = ItemStackData.getOrEmpty(stack);
         convertOldAtlas(level, stack);
         if (player.isSecondaryUseActive()) {
-            boolean locked = !tag.getBoolean(LOCKED_NBT).orElse(false);
-            ItemStackData.update(stack, t -> t.putBoolean(LOCKED_NBT, locked));
+            boolean wasLocked = stack.has(MapAtlasLockIcon.LOCKED);
+            if (wasLocked) {
+                stack.remove(MapAtlasLockIcon.LOCKED);
+                player.level().playSound(null, player, SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.7F, 2f);
+            } else {
+                stack.set(MapAtlasLockIcon.LOCKED, true);
+                player.level().playSound(null, player, SoundEvents.BOOK_PUT, SoundSource.PLAYERS, 1.7F, 2f);
+            }
+            ItemStackData.update(stack, t -> t.remove(LOCKED_NBT));
             if (player.level().isClientSide()) {
-                player.sendSystemMessage(Component.translatable(locked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"));
+                // player.sendSystemMessage(Component.translatable(!wasLocked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"));
             }
             return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
@@ -281,8 +290,7 @@ public class MapAtlasItem extends Item {
     }
 
     public static boolean isLocked(ItemStack stack) {
-        CompoundTag tag = ItemStackData.getTag(stack);
-        return tag != null && tag.getBoolean(LOCKED_NBT).orElse(false);
+        return stack.has(MapAtlasLockIcon.LOCKED);
     }
 
     @NotNull

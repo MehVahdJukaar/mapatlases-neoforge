@@ -511,24 +511,33 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void selectDimension(ResourceKey<Level> dimension) {
-        boolean changedDim = selectedSlice.dimension().equals(dimension);
-        if (changedDim) this.selectedSlice = Slice.of(selectedSlice.type(), selectedSlice.height(), dimension);
-        //we dont change slice when calling this from init as we want to use the atlas initial slice
-        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
-        boolean isWherePlayerIs = level.dimension().equals(dimension);
+    boolean changedDim = selectedSlice.dimension().equals(dimension);
+    if (changedDim) this.selectedSlice = Slice.of(selectedSlice.type(), selectedSlice.height(), dimension);
+    //we dont change slice when calling this from init as we want to use the atlas initial slice
+    updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
+    boolean isWherePlayerIs = level.dimension().equals(dimension);
 
-        MapItemSavedData center = isWherePlayerIs ? getMapClosestToPlayer().data : this.getCenterMapForSelectedDim();
-        if (center == null) {
-            int error = 0;
-            return;
-        }
-        boolean followPlayer = isWherePlayerIs && MapAtlasesClientConfig.worldMapFollowPlayer.get();
-        this.mapWidget.resetAndCenter(center.centerX, center.centerZ, followPlayer, changedDim);
-        for (var v : dimensionBookmarks) {
-            v.setSelected(v.getDimension().equals(dimension));
-        }
-        recalculateDecorationWidgets();
+    int centerX, centerZ;
+    if (isWherePlayerIs) {
+        // Calculate theoretical map center at player position, even if no map exists there
+        byte scale = currentMaps.getScale();
+        int scaleWidth = (1 << scale) * 128;
+        centerX = Math.floorDiv((int) player.getX(), scaleWidth) * scaleWidth + scaleWidth / 2;
+        centerZ = Math.floorDiv((int) player.getZ(), scaleWidth) * scaleWidth + scaleWidth / 2;
+    } else {
+        MapItemSavedData center = this.getCenterMapForSelectedDim();
+        if (center == null) return;
+        centerX = center.centerX;
+        centerZ = center.centerZ;
     }
+
+    boolean followPlayer = isWherePlayerIs && MapAtlasesClientConfig.worldMapFollowPlayer.get();
+    this.mapWidget.resetAndCenter(centerX, centerZ, followPlayer, changedDim);
+    for (var v : dimensionBookmarks) {
+        v.setSelected(v.getDimension().equals(dimension));
+    }
+    recalculateDecorationWidgets();
+}
 
     protected void recalculateDecorationWidgets() {
         for (var v : decorationBookmarks) {

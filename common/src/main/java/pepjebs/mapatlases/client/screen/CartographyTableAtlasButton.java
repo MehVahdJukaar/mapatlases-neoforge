@@ -26,9 +26,9 @@ public class CartographyTableAtlasButton extends AbstractWidget {
     protected final AbstractContainerMenu menu;
 
     public CartographyTableAtlasButton(int leftPos, int topPos, boolean left, AbstractContainerMenu menu) {
-        super(leftPos + (left ? 71 : 122), topPos + 65, 7, 11, Component.empty());
-        this.menu = menu;
-        this.left = left;
+    super(leftPos + (left ? 259 : 290), topPos + 65, 7, 11, Component.empty());
+    this.menu = menu;
+    this.left = left;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
             if (left) {
                 graphics.centeredText(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index",
                                 at.mapatlases$getSelectedMapIndex()),
-                        this.getX() + 30, this.getY() + 2, -1);
+                        this.getX() + 19, this.getY() + 2, -1);
             } else {
                 Slice slice = at.mapatlases$getSelectedSlice();
                 if (slice != null) {

@@ -93,9 +93,13 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
         // Handle zooming markers hack
-        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
-        MapAtlasesClient.setDecorationsTextScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationTextScale.get());
-
+        float baseScale = MapAtlasesClientConfig.worldMapDecorationScale.get().floatValue();
+        float baseTextScale = MapAtlasesClientConfig.worldMapDecorationTextScale.get().floatValue();
+        float decoScale = Math.max(0.3f, Math.min(2f, baseScale / (float) Math.pow(zoomLevel, 0.25f)));
+        float decoTextScale = Math.max(0.3f, Math.min(2f, baseTextScale / (float) Math.pow(zoomLevel, 0.25f)));
+        MapAtlasesClient.setDecorationsScale(decoScale);
+        MapAtlasesClient.setDecorationsTextScale(decoTextScale);
+        
         MapItemSavedData hoveredData = null;
         if (mapScreen.isShearing()) {
             ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
@@ -106,8 +110,13 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type(),
                 0x00F000F0, hoveredData);
 
+        float cursorScale = (float) Math.pow((float) atlasesCount / zoomLevel, 0.6f) * MapAtlasesClientConfig.worldMapDecorationScale.get().floatValue();
+        cursorScale = Mth.clamp(cursorScale, 0.25f, 2f);
+        drawPlayerCursor(graphics, player, cursorScale);
+
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
+        MapAtlasesClient.setDecorationRotation(0);
 
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
@@ -359,6 +368,34 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
             targetXCenter = (int) player.getX();
             targetZCenter = (int) player.getZ();
         }
+    }
+
+    private void drawPlayerCursor(GuiGraphicsExtractor graphics, Player player, float scale) {
+        if (player == null) return;
+        if (!player.level().dimension().equals(mapScreen.getSelectedSlice().dimension())) return;
+
+        float widgetScale = width / (float) (atlasesCount * AbstractAtlasWidget.MAP_DIMENSION);
+        float zoomScale = atlasesCount / zoomLevel;
+        float finalScale = widgetScale * zoomScale;
+
+        // Convert world position to screen position
+        float screenX = x + width / 2f + (float) ((player.getX() - currentXCenter) / (mapBlocksSize / AbstractAtlasWidget.MAP_DIMENSION)) * finalScale;
+        float screenZ = y + height / 2f + (float) ((player.getZ() - currentZCenter) / (mapBlocksSize / AbstractAtlasWidget.MAP_DIMENSION)) * finalScale;
+
+        // Clip to widget bounds
+        if (screenX < x || screenX > x + width || screenZ < y || screenZ > y + height) return;
+
+        float rot = (float) Math.toRadians(player.getYRot() + 180f);
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(screenX, screenZ);
+        pose.rotate(rot);
+        pose.scale(scale, scale);
+        pose.translate(-4f, -4f);
+        graphics.nextStratum();
+        graphics.blit(RenderPipelines.GUI_TEXTURED, MapAtlasesClient.MAP_PLAYER_DECORATION_TEXTURE,
+                0, 0, 0, 0, 8, 8, 8, 8);
+        pose.popMatrix();
     }
 
     private double interpolate(double targetZCenter, double currentZCenter, double animationSpeed) {

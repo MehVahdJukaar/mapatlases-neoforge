@@ -13,7 +13,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
@@ -41,10 +43,13 @@ import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_PLAYER_DECORATION_T
 public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
 
     private static final int BG_SIZE = 64;
+    /** Pixels the minimap is pushed down to make room for the biome label above it. */
+    private static final int BIOME_ABOVE_OFFSET = 12;
 
     private final Minecraft mc;
 
     private boolean needsInit = true;
+    private boolean lastHadCompass = false;
     private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapKey currentMapKey;
     private MapKey lastMapKey;
@@ -56,7 +61,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
     public MapAtlasesHUD() {
         super(1);
         this.mc = Minecraft.getInstance();
-        this.rotatesWithPlayer = true;
+        this.rotatesWithPlayer = false;
         this.zoomLevel = 1;
     }
 
@@ -81,14 +86,20 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
     }
 
     @Override
+    protected boolean shouldClipDecorations() {
+        return true;
+    }
+
+    @Override
     protected void initialize(MapDataHolder originalCenterMap) {
         super.initialize(originalCenterMap);
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
-        this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
+        this.rotatesWithPlayer = hasCompass(mc.player);
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
         this.currentMaps = MapAtlasItem.getMaps(currentAtlas, mc.level);
         this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlice();
         this.drawBigPlayerMarker = followingPlayer;
+        this.drawMapDecorationsFallback = true;
     }
 
     @Override
@@ -136,6 +147,10 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         }
         currentAtlas = atlas;
 
+        if (MapAtlasItem.isLocked(currentAtlas)) {
+           return;
+        }
+
         if (needsInit) {
             needsInit = false;
             initialize(activeMap);
@@ -157,6 +172,20 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         int y = anchorLocation.isUp ? off : (int) (screenHeight / globalScale) - (BG_SIZE + off);
         x += (int) (MapAtlasesClientConfig.miniMapHorizontalOffset.get() / globalScale);
         y += (int) (MapAtlasesClientConfig.miniMapVerticalOffset.get() / globalScale);
+        y -= 4;
+        if (!hasCompass(mc.player)) {
+        y -= 12;
+        }
+
+        // Push the minimap down to leave space for the biome label above it.
+        // Only apply the offset when the biome display is enabled.
+        if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
+            if (anchorLocation.isUp) {
+                y += BIOME_ABOVE_OFFSET;
+            } else {
+                y += 8;
+            }
+        }
 
         if (anchorLocation == Anchoring.UPPER_RIGHT) {
             y = Math.max(y, getPotionOffsetY(mc.player, y));
@@ -175,17 +204,22 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         }
 
         MapAtlasesClient.setDecorationsScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
-        MapAtlasesClient.setDecorationsTextScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationTextScale.get()));
+        MapAtlasesClient.setDecorationsTextScale((float) (4 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationTextScale.get()));
         float yRot = mc.player.getYRot();
-        if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(yRot - 180);
-        }
+        MapAtlasesClient.setDecorationRotation(yRot - 180);
         int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? 0x00F000F0 :
                 packSkyLight(mc.level.getBrightness(LightLayer.SKY, mc.player.getOnPos().above()));
         int borderSize = (BG_SIZE - mapWidgetSize) / 2;
 
         graphics.blit(RenderPipelines.GUI_TEXTURED, MAP_HUD_BACKGROUND_TEXTURE, x, y,
                 0, 0, BG_SIZE, BG_SIZE, BG_SIZE, BG_SIZE);
+
+        boolean hasCompass = hasCompass(mc.player);
+        this.rotatesWithPlayer = hasCompass;
+        if (hasCompass != lastHadCompass) {
+            lastHadCompass = hasCompass;
+            needsInit = true;
+        }
 
         drawAtlas(graphics, x + borderSize, y + borderSize, mapWidgetSize, mapWidgetSize, mc.player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
@@ -197,14 +231,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
 
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
-        if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(0);
-        }
+        MapAtlasesClient.setDecorationRotation(0);
 
         pose.pushMatrix();
         pose.translate(x + mapWidgetSize / 2f + 3f, y + mapWidgetSize / 2f + 3f);
         if (!rotatesWithPlayer) {
-            pose.rotate((float) Math.toRadians(180 - yRot));
+            pose.rotate((float) Math.toRadians(yRot - 180));
         }
         if (drawBigPlayerMarker) {
             pose.translate(-4.5f, -4f);
@@ -263,6 +295,24 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         int textHeightOffset = 2;
         int actualBgSize = (int) (BG_SIZE * globalScale);
 
+        // Draw biome label above the minimap background.
+        if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
+            pose.pushMatrix();
+            if (!anchorLocation.isUp) {
+                // When anchored to the bottom the minimap was shifted up, so place
+                // the biome label below the minimap (which visually is "above" the
+                // original anchor edge).
+                pose.translate(0, BG_SIZE + BIOME_ABOVE_OFFSET + 2);
+            }
+
+            // Use a wider maxWidth so long biome names don't shrink as aggressively.
+            // targetWidth stays at actualBgSize so the text remains centred over the minimap.
+            int biomeMaxWidth = actualBgSize * 3;
+            drawMapComponentBiome(graphics, mc.font, x, (int) (y - BIOME_ABOVE_OFFSET + 2),
+                    actualBgSize, biomeMaxWidth, textScaling, mc.player.blockPosition(), mc.level);
+            pose.popMatrix();
+        }
+
         pose.pushMatrix();
         if (!anchorLocation.isUp) {
             pose.translate(0, -BG_SIZE - 20 * textScaling - 2);
@@ -288,15 +338,33 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
             }
         }
 
-        if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
-            drawMapComponentBiome(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
-                    actualBgSize, textScaling, mc.player.blockPosition(), mc.level);
-        }
         pose.popMatrix();
     }
 
+    private boolean hasCompass(Player player) {
+        // Main + offhand
+        if (isVanillaCompass(player.getMainHandItem()) || isVanillaCompass(player.getOffhandItem())) {
+            return true;
+        }
+
+        // Inventory (includes hotbar)
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (isVanillaCompass(stack)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isVanillaCompass(ItemStack stack) {
+        return stack.is(Items.COMPASS) 
+            && !stack.has(net.minecraft.core.component.DataComponents.LODESTONE_TRACKER);
+    }
+
     private void drawCardinals(GuiGraphicsExtractor graphics, int x, int y, float yRot) {
-        if (!MapAtlasesClientConfig.drawMinimapCardinals.get()) {
+        if (mc.player == null || !hasCompass(mc.player) || mc.level.dimension() == Level.NETHER) {
             return;
         }
         Matrix3x2fStack pose = graphics.pose();
@@ -306,7 +374,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
-        drawLetter(graphics, mc.font, a, b, "N");
+        drawNorthLetter(graphics, mc.font, a, b, "N");
         if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
             drawLetter(graphics, mc.font, -a, -b, "S");
             drawLetter(graphics, mc.font, -b, a, "E");
@@ -321,9 +389,59 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
         pose.pushMatrix();
         float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale);
-        drawStringWithLighterShadow(graphics, font, letter,
-                a / scale - font.width(letter) / 2f,
-                b / scale - font.lineHeight / 2f);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f + 1,
+            b / scale - font.lineHeight / 2f + 1,
+            0xFF323232, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f,
+            b / scale - font.lineHeight / 2f,
+            0xFFE0E0E0, false);
+        pose.popMatrix();
+    }
+
+
+    private void drawNorthLetter(GuiGraphicsExtractor graphics, Font font, float a, float b, String letter) {
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
+        pose.scale(scale, scale);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f + 1,
+            b / scale - font.lineHeight / 2f + 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f - 1,
+            b / scale - font.lineHeight / 2f - 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f + 1,
+            b / scale - font.lineHeight / 2f - 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f - 1,
+            b / scale - font.lineHeight / 2f + 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f,
+            b / scale - font.lineHeight / 2f - 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f,
+            b / scale - font.lineHeight / 2f + 1,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f - 1,
+            b / scale - font.lineHeight / 2f,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f + 1,
+            b / scale - font.lineHeight / 2f,
+            0xFF000000, false);
+        PlatStuff.drawString(graphics, font, letter,
+            a / scale - font.width(letter) / 2f,
+            b / scale - font.lineHeight / 2f,
+            0xFFF21D25, false);
         pose.popMatrix();
     }
 
@@ -363,6 +481,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
             Font font,
             int x, int y,
             int targetWidth,
+            int maxWidth,
             float textScaling,
             BlockPos blockPos,
             Level level
@@ -376,7 +495,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
                     id.getPath().replace('/', '.')).getString();
         }
         drawScaledComponent(context, font, x, y, biomeToDisplay,
-                textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
+                textScaling / globalScale, maxWidth, (int) (targetWidth / globalScale));
     }
 
     public static void drawScaledComponent(
@@ -403,7 +522,7 @@ public class MapAtlasesHUD extends AbstractAtlasWidget implements HudElement {
     }
 
     private static void drawStringWithLighterShadow(GuiGraphicsExtractor context, Font font, String text, float x, float y) {
-        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0xFF595959, false);
+        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0xFF323232, false);
         PlatStuff.drawString(context, font, text, x, y, 0xFFE0E0E0, false);
     }
 

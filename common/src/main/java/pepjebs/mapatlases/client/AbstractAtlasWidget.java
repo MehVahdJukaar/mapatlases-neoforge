@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.state.MapRenderState;
@@ -50,6 +51,9 @@ public abstract class AbstractAtlasWidget {
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
     protected boolean drawMapDecorationsFallback = false;
+    protected boolean shouldClipDecorations() {
+        return false;
+    }
 
     protected AbstractAtlasWidget(int atlasesCount) {
         this.atlasesCount = atlasesCount;
@@ -67,10 +71,11 @@ public abstract class AbstractAtlasWidget {
     }
 
     public void drawAtlas(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
-                          Player player, float zoomLevelDim, boolean showBorders, MapType type, int light,
-                          @Nullable MapItemSavedData selectedKey) {
+                        Player player, float zoomLevelDim, boolean showBorders, MapType type, int light,
+                        @Nullable MapItemSavedData selectedKey) {
 
         MapAtlasesClient.setIsDrawingAtlas(true);
+        List<Runnable> pendingDecorations = new ArrayList<>();
 
         Matrix3x2fStack pose = graphics.pose();
         pose.pushMatrix();
@@ -128,7 +133,7 @@ public abstract class AbstractAtlasWidget {
                 }
                 if (shouldDraw) {
                     getAndDrawMap(player, graphics, centerMapX, centerMapZ, normalBorders, selectedBorders,
-                            i, j, light, selectedKey);
+                            i, j, light, selectedKey, pendingDecorations);
                 }
             }
         }
@@ -148,6 +153,9 @@ public abstract class AbstractAtlasWidget {
 
         pose.popMatrix();
         graphics.disableScissor();
+        applyScissors(graphics, x, y, x + width, y + height);
+        for (Runnable r : pendingDecorations) r.run();
+        graphics.disableScissor();
         MapAtlasesClient.setIsDrawingAtlas(false);
     }
 
@@ -156,15 +164,16 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void getAndDrawMap(Player player, GuiGraphicsExtractor graphics, int centerMapX, int centerMapZ,
-                               List<Pair<Integer, Integer>> normalBorders, List<Pair<Integer, Integer>> selectedBorders,
-                               int i, int j, int light, @Nullable MapItemSavedData selectedData) {
+                            List<Pair<Integer, Integer>> normalBorders, List<Pair<Integer, Integer>> selectedBorders,
+                            int i, int j, int light, @Nullable MapItemSavedData selectedData,
+                            List<Runnable> pendingDecorations) {
         int reqXCenter = centerMapX + (j * mapBlocksSize);
         int reqZCenter = centerMapZ + (i * mapBlocksSize);
         MapDataHolder state = getMapWithCenter(reqXCenter, reqZCenter);
         if (state != null) {
             MapItemSavedData data = state.data;
             boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
-            this.drawMap(player, graphics, normalBorders, selectedBorders, i, j, state, drawPlayerIcons, light, selectedData);
+            this.drawMap(player, graphics, normalBorders, selectedBorders, i, j, state, drawPlayerIcons, light, selectedData, pendingDecorations);
         }
     }
 
@@ -176,10 +185,11 @@ public abstract class AbstractAtlasWidget {
     }
 
     private void drawMap(Player player, GuiGraphicsExtractor graphics,
-                         List<Pair<Integer, Integer>> normalBorders,
-                         List<Pair<Integer, Integer>> selectedBorders,
-                         int ix, int iy, MapDataHolder state, boolean drawPlayerIcons,
-                         int light, @Nullable MapItemSavedData selectedData) {
+                        List<Pair<Integer, Integer>> normalBorders,
+                        List<Pair<Integer, Integer>> selectedBorders,
+                        int ix, int iy, MapDataHolder state, boolean drawPlayerIcons,
+                        int light, @Nullable MapItemSavedData selectedData,
+                        List<Runnable> pendingDecorations) {
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
         int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;
 
@@ -207,16 +217,21 @@ public abstract class AbstractAtlasWidget {
                 }
 
             } else if (type.equals(MapDecorationTypes.PLAYER)) {
-                if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
-                    removed.add(e);
-                } else {
-                    int scale = 1 << data.scale;
-                    float f = (float) (player.getX() - data.centerX) / scale;
-                    float f1 = (float) (player.getZ() - data.centerZ) / scale;
+            if (!drawPlayerIcons || data != mapWherePlayerIs.data || drawMapDecorationsFallback) {
+                removed.add(e); 
+            } else {
+                int scale = 1 << data.scale;
+                float f = (float) (player.getX() - data.centerX) / scale;
+                float f1 = (float) (player.getZ() - data.centerZ) / scale;
+                // Check if player is actually within this map's bounds
+                if (Math.abs(f) <= 64 && Math.abs(f1) <= 64) {
                     byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
                     byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
                     added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
                             b0, b1, getPlayerMarkerRot(player), dec.name())));
+                } else {
+                        removed.add(e);
+                    }
                 }
             }
         }
@@ -241,7 +256,16 @@ public abstract class AbstractAtlasWidget {
         }
         graphics.map(renderState);
         if (drawMapDecorationsFallback) {
-            renderDecorationsFallback(graphics, decorations);
+            final Map<String, MapDecoration> decorationsCopy = new java.util.HashMap<>(decorations);
+            final org.joml.Matrix3x2f savedMatrix = pose.get(new org.joml.Matrix3x2f());
+            final boolean rotates = rotatesWithPlayer;
+            final float playerYRot = player.getYRot();
+            pendingDecorations.add(() -> {
+                pose.pushMatrix();
+                pose.set(savedMatrix);
+                renderDecorationsFallback(graphics, decorationsCopy, rotates, playerYRot);
+                pose.popMatrix();
+            });
         }
         renderCustomPins(graphics, state, customPins);
         EntityRadar.renderMapMarkers(graphics, state, player);
@@ -270,7 +294,7 @@ public abstract class AbstractAtlasWidget {
         }
     }
 
-    private void renderDecorationsFallback(GuiGraphicsExtractor graphics, Map<String, MapDecoration> decorations) {
+    private void renderDecorationsFallback(GuiGraphicsExtractor graphics, Map<String, MapDecoration> decorations, boolean rotatesWithPlayer, float playerYRot) {
         Matrix3x2fStack pose = graphics.pose();
         float scale = MapAtlasesClient.getDecorationsScale();
         for (var entry : decorations.entrySet()) {
@@ -280,16 +304,13 @@ public abstract class AbstractAtlasWidget {
             }
 
             float x = MAP_DIMENSION / 2f + decoration.x() / 2f;
-            float y = MAP_DIMENSION / 2f + decoration.y() / 2f;
-            float rotationDegrees = isBannerDecoration(decoration) ? 180.0f : decoration.rot() * 360.0f / 16.0f;
-            if (decoration.type().equals(MapDecorationTypes.PLAYER)) {
-                rotationDegrees += 180.0f;
-            }
+            float y = MAP_DIMENSION / 2f + decoration.y() / 2f;;
 
             pose.pushMatrix();
             pose.translate(x, y);
-            if (rotationDegrees != 0) {
-                pose.rotate((float) Math.toRadians(rotationDegrees));
+            if (rotatesWithPlayer) {
+                // counter-rotate to keep decorations upright
+                pose.rotate((float) Math.toRadians(-(180 - playerYRot)));
             }
             pose.scale(scale, scale);
             pose.translate(-4f, -4f);
@@ -301,6 +322,26 @@ public abstract class AbstractAtlasWidget {
                             : MapAtlasesClient.getDecorationTexture(decoration),
                     0, 0, 0, 0, 8, 8, 8, 8);
             pose.popMatrix();
+
+            // Text label
+            decoration.name().ifPresent(name -> {
+                Font font = Minecraft.getInstance().font;
+                float textScale = MapAtlasesClient.getDecorationsScale() * 0.5f;
+                pose.pushMatrix();
+                pose.translate(x, y);
+                if (rotatesWithPlayer) {
+                    pose.rotate((float) Math.toRadians(-(180 - playerYRot)));
+                }
+                pose.translate(0, 4f * scale + 2f);
+                pose.scale(textScale, textScale);
+                int textWidth = font.width(name);
+                int halfW = textWidth / 2;
+                graphics.nextStratum();
+                graphics.fill(-halfW - 1, -1, halfW + 1, font.lineHeight + 1, 0xAA000000);
+                graphics.nextStratum();
+                graphics.text(font, name, -halfW, 0, 0xFFFFFFFF, true);
+                pose.popMatrix();
+            });
         }
     }
 

@@ -7,6 +7,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -120,12 +122,13 @@ public class MapAtlasesClient {
         MapAtlasesNetworking.initClient();
     }
 
+
     public static void cachePlayerState(Player player) {
         if (player != Minecraft.getInstance().player) {
             return;
         }
 
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromInventoryForMinimap(player);
         currentActiveAtlas = atlas;
         currentActiveMap = null;
         currentActiveMapKey = null;
@@ -273,12 +276,29 @@ public class MapAtlasesClient {
     }
 
     public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
-        float s = textWidth * textScale / 2.0F;
-        poseStack.translate(s, -4, 0);
         poseStack.mulPose(Axis.ZP.rotationDegrees(decorationRotation));
-        poseStack.translate(-s * decorationTextScale, 4 * decorationTextScale, 0);
         poseStack.scale(decorationTextScale, decorationTextScale, 1);
+        float scaledWidth = textWidth * textScale * decorationTextScale;
+        poseStack.translate(-scaledWidth / 2.0F, -4 * decorationTextScale, 0);
     }
+
+    public static void renderDecorationTextBackground(GuiGraphicsExtractor graphics, Font font, 
+                                                    String text, float x, float y) {
+        if (text == null || text.isEmpty()) return;
+        
+        int textWidth = font.width(text);
+        int textHeight = font.lineHeight;
+        
+        // Add padding
+        int padding = 1;
+        int bgX = (int)(x - padding);
+        int bgY = (int)(y - padding);
+        int bgWidth = textWidth + (padding * 2);
+        int bgHeight = textHeight + (padding * 2);
+        
+        // Render semi-transparent black background (ARGB: 80% opacity black)
+        graphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, 0xCC000000);
+}
 
     public static void modifyDecorationTransform(PoseStack poseStack) {
         poseStack.mulPose(Axis.ZP.rotationDegrees(decorationRotation));

@@ -31,5 +31,5 @@
   "message.map_atlases.pin": "Colocar um marcador",
   "message.map_atlases.marker_name": "Nome de marcador",
   "message.map_atlases.map_scale": "1:%d",
-  "message.map_atlases.map_index": "#: %s"
+  "message.map_atlases.map_index": "%s"
 }

@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
@@ -47,6 +48,44 @@ public class MapAtlasesAccessUtils {
         return Integer.parseInt(id.split("_")[1]);
     }
 
+    /**
+     * Gets an atlas from the player's inventory, scanning the entire inventory.
+     * This is used for server-side minimap updates and should find any atlas in inventory.
+     * Always scans full inventory regardless of config to support minimap rendering.
+     */
+
+    @NotNull
+    public static ItemStack getAtlasFromInventoryForMinimap(Player player) {
+        Inventory inventory = player.getInventory();
+        
+        // First check main hand (highest priority for interactions)
+        ItemStack atlasFromMainHand = player.getMainHandItem();
+        if (atlasFromMainHand.is(MapAtlasesMod.MAP_ATLAS.get())) {
+            return atlasFromMainHand;
+        }
+        
+        // Then check offhand
+        ItemStack atlasFromOffHand = player.getOffhandItem();
+        if (atlasFromOffHand.is(MapAtlasesMod.MAP_ATLAS.get())) {
+            return atlasFromOffHand;
+        }
+        
+        // Then check curios/trinkets
+        ItemStack atlasFromCurio = getAtlasFromCurioOrTrinket(player);
+        if (!atlasFromCurio.isEmpty()) {
+            return atlasFromCurio;
+        }
+        
+        // Finally scan entire inventory (for minimap support when atlas is anywhere)
+        for (int i = 0; i < inventory.getContainerSize(); ++i) {
+            ItemStack itemstack = inventory.getItem(i);
+            if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
+                return itemstack;
+            }
+        }
+        
+        return ItemStack.EMPTY;
+    }
 
     @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
@@ -125,12 +164,7 @@ public class MapAtlasesAccessUtils {
         MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
     }
 
-
-    // will fail if tickCarriedBy isnt sent
     private static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {
-        //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
-        // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
-        //TODO: maybe use isComplex  update packet and inventory tick
         Packet<?> p = holder.data.getUpdatePacket(new MapId(holder.id), player);
         if (p != null) {
             if (MapAtlasesMod.MOONLIGHT) {
