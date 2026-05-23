@@ -100,6 +100,9 @@ public class MapAtlasesClient {
     public static final ResourceLocation SLICE_UP_HOVERED_SPRITE = MapAtlasesMod.res("slice_up_hovered");
     public static final ResourceLocation SLICE_UP_INACTIVE_SPRITE = MapAtlasesMod.res("slice_up_inactive");
 
+    public static final ResourceLocation FILTER_SPRITE = MapAtlasesMod.res("filter");
+    public static final ResourceLocation FILTER_HOVERED_SPRITE = MapAtlasesMod.res("filter_hovered");
+    public static final ResourceLocation FILTER_ACTIVE_SPRITE = MapAtlasesMod.res("filter_active");
 
     public static final ResourceLocation MAP_OVERWORLD_SPRITE = MapAtlasesMod.res("map_overworld");
     public static final ResourceLocation MAP_AETHER_SPRITE = MapAtlasesMod.res("map_the_aether");

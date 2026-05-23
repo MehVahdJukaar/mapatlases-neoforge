@@ -54,6 +54,17 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         this.control = Screen.hasControlDown();
     }
 
+    public static String getSearchText(DecorationHolder holder) {
+        var sb = new StringBuilder(holder.id().toLowerCase(Locale.ROOT));
+        if (holder.deco() instanceof MapDecoration md) {
+            md.type().unwrapKey().ifPresent(k ->
+                    sb.append(' ').append(k.location().getPath().toLowerCase(Locale.ROOT)));
+            md.name().ifPresent(n ->
+                    sb.append(' ').append(n.getString().toLowerCase(Locale.ROOT)));
+        }
+        return sb.toString();
+    }
+
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
         if (holder.deco() instanceof MapDecoration md)
             return new Vanilla(px, py, screen, holder.data(), md, holder.id());
