@@ -22,7 +22,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
-import pepjebs.mapatlases.client.AbstractAtlasWidget;
+import pepjebs.mapatlases.client.AbstractAtlasDisplay;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -30,7 +30,7 @@ import pepjebs.mapatlases.networking.C2STeleportPacket;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.Slice;
 
-public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEventListener, NarratableEntry {
+public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEventListener, NarratableEntry {
 
     private static final int PAN_BUCKET = 25;
     private static final int ZOOM_BUCKET = 2;

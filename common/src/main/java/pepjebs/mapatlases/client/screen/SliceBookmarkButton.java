@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -87,7 +88,7 @@ public class SliceBookmarkButton extends BookmarkButton {
 
     }
 
-    //@Override
+    @VirtualOverride("neoforge")
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }

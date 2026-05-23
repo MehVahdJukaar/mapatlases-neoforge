@@ -1,6 +1,8 @@
 package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.mehvahdjukaar.candlelight.api.VirtualOverride;
+import net.mehvahdjukaar.moonlight.api.misc.ForgeOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -84,7 +86,7 @@ public class SliceArrowButton extends BookmarkButton {
         else this.parentScreen.increaseSlice();
     }
 
-    //@Override
+    @VirtualOverride("neoforge")
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }
