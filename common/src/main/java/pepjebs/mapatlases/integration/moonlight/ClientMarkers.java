@@ -21,6 +21,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
@@ -148,18 +149,14 @@ public class ClientMarkers {
     }
 
     private static void load(CompoundTag tag, HolderLookup.Provider registries) {
-        RegistryOps<Tag> registryOps = registries.createSerializationContext(NbtOps.INSTANCE);
-
         for (var k : tag.getAllKeys()) {
             MapId id = mapIdFromString(k);
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
             for (int j = 0; j < listNbt.size(); ++j) {
                 CompoundTag c = listNbt.getCompound(j);
-                MLMapMarker<?> marker = MLMapMarker.REFERENCE_CODEC.
-                        parse(registryOps, c).getOrThrow();
+                var marker = MarkerHolder.parse(c, registries);
                 if (marker != null) {
-                    MARKERS_PER_MAP.computeIfAbsent(id, i -> new HashSet<>())
-                            .add(new MarkerHolder(marker, c));
+                    addMarker(id, marker);
                 }
             }
 
@@ -199,7 +196,7 @@ public class ClientMarkers {
         return Set.of();
     }
 
-    public static synchronized void addPin(MapDataHolder holder, ColumnPos pos, String text, int index) {
+    public static synchronized void placePin(MapDataHolder holder, ColumnPos pos, String text, int index) {
         Holder<MLMapDecorationType<?, ?>> type = getPinWithIndex(index);
         Optional<Component> name;
         if (!text.isEmpty()) {
@@ -208,15 +205,22 @@ public class ClientMarkers {
             name = Optional.empty();
         }
         ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            MapAtlasesMod.LOGGER.error("Tried to place a pin but level was null");
+            return;
+        }
         Integer h = holder.height;
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
                 level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
         //aaa not correct
         var pinMarker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
-        MARKERS_PER_MAP.computeIfAbsent(holder.id, k -> new HashSet<>())
-                .add(MarkerHolder.of(pinMarker));
+        addMarker(holder.id, MarkerHolder.of(pinMarker, level.registryAccess()));
         //add immediately
         ((ExpandedMapData) holder.data).ml$addCustomMarker(pinMarker);
+    }
+
+    private static void addMarker(MapId holder, MarkerHolder pinMarker) {
+        MARKERS_PER_MAP.computeIfAbsent(holder, k -> new HashSet<>()).add(pinMarker);
     }
 
     protected static Holder<MLMapDecorationType<?, ?>> getPinWithIndex(int index) {
@@ -265,11 +269,30 @@ public class ClientMarkers {
 
     protected record MarkerHolder(MLMapMarker<?> marker, Tag savedMarker) {
 
-        public static MarkerHolder of(MLMapMarker<?> marker) {
+        public static MarkerHolder of(MLMapMarker<?> marker, HolderLookup.Provider registries) {
+            var ops = registries.createSerializationContext(NbtOps.INSTANCE);
             Tag markerSaved = MLMapMarker.REFERENCE_CODEC
-                    .encodeStart(NbtOps.INSTANCE, marker).getOrThrow();
+                    .encodeStart(ops, marker).getOrThrow();
             return new MarkerHolder(marker, markerSaved);
         }
-    }
 
+
+        @Nullable
+        public static MarkerHolder parse(Tag tag, HolderLookup.Provider registries) {
+            var ops = registries.createSerializationContext(NbtOps.INSTANCE);
+            var parsed = MLMapMarker.REFERENCE_CODEC.parse(ops, tag);
+            if (parsed.result().isEmpty()) {
+                MapAtlasesMod.LOGGER.error("Failed to parse a client marker from nbt. Skipping. Tag was: {}", tag);
+                return null;
+            }
+            MLMapMarker<?> marker1 = parsed.result().get();
+            if (!marker1.getType().isBound() || marker1.getType().kind() == Holder.Kind.DIRECT) {
+                MapAtlasesMod.LOGGER.error("Failed to parse a client marker from nbt because its type was not bound to the registry. Skipping. Tag was: {}", tag);
+                return null;
+            }
+
+            return new MarkerHolder(marker1, tag);
+        }
+
+    }
 }

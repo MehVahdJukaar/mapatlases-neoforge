@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
+import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
 import pepjebs.mapatlases.client.screen.DecorationBookmarkButton;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -26,7 +27,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         return new CustomDecorationButton(px, py, screen, data, (MLMapDecoration) mapDecoration, id);
     }
 
-    private final MLMapDecoration decoration; // could not match whats in maps
+    private final MLMapDecoration decoration;
 
     private CustomDecorationButton(int px, int py, AtlasOverviewScreen screen,
                                    MapDataHolder data, MLMapDecoration mapDecoration, String id) {
@@ -55,7 +56,8 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
         Component displayName = decoration.getDisplayName();
         return displayName == null
                 ? Component.literal(
-                AtlasOverviewScreen.getReadableName(decoration.getType().unwrapKey().get().location().getPath()
+                AtlasScreenUtils.getReadableName(decoration.getType().unwrapKey()
+                                                 .get().location().getPath()
                         .toLowerCase(Locale.ROOT)))
                 : displayName;
     }

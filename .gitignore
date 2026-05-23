@@ -1,4 +1,4 @@
-build/
+../build/
 *.ipr
 run/
 *.iws
@@ -8,8 +8,6 @@ out/
 output/
 bin/
 libs/
-logs/
-.architectury-transformer/
 
 .classpath
 .project
@@ -19,4 +17,12 @@ classes/
 .vscode
 .settings
 *.launch
-/forge/mods/
+/unique_lines.txt
+/.junie/memory/
+/.codex
+/.aiassistant/
+/.ai/
+/common/build/
+/fabric/build/
+/neoforge/build/
+/forge/build/

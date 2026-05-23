@@ -1,1 +1,1 @@
-- improved pin saving 2 
+fixed markers saving their types as direct instead of reference causing decode to parse as unbound holders, making rendering fail

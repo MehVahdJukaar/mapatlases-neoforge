@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.integration.fabric;
+package pepjebs.mapatlases.integration.platform;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

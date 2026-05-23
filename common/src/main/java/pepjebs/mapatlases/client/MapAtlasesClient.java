@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.mehvahdjukaar.candlelight.api.PlatformImpl;
 import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -389,12 +389,12 @@ public class MapAtlasesClient {
             .expireAfterAccess(10, TimeUnit.SECONDS)
             .build();
 
-    @ExpectPlatform
+    @PlatformImpl
     public static void decreaseHoodZoom() {
         throw new AssertionError();
     }
 
-    @ExpectPlatform
+    @PlatformImpl
     public static void increaseHoodZoom() {
         throw new AssertionError();
     }

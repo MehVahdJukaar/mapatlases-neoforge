@@ -5,7 +5,6 @@ import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.map.decoration.SimpleMapMarker;
 import net.mehvahdjukaar.moonlight.api.misc.HolderRef;
-import net.mehvahdjukaar.moonlight.api.misc.HolderReference;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -88,7 +87,7 @@ public class XaeroMinimapCompat {
                     MLMapMarker<?> marker = new SimpleMapMarker(DEF_TYPE.getHolder(registries),
                             new BlockPos(w.x, w.y, w.z), 0f, Optional.empty());
                     if (marker.createDecorationFromMarker(data) != null) {
-                        ClientMarkers.addPin(holder, new ColumnPos(w.x, w.z), w.name, w.color);
+                        ClientMarkers.placePin(holder, new ColumnPos(w.x, w.z), w.name, w.color);
                         //toRemove.add(w);
                         //MapAtlasesMod.LOGGER.info("Added converted Xaero waypoint {} to pins ", w);
                     }
