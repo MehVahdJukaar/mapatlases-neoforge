@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.neoforge;
+package pepjebs.mapatlases.platform;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
@@ -21,7 +21,6 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.RecipeMatcher;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
-import twilightforest.init.TFMapDecorations;
 
 import java.util.List;
 

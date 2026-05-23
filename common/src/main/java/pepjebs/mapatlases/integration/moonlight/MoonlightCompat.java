@@ -28,7 +28,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.*;
 
 public class MoonlightCompat {
-    private static final TagKey<MLMapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.REGISTRY_KEY,
+    private static final TagKey<MLMapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.MAP_DECORATION_REGISTRY_KEY,
             MapAtlasesMod.res("no_button_on_atlas"));
 
     private static final ResourceLocation PIN_TYPE_ID = MapAtlasesMod.res("pin");

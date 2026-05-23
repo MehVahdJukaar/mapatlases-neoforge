@@ -1,7 +1,6 @@
-package pepjebs.mapatlases.neoforge;
+package pepjebs.mapatlases.platform;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +17,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.neoforge.MapAtlasesClientImpl;
+import pepjebs.mapatlases.client.platform.MapAtlasesClientImpl;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 

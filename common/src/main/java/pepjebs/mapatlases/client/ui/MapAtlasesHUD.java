@@ -3,7 +3,6 @@ package pepjebs.mapatlases.client.ui;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.DeltaTracker;
@@ -30,6 +29,7 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.AbstractAtlasWidget;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
+import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
@@ -50,13 +50,11 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
 
     private final Minecraft mc;
 
-    //cached stuff
     private boolean needsInit = true;
     private ItemStack currentAtlas = ItemStack.EMPTY;
     private MapGridKey currentMapKey = null;
     private MapGridKey lastMapKey = null;
     private MapCollection currentMaps;
-
 
     private float globalScale = 1;
     private boolean displaysY = true;
@@ -67,7 +65,6 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         this.rotatesWithPlayer = true;
         this.zoomLevel = 1;
     }
-
 
     @Override
     protected boolean showMapBackground() {
@@ -84,36 +81,31 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
     @Override
     protected void initialize(MapDataHolder originalCenterMap) {
         super.initialize(originalCenterMap);
-
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
         this.currentMaps = MapAtlasItem.getMaps(currentAtlas, mc.level);
         this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlicedMap();
         this.drawBigPlayerMarker = followingPlayer;
-
     }
 
     @Override
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
-        super.applyScissors(graphics, (int) (x * globalScale), (int) (y * globalScale), (int) (x1 * globalScale), (int) (y1 * globalScale));
+        super.applyScissors(graphics,
+                (int) (x * globalScale), (int) (y * globalScale),
+                (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
+
+    // ── Main render entry ─────────────────────────────────────────────────
 
     public void render(GuiGraphics graphics, DeltaTracker partialTick) {
         Window window = Minecraft.getInstance().getWindow();
         int screenWidth = window.getGuiScaledWidth();
         int screenHeight = window.getGuiScaledHeight();
 
-        // Handle early returns
-        // Check F3 menu displayed
-        if (mc.level == null || mc.player == null || mc.getDebugOverlay().showDebugScreen()) {
-            return;
-        }
+        if (mc.level == null || mc.player == null || mc.getDebugOverlay().showDebugScreen()) return;
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
-
-        if (MapAtlasesClientConfig.hideWhenInventoryOpen.get() && mc.screen != null) {
-            return;
-        }
+        if (MapAtlasesClientConfig.hideWhenInventoryOpen.get() && mc.screen != null) return;
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (atlas.isEmpty()) return;
@@ -122,16 +114,12 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (activeMap == null || currentMapKey == null) return;
 
-        if (MapAtlasesClientConfig.hideWhenInHand.get() && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get()) ||
-                mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
+        if (MapAtlasesClientConfig.hideWhenInHand.get()
+                && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get())
+                || mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
 
-        if (currentAtlas != atlas) {
-            needsInit = true;
-        }
+        if (currentAtlas != atlas) needsInit = true;
         currentAtlas = atlas;
-
-        ClientLevel level = mc.level;
-        LocalPlayer player = mc.player;
 
         if (needsInit) {
             needsInit = false;
@@ -140,57 +128,82 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         mapWherePlayerIs = activeMap;
 
         PoseStack poseStack = graphics.pose();
-
         poseStack.pushPose();
-
-        //scaling on 0,0
         poseStack.scale(globalScale, globalScale, 1);
 
-        // play sound
+        playMapChangeSoundIfNeeded();
+
+        Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
+        int[] pos = computeMapPosition(screenWidth, screenHeight, anchorLocation);
+        int x = pos[0];
+        int y = pos[1];
+        int mapWidgetSize = (int) (BG_SIZE * (116 / 128f));
+        int borderSize = (BG_SIZE - mapWidgetSize) / 2;
+
+        updatePlayerCenter();
+
+        int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? LightTexture.FULL_BRIGHT :
+                LightTexture.pack(0, mc.level.getBrightness(LightLayer.SKY, mc.player.getOnPos().above()));
+
+        RenderSystem.enableDepthTest();
+        graphics.blit(MAP_HUD_BACKGROUND_TEXTURE, x, y, -2, 0, 0, BG_SIZE, BG_SIZE, BG_SIZE, BG_SIZE);
+        RenderSystem.disableDepthTest();
+
+        float yRot = mc.player.getYRot();
+        renderMapContent(graphics, x, y, mapWidgetSize, borderSize, yRot, light);
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
+
+        MapAtlasesClient.setDecorationsScale(1);
+        MapAtlasesClient.setDecorationsTextScale(1);
+        if (rotatesWithPlayer) MapAtlasesClient.setDecorationRotation(0);
+
+        renderPlayerMarker(graphics, x, y, mapWidgetSize, yRot);
+        renderText(graphics, x, y, anchorLocation);
+        renderCardinals(graphics, x, y, yRot);
+        renderPinTracking(graphics, x, y);
+
+        poseStack.popPose();  // closes globalScale push
+
+        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
+    }
+
+    // ── Render sub-steps ──────────────────────────────────────────────────
+
+    private void playMapChangeSoundIfNeeded() {
         if (!Objects.equals(lastMapKey, currentMapKey)) {
             lastMapKey = currentMapKey;
             if (mc.screen == null && MapAtlasesClientConfig.mapChangeSound.get()) {
-                player.playSound(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(),
+                mc.player.playSound(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(),
                         (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
             }
         }
-        int mapWidgetSize = (int) (BG_SIZE * (116 / 128f));
-        // Draw map background
-        Anchoring anchorLocation = MapAtlasesClientConfig.miniMapAnchoring.get();
-        int off = 5;
+    }
 
-        int x = anchorLocation.isLeft ? off : (int) (screenWidth / (globalScale)) - (BG_SIZE + off);
-        int y = anchorLocation.isUp ? off : (int) (screenHeight / (globalScale)) - (BG_SIZE + off);
+    private int[] computeMapPosition(int screenWidth, int screenHeight, Anchoring anchorLocation) {
+        int off = 5;
+        int x = anchorLocation.isLeft ? off : (int) (screenWidth / globalScale) - (BG_SIZE + off);
+        int y = anchorLocation.isUp ? off : (int) (screenHeight / globalScale) - (BG_SIZE + off);
         x += (int) (MapAtlasesClientConfig.miniMapHorizontalOffset.get() / globalScale);
         y += (int) (MapAtlasesClientConfig.miniMapVerticalOffset.get() / globalScale);
 
-        //TODO: fix rounding error when at non integer scales
         if (anchorLocation == Anchoring.UPPER_RIGHT) {
             boolean hasBeneficial = false;
             boolean hasNegative = false;
-            for (var e : player.getActiveEffects()) {
+            for (var e : mc.player.getActiveEffects()) {
                 Holder<MobEffect> effect = e.getEffect();
-                if (effect.value().isBeneficial()) {
-                    hasBeneficial = true;
-                } else {
-                    hasNegative = true;
-                }
+                if (effect.value().isBeneficial()) hasBeneficial = true;
+                else hasNegative = true;
             }
             int offsetForEffects = MapAtlasesClientConfig.activePotionVerticalOffset.get();
-            if (hasNegative && y < 2 * offsetForEffects) {
-                y += (2 * offsetForEffects - y);
-            } else if (hasBeneficial && y < offsetForEffects) {
-                y += (offsetForEffects - y);
-            }
+            if (hasNegative && y < 2 * offsetForEffects) y += (2 * offsetForEffects - y);
+            else if (hasBeneficial && y < offsetForEffects) y += (offsetForEffects - y);
         }
+        return new int[]{x, y};
+    }
 
-
-        // Draw map data
-
-        poseStack.pushPose();
-
-
-        //rounds up if following player
+    private void updatePlayerCenter() {
+        LocalPlayer player = mc.player;
         if (!followingPlayer) {
             currentXCenter = Math.floor((player.getX() + 64) / mapBlocksSize) * mapBlocksSize + (mapBlocksSize / 2f - 64);
             currentZCenter = Math.floor((player.getZ() + 64) / mapBlocksSize) * mapBlocksSize + (mapBlocksSize / 2f - 64);
@@ -198,42 +211,24 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             currentXCenter = player.getX();
             currentZCenter = player.getZ();
         }
+    }
 
-        // Set zoom-height for map icons
+    private void renderMapContent(GuiGraphics graphics, int x, int y, int mapWidgetSize, int borderSize,
+                                  float yRot, int light) {
         MapAtlasesClient.setDecorationsScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationScale.get()));
         MapAtlasesClient.setDecorationsTextScale((float) (2 * zoomLevel * MapAtlasesClientConfig.miniMapDecorationTextScale.get()));
-        float yRot = player.getYRot();
-        if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(yRot - 180);
-        }
-        int light = !MapAtlasesClientConfig.minimapSkyLight.get() ? LightTexture.FULL_BRIGHT :
-                LightTexture.pack(0, level.getBrightness(LightLayer.SKY, player.getOnPos().above()));
-        int borderSize = (BG_SIZE - mapWidgetSize) / 2;
+        if (rotatesWithPlayer) MapAtlasesClient.setDecorationRotation(yRot - 180);
 
-        // RenderSystem.enableDepthTest();
-
-        RenderSystem.enableDepthTest();
-        graphics.blit(MAP_HUD_BACKGROUND_TEXTURE, x, y, -2, 0, 0, BG_SIZE, BG_SIZE,
-                BG_SIZE, BG_SIZE);
-        RenderSystem.disableDepthTest();
-
+        graphics.pose().pushPose();
         drawAtlas(graphics, x + borderSize, y + borderSize,
-                mapWidgetSize, mapWidgetSize, player,
+                mapWidgetSize, mapWidgetSize, mc.player,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
                 MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice.type(), light, null);
+        graphics.pose().popPose();
+    }
 
-        // Draws background, player icon, cardinal dir, pos and direction
-
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
-
-        MapAtlasesClient.setDecorationsScale(1);
-        MapAtlasesClient.setDecorationsTextScale(1);
-
-        if (rotatesWithPlayer) {
-            MapAtlasesClient.setDecorationRotation(0);
-        }
-
-        //always render as its better
+    private void renderPlayerMarker(GuiGraphics graphics, int x, int y, int mapWidgetSize, float yRot) {
+        PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
         poseStack.translate(x + mapWidgetSize / 2f + 3f, y + mapWidgetSize / 2f + 3, 0);
         if (!rotatesWithPlayer) {
@@ -244,198 +239,116 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
             graphics.blitSprite(MapAtlasesClient.PLAYER_MARKER_SPRITE, 0, 0, 8, 8);
         }
         poseStack.popPose();
+    }
 
-        poseStack.popPose();
-        //  graphics.blit(MAP_FOREGROUND, x, y, 0, 0, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize, mapBgScaledSize);
-        // Draw text data
+    private void renderText(GuiGraphics graphics, int x, int y, Anchoring anchorLocation) {
         float textScaling = (float) (double) MapAtlasesClientConfig.minimapCoordsAndBiomeScale.get();
         int textHeightOffset = 2;
         int actualBgSize = (int) (BG_SIZE * globalScale);
+        Font font = mc.font;
 
+        PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
         if (!anchorLocation.isUp) poseStack.translate(0, -BG_SIZE - 20 * textScaling - 2, 0);
 
-        Font font = mc.font;
         boolean global = MapAtlasesClientConfig.drawMinimapCoords.get();
         boolean local = MapAtlasesClientConfig.drawMinimapChunkCoords.get();
         if (global || local) {
-
             BlockPos pos = new BlockPos(new Vec3i(
-                    towardsZero(player.position().x),
-                    towardsZero(player.position().y),
-                    towardsZero(player.position().z)));
+                    AtlasScreenUtils.towardsZero(mc.player.position().x),
+                    AtlasScreenUtils.towardsZero(mc.player.position().y),
+                    AtlasScreenUtils.towardsZero(mc.player.position().z)));
             if (global) {
-                drawMapComponentCoords(
-                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
-                        textScaling, pos, false);
-                textHeightOffset += (10 * textScaling);
+                drawMapComponentCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+                        actualBgSize, textScaling, pos, false);
+                textHeightOffset += (int) (10 * textScaling);
             }
             if (local) {
-                drawMapComponentCoords(
-                        graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
-                        textScaling, pos, true);
-                textHeightOffset += (10 * textScaling);
+                drawMapComponentCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+                        actualBgSize, textScaling, pos, true);
+                textHeightOffset += (int) (10 * textScaling);
             }
         }
-
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
-            drawMapComponentBiome(
-                    graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)), actualBgSize,
-                    textScaling, player.blockPosition(), level);
-
+            drawMapComponentBiome(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+                    actualBgSize, textScaling, mc.player.blockPosition(), mc.level);
         }
         poseStack.popPose();
-
-        if (MapAtlasesClientConfig.drawMinimapCardinals.get()) {
-            poseStack.pushPose();
-            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
-
-            var p = getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
-            float a = p.getFirst();
-            float b = p.getSecond();
-            drawLetter(graphics, font, a, b, "N");
-            if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
-                drawLetter(graphics, font, -a, -b, "S");
-                drawLetter(graphics, font, -b, a, "E");
-                drawLetter(graphics, font, b, -a, "W");
-            }
-
-            poseStack.popPose();
-        }
-
-
-        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightPinTracking.get()) {
-            poseStack.pushPose();
-            RenderSystem.enableDepthTest();
-            poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
-            ClientMarkersRenderer.drawSmallPins(graphics, font, currentXCenter + mapBlocksSize / 2f,
-                    currentZCenter + mapBlocksSize / 2f, currentMapKey.slice,
-                    mapBlocksSize * zoomLevel, player, rotatesWithPlayer, currentMaps);
-            RenderSystem.disableDepthTest();
-            poseStack.popPose();
-        }
-
-        poseStack.popPose();
-
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
     }
+
+    private void renderCardinals(GuiGraphics graphics, int x, int y, float yRot) {
+        if (!MapAtlasesClientConfig.drawMinimapCardinals.get()) return;
+        PoseStack poseStack = graphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
+        var p = AtlasScreenUtils.getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
+        float a = p.getFirst();
+        float b = p.getSecond();
+        Font font = mc.font;
+        drawLetter(graphics, font, a, b, "N");
+        if (!MapAtlasesClientConfig.miniMapOnlyNorth.get()) {
+            drawLetter(graphics, font, -a, -b, "S");
+            drawLetter(graphics, font, -b, a, "E");
+            drawLetter(graphics, font, b, -a, "W");
+        }
+        poseStack.popPose();
+    }
+
+    private void renderPinTracking(GuiGraphics graphics, int x, int y) {
+        if (!MapAtlasesMod.MOONLIGHT || !MapAtlasesClientConfig.moonlightPinTracking.get()) return;
+        PoseStack poseStack = graphics.pose();
+        poseStack.pushPose();
+        RenderSystem.enableDepthTest();
+        poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 10);
+        ClientMarkersRenderer.drawSmallPins(graphics, mc.font, currentXCenter + mapBlocksSize / 2f,
+                currentZCenter + mapBlocksSize / 2f, currentMapKey.slice,
+                mapBlocksSize * zoomLevel, mc.player, rotatesWithPlayer, currentMaps);
+        RenderSystem.disableDepthTest();
+        poseStack.popPose();
+    }
+
+    // ── Text drawing helpers ──────────────────────────────────────────────
 
     private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
         PoseStack pose = graphics.pose();
         pose.pushPose();
         float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale, 1);
-        drawStringWithLighterShadow(graphics, font, letter, a / scale - font.width(letter) / 2f,
-                b / scale - font.lineHeight / 2f);
-
+        AtlasScreenUtils.drawStringWithLighterShadow(graphics, font, letter,
+                a / scale - font.width(letter) / 2f, b / scale - font.lineHeight / 2f);
         pose.popPose();
     }
 
-    private static int towardsZero(double d) {
-        if (d < 0.0)
-            return -1 * (int) Math.floor(-1 * d);
-        else
-            return (int) Math.floor(d);
-    }
-
-    public void drawMapComponentCoords(
-            GuiGraphics context,
-            Font font,
-            int x, int y,
-            int targetWidth,
-            float textScaling,
-            BlockPos pos,
-            boolean chunk
-    ) {
-
+    public void drawMapComponentCoords(GuiGraphics context, Font font, int x, int y,
+                                       int targetWidth, float textScaling, BlockPos pos, boolean chunk) {
         String coordsToDisplay;
         if (chunk) {
             coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
                     pos.getX() / 16, pos.getZ() / 16, pos.getX() % 16, pos.getZ() % 16).getString();
         } else {
-            coordsToDisplay = displaysY ?
-                    Component.translatable("message.map_atlases.coordinates_full",
+            coordsToDisplay = displaysY
+                    ? Component.translatable("message.map_atlases.coordinates_full",
                             pos.getX(), pos.getY(), pos.getZ()).getString()
                     : Component.translatable("message.map_atlases.coordinates",
-                    pos.getX(), pos.getZ()).getString();
+                            pos.getX(), pos.getZ()).getString();
         }
-        drawScaledComponent(context, font, x, y, coordsToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
+        AtlasScreenUtils.drawScaledComponent(context, font, x, y, coordsToDisplay,
+                textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
-    public void drawMapComponentBiome(
-            GuiGraphics context,
-            Font font,
-            int x, int y,
-            int targetWidth,
-            float textScaling,
-            BlockPos blockPos,
-            Level level
-    ) {
+    public void drawMapComponentBiome(GuiGraphics context, Font font, int x, int y,
+                                      int targetWidth, float textScaling, BlockPos blockPos, Level level) {
         String biomeToDisplay = "";
         var key = level.getBiome(blockPos).unwrapKey();
         if (key.isPresent()) {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        drawScaledComponent(context, font, x, y, biomeToDisplay, textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
+        AtlasScreenUtils.drawScaledComponent(context, font, x, y, biomeToDisplay,
+                textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
-    public static void drawScaledComponent(
-            GuiGraphics context,
-            Font font,
-            int x, int y,
-            String text,
-            float textScaling,
-            int maxWidth,
-            int targetWidth
-    ) {
-        PoseStack pose = context.pose();
-        float textWidth = font.width(text);
-
-        float scale = Math.min(1, maxWidth * textScaling / textWidth);
-        scale *= textScaling;
-
-        float centerX = x + targetWidth / 2f;
-
-        pose.pushPose();
-        pose.translate(centerX, y + 4, 5);
-        pose.scale(scale, scale, 1);
-        pose.translate(-(textWidth) / 2f, -4, 0);
-        // uses slightly lighter drop shadow
-        drawStringWithLighterShadow(context, font, text, 0, 0);
-        pose.popPose();
-    }
-
-    private static void drawStringWithLighterShadow(GuiGraphics context, Font font, String text, float x, float y) {
-        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0x595959, false);
-        PlatStuff.drawString(context, font, text, x, y, 0xE0E0E0, false);
-    }
-
-    public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {
-
-        angleDegrees = Mth.wrapDegrees(90 - angleDegrees);
-
-        // Convert angle from degrees to radians
-        float angleRadians = (float) Math.toRadians(angleDegrees);
-
-        // Calculate the coordinates of the point on the square
-        float x, y;
-
-        if (angleDegrees >= -45 && angleDegrees < 45) {
-            x = radius;
-            y = radius * (float) Math.tan(angleRadians);
-        } else if (angleDegrees >= 45 && angleDegrees < 135) {
-            x = radius / (float) Math.tan(angleRadians);
-            y = radius;
-        } else if (angleDegrees >= 135 || angleDegrees < -135) {
-            x = -radius;
-            y = -radius * (float) Math.tan(angleRadians);
-        } else {
-            x = -radius / (float) Math.tan(angleRadians);
-            y = -radius;
-        }
-        return Pair.of(x, y);
-    }
+    // ── Zoom ─────────────────────────────────────────────────────────────
 
     public void increaseZoom() {
         zoomLevel = Math.max(1, zoomLevel - 0.5f);
@@ -443,7 +356,5 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
 
     public void decreaseZoom() {
         zoomLevel = Math.min(10, zoomLevel + 0.5f);
-
     }
-
 }

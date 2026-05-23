@@ -42,7 +42,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected final String decorationId;
 
     protected int index = 0;
-    protected boolean shfting = false;
+    protected boolean shifting = false;
     protected boolean control = false;
 
     protected DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, MapDataHolder data, String id) {
@@ -50,8 +50,8 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
                 MapAtlasesClient.BOOKMARK_LEFT_SPRITE, MapAtlasesClient.BOOKMARK_LEFT_SELECTED_SPRITE);
         this.mapData = data;
         this.decorationId = id;
-        this.shfting = Screen.hasShiftDown();
-        this.control = Screen.hasShiftDown();
+        this.shifting = Screen.hasShiftDown();
+        this.control = Screen.hasControlDown();
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
@@ -64,7 +64,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        this.shfting = Screen.hasShiftDown();
+        this.shifting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
         return false;
@@ -72,7 +72,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        this.shfting = Screen.hasShiftDown();
+        this.shifting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
         return false;
@@ -81,7 +81,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     @Override
     public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
-        if (shfting) {
+        if (shifting) {
             this.deleteMarker();
             parentScreen.recalculateDecorationWidgets();
         } else {
@@ -125,7 +125,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             if (this.control && canFocusMarker()) {
                 graphics.blitSprite(FOCUS_MARKER_SPRITE, getX(), getY(), 5, 5);
-            } else if (this.shfting && canDeleteMarker()) {
+            } else if (this.shifting && canDeleteMarker()) {
                 graphics.blitSprite(DELETE_MARKER_SPRITE, getX(), getY(), 5, 5);
             }
         }
@@ -144,7 +144,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         if (control && canFocusMarker()) {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
         }
-        if (shfting && canDeleteMarker()) {
+        if (shifting && canDeleteMarker()) {
             return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
         }
         Component mapIconComponent = getDecorationName();
@@ -199,7 +199,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         public Component getDecorationName() {
             var name = decoration.name();
             return name.orElseGet(() -> Component.literal(
-                    AtlasOverviewScreen.getReadableName(decoration.type().unwrapKey().get()
+                    AtlasScreenUtils.getReadableName(decoration.type().unwrapKey().get()
                             .location().getPath().toLowerCase(Locale.ROOT))));
         }
 
@@ -236,7 +236,6 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
                 //removes immediately from client so we update gui
                 decorations.remove(decorationId);
             }
-
         }
     }
 

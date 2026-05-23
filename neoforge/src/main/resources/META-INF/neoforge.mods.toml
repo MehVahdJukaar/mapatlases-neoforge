@@ -1,14 +1,14 @@
 
 modLoader = "javafml"
-loaderVersion = "${loader_version_range}"
+loaderVersion = "*"
 
 license = "${mod_license}"
 issueTrackerURL = "${mod_github}/issues"
 
 [[mixins]]
-config = "${mod_id}.mixins.json"
+    config = "${mod_id}.mixins.json"
 [[mixins]]
-config = "${mod_id}-common.mixins.json"
+    config = "${mod_id}-common.mixins.json"
 
 [[mods]]
     modId = "${mod_id}"
@@ -23,14 +23,14 @@ config = "${mod_id}-common.mixins.json"
 [[dependencies.${mod_id}]]
     modId = "neoforge"
     type = "required"
-    versionRange = "${neo_version_range}"
+    versionRange = "*"
     ordering = "NONE"
     side = "BOTH"
 
 [[dependencies.${mod_id}]]
     modId = "minecraft"
     type = "required"
-    versionRange = "[${minecraft_min_version},${minecraft_max_version})"
+    versionRange = "[${minecraft_version}]"
     ordering = "NONE"
     side = "BOTH"
 
@@ -38,8 +38,6 @@ config = "${mod_id}-common.mixins.json"
     modId = "moonlight"
     type = "required"
     referralUrl = "https://www.curseforge.com/minecraft/mc-mods/selene"
-    versionRange = "[${moonlight_min_version},]"
+    versionRange = "[${moonlight_min_version},)"
     ordering = "NONE"
     side = "BOTH"
-
-

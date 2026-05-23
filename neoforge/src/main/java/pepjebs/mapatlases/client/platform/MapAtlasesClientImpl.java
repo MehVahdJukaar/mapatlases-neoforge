@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.client.neoforge;
+package pepjebs.mapatlases.client.platform;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.LayeredDraw;
@@ -13,7 +13,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
-import twilightforest.network.MagicMapPacket;
 
 public class MapAtlasesClientImpl {
 

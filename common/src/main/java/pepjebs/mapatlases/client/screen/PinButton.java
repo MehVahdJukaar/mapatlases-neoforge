@@ -40,7 +40,7 @@ public class PinButton extends BookmarkButton {
 
     public static void placePin(MapDataHolder map, ColumnPos pos, String text, int index) {
         if (MapAtlasesMod.MOONLIGHT) {
-            ClientMarkers.addPin(map, pos, text, index);
+            ClientMarkers.placePin(map, pos, text, index);
         } else
             NetworkHelper.sendToServer(new C2SMarkerPacket(map.id, map.type, pos, text.isEmpty() ? null : text));
     }

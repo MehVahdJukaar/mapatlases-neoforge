@@ -1,8 +1,8 @@
-package pepjebs.mapatlases.fabric;
+package pepjebs.mapatlases.platform;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.fabric.MapAtlasesClientImpl;
+import pepjebs.mapatlases.client.platform.MapAtlasesClientImpl;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 
 public class MapAtlasesFabricClient {

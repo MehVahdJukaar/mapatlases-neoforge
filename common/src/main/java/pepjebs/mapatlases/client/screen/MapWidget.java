@@ -130,7 +130,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
                 var d = mapScreen.findMapContaining(pos.x(), pos.z());
                 if (d != null) {
-                    MapAtlasesHUD.drawScaledComponent(
+                    AtlasScreenUtils.drawScaledComponent(
                             graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id() + ", type=" + d.type + ", y=" + d.height + "]", 1, width, width);
                 }
             }
@@ -173,7 +173,7 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
         String coordsToDisplay = Component.translatable("message.map_atlases.coordinates", pos.x(), pos.z()).getString();
-        MapAtlasesHUD.drawScaledComponent(
+        AtlasScreenUtils.drawScaledComponent(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width, width);
     }
 

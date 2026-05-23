@@ -47,18 +47,19 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$5")
 class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
 
+
     @Shadow
     @Final
-    CartographyTableMenu field_17303;
+    CartographyTableMenu this$0;
 
     @Inject(method = "onTake", at = @At("HEAD"))
     void mapAtlasOnTakeItem(Player player, ItemStack result, CallbackInfo info) {
-        ItemStack atlas = field_17303.slots.get(0).getItem();
-        Slot slotOne = field_17303.slots.get(1);
+        ItemStack atlas = this.this$0.slots.get(0).getItem();
+        Slot slotOne = this.this$0.slots.get(1);
         if (atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack slotOneItem = slotOne.getItem();
             if (PlatStuff.isShear(slotOneItem)) {
-                AtlasCartographyTable menu = (AtlasCartographyTable) this.field_17303;
+                AtlasCartographyTable menu = (AtlasCartographyTable) this.this$0;
                 menu.mapatlases$removeSelectedMap(atlas);
                 atlas.grow(1);
                 slotOneItem.grow(1);

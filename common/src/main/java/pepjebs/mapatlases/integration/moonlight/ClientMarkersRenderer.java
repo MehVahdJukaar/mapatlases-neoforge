@@ -19,6 +19,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.phys.Vec3;
+import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapType;
@@ -56,7 +57,7 @@ public class ClientMarkersRenderer {
                 if (marker instanceof PinMarker mp && mp.isFocused() && !isOffscreen(widgetWorldLen, yRot, dist)) {
                     matrixStack.pushPose();
                     double angle = Mth.RAD_TO_DEG * (Math.atan2(dist.x, dist.z)) + yRot;
-                    var pp = MapAtlasesHUD.getDirectionPos(29F, (float) angle);
+                    var pp = AtlasScreenUtils.getDirectionPos(29F, (float) angle);
                     float a = pp.getFirst();
                     float b = pp.getSecond();
 
