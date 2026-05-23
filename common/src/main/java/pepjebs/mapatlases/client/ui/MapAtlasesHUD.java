@@ -103,7 +103,8 @@ public class MapAtlasesHUD extends AbstractAtlasWidget {
         int screenWidth = window.getGuiScaledWidth();
         int screenHeight = window.getGuiScaledHeight();
 
-        if (mc.level == null || mc.player == null || mc.getDebugOverlay().showDebugScreen()) return;
+        if (mc.level == null ||  mc.options.hideGui || mc.player == null || mc.getDebugOverlay().showDebugScreen()) return;
+
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
         if (MapAtlasesClientConfig.hideWhenInventoryOpen.get() && mc.screen != null) return;
 
