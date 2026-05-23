@@ -17,6 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,6 +86,8 @@ public class MapAtlasesMod {
                     .persistent(SelectedSlices.CODEC).build()
     );
 
+    public static final TagKey<DimensionType> NON_TRACKED_DIMENSIONS = TagKey.create(
+            Registries.DIMENSION_TYPE, res("not_tracked_by_atlas"));
     public static final TagKey<Item> STICKY_ITEMS = TagKey.create(Registries.ITEM, res("sticky_crafting_items"));
     public static final TagKey<MapDecorationType> NON_REMOVABLE_DECORATIONS = TagKey.create(Registries.MAP_DECORATION_TYPE, res("no_button_on_atlas"));
 

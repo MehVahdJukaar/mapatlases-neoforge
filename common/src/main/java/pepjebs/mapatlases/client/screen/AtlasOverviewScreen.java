@@ -8,6 +8,7 @@ import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -67,7 +68,8 @@ public class AtlasOverviewScreen extends Screen {
     private final LecternBlockEntity lectern;
 
     private MapWidget mapWidget;
-    private PinNameBox editBox;
+    private PinNameBox pinNameBox;
+    private EditBox filterBox;
     private SliceBookmarkButton sliceButton;
     private SliceArrowButton sliceUp;
     private SliceArrowButton sliceDown;
@@ -141,6 +143,7 @@ public class AtlasOverviewScreen extends Screen {
     protected void init() {
         super.init();
         initEditBox();
+        initFilterBox();
         initSliceWidgets();
         initDimensionPanel();
         initDecorationPanel();
@@ -150,16 +153,29 @@ public class AtlasOverviewScreen extends Screen {
 
         selectDimension(level.dimension());
 
-        if (isPinOnly) focusEditBox(true);
+        if (isPinOnly) focusPinEditBox(true);
         this.initialized = true;
     }
 
+    private static final int MODAL_W = 100;
+    private static final int MODAL_H = 20;
+
+    private int modalX() { return (width - MODAL_W) / 2; }
+    private int modalY() { return (height - MODAL_H) / 2; }
+
     private void initEditBox() {
-        this.editBox = new PinNameBox(this.font,
-                (width - 100) / 2,
-                (height - 20) / 2,
-                100, 20,
+        this.pinNameBox = new PinNameBox(this.font,
+                modalX(), modalY(), MODAL_W, MODAL_H,
                 Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
+        // Managed separately; not added as a renderable widget here
+    }
+
+    private void initFilterBox() {
+        this.filterBox = new EditBox(this.font,
+                modalX(), modalY(), MODAL_W, MODAL_H, Component.empty());
+        filterBox.setMaxLength(50);
+        filterBox.active = false;
+        filterBox.visible = false;
         // Managed separately; not added as a renderable widget here
     }
 
@@ -181,8 +197,8 @@ public class AtlasOverviewScreen extends Screen {
                 (width + BOOK_WIDTH) / 2,
                 (height - BOOK_HEIGHT) / 2,
                 BOOK_HEIGHT,
-                w -> addRenderableWidget(w),
-                w -> removeWidget(w));
+                this::addRenderableWidget,
+                this::removeWidget);
         dimensionPanel.build(currentMaps.getAvailableDimensions());
     }
 
@@ -192,8 +208,8 @@ public class AtlasOverviewScreen extends Screen {
                 (width - BOOK_WIDTH) / 2,
                 (height - BOOK_HEIGHT) / 2,
                 BOOK_HEIGHT,
-                w -> addRenderableWidget(w),
-                w -> removeWidget(w));
+                this::addRenderableWidget,
+                this::removeWidget);
     }
 
     private void initMapWidget() {
@@ -271,7 +287,7 @@ public class AtlasOverviewScreen extends Screen {
         this.currentMaps = MapAtlasItem.getMaps(atlas, level);
 
         if (mapWidget != null) mapWidget.tick();
-        if (this.editBox != null && editBox.active) this.editBox.tick();
+        if (this.pinNameBox != null && pinNameBox.active) this.pinNameBox.tick();
 
         if (!isValid()) this.minecraft.setScreen(null);
     }
@@ -281,11 +297,14 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (pKeyCode == GLFW.GLFW_KEY_ESCAPE) {
-            if (editBox.active) {
-                editBox.active = false;
-                editBox.visible = false;
+            if (pinNameBox.active) {
+                pinNameBox.active = false;
+                pinNameBox.visible = false;
                 partialPin = null;
                 if (isPinOnly) this.onClose();
+                return true;
+            } else if (filterBox.active) {
+                closeFilterBox();
                 return true;
             } else if (this.selectedCursorAction != CursorAction.NONE) {
                 this.selectedCursorAction = CursorAction.NONE;
@@ -297,10 +316,18 @@ public class AtlasOverviewScreen extends Screen {
             if (!isPinOnly && pinButton != null) toggleCursorAction(CursorAction.PLACING_PIN);
             return true;
         }
-        if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || editBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
+        if (filterBox.active) {
+            if (pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) {
+                applyFilterAndClose();
+                return true;
+            }
+            filterBox.keyPressed(pKeyCode, pScanCode, pModifiers);
             return true;
         }
-        if (!editBox.active && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || pinNameBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
+            return true;
+        }
+        if (!isEditingText() && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
             this.onClose();
             return true;
         }
@@ -354,8 +381,10 @@ public class AtlasOverviewScreen extends Screen {
             poseStack.popPose();
         }
 
-        if (editBox.active) {
-            editBox.render(graphics, mouseX, mouseY, delta);
+        if (pinNameBox.active) {
+            pinNameBox.render(graphics, mouseX, mouseY, delta);
+        } else if (filterBox.active) {
+            filterBox.render(graphics, mouseX, mouseY, delta);
         } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 5);
@@ -381,13 +410,13 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (!editBox.active) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-        return editBox.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        if (!isEditingText()) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return false;
     }
 
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
-        if (!editBox.active) {
+        if (!pinNameBox.active) {
             var v = transformMousePos(pMouseX, pMouseY);
             super.mouseMoved(v.x, v.y);
         }
@@ -395,20 +424,18 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (!editBox.active) {
-            var v = transformMousePos(pMouseX, pMouseY);
-            return super.mouseClicked(v.x, v.y, pButton);
-        }
-        return editBox.mouseClicked(pMouseX, pMouseY, pButton);
+        if (pinNameBox.active) return pinNameBox.mouseClicked(pMouseX, pMouseY, pButton);
+        if (filterBox.active) return filterBox.mouseClicked(pMouseX, pMouseY, pButton);
+        var v = transformMousePos(pMouseX, pMouseY);
+        return super.mouseClicked(v.x, v.y, pButton);
     }
 
     @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
-        if (!editBox.active) {
-            var v = transformMousePos(pMouseX, pMouseY);
-            return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
-        }
-        return editBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        if (pinNameBox.active) return pinNameBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        if (filterBox.active) return filterBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        var v = transformMousePos(pMouseX, pMouseY);
+        return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
     }
 
     public Vector4d transformMousePos(double mouseX, double mouseZ) {
@@ -563,7 +590,7 @@ public class AtlasOverviewScreen extends Screen {
     // ── Cursor action state ───────────────────────────────────────────────
 
     public boolean isEditingText() {
-        return editBox.active;
+        return pinNameBox.active || filterBox.active;
     }
 
     public boolean isPlacingPin() {
@@ -608,10 +635,10 @@ public class AtlasOverviewScreen extends Screen {
     public void placePinAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
-            editBox.setValue("");
+            pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
             if (hasShiftDown() || hasAltDown()) {
-                focusEditBox(true);
+                focusPinEditBox(true);
             } else {
                 addNewPin();
             }
@@ -619,31 +646,55 @@ public class AtlasOverviewScreen extends Screen {
         this.clearCursorAction();
     }
 
-    private void focusEditBox(boolean on) {
-        editBox.active = on;
-        editBox.visible = on;
-        editBox.setCanLoseFocus(!on);
-        editBox.setFocused(on);
-        this.setFocused(on ? editBox : mapWidget);
+    private void focusPinEditBox(boolean on) {
+        pinNameBox.active = on;
+        pinNameBox.visible = on;
+        pinNameBox.setCanLoseFocus(!on);
+        pinNameBox.setFocused(on);
+        this.setFocused(on ? pinNameBox : mapWidget);
         if (!on && isPinOnly) this.onClose();
     }
 
     private void addNewPin() {
         if (partialPin != null) {
-            String text = editBox.getValue();
-            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
-            editBox.increasePinIndex();
-            focusEditBox(false);
+            String text = pinNameBox.getValue();
+            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, pinNameBox.getIndex());
+            pinNameBox.increasePinIndex();
+            focusPinEditBox(false);
             partialPin = null;
             this.recalculateDecorationWidgets();
         }
+    }
+
+    // ── Filter flow ───────────────────────────────────────────────────────
+
+    public void openFilterBox() {
+        filterBox.active = true;
+        filterBox.visible = true;
+        filterBox.setValue("");
+        filterBox.setCanLoseFocus(false);
+        filterBox.setFocused(true);
+        this.setFocused(filterBox);
+    }
+
+    private void applyFilterAndClose() {
+        String text = filterBox.getValue();
+        if (decorationPanel != null) decorationPanel.applyFilter(text);
+        closeFilterBox();
+    }
+
+    private void closeFilterBox() {
+        filterBox.active = false;
+        filterBox.visible = false;
+        filterBox.setFocused(false);
+        this.setFocused(mapWidget);
     }
 
     // ── Misc ──────────────────────────────────────────────────────────────
 
     public boolean canTeleport() {
         return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
-                selectedCursorAction == CursorAction.NONE && !editBox.active;
+                selectedCursorAction == CursorAction.NONE && !pinNameBox.active;
     }
 
     public Minecraft getMinecraft() {

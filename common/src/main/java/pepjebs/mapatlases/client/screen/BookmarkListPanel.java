@@ -2,6 +2,7 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.resources.ResourceLocation;
@@ -165,5 +166,11 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
             if (down) panel.scrollDown();
             else panel.scrollUp();
         }
+
+        @VirtualOverride("neoforge")
+        public void onClick(double mouseX, double mouseY, int button) {
+            onClick(mouseX, mouseY);
+        }
+
     }
 }

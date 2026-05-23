@@ -41,6 +41,10 @@ public class MapAtlasesServerEvents {
 
         Level level = player.level();
         ResourceKey<Level> dimension = level.dimension();
+        if (level.dimensionTypeRegistration().is(MapAtlasesMod.NON_TRACKED_DIMENSIONS)) {
+            //don't do anything if player is in a non-tracked dimension
+            return;
+        }
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapsNeighborhood neighborhood = MapsNeighborhood.around(player, maps.getScale(), slice);
@@ -129,7 +133,7 @@ public class MapAtlasesServerEvents {
         Level level = player.level();
         if (maps.getCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
-               MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
+            MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
         }
 
         Slice slice = key.slice;
