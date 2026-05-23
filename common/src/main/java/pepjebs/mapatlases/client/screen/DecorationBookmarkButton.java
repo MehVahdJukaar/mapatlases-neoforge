@@ -30,7 +30,7 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import java.util.Locale;
 import java.util.Map;
 
-import static pepjebs.mapatlases.client.AbstractAtlasWidget.MAP_DIMENSION;
+import static pepjebs.mapatlases.client.AbstractAtlasDisplay.MAP_DIMENSION;
 import static pepjebs.mapatlases.client.MapAtlasesClient.DELETE_MARKER_SPRITE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.FOCUS_MARKER_SPRITE;
 

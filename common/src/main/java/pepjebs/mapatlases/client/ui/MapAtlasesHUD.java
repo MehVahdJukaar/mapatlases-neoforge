@@ -9,7 +9,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
@@ -17,7 +16,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -25,8 +23,7 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.PlatStuff;
-import pepjebs.mapatlases.client.AbstractAtlasWidget;
+import pepjebs.mapatlases.client.AbstractAtlasDisplay;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
@@ -43,7 +40,7 @@ import java.util.Objects;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXTURE;
 
-public class MapAtlasesHUD extends AbstractAtlasWidget {
+public class MapAtlasesHUD extends AbstractAtlasDisplay {
 
     private static final int BACKGROUND_SIZE = 128;
     protected final int BG_SIZE = 64;

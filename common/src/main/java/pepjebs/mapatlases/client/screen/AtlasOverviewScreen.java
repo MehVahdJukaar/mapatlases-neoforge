@@ -45,7 +45,6 @@ import java.util.*;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.*;
 
-//in retrospective, we should have kept the menu
 public class AtlasOverviewScreen extends Screen {
 
     private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
@@ -651,16 +650,4 @@ public class AtlasOverviewScreen extends Screen {
         return minecraft;
     }
 
-    /** @deprecated Use {@link AtlasScreenUtils#getReadableName(ResourceLocation)} */
-    @Deprecated
-    public static String getReadableName(ResourceLocation id) {
-        return AtlasScreenUtils.getReadableName(id);
-    }
-
-    /** @deprecated Use {@link AtlasScreenUtils#getReadableName(String)} */
-    @Deprecated
-    @NotNull
-    public static String getReadableName(String s) {
-        return AtlasScreenUtils.getReadableName(s);
-    }
 }

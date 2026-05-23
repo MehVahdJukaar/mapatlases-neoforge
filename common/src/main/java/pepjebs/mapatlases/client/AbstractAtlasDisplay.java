@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public abstract class AbstractAtlasWidget {
+public abstract class AbstractAtlasDisplay {
 
     public static final int MAP_DIMENSION = 128;
 
@@ -46,7 +46,7 @@ public abstract class AbstractAtlasWidget {
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
 
-    protected AbstractAtlasWidget(int atlasesCount) {
+    protected AbstractAtlasDisplay(int atlasesCount) {
         this.atlasesCount = atlasesCount;
     }
 
