@@ -43,7 +43,7 @@ public class ClientMarkers {
             TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
 
     protected static final Map<Integer, Set<MarkerHolder>> markersPerMap = new HashMap<>();
-    private static final Map<Integer, String> mapIdToStringLookup = new IdentityHashMap<>();
+    private static final Map<Integer, String> mapIdToStringLookup = new HashMap<>();
 
     private static String lastFolderNameOrIP = null;
     private static QuickPlayLog.Type lastType = QuickPlayLog.Type.SINGLEPLAYER;
@@ -155,9 +155,9 @@ public class ClientMarkers {
 
     private static void load(CompoundTag tag) {
         for (var k : tag.getAllKeys()) {
-            Set<MapBlockMarker<?>> l = new HashSet<>();
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
             Integer id = MapAtlasesAccessUtils.findMapIntFromString(k);
+            mapIdToStringLookup.put(id, k);
             for (int j = 0; j < listNbt.size(); ++j) {
                 var c = listNbt.getCompound(j);
                 MapBlockMarker<?> marker = MapDataRegistry.readMarker(c);
@@ -205,6 +205,7 @@ public class ClientMarkers {
         }
 
         marker.setPos(new BlockPos(pos.x(), h, pos.z()));
+        mapIdToStringLookup.put(holder.id, holder.stringId);
         markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(MarkerHolder.of(marker));
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
