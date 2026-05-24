@@ -353,12 +353,9 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         }
     }
 
-    private double interpolate(double targetZCenter, double currentZCenter, double animationSpeed) {
-        double diff = targetZCenter - currentZCenter;
-        if (diff < 0) {
-            return Math.max(targetZCenter, currentZCenter + (diff * animationSpeed) - 0.001);
-        } else {
-            return Math.min(targetZCenter, currentZCenter + (diff * animationSpeed) + 0.001);
-        }
+    private double interpolate(double target, double current, double animationSpeed) {
+        double diff = target - current;
+        if (Math.abs(diff) < 0.01) return target;
+        return current + (diff * animationSpeed);
     }
 }
