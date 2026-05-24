@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.AtlasLectern;
 
 @Mixin(LecternBlockEntity.class)
@@ -29,39 +30,21 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
 
     @Shadow abstract void onBookItemRemove();
 
-    @Unique
-    private boolean mapatlases$hasAtlas = false;
-
     protected LecternBlockEntityMixin(BlockEntityType<?> pType, BlockPos pPos, BlockState pBlockState) {
         super(pType, pPos, pBlockState);
     }
 
-
-    @Inject(method = "saveAdditional", at = @At("TAIL"))
-    public void onSave(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-        if (mapatlases$hasAtlas) tag.putBoolean("has_atlas", true);
-    }
-
-    @Inject(method = "loadAdditional", at = @At("TAIL"))
-    public void onLoad(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-        if (tag.contains("has_atlas")) mapatlases$hasAtlas = tag.getBoolean("has_atlas");
-    }
-
     @Override
     public boolean mapatlases$hasAtlas() {
-        return mapatlases$hasAtlas;
+        return book.is(MapAtlasesMod.MAP_ATLAS.get());
     }
 
     @Override
     public boolean mapatlases$setAtlas(Player player, ItemStack atlas) {
-        if(LecternBlock.tryPlaceBook(
-                player,
-                level,
-                worldPosition,
-                getBlockState(),
-                atlas
-        )){
-            this.mapatlases$hasAtlas = true;
+        // Flag must be set before tryPlaceBook because that triggers sendBlockUpdated,
+        // which serialises the block entity and sends it to the client. Setting it after
+        // would mean the client receives has_atlas=false in that packet.
+        if (LecternBlock.tryPlaceBook(player, level, worldPosition, getBlockState(), atlas)) {
             return true;
         }
         return false;
@@ -69,7 +52,6 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
 
     @Override
     public ItemStack mapatlases$removeAtlas(){
-        this.mapatlases$hasAtlas = false;
         ItemStack atlas = this.book;
         this.book = ItemStack.EMPTY;
         this.onBookItemRemove();
