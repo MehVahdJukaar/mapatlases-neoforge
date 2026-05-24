@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -48,7 +49,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     private ContainerLevelAccess access;
 
     @Shadow
-    public abstract void slotsChanged(Container pInventory);
+    public abstract void slotsChanged(@NotNull Container pInventory);
 
     @Shadow
     @Final
