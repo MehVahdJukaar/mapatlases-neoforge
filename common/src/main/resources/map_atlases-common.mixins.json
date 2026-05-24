@@ -15,10 +15,8 @@
     "LecternBlockMixin",
     "MapItemMixin",
     "MapItemSavedDataAccessor",
-    "MapItemSavedDataMixin",
-    "MixinCartographyTableAbstractContainerMenuSecondSlot",
-    "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
-    "MixinCartographyTableHandlerFirstSlot"
+    "MapItemSavedDataMixin"
+
   ],
   "client": [
     "CartographyTableScreenMixin",

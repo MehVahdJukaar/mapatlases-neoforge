@@ -7,6 +7,9 @@
     "ItemInHandRendererMixin"
   ],
   "mixins": [
+    "MixinCartographyTableAbstractContainerMenuSecondSlot",
+    "MixinCartographyTableAbstractContainerMenuSecondSlotMaps",
+    "MixinCartographyTableHandlerFirstSlot"
   ],
   "injectors": {
     "defaultRequire": 1
