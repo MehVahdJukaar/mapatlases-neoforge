@@ -133,9 +133,6 @@ public abstract class DecorationBookmarkButton extends AtlasButton {
         renderDecoration(graphics, pMouseX, pMouseY);
 
         matrices.popPose();
-
-        //hide waiting to be activated by mapWidget
-        setSelected(false);
     }
 
     protected abstract void renderDecoration(GuiGraphics graphics, int mouseX, int mouseY);

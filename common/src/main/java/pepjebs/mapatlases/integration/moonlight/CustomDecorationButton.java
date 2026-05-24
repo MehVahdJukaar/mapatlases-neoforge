@@ -47,11 +47,6 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
     }
 
     @Override
-    public int getBatchGroup() {
-        return 1;
-    }
-
-    @Override
     public Component getDecorationName() {
         Component displayName = decoration.getDisplayName();
         return displayName == null
