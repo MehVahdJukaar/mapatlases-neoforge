@@ -30,6 +30,8 @@ import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.utils.DecorationHolder;
+import pepjebs.mapatlases.utils.VanillaDecorationHolder;
+import pepjebs.mapatlases.utils.CustomDecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 import java.util.Locale;
@@ -60,11 +62,12 @@ public abstract class DecorationBookmarkButton extends AtlasButton {
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
-        if (holder.deco() instanceof MapDecoration md)
-            return new Vanilla(px, py, screen, holder.data(), md, holder.id());
-        else {
-            return CustomDecorationButton.create(px, py, screen, holder.data(), holder.deco(), holder.id());
+        if (holder instanceof VanillaDecorationHolder vanilla)
+            return new Vanilla(px, py, screen, holder.data(), vanilla.deco(), holder.id());
+        else if (holder instanceof CustomDecorationHolder custom) {
+            return CustomDecorationButton.create(px, py, screen, holder.data(), custom.deco(), holder.id());
         }
+        throw new IllegalStateException("Unknown DecorationHolder type");
     }
 
     @Override

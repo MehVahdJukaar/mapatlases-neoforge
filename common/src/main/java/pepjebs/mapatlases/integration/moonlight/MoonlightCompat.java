@@ -49,7 +49,7 @@ public class MoonlightCompat {
     public static Collection<DecorationHolder> getCustomDecorations(MapDataHolder map) {
         return ((ExpandedMapData) map.data).ml$getCustomDecorations().entrySet().stream()
                 .filter(e -> !e.getValue().getType().is(NOT_ON_ATLAS))
-                .map(a -> new DecorationHolder(a.getValue(), a.getKey(), map)).toList();
+                .map(a -> DecorationHolder.custom(a.getValue(), a.getKey(), map)).toList();
     }
 
     public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
