@@ -539,7 +539,7 @@ public class AtlasOverviewScreen extends Screen {
             for (var d : data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame() && !deco.type().is(MapAtlasesMod.NON_REMOVABLE_DECORATIONS)) {
-                    mapIcons.add(new DecorationHolder(deco, d.getKey(), holder));
+                    mapIcons.add(DecorationHolder.vanilla(deco, d.getKey(), holder));
                 }
             }
             if (ml) mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
