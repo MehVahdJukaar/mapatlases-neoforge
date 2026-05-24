@@ -19,9 +19,15 @@ dependencies {
     modCompileOnly("com.terraformersmc:modmenu:4.0.6")
 
     modCompileOnly("dev.emi:trinkets:${trinkets_version}")
-    /*
         modCompileOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-base:${cca_version}")
     modCompileOnly("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:${cca_version}")
     modCompileOnly("curse.maven:config-menus-forge-544048:4672356")
-     */
+    modCompileOnly("curse.maven:emi-580555:6420930")
+    modCompileOnly("curse.maven:jei-238222:7420583")
+    modCompileOnly("curse.maven:roughly-enough-items-310111:6199139")
+    modCompileOnly("curse.maven:roughly-enough-items-310111:6199140")
+    modCompileOnly("maven.modrinth:immediatelyfast:1.6.10+1.21.1-fabric")
+    modCompileOnly("curse.maven:curios-309927:6274154")
+    modImplementation("curse.maven:the-twilight-forest-227639:7797302")
+
 }

@@ -56,6 +56,7 @@ subprojects {
             nexus()
         }
         curseforge {
+
             dependencies {
                 required("selene")
             }
@@ -64,6 +65,8 @@ subprojects {
             dependencies {
                 required("moonlight")
             }
+
+
         }
 
         forEach {
@@ -122,7 +125,7 @@ tasks.register("buildAndPublishAll") {
 
     dependsOn(subprojects.map { it.tasks.named("clean") })
     dependsOn(subprojects.map { it.tasks.named("build") })
-    dependsOn(subprojects.map { it.tasks.named("publish") })
+    dependsOn(subprojects.map { it.tasks.named("upload") })
 
     finalizedBy("gitTag")
 }
