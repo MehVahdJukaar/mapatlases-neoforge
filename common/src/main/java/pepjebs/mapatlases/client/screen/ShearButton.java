@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-public class ShearButton extends BookmarkButton {
+public class ShearButton extends AtlasButton {
 
     protected ShearButton(int pX, int pY, AtlasOverviewScreen screen) {
         super(pX, pY, 16, 16,  screen,

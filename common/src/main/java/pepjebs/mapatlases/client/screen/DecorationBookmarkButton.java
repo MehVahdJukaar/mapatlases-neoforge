@@ -3,8 +3,12 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.mehvahdjukaar.supplementaries.configs.ClientConfigs;
+import net.mehvahdjukaar.supplementaries.configs.CommonConfigs;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -23,6 +27,7 @@ import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
+import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
@@ -34,7 +39,7 @@ import static pepjebs.mapatlases.client.AbstractAtlasDisplay.MAP_DIMENSION;
 import static pepjebs.mapatlases.client.MapAtlasesClient.DELETE_MARKER_SPRITE;
 import static pepjebs.mapatlases.client.MapAtlasesClient.FOCUS_MARKER_SPRITE;
 
-public abstract class DecorationBookmarkButton extends BookmarkButton {
+public abstract class DecorationBookmarkButton extends AtlasButton {
 
     private static final int BUTTON_H = 14;
     private static final int BUTTON_W = 24;
@@ -52,17 +57,6 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         this.decorationId = id;
         this.shifting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
-    }
-
-    public static String getSearchText(DecorationHolder holder) {
-        var sb = new StringBuilder(holder.id().toLowerCase(Locale.ROOT));
-        if (holder.deco() instanceof MapDecoration md) {
-            md.type().unwrapKey().ifPresent(k ->
-                    sb.append(' ').append(k.location().getPath().toLowerCase(Locale.ROOT)));
-            md.name().ifPresent(n ->
-                    sb.append(' ').append(n.getString().toLowerCase(Locale.ROOT)));
-        }
-        return sb.toString();
     }
 
     public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
@@ -100,7 +94,7 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
     }
 
-    //@Override
+    @VirtualOverride("neoforge")
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
     }
@@ -117,10 +111,6 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
     protected static double getDecorationPos(int decoX, MapItemSavedData data) {
         float s = (1 << data.scale) * (float) MAP_DIMENSION;
         return (s / 2.0d) - ((s / 2.0d) * ((decoX + MAP_DIMENSION) / (float) MAP_DIMENSION));
-    }
-
-    public int getBatchGroup() {
-        return 0;
     }
 
     public void setIndex(int index) {

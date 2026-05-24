@@ -14,7 +14,7 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.networking.C2SMarkerPacket;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
-public class PinButton extends BookmarkButton {
+public class PinButton extends AtlasButton {
 
     protected PinButton(int pX, int pY, AtlasOverviewScreen screen) {
         super(pX, pY, 16, 16, screen,

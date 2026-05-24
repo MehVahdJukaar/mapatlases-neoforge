@@ -15,9 +15,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-
-public class DimensionBookmarkButton extends BookmarkButton {
+public class DimensionBookmarkButton extends AtlasButton {
 
     private static final int BUTTON_H = 18;
     private static final int BUTTON_W = 24;

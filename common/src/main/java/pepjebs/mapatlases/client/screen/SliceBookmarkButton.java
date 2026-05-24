@@ -11,7 +11,7 @@ import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.Slice;
 
-public class SliceBookmarkButton extends BookmarkButton {
+public class SliceBookmarkButton extends AtlasButton {
 
     private static final int BUTTON_H = 21;
     private static final int BUTTON_W = 27;
@@ -25,7 +25,7 @@ public class SliceBookmarkButton extends BookmarkButton {
     protected SliceBookmarkButton(int pX, int pY, Slice slice, AtlasOverviewScreen screen) {
         super(pX, pY, BUTTON_W, BUTTON_H, screen, MapAtlasesClient.SLICE_BOOKMARK_SPRITE, MapAtlasesClient.SLICE_BOOKMARK_SPRITE);
         this.slice = slice;
-        this.selected = false;
+        this.setSelected(false);
         this.setTooltip(createTooltip());
     }
 
