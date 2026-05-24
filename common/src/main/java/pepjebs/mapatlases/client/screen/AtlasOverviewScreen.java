@@ -153,15 +153,20 @@ public class AtlasOverviewScreen extends Screen {
 
         selectDimension(level.dimension());
 
-        if (isPinOnly) focusPinEditBox(true);
+        if (isPinOnly) setPinNameBoxState(true);
         this.initialized = true;
     }
 
     private static final int MODAL_W = 100;
     private static final int MODAL_H = 20;
 
-    private int modalX() { return (width - MODAL_W) / 2; }
-    private int modalY() { return (height - MODAL_H) / 2; }
+    private int modalX() {
+        return (width - MODAL_W) / 2;
+    }
+
+    private int modalY() {
+        return (height - MODAL_H) / 2;
+    }
 
     private void initEditBox() {
         this.pinNameBox = new PinNameBox(this.font,
@@ -298,13 +303,12 @@ public class AtlasOverviewScreen extends Screen {
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (pKeyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (pinNameBox.active) {
-                pinNameBox.active = false;
-                pinNameBox.visible = false;
+                setPinNameBoxState(false);
                 partialPin = null;
                 if (isPinOnly) this.onClose();
                 return true;
             } else if (filterBox.active) {
-                closeFilterBox();
+                setFilterBoxState(false);
                 return true;
             } else if (this.selectedCursorAction != CursorAction.NONE) {
                 this.selectedCursorAction = CursorAction.NONE;
@@ -384,7 +388,10 @@ public class AtlasOverviewScreen extends Screen {
         if (pinNameBox.active) {
             pinNameBox.render(graphics, mouseX, mouseY, delta);
         } else if (filterBox.active) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 30);
             filterBox.render(graphics, mouseX, mouseY, delta);
+            graphics.pose().popPose();
         } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 5);
@@ -416,7 +423,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
-        if (!pinNameBox.active) {
+        if (!isEditingText()) {
             var v = transformMousePos(pMouseX, pMouseY);
             super.mouseMoved(v.x, v.y);
         }
@@ -638,7 +645,7 @@ public class AtlasOverviewScreen extends Screen {
             pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
             if (hasShiftDown() || hasAltDown()) {
-                focusPinEditBox(true);
+                setPinNameBoxState(true);
             } else {
                 addNewPin();
             }
@@ -646,13 +653,12 @@ public class AtlasOverviewScreen extends Screen {
         this.clearCursorAction();
     }
 
-    private void focusPinEditBox(boolean on) {
+    public void setPinNameBoxState(boolean on) {
         pinNameBox.active = on;
         pinNameBox.visible = on;
         pinNameBox.setCanLoseFocus(!on);
         pinNameBox.setFocused(on);
         this.setFocused(on ? pinNameBox : mapWidget);
-        if (!on && isPinOnly) this.onClose();
     }
 
     private void addNewPin() {
@@ -660,7 +666,7 @@ public class AtlasOverviewScreen extends Screen {
             String text = pinNameBox.getValue();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, pinNameBox.getIndex());
             pinNameBox.increasePinIndex();
-            focusPinEditBox(false);
+            setPinNameBoxState(false);
             partialPin = null;
             this.recalculateDecorationWidgets();
         }
@@ -668,26 +674,19 @@ public class AtlasOverviewScreen extends Screen {
 
     // ── Filter flow ───────────────────────────────────────────────────────
 
-    public void openFilterBox() {
-        filterBox.active = true;
-        filterBox.visible = true;
-        filterBox.setValue("");
-        filterBox.setCanLoseFocus(false);
-        filterBox.setFocused(true);
-        this.setFocused(filterBox);
+    public void setFilterBoxState(boolean on) {
+        filterBox.active = on;
+        filterBox.visible = on;
+        filterBox.setCanLoseFocus(!on);
+        filterBox.setFocused(on);
+        if (on) filterBox.setValue("");
+        this.setFocused(on ? filterBox : mapWidget);
     }
 
     private void applyFilterAndClose() {
         String text = filterBox.getValue();
         if (decorationPanel != null) decorationPanel.applyFilter(text);
-        closeFilterBox();
-    }
-
-    private void closeFilterBox() {
-        filterBox.active = false;
-        filterBox.visible = false;
-        filterBox.setFocused(false);
-        this.setFocused(mapWidget);
+        setFilterBoxState(false);
     }
 
     // ── Misc ──────────────────────────────────────────────────────────────

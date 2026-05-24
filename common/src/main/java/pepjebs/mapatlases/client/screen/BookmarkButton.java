@@ -40,10 +40,10 @@ public abstract class BookmarkButton extends AbstractWidget {
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         RenderSystem.enableDepthTest();
         if (!visible || !active) return;
+        if (parentScreen.isEditingText()) isHovered = false;
         pGuiGraphics.blitSprite(getSprite(),
                 this.getX(), this.getY(),
                 this.width, this.height);
-        if (parentScreen.isEditingText()) isHovered = false; //cancel tooltip
     }
 
     public ResourceLocation getSprite() {

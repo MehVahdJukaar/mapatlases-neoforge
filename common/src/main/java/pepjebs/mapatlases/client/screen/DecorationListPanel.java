@@ -88,7 +88,9 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         super.refreshVisible();
 
         boolean needsScroll = totalCount() > maxVisible;
-        if (filter != null) this.filter.active = needsScroll;
+        if (filter != null) {
+            this.filter.updateActiveState(needsScroll);
+        }
     }
 
     void updateVisible(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
@@ -180,15 +182,27 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         }
 
         @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            super.mouseClicked(mouseX, mouseY, button);
+            return false; //never focus this widget.
+        }
+
+        @Override
         public void onClick(double mouseX, double mouseY) {
             if (hasActiveFilter()) clearFilter();
-            else screen.openFilterBox();
+            else screen.setFilterBoxState(true);
         }
 
 
         @VirtualOverride("neoforge")
         public void onClick(double mouseX, double mouseY, int button) {
             onClick(mouseX, mouseY);
+        }
+
+        public void updateActiveState(boolean needsScroll) {
+            if (hasActiveFilter()) return;
+            this.active = needsScroll;
+            this.visible = needsScroll;
         }
     }
 }
