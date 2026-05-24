@@ -3,14 +3,11 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -32,6 +29,9 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
     private String filterText = "";
     // Tracks last map-centre used for sorting; MIN_VALUE forces a sort on the first markInView call.
     private int lastSortCx = Integer.MIN_VALUE, lastSortCz = Integer.MIN_VALUE;
+    // Last view bounds — applied immediately to newly created buttons to avoid a one-frame flicker.
+    private int lastViewCx, lastViewCz;
+    private float lastViewRadius = -1;
     @Nullable
     private FilterButton filter;
 
@@ -60,6 +60,9 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
 
     @Override
     protected void createVisibleWidgets(int from, int to) {
+        float r = lastViewRadius;
+        float minX = lastViewCx - r, maxX = lastViewCx + r;
+        float minZ = lastViewCz - r, maxZ = lastViewCz + r;
         for (int i = from; i < to; i++) {
             int localIndex = i - from;
             DecorationBookmarkButton btn = DecorationBookmarkButton.of(
@@ -68,6 +71,10 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
                     displayList.get(i),
                     screen);
             btn.setIndex(localIndex);
+            if (r >= 0) {
+                double bx = btn.getWorldX(), bz = btn.getWorldZ();
+                btn.setSelected(bx >= minX && bx <= maxX && bz >= minZ && bz <= maxZ);
+            }
             widgetAdder.accept(btn);
             visibleButtons.add(btn);
         }
@@ -97,7 +104,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         } else {
             String filterLower = filterText.toLowerCase(Locale.ROOT);
             displayList = allHolders.stream()
-                    .filter(h -> h.matchesFilter(filterLower))
+                    .filter(h -> h.sortingString().contains(filterLower))
                     .toList();
         }
         if (filter != null) filter.updateActiveState(totalCount() > maxVisible);
@@ -114,22 +121,26 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
      * Also marks visible buttons as selected if their decoration is in the current view.
      */
     void markInView(int cx, int cz, float radius) {
+        // Store view bounds for immediate use when buttons are (re)created
+        lastViewCx = cx;
+        lastViewCz = cz;
+        lastViewRadius = radius;
+
         // Re-sort if the map center has shifted significantly
         int dx = cx - lastSortCx, dz = cz - lastSortCz;
         if (dx * dx + dz * dz > 256) { // > 16 blocks
-            allHolders.sort(Comparator.comparingDouble(h -> decorationDistSq(h, cx, cz)));
+            sortHolders(cx, cz);
             lastSortCx = cx;
             lastSortCz = cz;
             markRefreshPending(); // deferred — applied in tick(), safe outside render loop
         }
 
-        // Highlight buttons whose decoration lies within the visible map rectangle
-        if (visibleButtons.isEmpty()) return;
+        // Reset then re-assert selection for all visible buttons
         float minX = cx - radius, maxX = cx + radius;
         float minZ = cz - radius, maxZ = cz + radius;
         for (var btn : visibleButtons) {
             double x = btn.getWorldX(), z = btn.getWorldZ();
-            if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) btn.setSelected(true);
+            btn.setSelected(x >= minX && x <= maxX && z >= minZ && z <= maxZ);
         }
     }
 
@@ -148,21 +159,17 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         return !filterText.isEmpty();
     }
 
+    private void sortHolders(int cx, int cz) {
 
-    /**
-     * Squared world-space distance between a decoration and (px, pz).
-     * Uses the exact decoration position for vanilla markers; falls back to map centre for custom ones.
-     */
-    private static double decorationDistSq(DecorationHolder h, double px, double pz) {
-        var d = h.data().data;
-        double wx = d.centerX, wz = d.centerZ;
-        if (h.deco() instanceof MapDecoration md) {
-            // getDecorationPos simplifies to -(1 << scale) * coord / 2
-            int scale = 1 << d.scale;
-            wx += scale * md.x() / 2.0;
-            wz += scale * md.y() / 2.0;
+        if (MapAtlasesClientConfig.sortBookmarks.get()) {
+            Comparator<DecorationHolder> primary =
+                    Comparator.comparingDouble(h -> h.decorationDistSq(cx, cz));
+            allHolders.sort(primary);
+        } else {
+            Comparator<DecorationHolder> secondary =
+                    Comparator.comparing(DecorationHolder::sortingString);
+            allHolders.sort(secondary);
         }
-        return Mth.square(wx - px) + Mth.square(wz - pz);
     }
 
     // ── Filter button ──────────────────────────────────────────────────────

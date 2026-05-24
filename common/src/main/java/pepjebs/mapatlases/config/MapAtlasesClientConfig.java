@@ -106,6 +106,8 @@ public class MapAtlasesClientConfig {
                 .define("shear_button", true);
         filterButton = builder.comment("Show filter button on atlas screen, allowing you to filter map decoration by name")
                 .define("filter_button", true);
+        sortBookmarks = builder.comment("Sort bookmarks in atlas screen by distance from map center instead of just by id")
+                .define("sort_bookmarks", true);
         compass = builder.comment("Shows a compass icon on the map screen")
                 .define("compass_icon", false);
         clock = builder.comment("Shows a clock icon on the map screen")
@@ -226,6 +228,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> clock;
     public static final Supplier<Boolean> shearButton;
     public static final Supplier<Boolean> filterButton;
+    public static final Supplier<Boolean> sortBookmarks;
     public static final Supplier<Boolean> hideWhenInHand;
     public static final Supplier<InHandMode> inHandMode;
     public static final Supplier<Double> miniMapScale;
