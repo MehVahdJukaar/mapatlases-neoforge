@@ -35,12 +35,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
+
 public class ClientMarkers {
 
     private static final TagKey<MapDecorationType<?, ?>> PINS =
             TagKey.create(MapDataRegistry.REGISTRY_KEY, MapAtlasesMod.res("pins"));
 
-    protected static final Map<Integer, Set<MapBlockMarker<?>>> markersPerMap = new HashMap<>();
+    protected static final Map<Integer, Set<MarkerHolder>> markersPerMap = new HashMap<>();
     private static final Map<Integer, String> mapIdToStringLookup = new IdentityHashMap<>();
 
     private static String lastFolderNameOrIP = null;
@@ -79,7 +81,10 @@ public class ClientMarkers {
                 load(NbtIo.readCompressed(inputStream));
             } catch (Exception e) {
                 MapAtlasesMod.LOGGER.error("Corrupt client markers file at {}, deleting", currentPath, e);
-                try { Files.deleteIfExists(currentPath); } catch (Exception ignored) {}
+                try {
+                    Files.deleteIfExists(currentPath);
+                } catch (Exception ignored) {
+                }
             }
         }
 
@@ -152,12 +157,15 @@ public class ClientMarkers {
         for (var k : tag.getAllKeys()) {
             Set<MapBlockMarker<?>> l = new HashSet<>();
             ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
+            Integer id = MapAtlasesAccessUtils.findMapIntFromString(k);
             for (int j = 0; j < listNbt.size(); ++j) {
                 var c = listNbt.getCompound(j);
                 MapBlockMarker<?> marker = MapDataRegistry.readMarker(c);
-                if (marker != null) l.add(marker);
+                if (marker != null) {
+                    markersPerMap.computeIfAbsent(id, g -> new HashSet<>())
+                            .add(new MarkerHolder(marker, c));
+                }
             }
-            markersPerMap.put(MapAtlasesAccessUtils.findMapIntFromString(k), l);
         }
     }
 
@@ -166,9 +174,7 @@ public class ClientMarkers {
         for (var v : markersPerMap.entrySet()) {
             ListTag listNBT = new ListTag();
             for (var marker : v.getValue()) {
-                CompoundTag c = new CompoundTag();
-                c.put(marker.getTypeId(), marker.saveToNBT());
-                listNBT.add(c);
+                listNBT.add(marker.savedMarker);
             }
             tag.put(mapIdToStringLookup.get(v.getKey()), listNBT);
         }
@@ -181,7 +187,8 @@ public class ClientMarkers {
             MapDataHolder holder = MapDataHolder.findFromId(Minecraft.getInstance().level, integer);
             return Objects.requireNonNull(holder).stringId;
         });
-        return markersPerMap.getOrDefault(integer, Set.of());
+        return markersPerMap.getOrDefault(integer, Set.of()).stream().map(m -> m.marker)
+                .collect(Collectors.toSet());
     }
 
     // WRITE — synchronized
@@ -198,7 +205,7 @@ public class ClientMarkers {
         }
 
         marker.setPos(new BlockPos(pos.x(), h, pos.z()));
-        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(marker);
+        markersPerMap.computeIfAbsent(holder.id, k -> new HashSet<>()).add(MarkerHolder.of(marker));
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
 
@@ -219,7 +226,7 @@ public class ClientMarkers {
     public static synchronized boolean removeClientDeco(int mapId, String key) {
         var mr = markersPerMap.get(mapId);
         if (mr != null) {
-            mr.removeIf(m -> m.getMarkerId().equals(key));
+            mr.removeIf(m -> m.marker.getMarkerId().equals(key));
             if (mr.isEmpty()) {
                 markersPerMap.remove(mapId);
             }
@@ -246,5 +253,14 @@ public class ClientMarkers {
         return false;
     }
 
+
+    protected record MarkerHolder(MapBlockMarker<?> marker, Tag savedMarker) {
+
+        public static MarkerHolder of(MapBlockMarker<?> marker) {
+            CompoundTag tag = new CompoundTag();
+            tag.put(marker.getTypeId(), marker.saveToNBT());
+            return new MarkerHolder(marker, tag);
+        }
+    }
 
 }

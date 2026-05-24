@@ -43,7 +43,8 @@ public class ClientMarkersRenderer {
             int mapId = entry.getKey();
             if (!collection.hasId(mapId)) continue;
             var pins = entry.getValue();
-            for (var marker : pins) {
+            for (var clientMarker : pins) {
+                var marker = clientMarker.marker();
                 BlockPos pos = marker.getPos();
                 Vec3 dist = playerPos.getCenter().subtract(pos.getCenter());
                 if (marker instanceof PinMarker mp && mp.isFocused() && !isOffscreen(widgetWorldLen, yRot, dist)) {
