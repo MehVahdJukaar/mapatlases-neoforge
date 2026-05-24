@@ -37,6 +37,7 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
 
     protected final List<B> visibleButtons = new ArrayList<>();
     protected int scrollOffset = 0;
+    private boolean pendingRefresh = false;
 
     BookmarkListPanel(AtlasOverviewScreen screen,
                       int arrowX, int yStart, int maxVisible, int separation,
@@ -62,7 +63,9 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
 
     // ── Subclass contract ─────────────────────────────────────────────────
 
-    /** Total number of items in the full (unclipped) list. */
+    /**
+     * Total number of items in the full (unclipped) list.
+     */
     protected abstract int totalCount();
 
     /**
@@ -76,15 +79,32 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
     void scrollUp() {
         if (canScrollUp()) {
             scrollOffset--;
-            refreshVisible();
+            pendingRefresh = true;
         }
     }
 
     void scrollDown() {
         if (canScrollDown()) {
             scrollOffset++;
+            pendingRefresh = true;
+        }
+    }
+
+    /**
+     * Apply any pending scroll refresh. Call this after the event-dispatch loop has finished.
+     */
+    void flush() {
+        if (pendingRefresh) {
+            pendingRefresh = false;
             refreshVisible();
         }
+    }
+
+    /**
+     * Let a subclass signal that a refresh is needed (e.g. after re-sorting the data list).
+     */
+    protected void markRefreshPending() {
+        pendingRefresh = true;
     }
 
     boolean canScrollUp() {
@@ -103,6 +123,10 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
     }
 
     protected void refreshVisible() {
+        if (screen.inMouseClick) {
+            pendingRefresh = true;
+            return;
+        }
         clearVisible();
         boolean needsScroll = totalCount() > maxVisible;
         arrowUp.visible = needsScroll;
@@ -118,7 +142,7 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
 
     // ── Shared scroll arrow ───────────────────────────────────────────────
 
-    static final class Arrow extends BookmarkButton {
+    static final class Arrow extends AtlasButton {
 
         private final BookmarkListPanel<?> panel;
         private final boolean down;
@@ -131,7 +155,7 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
             this.panel = panel;
             this.down = down;
             this.inactiveSprite = down ? MapAtlasesClient.SLICE_DOWN_INACTIVE_SPRITE
-                                       : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
+                    : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
             this.setSelected(false);
         }
 

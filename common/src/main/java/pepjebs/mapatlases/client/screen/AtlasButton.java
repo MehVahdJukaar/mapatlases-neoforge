@@ -9,20 +9,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE;
-
-public abstract class BookmarkButton extends AbstractWidget {
+public abstract class AtlasButton extends AbstractWidget {
 
     protected final ResourceLocation sprite;
     protected final ResourceLocation selectedSprite;
     protected final AtlasOverviewScreen parentScreen;
-    protected boolean selected = true;
+    private boolean selected = true;
 
-    protected BookmarkButton(int pX, int pY, int width, int height, AtlasOverviewScreen screen,
-                             ResourceLocation sprite, ResourceLocation selectedSprite) {
-        super(pX, pY,
-                width, height,
-                Component.empty());
+    protected AtlasButton(int pX, int pY, int width, int height, AtlasOverviewScreen screen,
+                          ResourceLocation sprite, ResourceLocation selectedSprite) {
+        super(pX, pY, width, height, Component.empty());
         this.parentScreen = screen;
         this.sprite = sprite;
         this.selectedSprite = selectedSprite;

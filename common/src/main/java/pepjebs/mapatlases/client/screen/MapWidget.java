@@ -111,7 +111,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
-                (zoomLevel / 2) * mapBlocksSize, followingPlayer);
+                (zoomLevel / 2) * mapBlocksSize);
 
         if (isHovered && hoveredData != null) {
             mapScreen.notifyOfClickActionUsage();

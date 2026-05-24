@@ -81,6 +81,8 @@ public class AtlasOverviewScreen extends Screen {
     private boolean initialized = false;
     private CursorAction selectedCursorAction;
     private boolean canPerformCursorAction;
+    boolean inMouseClick = false;
+    private boolean pendingRecalculate = false;
 
     // ── Pin flow state ────────────────────────────────────────────────────
     @Nullable
@@ -293,6 +295,8 @@ public class AtlasOverviewScreen extends Screen {
 
         if (mapWidget != null) mapWidget.tick();
         if (this.pinNameBox != null && pinNameBox.active) this.pinNameBox.tick();
+        if (decorationPanel != null) decorationPanel.flush();
+        if (dimensionPanel != null) dimensionPanel.flush();
 
         if (!isValid()) this.minecraft.setScreen(null);
     }
@@ -380,7 +384,8 @@ public class AtlasOverviewScreen extends Screen {
             RenderSystem.enableDepthTest();
             poseStack.translate(-width / 2f, -height / 2f, 0.2);
             var v = transformMousePos(mouseX, mouseY);
-            super.render(graphics, (int) v.x, (int) v.y, delta);
+            boolean editing = isEditingText();
+            super.render(graphics, editing ? -1 : (int) v.x, editing ? -1 : (int) v.y, delta);
             poseStack.popPose();
             poseStack.popPose();
         }
@@ -434,7 +439,16 @@ public class AtlasOverviewScreen extends Screen {
         if (pinNameBox.active) return pinNameBox.mouseClicked(pMouseX, pMouseY, pButton);
         if (filterBox.active) return filterBox.mouseClicked(pMouseX, pMouseY, pButton);
         var v = transformMousePos(pMouseX, pMouseY);
-        return super.mouseClicked(v.x, v.y, pButton);
+        inMouseClick = true;
+        boolean result = super.mouseClicked(v.x, v.y, pButton);
+        inMouseClick = false;
+        dimensionPanel.flush();
+        decorationPanel.flush();
+        if (pendingRecalculate) {
+            pendingRecalculate = false;
+            recalculateDecorationWidgets();
+        }
+        return result;
     }
 
     @Override
@@ -517,6 +531,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     protected void recalculateDecorationWidgets() {
+        if (inMouseClick) { pendingRecalculate = true; return; }
         List<DecorationHolder> mapIcons = new ArrayList<>();
         boolean ml = MapAtlasesMod.MOONLIGHT;
         for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
@@ -532,8 +547,8 @@ public class AtlasOverviewScreen extends Screen {
         decorationPanel.rebuild(mapIcons);
     }
 
-    public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
-        decorationPanel.updateVisible(currentXCenter, currentZCenter, radius, followingPlayer);
+    public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius) {
+        decorationPanel.markInView(currentXCenter, currentZCenter, radius);
     }
 
     public void centerOnDecoration(DecorationBookmarkButton button) {

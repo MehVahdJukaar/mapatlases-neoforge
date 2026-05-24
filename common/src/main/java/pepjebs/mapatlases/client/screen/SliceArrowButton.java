@@ -2,7 +2,6 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
-import net.mehvahdjukaar.moonlight.api.misc.ForgeOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -13,7 +12,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 import java.util.TreeSet;
 
-public class SliceArrowButton extends BookmarkButton {
+public class SliceArrowButton extends AtlasButton {
 
     private static final int BUTTON_H = 5;
     private static final int BUTTON_W = 8;
