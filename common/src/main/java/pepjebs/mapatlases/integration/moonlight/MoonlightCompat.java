@@ -22,6 +22,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.utils.CustomDecorationHolder;
 import pepjebs.mapatlases.utils.DecorationHolder;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -46,7 +47,7 @@ public class MoonlightCompat {
         }
     }
 
-    public static Collection<DecorationHolder> getCustomDecorations(MapDataHolder map) {
+    public static Collection<CustomDecorationHolder> getCustomDecorations(MapDataHolder map) {
         return ((ExpandedMapData) map.data).ml$getCustomDecorations().entrySet().stream()
                 .filter(e -> !e.getValue().getType().is(NOT_ON_ATLAS))
                 .map(a -> DecorationHolder.custom(a.getValue(), a.getKey(), map)).toList();
