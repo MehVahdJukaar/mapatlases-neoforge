@@ -16,10 +16,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "pepjebs.mapatlases.fabric.MapAtlasesFabric"
+      "pepjebs.mapatlases.platform.MapAtlasesFabric"
     ],
     "modmenu": [
-      "pepjebs.mapatlases.integration.fabric.ModMenuCompat"
+      "pepjebs.mapatlases.integration.platform.ModMenuCompat"
     ],
     "rei_client": [
       "pepjebs.mapatlases.integration.REICompat"
