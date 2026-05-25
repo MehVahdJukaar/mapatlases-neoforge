@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.mehvahdjukaar.moonlight.core.misc.IMapDataPacketExtension;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -160,6 +161,10 @@ public class MapAtlasesAccessUtils {
         //TODO: maybe use isComplex  update packet and inventory tick
         Packet<?> p = holder.data.getUpdatePacket(holder.id, player);
         if (p != null) {
+            if (p instanceof ClientboundMapItemDataPacket pp && (Object) pp instanceof IMapDataPacketExtension exp) {
+                exp.moonlight$setMapCenter(holder.data.centerX, holder.data.centerZ);
+                exp.moonlight$setDimension(holder.data.dimension.location());
+            }
             if (MapAtlasesMod.MOONLIGHT) {
                 player.connection.send(p);
             } else if (p instanceof ClientboundMapItemDataPacket pp) {
