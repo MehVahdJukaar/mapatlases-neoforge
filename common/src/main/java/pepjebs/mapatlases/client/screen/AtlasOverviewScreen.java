@@ -64,11 +64,16 @@ public class AtlasOverviewScreen extends Screen {
     @Nullable
     private final LecternBlockEntity lectern;
 
+    private static final int MARKER_SEPARATION = 17;
+
     private MapWidget mapWidget;
     private PinNameBox editBox;
     private SliceBookmarkButton sliceButton;
     private SliceArrowButton sliceUp;
     private SliceArrowButton sliceDown;
+    private MarkerArrowButton decorationArrowUp;
+    private MarkerArrowButton decorationArrowDown;
+    private int decorationScrollOffset = 0;
     private final List<DecorationBookmarkButton> decorationBookmarks = new ArrayList<>();
     private final List<DimensionBookmarkButton> dimensionBookmarks = new ArrayList<>();
     public final float globalScale;
@@ -153,6 +158,18 @@ public class AtlasOverviewScreen extends Screen {
         this.addRenderableWidget(sliceUp);
         sliceDown = new SliceArrowButton(true, sliceButton, this);
         this.addRenderableWidget(sliceDown);
+
+        // Decoration marker scroll arrows (left bookmark column)
+        int maxVisDecos = getMaxVisibleDecorations();
+        // Center on the 24-wide bookmark button: left edge = (width-BOOK_WIDTH)/2-14, center = (width-BOOK_WIDTH)/2-2
+        int dArrowX = (width - BOOK_WIDTH) / 2 - 8;
+        int decoListStartY = (height - BOOK_HEIGHT) / 2 + 15;
+        // Up arrow sits 2 px above the first decoration row
+        decorationArrowUp = new MarkerArrowButton(false, dArrowX, decoListStartY - 9, this);
+        this.addRenderableWidget(decorationArrowUp);
+        // Down arrow sits 2 px below the last visible decoration row (each row is 14px tall)
+        decorationArrowDown = new MarkerArrowButton(true, dArrowX, decoListStartY + maxVisDecos * MARKER_SEPARATION + 2, this);
+        this.addRenderableWidget(decorationArrowDown);
 
         int i = 0;
         Collection<ResourceKey<Level>> dimensions = currentMaps.getAvailableDimensions();
@@ -441,6 +458,10 @@ public class AtlasOverviewScreen extends Screen {
 
     // ================== Other Util Fns ==================
 
+    private int getMaxVisibleDecorations() {
+        return  (BOOK_HEIGHT - 36) / MARKER_SEPARATION;
+    }
+
     public MapItemSavedData getCenterMapForSelectedDim() {
         if (selectedSlice.dimension().equals(level.dimension())) {
             return getMapClosestToPlayer().data;
@@ -528,8 +549,12 @@ public class AtlasOverviewScreen extends Screen {
             this.removeWidget(v);
         }
         decorationBookmarks.clear();
+        decorationScrollOffset = 0;
 
-        if (!selectedSlice.hasMarkers()) return;
+        if (!selectedSlice.hasMarkers()) {
+            updateDecorationArrows();
+            return;
+        }
         List<DecorationHolder> mapIcons = new ArrayList<>();
 
         boolean ml = MapAtlasesMod.MOONLIGHT;
@@ -545,22 +570,63 @@ public class AtlasOverviewScreen extends Screen {
                 mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
             }
         }
-        int i = 0;
 
-        int separation = Math.min(17, (int) ((BOOK_HEIGHT - 22f) / mapIcons.size()));
+        int maxVisible = getMaxVisibleDecorations();
+        int startY = (height - BOOK_HEIGHT) / 2 + 15;
         List<DecorationBookmarkButton> widgets = new ArrayList<>();
-        for (var e : mapIcons) {
+        for (int i = 0; i < mapIcons.size(); i++) {
+            boolean vis = i < maxVisible; // scrollOffset is 0 after reset
             DecorationBookmarkButton pWidget = DecorationBookmarkButton.of(
                     (width - BOOK_WIDTH) / 2 + 10,
-                    (height - BOOK_HEIGHT) / 2 + 15 + i * separation, e, this);
+                    startY + i * MARKER_SEPARATION, mapIcons.get(i), this);
             pWidget.setIndex(i);
+            pWidget.visible = vis;
+            pWidget.active = vis;
             widgets.add(pWidget);
             this.decorationBookmarks.add(pWidget);
-            i++;
         }
         //add widget in order so they render optimized without unneded texture swaps
         widgets.sort(Comparator.comparingInt(DecorationBookmarkButton::getBatchGroup));
         widgets.forEach(this::addRenderableWidget);
+        updateDecorationArrows();
+    }
+
+    private void updateDecorationArrows() {
+        if (decorationArrowUp == null || decorationArrowDown == null) return;
+        int total = decorationBookmarks.size();
+        int maxVisible = getMaxVisibleDecorations();
+        decorationArrowUp.setActive(decorationScrollOffset > 0);
+        decorationArrowDown.setActive(decorationScrollOffset + maxVisible < total);
+    }
+
+    public void scrollDecorationUp() {
+        if (decorationScrollOffset > 0) {
+            decorationScrollOffset--;
+            refreshDecorationVisibility();
+        }
+    }
+
+    public void scrollDecorationDown() {
+        if (decorationScrollOffset + getMaxVisibleDecorations() < decorationBookmarks.size()) {
+            decorationScrollOffset++;
+            refreshDecorationVisibility();
+        }
+    }
+
+    private void refreshDecorationVisibility() {
+        int maxVisible = getMaxVisibleDecorations();
+        int startY = (height - BOOK_HEIGHT) / 2 + 15;
+        for (int i = 0; i < decorationBookmarks.size(); i++) {
+            DecorationBookmarkButton btn = decorationBookmarks.get(i);
+            boolean vis = i >= decorationScrollOffset && i < decorationScrollOffset + maxVisible;
+            btn.visible = vis;
+            btn.active = vis;
+            if (vis) {
+                btn.setY(startY + (i - decorationScrollOffset) * MARKER_SEPARATION);
+                btn.setIndex(i - decorationScrollOffset);
+            }
+        }
+        updateDecorationArrows();
     }
 
     public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius, boolean followingPlayer) {
@@ -569,33 +635,31 @@ public class AtlasOverviewScreen extends Screen {
         float maxX = currentXCenter + radius;
         float minZ = currentZCenter - radius;
         float maxZ = currentZCenter + radius;
-        // Create a list to store selected decorations
-        // Create a TreeMap to store selected decorations sorted by distance
         List<Pair<Double, DecorationBookmarkButton>> byDistance = new ArrayList<>();
         for (var bookmark : decorationBookmarks) {
             double x = bookmark.getWorldX();
             double z = bookmark.getWorldZ();
-            // Check if the decoration is within the specified range
             if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) bookmark.setSelected(true);
             if (followingPlayer) {
                 double distance = Mth.square(x - currentXCenter) + Mth.square(z - currentZCenter);
-                // Store the decoration in the TreeMap with distance as the key
                 byDistance.add(Pair.of(distance, bookmark));
             }
         }
-        //TODO: maybe this isnt needed
         if (followingPlayer) {
-            int index = 0;
-            int maxW = BOOK_HEIGHT - 24;
-            int separation = Math.min(17, maxW / byDistance.size());
-
+            int maxVisible = getMaxVisibleDecorations();
+            int startY = (height - BOOK_HEIGHT) / 2 + 15;
             byDistance.sort(Comparator.comparingDouble(Pair::getFirst));
-            for (var e : byDistance) {
-                var d = e.getSecond();
-                d.setY((height - BOOK_HEIGHT) / 2 + 15 + index * separation);
-                d.setIndex(index);
-                index++;
+            for (int i = 0; i < byDistance.size(); i++) {
+                DecorationBookmarkButton d = byDistance.get(i).getSecond();
+                boolean vis = i >= decorationScrollOffset && i < decorationScrollOffset + maxVisible;
+                d.visible = vis;
+                d.active = vis;
+                if (vis) {
+                    d.setY(startY + (i - decorationScrollOffset) * MARKER_SEPARATION);
+                    d.setIndex(i - decorationScrollOffset);
+                }
             }
+            updateDecorationArrows();
         }
     }
 
