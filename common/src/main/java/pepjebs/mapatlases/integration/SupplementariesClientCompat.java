@@ -8,6 +8,7 @@ import net.mehvahdjukaar.moonlight.api.resources.textures.TextureImage;
 import net.mehvahdjukaar.supplementaries.common.misc.map_data.MapLightHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.MapRenderer;
+import net.minecraft.client.gui.components.AbstractContainerWidget;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.mixin.ClientLevelAccessor;
 
 import java.io.IOException;
 import java.util.Map;
@@ -58,7 +60,9 @@ public class SupplementariesClientCompat {
                 MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
                 MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
                 //lag
-                for (var e : level.mapData.entrySet()) {
+                AbstractContainerWidget
+                //dumb but fabric doesnt like the AW
+                for (var e :  ((ClientLevelAccessor)level).getMapData().entrySet()) {
                     MapId keyId = e.getKey();
                     MapItemSavedData data = e.getValue();
                     mapRenderer.update(keyId, data);

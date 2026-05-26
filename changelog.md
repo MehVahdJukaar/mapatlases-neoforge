@@ -1,2 +1,3 @@
 - fixes
 - added arrows and filter button to left panel
+- fixed a fabric issue
