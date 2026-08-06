@@ -58,5 +58,10 @@
   "text.autoconfig.map_atlases.option.acceptPaperForEmptyMaps.@Tooltip": "Setzt fest, ob Papier als leere Karte in den Atlas eingefügt werden kann",
   "text.autoconfig.map_atlases.option.soundScalar": "Lautstärke",
   "text.autoconfig.map_atlases.option.soundScalar.@Tooltip": "Setzt die Lautstärke für alle Sounds dieser Mod",
-  "trinkets.slot.hand.atlas": "Atlas"
+  "trinkets.slot.hand.atlas": "Atlas",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

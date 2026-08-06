@@ -271,7 +271,7 @@ public class ClientMarkers {
 
         public static MarkerHolder of(MLMapMarker<?> marker, HolderLookup.Provider registries) {
             var ops = registries.createSerializationContext(NbtOps.INSTANCE);
-            Tag markerSaved = MLMapMarker.REFERENCE_CODEC
+            Tag markerSaved = MLMapMarker.CODEC
                     .encodeStart(ops, marker).getOrThrow();
             return new MarkerHolder(marker, markerSaved);
         }
@@ -280,7 +280,7 @@ public class ClientMarkers {
         @Nullable
         public static MarkerHolder parse(Tag tag, HolderLookup.Provider registries) {
             var ops = registries.createSerializationContext(NbtOps.INSTANCE);
-            var parsed = MLMapMarker.REFERENCE_CODEC.parse(ops, tag);
+            var parsed = MLMapMarker.CODEC.parse(ops, tag);
             if (parsed.result().isEmpty()) {
                 MapAtlasesMod.LOGGER.error("Failed to parse a client marker from nbt. Skipping. Tag was: {}", tag);
                 return null;

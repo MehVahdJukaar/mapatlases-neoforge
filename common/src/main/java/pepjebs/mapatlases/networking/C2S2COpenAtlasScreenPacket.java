@@ -73,7 +73,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
                 if (pinOnly) {
                     player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);
                 }
-                if (pinOnly && MapAtlasesMod.MOONLIGHT && MoonlightCompat.maybePlaceMarkerInFront(player, atlas)) {
+                if (pinOnly && MoonlightCompat.maybePlaceMarkerInFront(player, atlas)) {
                     return;
                 }
 

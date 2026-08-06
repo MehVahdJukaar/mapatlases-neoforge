@@ -64,7 +64,7 @@ public class MapAtlasesClientEvents {
         }
 
         if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code)) {
-            if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.moonlightCompat.get()) {
+            if (MapAtlasesClientConfig.moonlightCompat.get()) {
                 if (client.level == null || client.player == null) return;
                 ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
                 if (atlas.getItem() instanceof MapAtlasItem) {
@@ -115,10 +115,8 @@ public class MapAtlasesClientEvents {
     }
 
     public static void onLoggedOut(RegistryAccess registryAccess) {
-        if (MapAtlasesMod.MOONLIGHT){
-            ClientMarkers.saveClientMarkers(registryAccess);
-            ClientMarkers.clearClientMarkers();
-        }
+        ClientMarkers.saveClientMarkers(registryAccess);
+        ClientMarkers.clearClientMarkers();
     }
 
     //make this client sided

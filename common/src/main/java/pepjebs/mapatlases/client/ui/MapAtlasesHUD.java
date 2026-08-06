@@ -28,7 +28,6 @@ import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -150,8 +149,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         float yRot = mc.player.getYRot();
         renderMapContent(graphics, x, y, mapWidgetSize, borderSize, yRot, light);
 
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
-
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
         if (rotatesWithPlayer) MapAtlasesClient.setDecorationRotation(0);
@@ -162,8 +159,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         renderPinTracking(graphics, x, y);
 
         poseStack.popPose();  // closes globalScale push
-
-        if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
     }
 
     // ── Render sub-steps ──────────────────────────────────────────────────
@@ -293,7 +288,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
     }
 
     private void renderPinTracking(GuiGraphics graphics, int x, int y) {
-        if (!MapAtlasesMod.MOONLIGHT || !MapAtlasesClientConfig.moonlightPinTracking.get()) return;
+        if (!MapAtlasesClientConfig.moonlightPinTracking.get()) return;
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
         RenderSystem.enableDepthTest();

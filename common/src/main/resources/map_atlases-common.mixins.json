@@ -15,7 +15,8 @@
     "LecternBlockMixin",
     "MapItemMixin",
     "MapItemSavedDataAccessor",
-    "MapItemSavedDataMixin"
+    "MapItemSavedDataMixin",
+    "TransientCraftingContainerAccessor"
   ],
   "client": [
     "CartographyTableScreenMixin",

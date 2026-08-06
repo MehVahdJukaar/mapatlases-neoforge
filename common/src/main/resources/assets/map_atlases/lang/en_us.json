@@ -41,5 +41,10 @@
   "message.map_atlases.coordinates_full": "%1$d, %2$d, %3$d",
   "message.map_atlases.worldmap_coords": "X: %1$d, Z: %2$d",
   "message.map_atlases.chunk_coordinates": "%1$d, %2$d [%3$d, %4$d]",
-  "tooltip.map_atlases.filter": "Filter map markers"
+  "tooltip.map_atlases.filter": "Filter map markers",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

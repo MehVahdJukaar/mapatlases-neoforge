@@ -1,17 +1,14 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.networking.C2SMarkerPacket;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class PinButton extends AtlasButton {
@@ -39,10 +36,7 @@ public class PinButton extends AtlasButton {
     }
 
     public static void placePin(MapDataHolder map, ColumnPos pos, String text, int index) {
-        if (MapAtlasesMod.MOONLIGHT) {
-            ClientMarkers.placePin(map, pos, text, index);
-        } else
-            NetworkHelper.sendToServer(new C2SMarkerPacket(map.id, map.type, pos, text.isEmpty() ? null : text));
+        ClientMarkers.placePin(map, pos, text, index);
     }
 
 }

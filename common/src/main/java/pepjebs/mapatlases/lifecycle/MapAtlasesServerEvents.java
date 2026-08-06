@@ -182,9 +182,7 @@ public class MapAtlasesServerEvents {
 
 
     public static void onPlayerJoin(ServerPlayer player) {
-        if (MapAtlasesMod.MOONLIGHT) {
-            NetworkHelper.sendToClientPlayer(player, new S2CWorldHashPacket(player));
-        }
+        NetworkHelper.sendToClientPlayer(player, new S2CWorldHashPacket(player));
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
@@ -208,7 +206,7 @@ public class MapAtlasesServerEvents {
 
 
     public static void onDimensionUnload() {
-        if (MapAtlasesMod.MOONLIGHT) EntityRadar.unloadLevel();
+        EntityRadar.unloadLevel();
     }
 
 }

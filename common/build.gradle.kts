@@ -11,12 +11,13 @@ val supplementaries_version: String by extra
 
 
 dependencies {
-    modCompileOnly("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
+    //@jar skips moonlight's module metadata: its jar variants are tagged neoforge-only, so in this module gradle
+    //would otherwise fall back to the access transformer variant and the whole api would be missing from the classpath
+    modCompileOnly("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}@jar")
     accessTransformers("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
 
-    modImplementation("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
-    modImplementation("curse.maven:the-twilight-forest-227639:7797302")
-    modCompileOnly("maven.modrinth:immediatelyfast:1.6.10+1.21.1-neoforge")
+    modCompileOnly("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
+    modCompileOnly("curse.maven:the-twilight-forest-227639:7797302")
 
     modCompileOnly("curse.maven:emi-580555:6420931")
     modCompileOnly("curse.maven:jei-238222:7420587")

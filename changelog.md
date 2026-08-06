@@ -1,3 +1,2 @@
-- fixes
-- added arrows and filter button to left panel
-- fixed a fabric issue
+- improved configs and fixes
+- removed obsolete ImmediatelyFast compat, which did nothing and spammed the log with errors

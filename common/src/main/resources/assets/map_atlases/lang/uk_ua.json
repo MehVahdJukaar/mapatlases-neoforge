@@ -56,5 +56,10 @@
   "text.autoconfig.map_atlases.option.worldMapIconScale.@Tooltip": "Встановлює розмір іконок мапи, які відображаються на мапі світу",
   "text.autoconfig.map_atlases.option.acceptPaperForEmptyMaps": "Приймати папір для порожніх мап",
   "text.autoconfig.map_atlases.option.acceptPaperForEmptyMaps.@Tooltip": "Якщо ввімкнено, ви можете збільшити кількість порожніх мап, вставивши папір",
-  "trinkets.slot.hand.atlas": "Атлас"
+  "trinkets.slot.hand.atlas": "Атлас",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

@@ -26,5 +26,10 @@
   "tooltip.map_atlases.delete_marker": "Retirer le marqueur",
   "trinkets.slot.hand.atlas": "Atlas",
   "message.map_atlases.pin": "Placez un marqueur",
-  "message.map_atlases.map_index": "#: %s"
+  "message.map_atlases.map_index": "#: %s",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

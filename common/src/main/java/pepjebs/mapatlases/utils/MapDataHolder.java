@@ -13,7 +13,6 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.config.UpdateType;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
@@ -109,7 +108,7 @@ public class MapDataHolder {
                     }
                 }
             }
-            if (MapAtlasesMod.MOONLIGHT) MoonlightCompat.updateMarkers(data, player, maxRange);
+            MoonlightCompat.updateMarkers(data, player, maxRange);
 
         }
     }

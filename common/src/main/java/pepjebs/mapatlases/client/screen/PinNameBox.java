@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 
@@ -61,48 +60,46 @@ public class PinNameBox extends EditBox {
         //       this.getX(), this.getY() + this.height, -16777216);
         this.markerHovered = pMouseX >= (double) this.getX() - height - 1 && pMouseY >= this.getY() &&
                 pMouseX < (this.getX()) && pMouseY < (this.getY() + this.height);
-        if (MapAtlasesMod.MOONLIGHT) {
+        p.pushPose();
+        p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f - 1, 0);
+        p.scale(2, 2, 1);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
+
+
+        float popIn = Mth.lerp(partialTicks, scrollPopInAnimationO, scrollPopInAnimation) * 3;
+        float displayInd = Mth.lerp(partialTicks, displayIndexO, displayIndex);
+
+        //displayInd = 2.3f;
+        float remainder = displayInd % 1;
+        int closestInd = (int) displayInd;
+
+        p.translate(0, remainder * popIn, 0);
+        int alphaDecrement = 120;
+        int aa = (int) Mth.lerp(Mth.abs(remainder), 255, alphaDecrement);
+        ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, 0,
+                closestInd, this.markerHovered, aa);
+
+        if (popIn != 0) {
             p.pushPose();
-            p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f - 1, 0);
-            p.scale(2, 2, 1);
-            RenderSystem.setShaderColor(1, 1, 1, 1);
-
-
-            float popIn = Mth.lerp(partialTicks, scrollPopInAnimationO, scrollPopInAnimation) * 3;
-            float displayInd = Mth.lerp(partialTicks, displayIndexO, displayIndex);
-
-            //displayInd = 2.3f;
-            float remainder = displayInd % 1;
-            int closestInd = (int) displayInd;
-
-            p.translate(0, remainder * popIn, 0);
-            int alphaDecrement = 120;
-            int aa = (int) Mth.lerp(Mth.abs(remainder), 255, alphaDecrement);
-            ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, 0,
-                    closestInd, this.markerHovered, aa);
-
-            if (popIn != 0) {
-                p.pushPose();
-                for (int j = 1; j < 4; j++) {
-                    int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
-                    p.translate(0, 0, -0.01);
-                    if (al <= 0) break;
-                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
-                            false, al);
-                }
-                p.popPose();
-                p.pushPose();
-                for (int j = 1; j < 4; j++) {
-                    int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
-                    p.translate(0, 0, -0.01);
-                    if (al <= 0) break;
-                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
-                            false, al);
-                }
-                p.popPose();
+            for (int j = 1; j < 4; j++) {
+                int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
+                p.translate(0, 0, -0.01);
+                if (al <= 0) break;
+                ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
+                        false, al);
+            }
+            p.popPose();
+            p.pushPose();
+            for (int j = 1; j < 4; j++) {
+                int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
+                p.translate(0, 0, -0.01);
+                if (al <= 0) break;
+                ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
+                        false, al);
             }
             p.popPose();
         }
+        p.popPose();
         p.popPose();
     }
 

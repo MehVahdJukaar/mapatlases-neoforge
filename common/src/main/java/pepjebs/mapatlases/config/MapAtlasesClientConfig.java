@@ -15,7 +15,11 @@ public class MapAtlasesClientConfig {
     static {
         ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.CLIENT);
 
-        builder.push("minimap");
+        builder.icon("minecraft:filled_map").push("minimap");
+        drawMiniMapHUD = builder
+                .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
+                .mainFeature();
+
         hideWhenInventoryOpen = builder
                 .comment("Hides minimap when inventory is open")
                 .define("hide_when_inventory_is_open", false);
@@ -31,9 +35,6 @@ public class MapAtlasesClientConfig {
         miniMapScale = builder
                 .comment("Global scale of entire minimap HUD. Keep at 1 for pixel perfect consistency")
                 .define("scale", 1d, 0, 20);
-        drawMiniMapHUD = builder
-                .comment("If 'true', the Mini-Map of the Active Map will be drawn on the HUD while the Atlas is active.")
-                .define("enabled", true);
 
         miniMapZoomMultiplier = builder.comment("How many maps to display in a single minimap. Essentially zoom. Can be a fraction")
                 .define("zoom_multiplier", 1, 0.001, 100);
@@ -100,7 +101,7 @@ public class MapAtlasesClientConfig {
                 .define("automatic_slice_change", false);
         builder.pop();
 
-        builder.push("world_map");
+        builder.icon("minecraft:cartography_table").push("world_map");
 
         shearButton = builder.comment("Adds a shear button to the atlas screen which allows you to cut maps")
                 .define("shear_button", true);
@@ -113,7 +114,8 @@ public class MapAtlasesClientConfig {
         clock = builder.comment("Shows a clock icon on the map screen")
                 .define("clock_icon", false);
 
-        worldMapCrossair = builder.define("crossair", false);
+        worldMapCrossair = builder.comment("Draws a crosshair at the center of the world map view")
+                .define("crossair", false);
         worldMapBigTexture = builder
                 .comment("Use bigger book like texture for worldmap view. Makes the view a bit bigger." +
                         " Recommended to ebe used with map scale 1 (you might want to lower lectern one too if buttons dont show)")
@@ -122,7 +124,8 @@ public class MapAtlasesClientConfig {
                 .define("smooth_panning", true);
         worldMapSmoothZooming = builder.comment("Makes zooming work smoothly instead of in 2 maps increments")
                 .define("smooth_zooming", true);
-        worldMapZoomScrollSpeed = builder.define("zoom_scroll_speed", 1d, 0, 10);
+        worldMapZoomScrollSpeed = builder.comment("How fast scrolling zooms the world map in and out")
+                .define("zoom_scroll_speed", 1d, 0, 10);
 
         worldMapScale = builder
                 .comment("Global scale of the entire world map GUI. Keep at 1 for pixel perfect consistency")
@@ -155,7 +158,7 @@ public class MapAtlasesClientConfig {
                 .define("follow_player", true);
         builder.pop();
 
-        builder.push("misc");
+        builder.icon("minecraft:note_block").push("misc");
 
         soundScalar = builder
                 .comment("Multiplier for all the Atlases sound float")
@@ -166,15 +169,17 @@ public class MapAtlasesClientConfig {
 
         builder.pop();
 
-        builder.push("moonlight_integration");
+        builder.icon("minecraft:red_banner").push("moonlight_integration");
         moonlightCompat = builder
-                .comment("Enables moonlight compat, which allows to place map markers on map via a special pin button")
-                .define("enabled", true);
+                .comment("Enables custom map markers, which you can place on the map via a special pin button")
+                .mainFeature();
         moonlightPinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
                 .define("pin_tracking", true);
-        entityRadar = builder.comment("Show nearby mobs on minimap. Also requires matching server config")
-                .define("mob_radar", false);
-        radarRadius = builder.define("radar_radius", 64, 0, 256);
+        entityRadar = builder.icon("minecraft:spider_eye")
+                .comment("Show nearby mobs on minimap. Also requires matching server config")
+                .feature("mob_radar", false);
+        radarRadius = builder.comment("How far around the player mobs are picked up by the radar")
+                .define("radar_radius", 64, 0, 256);
         radarRotation = builder.comment("Entities on radar will have their icon rotate")
                 .define("radar_pins_rotate", false);
         radarColor = builder.comment("Uses yellow markers for all mobs")
@@ -186,7 +191,9 @@ public class MapAtlasesClientConfig {
 
         builder.pop();
 
-        SPEC = builder.build();
+        ModConfigHolder spec = builder.build();
+        spec.forceLoad();
+        SPEC = spec;
     }
 
     public static final Supplier<Boolean> drawMiniMapHUD;

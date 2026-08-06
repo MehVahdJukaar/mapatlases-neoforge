@@ -95,9 +95,13 @@ public class MapAtlasesMod {
     public static final boolean CURIOS = PlatHelper.isModLoaded("curios");
     public static final boolean TRINKETS = PlatHelper.isModLoaded("trinkets");
     public static final boolean SUPPLEMENTARIES = PlatHelper.isModLoaded("supplementaries");
-    public static final boolean MOONLIGHT = PlatHelper.isModLoaded("moonlight");
+    /**
+     * @deprecated moonlight is a required dependency, so this is always true. Kept only so external mods
+     * that read it keep linking.
+     */
+    @Deprecated(forRemoval = true)
+    public static final boolean MOONLIGHT = true;
     public static final boolean TWILIGHTFOREST = PlatHelper.isModLoaded("twilightforest");
-    public static final boolean IMMEDIATELY_FAST = PlatHelper.isModLoaded("immediatelyfast");
 
     public static void init() {
         MapAtlasesNetworking.init();
@@ -121,7 +125,7 @@ public class MapAtlasesMod {
         //antique in cart table
 
 
-        if (MOONLIGHT) MoonlightCompat.init();
+        MoonlightCompat.init();
         if (SUPPLEMENTARIES) SupplementariesCompat.init();
     }
 

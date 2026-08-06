@@ -60,7 +60,6 @@ public class SupplementariesClientCompat {
                 MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
                 MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
                 //lag
-                AbstractContainerWidget
                 //dumb but fabric doesnt like the AW
                 for (var e :  ((ClientLevelAccessor)level).getMapData().entrySet()) {
                     MapId keyId = e.getKey();

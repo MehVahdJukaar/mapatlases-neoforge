@@ -233,7 +233,7 @@ public class AtlasOverviewScreen extends Screen {
         int topY = (height - BOOK_HEIGHT) / 2 + 16;
         int rightOffset = 0;
 
-        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesMod.MOONLIGHT
+        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty()
                 && MapAtlasesClientConfig.moonlightCompat.get()) {
             this.pinButton = new PinButton(rightX, topY, this);
             this.addRenderableWidget(pinButton);
@@ -533,7 +533,6 @@ public class AtlasOverviewScreen extends Screen {
     protected void recalculateDecorationWidgets() {
         if (inMouseClick) { pendingRecalculate = true; return; }
         List<DecorationHolder> mapIcons = new ArrayList<>();
-        boolean ml = MapAtlasesMod.MOONLIGHT;
         for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
             MapItemSavedData data = holder.data;
             for (var d : data.decorations.entrySet()) {
@@ -542,7 +541,7 @@ public class AtlasOverviewScreen extends Screen {
                     mapIcons.add(DecorationHolder.vanilla(deco, d.getKey(), holder));
                 }
             }
-            if (ml) mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
+            mapIcons.addAll(MoonlightCompat.getCustomDecorations(holder));
         }
         decorationPanel.rebuild(mapIcons);
     }

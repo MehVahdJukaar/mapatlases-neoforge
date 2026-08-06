@@ -18,8 +18,6 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.integration.ImmediatelyFastCompat;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
@@ -143,9 +141,6 @@ public abstract class AbstractAtlasDisplay {
         vcp.endBatch();
 
         if (showBorders) {
-
-            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.startBatching();
-
             VertexConsumer outlineVC = MapAtlasesClient.MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
             //using this so we use mipmap. cant use blit sprite
             for (var matrix4f : outlineHack.getFirst()) {
@@ -163,8 +158,6 @@ public abstract class AbstractAtlasDisplay {
                 drawOutline(matrix4f, outlineVC2);
             }
             vcp.endBatch();
-
-            if (MapAtlasesMod.IMMEDIATELY_FAST) ImmediatelyFastCompat.endBatching();
         }
 
         poseStack.popPose();

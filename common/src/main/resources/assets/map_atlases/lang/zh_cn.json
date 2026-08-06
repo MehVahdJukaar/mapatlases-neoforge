@@ -40,7 +40,7 @@
   "text.autoconfig.map_atlases.option.pityActivationMapCount.@Tooltip": "设置当你激活一个未激活的地图册时，地图册自带的空地图的数量",
   "text.autoconfig.map_atlases.option.activePotionVerticalOffset": "buff框偏移量",
   "text.autoconfig.map_atlases.option.activePotionVerticalOffset.@Tooltip": "当你有buff效果时，设置你地图显示的垂直偏移量(仅在小地图显示位置为UpperRight时有效)",
-    "text.autoconfig.map_atlases.option.drawMinimapCoords": "显示小地图坐标",
+  "text.autoconfig.map_atlases.option.drawMinimapCoords": "显示小地图坐标",
   "text.autoconfig.map_atlases.option.drawMinimapCoords.@Tooltip": "启用后，将显示玩家的当前坐标",
   "text.autoconfig.map_atlases.option.drawMinimapBiome": "显示小地图生物群落",
   "text.autoconfig.map_atlases.option.drawMinimapBiome.@Tooltip": "启用后，将显示玩家的当前生物群落",
@@ -60,5 +60,10 @@
   "text.autoconfig.map_atlases.option.soundScalar.@Tooltip": "调整地图册mod音效的大小",
   "text.autoconfig.map_atlases.option.requireEmptyMapsToExpand": "需要空地图才能展开",
   "text.autoconfig.map_atlases.option.requireEmptyMapsToExpand.@Tooltip": "启用后，地图册有空地图才能扩展地图册的大小",
-  "trinkets.slot.hand.atlas": "地图册"
+  "trinkets.slot.hand.atlas": "地图册",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

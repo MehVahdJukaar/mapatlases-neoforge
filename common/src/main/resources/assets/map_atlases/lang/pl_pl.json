@@ -25,5 +25,10 @@
   "text.autoconfig.map_atlases.option.forceMiniMapScaling.@Tooltip": "Skaluj minimapę. (domyślnie - 64)",
   "text.autoconfig.map_atlases.option.drawMiniMapHUD.@Tooltip": "Jeśli włączone, podgląd obecnego terenu będzie wyświetlany w rogu ekranu gdy Atlas jest w jednej z twoich dłoni.",
   "text.autoconfig.map_atlases.option.enableEmptyMapEntryAndFill.@Tooltip": "Jeśli włączone, Atlas będzie mogł przechowywać puste mapy i automatycznie je wypełniać podczas twojej eksploracji.",
-  "text.autoconfig.map_atlases.option.forceUseInHands.@Tooltip": "Jeśli włączone, Atlas musi być trzymany w jednej z twoich dłoni, aby wyświetlać podgląd lub wypełniać puste mapy."
+  "text.autoconfig.map_atlases.option.forceUseInHands.@Tooltip": "Jeśli włączone, Atlas musi być trzymany w jednej z twoich dłoni, aby wyświetlać podgląd lub wypełniać puste mapy.",
+  "tag.dimension_type.map_atlases.not_tracked_by_atlas": "Not Tracked By Atlas",
+  "tag.item.map_atlases.sticky_crafting_items": "Sticky Crafting Items",
+  "tag.map_decoration_type.map_atlases.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.no_button_on_atlas": "No Button On Atlas",
+  "tag.moonlight.map_atlases.map_marker.pins": "Pins"
 }

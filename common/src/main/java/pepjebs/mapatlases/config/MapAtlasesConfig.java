@@ -15,7 +15,7 @@ public class MapAtlasesConfig {
         ConfigBuilder builder = ConfigBuilder.create(MapAtlasesMod.MOD_ID, ConfigType.COMMON_SYNCED);
 
 
-        builder.push("general");
+        builder.icon("atlas").push("general");
 
 
         maxMapCount = builder
@@ -54,14 +54,15 @@ public class MapAtlasesConfig {
         pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
                 .define("pin_marked_id", "map_atlases:pin");
 
-        lightMap = builder.comment("Shows light color on maps. Needs Moonlight lib")
+        lightMap = builder.comment("Shows light color on maps")
                 .define("light_map", false);
 
-        entityRadar = builder.comment("Show nearby mobs on minimap. Needs matching client config also set")
-                .define("mob_radar", false);
+        entityRadar = builder.icon("minecraft:spider_eye")
+                .comment("Show nearby mobs on minimap. Needs matching client config also set")
+                .feature("mob_radar", false);
 
         builder.pop();
-        builder.push("update_logic");
+        builder.icon("minecraft:clock").push("update_logic");
         updateFashion = builder.comment("Update maps in simple round robin fashion instead of prioritizing the ones closer")
                 .define("update_priority", UpdateFashion.SMART);
         mapUpdatePerTick = builder.comment("Max of maps to update each tick. Increase to make maps update faster")
@@ -80,7 +81,9 @@ public class MapAtlasesConfig {
         builder.pop();
 
 
-        SPEC = builder.build();
+        ModConfigHolder spec = builder.build();
+        spec.forceLoad();
+        SPEC = spec;
     }
 
     public static final Supplier<Boolean> debugUpdate;

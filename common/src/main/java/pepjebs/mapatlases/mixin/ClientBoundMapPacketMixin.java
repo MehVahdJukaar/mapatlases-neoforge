@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
 
@@ -24,7 +23,7 @@ public abstract class ClientBoundMapPacketMixin {
 
     @Inject(method = "applyToMap", at = @At("RETURN"))
     public void onClientMapAdded(MapItemSavedData pMapdata, CallbackInfo ci) {
-        if (MapAtlasesMod.MOONLIGHT && MapAtlasesClientConfig.convertXaero.get()) XaeroMinimapCompat.loadXaeroWaypoints(
+        if (MapAtlasesClientConfig.convertXaero.get()) XaeroMinimapCompat.loadXaeroWaypoints(
                 this.mapId, pMapdata, Minecraft.getInstance().level.registryAccess());
     }
 }

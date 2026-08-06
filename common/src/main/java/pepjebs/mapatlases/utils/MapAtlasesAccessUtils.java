@@ -2,7 +2,6 @@ package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -160,12 +159,7 @@ public class MapAtlasesAccessUtils {
         //TODO: maybe use isComplex  update packet and inventory tick
         Packet<?> p = holder.data.getUpdatePacket(holder.id, player);
         if (p != null) {
-            if (MapAtlasesMod.MOONLIGHT) {
-                player.connection.send(p);
-            } else if (p instanceof ClientboundMapItemDataPacket pp) {
-                //send crappy wrapper if we dont.
-                // NetworkHelper.sendToClientPlayer(player, new S2CMapPacketWrapper(holder.data, pp));
-            }
+            player.connection.send(p);
         }
     }
 
