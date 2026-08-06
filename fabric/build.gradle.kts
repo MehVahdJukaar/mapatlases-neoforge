@@ -8,13 +8,20 @@ fabric {
 }
 
 val moonlight_version: String by extra
+val codecui_version: String by extra
 val supplementaries_version: String by extra
 val trinkets_version: String by extra
 val cca_version: String by extra
 
 dependencies {
     modImplementation("net.mehvahdjukaar:moonlight-fabric:${moonlight_version}")
-    modCompileOnly("net.mehvahdjukaar:supplementaries-fabric:${supplementaries_version}")
+    modRuntimeOnly("net.mehvahdjukaar:codecui-fabric:${codecui_version}")
+    // Supplementaries drags in an old moonlight that publishes its jar with a "-fabric" classifier.
+    // Loom keeps that classifier when conflict resolution bumps the version to ours (which has none),
+    // so it ends up looking for a jar that was never produced. We declare moonlight directly anyway.
+    modCompileOnly("net.mehvahdjukaar:supplementaries-fabric:${supplementaries_version}") {
+        exclude(group = "net.mehvahdjukaar", module = "moonlight-fabric")
+    }
 
     modCompileOnly("com.terraformersmc:modmenu:4.0.6")
 
