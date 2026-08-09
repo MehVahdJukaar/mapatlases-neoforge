@@ -6,7 +6,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -22,8 +21,10 @@ import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.WeakHashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MapAtlasesServerEvents {
@@ -31,8 +32,10 @@ public class MapAtlasesServerEvents {
     // Used to prevent Map creation spam consuming all Empty Maps on auto-create
     private static final ReentrantLock MUTEX = new ReentrantLock();
 
-    private static final WeakHashMap<Player, UpdateScheduler> SCHEDULERS_PER_PLAYER = new WeakHashMap<>();
-    private static final WeakHashMap<Player, MapDataHolder> LAST_CENTER_MAP_PER_PLAYER = new WeakHashMap<>();
+    // keyed by UUID, not by player instance: the map data these values point at lists the players holding it,
+    // so a value can reach its own key and weak keys would never be collected
+    private static final Map<UUID, UpdateScheduler> SCHEDULERS_PER_PLAYER = new HashMap<>();
+    private static final Map<UUID, MapDataHolder> LAST_CENTER_MAP_PER_PLAYER = new HashMap<>();
 
     public static void onPlayerTick(ServerPlayer player) {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
@@ -79,7 +82,7 @@ public class MapAtlasesServerEvents {
         // Update Map states & colors
         // updateColors is *easily* the most expensive function in the entire server tick
         // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
-        UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player, p -> {
+        UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player.getUUID(), p -> {
             if (MapAtlasesConfig.updateFashion.get() == UpdateFashion.ROUND_ROBIN) {
                 return new RoundRobinUpdateScheduler();
             } else {
@@ -94,11 +97,11 @@ public class MapAtlasesServerEvents {
             //if data has changed, a packet will be sent
         }
         // for far away maps so we remove player marker
-        MapDataHolder lastData = LAST_CENTER_MAP_PER_PLAYER.get(player);
+        MapDataHolder lastData = LAST_CENTER_MAP_PER_PLAYER.get(player.getUUID());
         if (lastData != null && !mapsInView.contains(lastData)) {
             MapAtlasesAccessUtils.tickHoldingPlayerAndSync(lastData, player, atlas, TriState.SET_FALSE);
         }
-        LAST_CENTER_MAP_PER_PLAYER.put(player, maps.select(neighborhood.center()));
+        LAST_CENTER_MAP_PER_PLAYER.put(player.getUUID(), maps.select(neighborhood.center()));
 
         if (createdNewMap) {
             // Play the sound
@@ -202,6 +205,12 @@ public class MapAtlasesServerEvents {
                 // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
             }
         }
+    }
+
+
+    public static void onPlayerLogout(ServerPlayer player) {
+        SCHEDULERS_PER_PLAYER.remove(player.getUUID());
+        LAST_CENTER_MAP_PER_PLAYER.remove(player.getUUID());
     }
 
 

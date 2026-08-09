@@ -58,6 +58,13 @@ public class MapAtlasesForge {
     }
 
     @SubscribeEvent
+    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            MapAtlasesServerEvents.onPlayerLogout(sp);
+        }
+    }
+
+    @SubscribeEvent
     public void onKeyPress(InputEvent.Key event) {
         if (event.getAction() == InputConstants.PRESS) {
             MapAtlasesClientEvents.onKeyPressed(event.getKey(), event.getScanCode());

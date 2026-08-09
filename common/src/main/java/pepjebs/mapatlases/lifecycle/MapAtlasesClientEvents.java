@@ -117,6 +117,7 @@ public class MapAtlasesClientEvents {
     public static void onLoggedOut(RegistryAccess registryAccess) {
         ClientMarkers.saveClientMarkers(registryAccess);
         ClientMarkers.clearClientMarkers();
+        EntityRadar.unloadLevel();
     }
 
     //make this client sided

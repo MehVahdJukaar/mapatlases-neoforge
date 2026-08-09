@@ -46,6 +46,10 @@ public class EntityRadar {
     public static void onClientTick(Player player) {
         Level level = player.level();
 
+        // markers hold the entity they point at, and that entity holds this map's level key, so an entry for a
+        // level we left would sit here forever. We only ever read the current one, so drop the rest
+        nearbyEntityMarkers.keySet().removeIf(l -> l != level);
+
         var set = nearbyEntityMarkers.computeIfAbsent(level, k -> new HashSet<>());
         set.clear();
 

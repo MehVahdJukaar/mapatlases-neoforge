@@ -8,11 +8,13 @@ neoforge {
 }
 
 val moonlight_version: String by extra
+val codecui_version: String by extra
 val supplementaries_version: String by extra
 
 dependencies {
     modImplementation("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
     accessTransformers("net.mehvahdjukaar:moonlight-neoforge:${moonlight_version}")
+    modRuntimeOnly("net.mehvahdjukaar:codecui-neoforge:${codecui_version}")
 
     modCompileOnly("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
     modCompileOnly("curse.maven:the-twilight-forest-227639:7797302")

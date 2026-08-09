@@ -1,2 +1,1 @@
-- improved configs and fixes
-- removed obsolete ImmediatelyFast compat, which did nothing and spammed the log with errors
+- more fixes
