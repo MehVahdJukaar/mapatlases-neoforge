@@ -4,8 +4,9 @@ import net.mehvahdjukaar.moonlight.api.platform.network.Message;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelResource;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 
@@ -17,31 +18,28 @@ public class S2CWorldHashPacket implements Message {
     );
 
     public final long seed;
-    private final String name;
+    private final String worldId;
 
     public S2CWorldHashPacket(ServerPlayer player) {
-        Level level = player.level();
-        String name = level.getServer().getWorldData().getLevelName();
-        long seed = level.getServer().overworld().getSeed();
-        this.seed = seed;
-        this.name = name;
+        MinecraftServer server = player.level().getServer();
+        this.seed = server.overworld().getSeed();
+        this.worldId = server.getWorldPath(LevelResource.ROOT).normalize().getFileName().toString();
     }
 
     public S2CWorldHashPacket(FriendlyByteBuf buf) {
         this.seed = buf.readVarLong();
-        this.name = buf.readUtf();
-
+        this.worldId = buf.readUtf();
     }
 
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
         buf.writeVarLong(seed);
-        buf.writeUtf(name);
+        buf.writeUtf(worldId);
     }
 
     @Override
     public void handle(Context context) {
-        ClientMarkers.loadClientMarkers(this.seed, this.name, context.getPlayer().registryAccess());
+        ClientMarkers.loadClientMarkers(this.seed, this.worldId, context.getPlayer().registryAccess());
     }
 
     @Override

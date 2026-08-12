@@ -53,25 +53,26 @@ public class ClientMarkers {
     }
 
     @ApiStatus.Internal
-    public static void deleteAllMarkersData(String folderName) {
+    public static void deleteAllMarkersData(String worldFolderName) {
         try {
-            var path = getFilePath(folderName, QuickPlayLog.Type.SINGLEPLAYER);
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(getLegacyFilePath(worldFolderName, QuickPlayLog.Type.SINGLEPLAYER));
+            Files.deleteIfExists(getSingleplayerFilePath(worldFolderName));
         } catch (Exception e) {
-            MapAtlasesMod.LOGGER.error("Could not delete client markers data of world {}", folderName, e);
+            MapAtlasesMod.LOGGER.error("Could not delete client markers data of world {}", worldFolderName, e);
         }
     }
 
     @ApiStatus.Internal
-    public static synchronized void loadClientMarkers(long seed, String levelName, HolderLookup.Provider registries) {
+    public static synchronized void loadClientMarkers(long seed, String worldId, HolderLookup.Provider registries) {
 
         MARKERS_PER_MAP.clear();
 
-        if (lastFolderNameOrIP == null) {
-            throw new RuntimeException("Could not load client markers data. Folder name is null");
-        }
+        // keyed off server-sent data; the quick play log hook is skipped by non-vanilla
+        // connection flows (Essential SPS, server transfers, proxies)
+        boolean singleplayer = Minecraft.getInstance().hasSingleplayerServer();
+        currentPath = singleplayer ? getSingleplayerFilePath(worldId) : getMultiplayerFilePath(seed, worldId);
 
-        currentPath = getFilePath(lastFolderNameOrIP, lastType);
+        migrateLegacyFile(worldId, singleplayer);
 
         if (Files.exists(currentPath)) {
             try (InputStream inputStream = Files.newInputStream(currentPath)) {
@@ -86,11 +87,40 @@ public class ClientMarkers {
         }
 
         if (MapAtlasesClientConfig.convertXaero.get()) {
-            XaeroMinimapCompat.parseXaeroWaypoints(lastFolderNameOrIP);
+            String xaeroFolder = lastFolderNameOrIP;
+            if (xaeroFolder == null && singleplayer) xaeroFolder = worldId;
+            if (xaeroFolder == null) {
+                var server = Minecraft.getInstance().getCurrentServer();
+                if (server != null) xaeroFolder = server.ip;
+            }
+            if (xaeroFolder != null) XaeroMinimapCompat.parseXaeroWaypoints(xaeroFolder);
         }
 
         lastFolderNameOrIP = null;
         lastType = QuickPlayLog.Type.SINGLEPLAYER;
+    }
+
+    private static void migrateLegacyFile(String worldId, boolean singleplayer) {
+        try {
+            if (Files.exists(currentPath)) return;
+            Path legacy = findLegacyFilePath(worldId, singleplayer);
+            if (legacy != null && Files.exists(legacy)) {
+                Files.createDirectories(currentPath.getParent());
+                Files.move(legacy, currentPath);
+                MapAtlasesMod.LOGGER.info("Migrated client markers file {} to {}", legacy, currentPath);
+            }
+        } catch (Exception e) {
+            MapAtlasesMod.LOGGER.error("Failed to migrate legacy client markers file", e);
+        }
+    }
+
+    @Nullable
+    private static Path findLegacyFilePath(String worldId, boolean singleplayer) {
+        if (lastFolderNameOrIP != null) return getLegacyFilePath(lastFolderNameOrIP, lastType);
+        if (singleplayer) return getLegacyFilePath(worldId, QuickPlayLog.Type.SINGLEPLAYER);
+        var server = Minecraft.getInstance().getCurrentServer();
+        if (server != null) return getLegacyFilePath(server.ip, QuickPlayLog.Type.MULTIPLAYER);
+        return null;
     }
 
     private static String sanitiseServerName(String input) {
@@ -100,18 +130,44 @@ public class ClientMarkers {
                 .replaceAll("[^a-z0-9 ]", "_");
     }
 
+    // folder name only, so world deletion can find it without knowing the seed
     @NotNull
-    private static Path getFilePath(String id, QuickPlayLog.Type type) {
+    private static Path getSingleplayerFilePath(String worldFolderName) {
+        String hash = Long.toUnsignedString(Integer.toUnsignedLong(worldFolderName.hashCode()), 36);
+        return getMarkersDir(QuickPlayLog.Type.SINGLEPLAYER)
+                .resolve(sanitiseFileName(worldFolderName) + "-" + hash + ".nbt");
+    }
+
+    // seed disambiguates servers that share a folder name (usually "world")
+    @NotNull
+    private static Path getMultiplayerFilePath(long seed, String worldId) {
+        String hash = Long.toUnsignedString(seed * 31 + worldId.hashCode(), 36);
+        return getMarkersDir(QuickPlayLog.Type.MULTIPLAYER)
+                .resolve(sanitiseFileName(worldId) + "-" + hash + ".nbt");
+    }
+
+    private static Path getMarkersDir(QuickPlayLog.Type type) {
+        return PlatHelper.getGamePath().resolve("map_atlases/" + type.getSerializedName());
+    }
+
+    private static String sanitiseFileName(String input) {
+        String clean = sanitiseServerName(input);
+        return clean.length() > 32 ? clean.substring(0, 32) : clean;
+    }
+
+    @NotNull
+    private static Path getLegacyFilePath(String id, QuickPlayLog.Type type) {
         String fileName = (type == QuickPlayLog.Type.SINGLEPLAYER)
                 ? id
                 : sanitiseServerName(id);
 
-        return PlatHelper.getGamePath()
-                .resolve("map_atlases/" + type.getSerializedName() + "/" + fileName + ".nbt");
+        return getMarkersDir(type).resolve(fileName + ".nbt");
     }
 
     public static void clearClientMarkers() {
         MARKERS_PER_MAP.clear();
+        // so a later session with no world hash packet can't save onto this world's file
+        currentPath = null;
     }
 
     public static void saveClientMarkers(RegistryAccess registryAccess) {
@@ -123,7 +179,15 @@ public class ClientMarkers {
 
         // Only lock long enough to snapshot
         synchronized (ClientMarkers.class) {
-            if (MARKERS_PER_MAP.isEmpty()) return;
+            if (MARKERS_PER_MAP.isEmpty()) {
+                // removing the last pin must persist too
+                try {
+                    Files.deleteIfExists(path);
+                } catch (Exception e) {
+                    MapAtlasesMod.LOGGER.error("Failed to delete empty client markers file at {}", path, e);
+                }
+                return;
+            }
             snapshot = save(registryAccess);
             count = MARKERS_PER_MAP.size();
         }
