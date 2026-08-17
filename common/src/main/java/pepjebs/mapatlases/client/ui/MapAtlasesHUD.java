@@ -99,9 +99,10 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         int screenWidth = window.getGuiScaledWidth();
         int screenHeight = window.getGuiScaledHeight();
 
-        if (mc.level == null ||  mc.options.hideGui || mc.player == null || mc.getDebugOverlay().showDebugScreen()) return;
+        if (mc.level == null || mc.options.hideGui || mc.player == null) return;
 
         if (!MapAtlasesClientConfig.drawMiniMapHUD.get()) return;
+        if (MapAtlasesClientConfig.hideWhenDebugScreenOpen.get() && mc.getDebugOverlay().showDebugScreen()) return;
         if (MapAtlasesClientConfig.hideWhenInventoryOpen.get() && mc.screen != null) return;
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
