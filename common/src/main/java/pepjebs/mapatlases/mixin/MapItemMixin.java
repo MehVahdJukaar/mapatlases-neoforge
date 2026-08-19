@@ -29,6 +29,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 public class MapItemMixin {
 
     @Shadow @Final public static int IMAGE_HEIGHT;
+    private static LevelChunk emptyChunk;
 
     @WrapOperation(method = "update", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/level/Level;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;"))
@@ -51,8 +52,11 @@ public class MapItemMixin {
             }*/
         }
         //return empty
-        return new EmptyLevelChunk(level, new ChunkPos(chunkX, chunkZ),
+        if (emptyChunk == null) {
+            emptyChunk = new EmptyLevelChunk(level, new ChunkPos(chunkX, chunkZ),
                 level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
+        }
+        return emptyChunk;
     }
 
 

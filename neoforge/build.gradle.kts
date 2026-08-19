@@ -18,7 +18,7 @@ dependencies {
 
     modCompileOnly("net.mehvahdjukaar:supplementaries-neoforge:${supplementaries_version}")
     modCompileOnly("curse.maven:the-twilight-forest-227639:7797302")
-    modCompileOnly("curse.maven:curios-309927:6274154")
+    modCompileOnly("curse.maven:curios-309927:6529130")
 
     modCompileOnly("curse.maven:emi-580555:6420931")
     modCompileOnly("curse.maven:jei-238222:7420587")

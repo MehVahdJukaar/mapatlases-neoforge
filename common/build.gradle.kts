@@ -23,7 +23,7 @@ dependencies {
     modCompileOnly("curse.maven:jei-238222:7420587")
     modCompileOnly("curse.maven:roughly-enough-items-310111:6199140")
 
-    modCompileOnly("curse.maven:curios-309927:6274154")
+    modCompileOnly("curse.maven:curios-309927:6529130")
 
     /*
 

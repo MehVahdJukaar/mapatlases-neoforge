@@ -33,7 +33,7 @@ dependencies {
     modCompileOnly("curse.maven:jei-238222:7420583")
     modCompileOnly("curse.maven:roughly-enough-items-310111:6199139")
     modCompileOnly("curse.maven:roughly-enough-items-310111:6199140")
-    modCompileOnly("curse.maven:curios-309927:6274154")
+    modCompileOnly("curse.maven:curios-309927:6529130")
     modCompileOnly("curse.maven:the-twilight-forest-227639:7797302")
 
 }
