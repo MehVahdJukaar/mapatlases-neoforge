@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -33,6 +34,8 @@ public class MapAtlasesFabric implements ModInitializer {
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
                 MapAtlasesServerEvents.onPlayerLogout(handler.getPlayer()));
+
+        ServerWorldEvents.UNLOAD.register((server, world) -> MapAtlasesServerEvents.onDimensionUnload());
     }
 
 

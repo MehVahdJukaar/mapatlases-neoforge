@@ -3,11 +3,17 @@ package pepjebs.mapatlases.lifecycle;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -36,6 +42,21 @@ public class MapAtlasesServerEvents {
     // so a value can reach its own key and weak keys would never be collected
     private static final Map<UUID, UpdateScheduler> SCHEDULERS_PER_PLAYER = new HashMap<>();
     private static final Map<UUID, MapDataHolder> LAST_CENTER_MAP_PER_PLAYER = new HashMap<>();
+
+    private static volatile LevelChunk dummyChunk;
+
+    public static LevelChunk getDummyChunk(Level level) {
+        LevelChunk cached = dummyChunk;
+        if (cached != null && cached.getLevel() == level) return cached;
+
+        LevelChunk fresh = new EmptyLevelChunk(level, ChunkPos.ZERO,
+                level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
+        MinecraftServer server = level.getServer();
+        if (server != null && server.isRunning()) {
+            dummyChunk = fresh;
+        }
+        return fresh;
+    }
 
     public static void onPlayerTick(ServerPlayer player) {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
@@ -216,6 +237,7 @@ public class MapAtlasesServerEvents {
 
     public static void onDimensionUnload() {
         EntityRadar.unloadLevel();
+        dummyChunk = null;
     }
 
 }

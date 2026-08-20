@@ -6,14 +6,9 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.mehvahdjukaar.supplementaries.configs.CommonConfigs;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.MapItem;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.spongepowered.asm.mixin.Final;
@@ -24,12 +19,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 
 @Mixin(value = MapItem.class, priority = 1200)
 public class MapItemMixin {
 
     @Shadow @Final public static int IMAGE_HEIGHT;
-    private static LevelChunk emptyChunk;
 
     @WrapOperation(method = "update", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/level/Level;getChunk(II)Lnet/minecraft/world/level/chunk/LevelChunk;"))
@@ -52,11 +47,7 @@ public class MapItemMixin {
             }*/
         }
         //return empty
-        if (emptyChunk == null) {
-            emptyChunk = new EmptyLevelChunk(level, new ChunkPos(chunkX, chunkZ),
-                level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
-        }
-        return emptyChunk;
+        return MapAtlasesServerEvents.getDummyChunk(level);
     }
 
 
