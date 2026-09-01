@@ -217,7 +217,8 @@ public class MapCollection {
             MapGridKey key = found.makeKey();
             //from now on we assume that all client maps cant have their center and data unfilled
             if (maps.containsKey(key)) {
-                MapAtlasesMod.LOGGER.error("Duplicate map key {} found in level {}", key, level.dimension().location());
+                // Existing atlases can carry a lot of these, so log at debug rather than error.
+                MapAtlasesMod.LOGGER.debug("Duplicate map key {} found in level {}", key, level.dimension().location());
                 return false;
 
             }
@@ -273,15 +274,45 @@ public class MapCollection {
         return newColl;
     }
 
+    /**
+     * Returns the subset of {@code candidates} this collection does not already cover, by map
+     * id and by grid cell. {@code claimed} carries cells taken earlier in the same batch, so
+     * one call cannot add two maps covering the same cell.
+     */
+    private List<MapId> selectNotAlreadyCovered(Level level, MapType type,
+                                                Collection<MapId> candidates,
+                                                Set<MapGridKey> claimed) {
+        List<MapId> accepted = new ArrayList<>();
+        List<MapId> existing = ids.get(type);
+        for (MapId id : candidates) {
+            if (existing != null && existing.contains(id)) continue;
+            MapDataHolder found = MapDataHolder.find(id, type, level);
+            if (found == null) {
+                // not resolvable yet on the client, so let populateInDataStructure judge it later
+                accepted.add(id);
+                continue;
+            }
+            if (initialized && found.data.scale != scale) continue;
+            MapGridKey key = found.makeKey();
+            if (maps.containsKey(key)) continue;
+            if (!claimed.add(key)) continue;
+            accepted.add(id);
+        }
+        return accepted;
+    }
+
     public MapCollection addAndAssigns(ItemStack atlas, Level level, MapType type, MapId map) {
         return addAndAssigns(atlas, level, type, List.of(map));
     }
 
     public MapCollection addAndAssigns(ItemStack atlas, Level level, MapType type, Collection<MapId> map) {
         if (map.isEmpty()) return this;
+        List<MapId> toAdd = selectNotAlreadyCovered(level, type, map, new HashSet<>());
+        // callers check identity, so returning this signals "nothing was added"
+        if (toAdd.isEmpty()) return this;
         //make copy and add
         Map<MapType, List<MapId>> newIds = getIdsCopy();
-        newIds.computeIfAbsent(type, k -> new ArrayList<>()).addAll(map);
+        newIds.computeIfAbsent(type, k -> new ArrayList<>()).addAll(toAdd);
         var newColl = new MapCollection(newIds, level);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
         return newColl;
@@ -291,9 +322,16 @@ public class MapCollection {
         if (maps.isEmpty()) return this;
         //make copy and add
         Map<MapType, List<MapId>> newIds = getIdsCopy();
+        Set<MapGridKey> claimed = new HashSet<>();
+        boolean addedAny = false;
         for (var e : maps.entrySet()) {
-            newIds.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).addAll(e.getValue());
+            List<MapId> toAdd = selectNotAlreadyCovered(level, e.getKey(), e.getValue(), claimed);
+            if (toAdd.isEmpty()) continue;
+            newIds.computeIfAbsent(e.getKey(), k -> new ArrayList<>()).addAll(toAdd);
+            addedAny = true;
         }
+        // callers check identity, so returning this signals "nothing was added"
+        if (!addedAny) return this;
         var newColl = new MapCollection(newIds, level);
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
         return newColl;
