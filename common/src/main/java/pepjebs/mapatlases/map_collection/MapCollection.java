@@ -196,9 +196,10 @@ public class MapCollection {
 
     protected boolean populateInDataStructure(MapId intId, MapType type, Level level) {
         MapDataHolder found = MapDataHolder.find(intId, type, level);
-        if (!initialized && found != null) {
+        // scale comes from the first map that resolves. Cant use initialized here as on the client
+        // the collection can be initialized before any map data has arrived
+        if (found != null && maps.isEmpty()) {
             scale = found.data.scale;
-            initialized = true;
         }
 
         if (found == null) {
@@ -286,13 +287,15 @@ public class MapCollection {
         List<MapId> existing = ids.get(type);
         for (MapId id : candidates) {
             if (existing != null && existing.contains(id)) continue;
+            if (accepted.contains(id)) continue;
             MapDataHolder found = MapDataHolder.find(id, type, level);
             if (found == null) {
                 // not resolvable yet on the client, so let populateInDataStructure judge it later
                 accepted.add(id);
                 continue;
             }
-            if (initialized && found.data.scale != scale) continue;
+            // an empty collection has no scale yet, the first map added decides it
+            if (!maps.isEmpty() && found.data.scale != scale) continue;
             MapGridKey key = found.makeKey();
             if (maps.containsKey(key)) continue;
             if (!claimed.add(key)) continue;

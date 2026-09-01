@@ -42,6 +42,10 @@ public class EmptyMaps {
         return new HashMap<>(i);
     }
 
+    public static EmptyMaps of(Map<MapType, Integer> counts) {
+        return new EmptyMaps(new HashMap<>(counts));
+    }
+
     public int getSize() {
         return size;
     }

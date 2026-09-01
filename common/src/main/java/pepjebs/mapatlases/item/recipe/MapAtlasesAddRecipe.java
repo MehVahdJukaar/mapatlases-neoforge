@@ -12,6 +12,7 @@ import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
@@ -19,8 +20,10 @@ import pepjebs.mapatlases.utils.MapType;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MapAtlasesAddRecipe extends CustomRecipe {
 
@@ -64,14 +67,17 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             if (maxMapCount != -1 && oldCount + extraMaps - 1 > maxMapCount) {
                 return false;
             }
-            //ensure no duplicates
+            Integer atlasScale = maps.isEmpty() ? null : (int) maps.getScale();
 
-            int atlasScale = maps.getScale();
-
-            // Ensure Filled Maps are all same Scale & Dimension
+            // Ensure Filled Maps are all same Scale & no duplicates, neither with the atlas nor within the grid
+            Set<MapGridKey> gridKeys = new HashSet<>();
             for (var d : filledMaps) {
+                if (d == null) return false;
+                if (atlasScale == null) atlasScale = (int) d.data.scale;
                 if (d.data.scale != atlasScale) return false;
-                if (maps.select(d.makeKey()) != null) return false;
+                MapGridKey key = d.makeKey();
+                if (maps.select(key) != null) return false;
+                if (!gridKeys.add(key)) return false;
             }
             levelRef = new WeakReference<>(level);
             return true;

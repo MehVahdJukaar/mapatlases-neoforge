@@ -53,26 +53,22 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
         Level level = levelRef.get();
         ItemStack newAtlas = ItemStack.EMPTY;
-        ItemStack oldAtlas = ItemStack.EMPTY;
         // ensure 1 and one only atlas
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
                 newAtlas = itemstack.copyWithCount(1);
-                oldAtlas = itemstack;
             }
         }
+        if (newAtlas.isEmpty() || level == null) return ItemStack.EMPTY;
 
-        // Get the Map Ids in the Grid
-        // Set NBT Data
+        // swap every map with its antique version
         MapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
-        MapCollection oldMaps = MapAtlasItem.getMaps(oldAtlas, level);
-        var map = oldMaps.getIdsCopy();
         for (MapDataHolder holder : maps.getAllFound()) {
-            oldMaps = oldMaps.removeDataAndAssign(oldAtlas, level, holder);
+            maps = maps.removeDataAndAssign(newAtlas, level, holder);
             MapId newId = SupplementariesCompat.createAntiqueMapData(holder.data, level, true, false);
             if (newId != null) {
-                oldMaps = oldMaps.addAndAssigns(oldAtlas, level, holder.type, newId);
+                maps = maps.addAndAssigns(newAtlas, level, holder.type, newId);
             }
         }
         SupplementariesCompat.setAntiqueInk(newAtlas);

@@ -1,1 +1,1 @@
-- improved pin saving
+added new config

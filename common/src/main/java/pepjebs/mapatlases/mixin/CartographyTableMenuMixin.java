@@ -34,9 +34,8 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
-import java.util.HashSet;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -77,10 +76,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 var maps = MapAtlasItem.getMaps(topItem, world);
                 if (maps.isEmpty()) return;
-                if (mapatlases$selectedMapIndex > maps.getCount()) {
+                // index against the resolved maps, getCount can be higher if some ids didnt resolve
+                var found = maps.getAllFound();
+                if (mapatlases$selectedMapIndex >= found.size()) {
                     mapatlases$selectedMapIndex = 0;
                 }
-                MapDataHolder map = maps.getAllFound().get(mapatlases$selectedMapIndex);
+                MapDataHolder map = found.get(mapatlases$selectedMapIndex);
                 ItemStack result = map.createExistingMapItem();
                 this.mapatlases$selectedSlice = map.slice;
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -94,19 +95,19 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 ItemStack result = topItem.copy();
                 MapCollection resultMaps = MapAtlasItem.getMaps(result, world);
                 MapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
-                if (resultMaps.getScale() != bottomMaps.getScale()) return;
-                var idsToADd = bottomMaps.getIdsCopy();
-                resultMaps.addAndAssigns(result, world, idsToADd);
+                // an empty atlas has no scale yet so it can merge with anything
+                if (!resultMaps.isEmpty() && !bottomMaps.isEmpty()
+                        && resultMaps.getScale() != bottomMaps.getScale()) return;
+                var idsToAdd = bottomMaps.getIdsCopy();
+                resultMaps.addAndAssigns(result, world, idsToAdd);
 
                 // Both atlases leave the table, so split the pool rather than giving each the full sum.
-                EmptyMaps topEmpty = MapAtlasItem.getEmptyMaps(topItem);
-                EmptyMaps bottomEmpty = MapAtlasItem.getEmptyMaps(bottomItem);
-                Set<MapType> emptyTypes = new HashSet<>(topEmpty.getAll().keySet());
-                emptyTypes.addAll(bottomEmpty.getAll().keySet());
-                for (MapType type : emptyTypes) {
-                    int pooled = topEmpty.get(type) + bottomEmpty.get(type);
-                    MapAtlasItem.getEmptyMaps(result).setAndAssign(result, type, pooled / 2);
-                }
+                Map<MapType, Integer> pooled = new EnumMap<>(MapType.class);
+                MapAtlasItem.getEmptyMaps(topItem).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
+                MapAtlasItem.getEmptyMaps(bottomItem).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
+                pooled.replaceAll((type, count) -> count / 2);
+                pooled.values().removeIf(count -> count == 0);
+                result.set(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.of(pooled));
 
                 result.grow(1);
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
@@ -133,9 +134,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 ItemStack result = topItem.copy();
                 MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(world, bottomItem);
+                if (mapHolder == null) return;
                 MapCollection maps = MapAtlasItem.getMaps(result, world);
-                if (maps.getScale() != mapHolder.data.scale) return;
-                if (mapHolder != null && maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id) != maps) {
+                if (!maps.isEmpty() && maps.getScale() != mapHolder.data.scale) return;
+                if (maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id) != maps) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
                     info.cancel();
@@ -212,18 +214,13 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             if (l.get() != null) {
                 if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
                     MapCollection maps = MapAtlasItem.getMaps(atlas, l.get());
-                    mapatlases$selectedMapIndex = (mapatlases$selectedMapIndex
-                            + (pId == 4 ? maps.getCount() - 1 : 1)) % maps.getCount();
-                    try {
-                        MapDataHolder map = maps.getAllFound().get(mapatlases$selectedMapIndex);
-                        if (map != null) {
-                            this.mapatlases$selectedSlice = map.slice;
-                        } else {
-                            this.mapatlases$selectedSlice = null;
-                        }
-                    } catch (Exception e) {
-                        //aa ERROR
-                        int a = 1;
+                    var found = maps.getAllFound();
+                    if (!found.isEmpty()) {
+                        mapatlases$selectedMapIndex = Math.floorMod(
+                                mapatlases$selectedMapIndex + (pId == 4 ? -1 : 1), found.size());
+                        this.mapatlases$selectedSlice = found.get(mapatlases$selectedMapIndex).slice;
+                    } else {
+                        this.mapatlases$selectedSlice = null;
                     }
                 }
             }
