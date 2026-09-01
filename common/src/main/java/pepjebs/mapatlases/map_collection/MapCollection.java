@@ -50,11 +50,15 @@ public class MapCollection {
     private boolean initialized = false;
 
 
+    private static final Comparator<MapId> BY_ID = Comparator.comparingInt(MapId::id);
+
     protected MapCollection(Map<MapType, List<MapId>> integers) {
         int s = 0;
         for (var e : integers.entrySet()) {
-            this.ids.computeIfAbsent(e.getKey(), k -> new ArrayList<>())
-                    .addAll(e.getValue());
+            List<MapId> list = this.ids.computeIfAbsent(e.getKey(), k -> new ArrayList<>());
+            list.addAll(e.getValue());
+            // sorted so insertion order stays out of equals(), which compares these lists
+            list.sort(BY_ID);
             s += e.getValue().size();
         }
         this.size = s;
