@@ -31,9 +31,12 @@ import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -95,8 +98,15 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 var idsToADd = bottomMaps.getIdsCopy();
                 resultMaps.addAndAssigns(result, world, idsToADd);
 
-                EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(result);
-                emptyMaps.addAndAssigns(result, MapAtlasItem.getEmptyMaps(bottomItem).getAll());
+                // Both atlases leave the table, so split the pool rather than giving each the full sum.
+                EmptyMaps topEmpty = MapAtlasItem.getEmptyMaps(topItem);
+                EmptyMaps bottomEmpty = MapAtlasItem.getEmptyMaps(bottomItem);
+                Set<MapType> emptyTypes = new HashSet<>(topEmpty.getAll().keySet());
+                emptyTypes.addAll(bottomEmpty.getAll().keySet());
+                for (MapType type : emptyTypes) {
+                    int pooled = topEmpty.get(type) + bottomEmpty.get(type);
+                    MapAtlasItem.getEmptyMaps(result).setAndAssign(result, type, pooled / 2);
+                }
 
                 result.grow(1);
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
