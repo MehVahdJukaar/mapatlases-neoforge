@@ -16,12 +16,14 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.AbstractAtlasDisplay;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
@@ -34,6 +36,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
     private static final int PAN_BUCKET = 25;
     private static final int ZOOM_BUCKET = 2;
+    private static final float MIN_ZOOM = 0.5f;
+    private static final float MAX_ZOOM = 20;
 
     private final AtlasOverviewScreen mapScreen;
 
@@ -51,8 +55,6 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     private float targetZoomLevel;
 
     private boolean isHovered;
-    private float animationProgress = 0; //from zero to 1
-
     private float scaleAlpha = 0;
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
@@ -87,7 +89,6 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         Player player = mc.player;
         if (player == null) return;
 
-
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
         // Handle zooming markers hack
@@ -96,10 +97,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
         MapItemSavedData hoveredData = null;
         boolean shearing = mapScreen.isShearing();
-        boolean placingPin = mapScreen.isPlacingPin();
-        if (shearing || placingPin) {
-            ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
-            MapDataHolder d = mapScreen.findMapContaining(pos.x(), pos.z());
+        if (shearing || mapScreen.isPlacingPin()) {
+            MapDataHolder d = getHoveredMap(pMouseX, pMouseY);
             hoveredData = d != null ? d.data : null;
         }
         this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
@@ -108,7 +107,6 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
-
 
         mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
                 (zoomLevel / 2) * mapBlocksSize);
@@ -127,8 +125,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
                         pMouseX, pMouseY);
             }
             if (PlatHelper.isDev()) {
-                ColumnPos pos = getHoveredPos(pMouseX, pMouseY);
-                var d = mapScreen.findMapContaining(pos.x(), pos.z());
+                var d = getHoveredMap(pMouseX, pMouseY);
                 if (d != null) {
                     AtlasScreenUtils.drawScaledComponent(
                             graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id() + ", type=" + d.type + ", y=" + d.height + "]", 1, width, width);
@@ -139,23 +136,18 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     private void renderScaleText(GuiGraphics graphics, Minecraft mc) {
-        boolean animation = zoomLevel != targetZoomLevel;
-        if (animation || scaleAlpha != 0) {
-            if (animation) scaleAlpha = 1;
-            else {
-                scaleAlpha = Math.max(0, scaleAlpha - 0.03f);
-            }
-            int a = (int) (scaleAlpha * 255);
-            if (a > 10) {
-                PoseStack poseStack = graphics.pose();
-                poseStack.pushPose();
-                poseStack.translate(0, 0, 4);
-                graphics.drawString(mc.font,
-                        Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
-                        x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
-                poseStack.popPose();
-            }
-        }
+        boolean zooming = zoomLevel != targetZoomLevel;
+        if (zooming) scaleAlpha = 1;
+        else scaleAlpha = Math.max(0, scaleAlpha - 0.03f);
+        int a = (int) (scaleAlpha * 255);
+        if (a <= 10) return;
+        PoseStack poseStack = graphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(0, 0, 4);
+        graphics.drawString(mc.font,
+                Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
+                x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
+        poseStack.popPose();
     }
 
     @Override
@@ -192,25 +184,21 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             double newZCenter;
             boolean discrete = !MapAtlasesClientConfig.worldMapSmoothPanning.get();
             if (discrete) {
-                //discrete mode
                 newXCenter = (int) (currentXCenter - (round((int) cumulativeMouseX, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
                 newZCenter = (int) (currentZCenter - (round((int) cumulativeMouseY, PAN_BUCKET) / PAN_BUCKET * mapBlocksSize));
             } else {
-                newXCenter = (currentXCenter - cumulativeMouseX * zoomLevel * ((float) mapBlocksSize / (width * mapScreen.globalScale)));
-                newZCenter = (currentZCenter - cumulativeMouseY * zoomLevel * ((float) mapBlocksSize / (width * mapScreen.globalScale)));
+                float blocksPerPixel = zoomLevel * mapBlocksSize / (width * mapScreen.globalScale);
+                newXCenter = currentXCenter - cumulativeMouseX * blocksPerPixel;
+                newZCenter = currentZCenter - cumulativeMouseY * blocksPerPixel;
             }
             if (newXCenter != currentXCenter) {
                 targetXCenter = newXCenter;
-                if (!discrete) {
-                    currentXCenter = targetXCenter;
-                }
+                if (!discrete) currentXCenter = targetXCenter;
                 cumulativeMouseX = 0;
             }
             if (newZCenter != currentZCenter) {
                 targetZCenter = newZCenter;
-                if (!discrete) {
-                    currentZCenter = targetZCenter;
-                }
+                if (!discrete) currentZCenter = targetZCenter;
                 cumulativeMouseY = 0;
             }
             followingPlayer = false;
@@ -221,53 +209,52 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        float minZoom = 0.5f;
-        float maxZoom = 20;
-        if ((scrollY < 0 && targetZoomLevel >= maxZoom) || (scrollY > 0 && targetZoomLevel <= minZoom)) {
+        boolean atZoomLimit = (scrollY < 0 && targetZoomLevel >= MAX_ZOOM) || (scrollY > 0 && targetZoomLevel <= MIN_ZOOM);
+        if (atZoomLimit) {
             cumulativeZoomValue = 0;
             return false;
         }
 
-        float zl;
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
-            float c = (float) (scrollY);
-            double v = -c / 25d * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
+            double v = -scrollY / 25d * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
             if (Screen.hasShiftDown() || Screen.hasControlDown()) v *= 3;
-            targetZoomLevel = Mth.clamp(targetZoomLevel + targetZoomLevel * (float) v, minZoom, maxZoom);
+            targetZoomLevel = Mth.clamp(targetZoomLevel + targetZoomLevel * (float) v, MIN_ZOOM, MAX_ZOOM);
             zoomLevel = targetZoomLevel - 0.001f;
         } else {
-            cumulativeZoomValue -= (float) scrollY;
-            cumulativeZoomValue = Math.max(cumulativeZoomValue, 0);
-            zl = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
-            zl = Math.max(zl, 0);
-            float startZoom = 1;
-            targetZoomLevel = Mth.clamp(startZoom + (2 * zl) + 1f, minZoom, maxZoom);
+            cumulativeZoomValue = Math.max(cumulativeZoomValue - (float) scrollY, 0);
+            int zoomSteps = round((int) cumulativeZoomValue, ZOOM_BUCKET) / ZOOM_BUCKET;
+            targetZoomLevel = Mth.clamp(2 + 2 * zoomSteps, MIN_ZOOM, MAX_ZOOM);
         }
-
         return true;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
-        if (isHovered) {
-            if (mapScreen.isPlacingPin()) {
-                ColumnPos pos = getHoveredPos(mouseX, mouseY);
-                mapScreen.placePinAt(pos);
-                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.7F, 2f));
-            } else if (mapScreen.isShearing()) {
-                ColumnPos pos = getHoveredPos(mouseX, mouseY);
-                mapScreen.shearMapAt(pos);
-                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.SHEEP_SHEAR, 1.7F, 2f));
-            } else if (mapScreen.canTeleport()) {
-                ColumnPos pos = getHoveredPos(mouseX, mouseY);
-                Slice slice = mapScreen.getSelectedSlice();
-                NetworkHelper.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
-                if (!PlatHelper.isDev()) mapScreen.onClose();
-                return true;
-            }
-            return !mapScreen.isEditingText();
+        if (!isHovered) return false;
+        ColumnPos pos = getHoveredPos(mouseX, mouseY);
+        if (mapScreen.isPlacingPin()) {
+            mapScreen.placePinAt(pos);
+            playClickSound(SoundEvents.ITEM_FRAME_ADD_ITEM);
+        } else if (mapScreen.isShearing()) {
+            mapScreen.shearMapAt(pos);
+            playClickSound(SoundEvents.SHEEP_SHEAR);
+        } else if (mapScreen.canTeleport()) {
+            Slice slice = mapScreen.getSelectedSlice();
+            NetworkHelper.sendToServer(new C2STeleportPacket(pos.x(), pos.z(), slice.height(), slice.dimension()));
+            if (!PlatHelper.isDev()) mapScreen.onClose();
+            return true;
         }
-        return false;
+        return !mapScreen.isEditingText();
+    }
+
+    private void playClickSound(SoundEvent sound) {
+        mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(sound, 1.7F, 2f));
+    }
+
+    @Nullable
+    private MapDataHolder getHoveredMap(double mouseX, double mouseY) {
+        ColumnPos pos = getHoveredPos(mouseX, mouseY);
+        return mapScreen.findMapContaining(pos.x(), pos.z());
     }
 
     @NotNull
@@ -329,31 +316,19 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
     public void tick() {
         float animationSpeed = 0.4f;
-        if (animationProgress != 0) {
-            animationProgress -= animationProgress * animationSpeed - 0.01;
-            animationProgress = Math.max(0, animationProgress);
-        }
-        if (this.zoomLevel != targetZoomLevel) {
-            zoomLevel = (float) interpolate(targetZoomLevel, zoomLevel, animationSpeed);
-        }
-        if (this.currentXCenter != targetXCenter) {
-            currentXCenter = interpolate(targetXCenter, currentXCenter, animationSpeed);
-        }
-        if (this.currentZCenter != targetZCenter) {
-            currentZCenter = interpolate(targetZCenter, currentZCenter, animationSpeed);
-        }
+        zoomLevel = (float) interpolate(targetZoomLevel, zoomLevel, animationSpeed);
+        currentXCenter = interpolate(targetXCenter, currentXCenter, animationSpeed);
+        currentZCenter = interpolate(targetZCenter, currentZCenter, animationSpeed);
 
         //TODO:: better player snap
-        //follow player
         if (followingPlayer) {
-
             var player = Minecraft.getInstance().player;
             targetXCenter = (int) player.getX();
             targetZCenter = (int) player.getZ();
         }
     }
 
-    private double interpolate(double target, double current, double animationSpeed) {
+    private static double interpolate(double target, double current, double animationSpeed) {
         double diff = target - current;
         if (Math.abs(diff) < 0.01) return target;
         return current + (diff * animationSpeed);
