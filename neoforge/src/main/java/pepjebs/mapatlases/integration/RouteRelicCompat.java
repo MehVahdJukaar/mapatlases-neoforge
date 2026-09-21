@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -29,6 +30,19 @@ public class RouteRelicCompat {
         }
         if (!(event.getTarget() instanceof ItemFrame frame)) return;
         ItemStack atlas = frame.getItem();
+        if (!atlas.is(MapAtlasesMod.MAP_ATLAS.get())) return;
+
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.SUCCESS);
+        drawRouteWithFeedback(player, atlas, RouteRelicItem.getRelicColor(relic));
+    }
+
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        Player player = event.getEntity();
+        ItemStack relic = event.getItemStack();
+        if (player.level().isClientSide || !(relic.getItem() instanceof RouteRelicItem)) return;
+        if (!(player.level().getBlockEntity(event.getPos()) instanceof LecternBlockEntity lectern)) return;
+        ItemStack atlas = lectern.getBook();
         if (!atlas.is(MapAtlasesMod.MAP_ATLAS.get())) return;
 
         event.setCanceled(true);

@@ -32,6 +32,7 @@ public class MapAtlasesForge {
         if (PlatHelper.isModLoaded("routerelic")) {
             NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, RouteRelicCompat::onEntityInteract);
             NeoForge.EVENT_BUS.addListener(RouteRelicCompat::onItemStackedOnOther);
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, RouteRelicCompat::onRightClickBlock);
         }
 
         if (PlatHelper.getPhysicalSide().isClient()) {
