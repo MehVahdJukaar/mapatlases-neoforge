@@ -72,29 +72,15 @@ public class EmptyMaps {
     }
 
     public void addAndAssigns(ItemStack stack, MapType type, int amount) {
-        //copy map,remove and assign new comp
-        Map<MapType, Integer> newMap = new HashMap<>(this.maps);
-        if (newMap.containsKey(type)) {
-            newMap.put(type, Math.max(0, newMap.get(type) + amount));
-        } else {
-            newMap.put(type, amount);
-        }
-        EmptyMaps newEmpty = new EmptyMaps(newMap);
-        stack.set(MapAtlasesMod.EMPTY_MAPS.get(), newEmpty);
+        addAndAssigns(stack, Map.of(type, amount));
     }
-
 
     public void addAndAssigns(ItemStack atlas, Map<MapType, Integer> emptyMapCount) {
         Map<MapType, Integer> newMap = new HashMap<>(this.maps);
         for (var entry : emptyMapCount.entrySet()) {
-            MapType type = entry.getKey();
-            int count = entry.getValue();
-            if (newMap.containsKey(type)) {
-                newMap.put(type, Math.max(0, newMap.get(type) + count));
-            } else {
-                newMap.put(type, count);
-            }
+            newMap.merge(entry.getKey(), entry.getValue(), Integer::sum);
         }
+        newMap.replaceAll((type, count) -> Math.max(0, count));
         EmptyMaps newEmpty = new EmptyMaps(newMap);
         atlas.set(MapAtlasesMod.EMPTY_MAPS.get(), newEmpty);
     }

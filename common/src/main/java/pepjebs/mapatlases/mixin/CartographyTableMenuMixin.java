@@ -118,10 +118,12 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         // add empty
         else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(bottomItem)) {
             this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copyWithCount(1);
                 var amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);
-                if (amountToAdd != null) {
-                    MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, Map.of(amountToAdd.getFirst(), amountToAdd.getSecond()));
+                boolean atlasIsFull = amountToAdd == null || amountToAdd.getSecond() <= 0;
+                ItemStack result = ItemStack.EMPTY;
+                if (!atlasIsFull) {
+                    result = topItem.copyWithCount(1);
+                    MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, amountToAdd.getFirst(), amountToAdd.getSecond());
                 }
                 this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                 this.broadcastChanges();

@@ -73,22 +73,30 @@ public class EntityRadar {
 
     @Nullable
     public static HolderRef<MLMapDecorationType<?, ?>> getMarkerForType(LivingEntity entity) {
-        return entityTypeMap.computeIfAbsent(entity.getClass(), clazz -> {
-            EntityType<?> type = entity.getType();
-            if (type == EntityType.PLAYER)
-                return null;
-            if (PlatStuff.isBoss(type))
-                return BOSS_PIN;
-            if (entity instanceof Enemy)
-                return HOSTILE_PIN;
-            if (entity instanceof NeutralMob)
-                return NEUTRAL_PIN;
-            if (entity instanceof Animal) {
-                return PASSIVE_PIN;
-            }
-            //excludes armor stands and such
+        Class<? extends LivingEntity> clazz = entity.getClass();
+        //respects null
+        if (entityTypeMap.containsKey(clazz)) return entityTypeMap.get(clazz);
+        HolderRef<MLMapDecorationType<?, ?>> pin = computeMarkerForType(entity);
+        entityTypeMap.put(clazz, pin);
+        return pin;
+    }
+
+    @Nullable
+    private static HolderRef<MLMapDecorationType<?, ?>> computeMarkerForType(LivingEntity entity) {
+        EntityType<?> type = entity.getType();
+        if (type == EntityType.PLAYER)
             return null;
-        });
+        if (PlatStuff.isBoss(type))
+            return BOSS_PIN;
+        if (entity instanceof Enemy)
+            return HOSTILE_PIN;
+        if (entity instanceof NeutralMob)
+            return NEUTRAL_PIN;
+        if (entity instanceof Animal) {
+            return PASSIVE_PIN;
+        }
+        //excludes armor stands and such
+        return null;
     }
 
 

@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.item.recipe;
 
-import com.mojang.serialization.Codec;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
@@ -29,8 +28,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MapAtlasesCutExistingRecipe extends CustomRecipe {
-
-    public static final Codec<MapAtlasesCutExistingRecipe> CODEC = null;
 
     private WeakReference<Level> levelRef = new WeakReference<>(null);
 
@@ -73,7 +70,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         MapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
         //not using count. we want actual maps
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
-        if (maps.getAllFound().size() > 1) {
+        if (!maps.getAllFound().isEmpty()) {
             //TODO: very ugly and wont work in many cases
             MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
             return toRemove.createExistingMapItem();
@@ -140,7 +137,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 boolean didRemoveFilled = false;
                 MapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
                 Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
-                if (!maps.isEmpty()) {
+                if (!maps.getAllFound().isEmpty()) {
                     MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
                     maps = maps.removeDataAndAssign(stack, levelRef.get(), toRemove);
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());

@@ -50,12 +50,17 @@ public class XaeroMinimapCompat {
                             String[] parts = line.split(":");
                             if (parts.length >= 8) {
                                 String name = parts[1];
-                                int x = Integer.parseInt(parts[3]);
-                                int y = Integer.parseInt(parts[4]);
-                                int z = Integer.parseInt(parts[5]);
-                                int color = Integer.parseInt(parts[6]);
-
-                                Waypoint waypoint = new Waypoint(name, x, y, z, color);
+                                Waypoint waypoint;
+                                try {
+                                    int x = Integer.parseInt(parts[3]);
+                                    int y = Integer.parseInt(parts[4]);
+                                    int z = Integer.parseInt(parts[5]);
+                                    int color = Integer.parseInt(parts[6]);
+                                    waypoint = new Waypoint(name, x, y, z, color);
+                                } catch (NumberFormatException e) {
+                                    MapAtlasesMod.LOGGER.warn("Skipping malformed Xaero waypoint: {}", line);
+                                    continue;
+                                }
                                 String dim = directory.getFileName().toString();
                                 WAYPOINTS_MAP.computeIfAbsent(dim, j -> new ArrayList<>())
                                         .add(waypoint);

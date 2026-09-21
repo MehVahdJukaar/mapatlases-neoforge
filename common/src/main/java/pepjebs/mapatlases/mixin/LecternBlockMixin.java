@@ -38,7 +38,7 @@ public abstract class LecternBlockMixin extends Block {
     public void injectAtlasRemoval(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasLectern al
                 && al.mapatlases$hasAtlas()) {
-            if (player.isSecondaryUseActive()) {
+            if (player.isSecondaryUseActive() && player.mayBuild()) {
                 LecternBlockEntity lbe = (LecternBlockEntity) al;
                 ItemStack atlas = lbe.getBook();
                 if (!player.getInventory().add(atlas)) {

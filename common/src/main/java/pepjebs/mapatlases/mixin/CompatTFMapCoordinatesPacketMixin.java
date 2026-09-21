@@ -69,6 +69,7 @@ class CompatTFMapCoordinatesMaze1PacketMixin {
 
     @ModifyArg(method = "run",
             index = 1,
+            remap = false,
             at = @At(value = "INVOKE",
                     target = "Ltwilightforest/item/mapdata/TFMazeMapData;<init>(IIBZZZLnet/minecraft/resources/ResourceKey;)V"))
     private int mapAtlases$setZ(int z) {

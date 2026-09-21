@@ -71,10 +71,8 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
             } else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(slotOneItem)) {
                 var amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level());
                 // onTakeItem already calls takeStack(1) so we subtract that out
-                if (amountToTake != null)
+                if (amountToTake != null && amountToTake.getSecond() > 1)
                     slotOne.remove(amountToTake.getSecond() - 1);
-            } else if (MapAtlasesAccessUtils.isValidFilledMap(slotOneItem)) {
-                slotOne.remove(1);
             }
         }
     }

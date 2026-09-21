@@ -255,7 +255,7 @@ public class ClientMarkers {
         Holder<MLMapDecorationType<?, ?>> type = getPinWithIndex(index);
         Optional<Component> name;
         if (!text.isEmpty()) {
-            name = Optional.of(Component.translatable(text));
+            name = Optional.of(Component.literal(text));
         } else {
             name = Optional.empty();
         }
@@ -266,7 +266,7 @@ public class ClientMarkers {
         }
         Integer h = holder.height;
         if (h == null) h = level.dimension().equals(holder.data.dimension) ?
-                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.z(), pos.z()) : 64;
+                level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.x(), pos.z()) : 64;
         //aaa not correct
         var pinMarker = new PinMarker(type, new BlockPos(pos.x(), h, pos.z()), name, false);
         addMarker(holder.id, MarkerHolder.of(pinMarker, level.registryAccess()));

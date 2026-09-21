@@ -64,7 +64,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             EmptyMaps em = MapAtlasItem.getEmptyMaps(atlas);
             int oldCount = maps.getCount() + em.getSize();
             int maxMapCount = MapAtlasItem.getMaxMapCount();
-            if (maxMapCount != -1 && oldCount + extraMaps - 1 > maxMapCount) {
+            if (maxMapCount != -1 && oldCount + extraMaps > maxMapCount) {
                 return false;
             }
             Integer atlasScale = maps.isEmpty() ? null : (int) maps.getScale();

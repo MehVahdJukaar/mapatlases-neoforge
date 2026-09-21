@@ -27,6 +27,10 @@ import java.util.Optional;
 
 public class MapAtlasesAccessUtils {
 
+    public static boolean canPlayerTeleport(Player player) {
+        return MapAtlasesConfig.creativeTeleport.get() && player.isCreative();
+    }
+
     //Helper function
     @Nullable
     public static MapItemSavedData getSavedDataAt(ItemStack atlas, Level level, int x, int z) {
