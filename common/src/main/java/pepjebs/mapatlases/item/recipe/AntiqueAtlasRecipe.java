@@ -7,18 +7,10 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapId;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
-import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapDataHolder;
-
-import java.lang.ref.WeakReference;
 
 public class AntiqueAtlasRecipe extends CustomRecipe {
-
-    private WeakReference<Level> levelRef = new WeakReference<>(null);
 
     public AntiqueAtlasRecipe(CraftingBookCategory category) {
         super(category);
@@ -41,38 +33,21 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
                 ink = itemstack;
             } else if (!itemstack.isEmpty()) return false;
         }
-        if (!atlas.isEmpty() && !ink.isEmpty()) {
-            levelRef = new WeakReference<>(level);
-            return true;
-        }
-        return false;
+        return !atlas.isEmpty() && !ink.isEmpty();
     }
 
+    // this runs on every grid change, so the maps themselves are only swapped in MapAtlasItem.onCraftedBy
     @Override
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
-
-        Level level = levelRef.get();
-        ItemStack newAtlas = ItemStack.EMPTY;
-        // ensure 1 and one only atlas
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                newAtlas = itemstack.copyWithCount(1);
+                ItemStack newAtlas = itemstack.copyWithCount(1);
+                SupplementariesCompat.setAntiqueInk(newAtlas);
+                return newAtlas;
             }
         }
-        if (newAtlas.isEmpty() || level == null) return ItemStack.EMPTY;
-
-        // swap every map with its antique version
-        MapCollection maps = MapAtlasItem.getMaps(newAtlas, level);
-        for (MapDataHolder holder : maps.getAllFound()) {
-            maps = maps.removeDataAndAssign(newAtlas, level, holder);
-            MapId newId = SupplementariesCompat.createAntiqueMapData(holder.data, level, true, false);
-            if (newId != null) {
-                maps = maps.addAndAssigns(newAtlas, level, holder.type, newId);
-            }
-        }
-        SupplementariesCompat.setAntiqueInk(newAtlas);
-        return newAtlas;
+        return ItemStack.EMPTY;
     }
 
     @Override

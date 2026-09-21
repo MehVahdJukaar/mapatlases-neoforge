@@ -13,7 +13,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
+import pepjebs.mapatlases.item.MapAtlasItem;
+import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.MapType;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class SupplementariesCompat {
@@ -64,7 +70,19 @@ public class SupplementariesCompat {
         return itemstack.is(ModRegistry.ANTIQUE_INK.get());
     }
 
-    public static MapId createAntiqueMapData(MapItemSavedData data, Level level, boolean on, boolean replaceOld) {
-        return WeatheredHandler.createAntiqueMapData(data, level, on, replaceOld);
+    // swaps every non antique map for an antique copy. server only
+    public static void convertAllMapsToAntique(ItemStack atlas, Level level) {
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        Map<MapType, List<MapId>> ids = maps.getIdsCopy();
+        boolean changed = false;
+        for (MapDataHolder holder : maps.getAllFound()) {
+            if (WeatheredHandler.getAntiqueData(holder.data).isAntique()) continue;
+            MapId antiqueId = WeatheredHandler.createAntiqueMapData(holder.data, level, true, false);
+            if (antiqueId == null) continue;
+            List<MapId> list = ids.get(holder.type);
+            list.set(list.indexOf(holder.id), antiqueId);
+            changed = true;
+        }
+        if (changed) maps.replaceAllAndAssign(atlas, level, ids);
     }
 }

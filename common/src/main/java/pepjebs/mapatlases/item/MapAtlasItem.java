@@ -169,9 +169,11 @@ public class MapAtlasItem extends Item {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
+        // a lectern atlas isnt in the inventory, so vanilla would drop the holder and never send anything
+        TriState carried = lecternPos.isPresent() ? TriState.SET_TRUE : TriState.PASS;
         for (var info : maps.getAllFound()) {
             // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(info, player, atlas, TriState.PASS);
+            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(info, player, atlas, carried);
         }
         NetworkHelper.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
@@ -253,6 +255,9 @@ public class MapAtlasItem extends Item {
     public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
         super.onCraftedBy(stack, level, pPlayer);
 
+        if (!level.isClientSide && MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
+            SupplementariesCompat.convertAllMapsToAntique(stack, level);
+        }
         validateSelectedSlices(stack, level);
     }
 

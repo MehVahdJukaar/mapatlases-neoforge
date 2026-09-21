@@ -1,18 +1,23 @@
 package pepjebs.mapatlases.networking;
 
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
+
+import java.util.Optional;
 
 public class C2SRemoveMarkerPacket implements Message {
 
@@ -25,21 +30,24 @@ public class C2SRemoveMarkerPacket implements Message {
     private final MapId mapId;
     private final MapType mapType;
     private final boolean isCustom;
+    private final Optional<BlockPos> lecternPos;
 
     public C2SRemoveMarkerPacket(FriendlyByteBuf buf) {
         this.mapId = MapId.STREAM_CODEC.decode(buf);
         this.mapType = MapType.STREAM_CODEC.decode(buf);
         this.decoHash = buf.readVarInt();
         this.isCustom = buf.readBoolean();
+        this.lecternPos = buf.readOptional(BlockPos.STREAM_CODEC);
     }
 
-    public C2SRemoveMarkerPacket(MapId mapId, MapType mapType,  int decoId, boolean custom) {
+    public C2SRemoveMarkerPacket(MapId mapId, MapType mapType, int decoId, boolean custom, Optional<BlockPos> lecternPos) {
         // Sending hash, hacky.
         // Have to because client doesn't know deco id
         this.decoHash = decoId;
         this.mapId = mapId;
         this.mapType = mapType;
         this.isCustom = custom;
+        this.lecternPos = lecternPos;
     }
 
     @Override
@@ -48,13 +56,14 @@ public class C2SRemoveMarkerPacket implements Message {
         MapType.STREAM_CODEC.encode(buf, mapType);
         buf.writeVarInt(decoHash);
         buf.writeBoolean(isCustom);
-
+        buf.writeOptional(lecternPos, BlockPos.STREAM_CODEC);
     }
 
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
-        if (!MapAtlasesAccessUtils.playerAtlasHasMap(player, mapId, mapType)) return;
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+        if (atlas.isEmpty() || !MapAtlasItem.getMaps(atlas, player.level()).hasMap(mapId, mapType)) return;
 
         Level level = player.level();
         MapItemSavedData data = mapType.getMapData(level, mapId);

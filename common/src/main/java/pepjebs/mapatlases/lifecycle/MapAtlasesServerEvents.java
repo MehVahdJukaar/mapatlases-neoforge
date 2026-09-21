@@ -31,12 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class MapAtlasesServerEvents {
-
-    // Used to prevent Map creation spam consuming all Empty Maps on auto-create
-    private static final ReentrantLock MUTEX = new ReentrantLock();
 
     // keyed by UUID, not by player instance: the map data these values point at lists the players holding it,
     // so a value can reach its own key and weak keys would never be collected
@@ -100,9 +96,6 @@ public class MapAtlasesServerEvents {
 
         if (mapsInView.isEmpty()) return;
 
-        // Update Map states & colors
-        // updateColors is *easily* the most expensive function in the entire server tick
-        // As a result, we will only ever call updateColors twice per tick (same as vanilla's limit)
         UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player.getUUID(), p -> {
             if (MapAtlasesConfig.updateFashion.get() == UpdateFashion.ROUND_ROBIN) {
                 return new RoundRobinUpdateScheduler();
@@ -166,9 +159,7 @@ public class MapAtlasesServerEvents {
         int emptyCount = MapAtlasItem.getEmptyMaps(atlas).get(slice);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
         MapDataHolder newMapHolder = null;
-        if (!MUTEX.isLocked() && (emptyCount > 0 || player.isCreative() || bypassEmptyMaps)) {
-            MUTEX.lock();
-
+        if (emptyCount > 0 || player.isCreative() || bypassEmptyMaps) {
             // Make the new map
 
             //validate height
@@ -199,7 +190,6 @@ public class MapAtlasesServerEvents {
                     newMapHolder = newData;
                 }
             }
-            MUTEX.unlock();
         }
         return newMapHolder;
     }

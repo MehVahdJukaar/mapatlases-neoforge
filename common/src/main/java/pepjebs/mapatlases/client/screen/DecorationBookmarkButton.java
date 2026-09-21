@@ -57,7 +57,7 @@ public class DecorationBookmarkButton extends AtlasButton {
     public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
         if (shifting && holder.canDeleteMarker()) {
-            holder.deleteMarker();
+            holder.deleteMarker(parentScreen.lecternPos());
             parentScreen.recalculateDecorationWidgets();
         } else if (control && holder.canFocusMarker()) {
             holder.focusMarker();

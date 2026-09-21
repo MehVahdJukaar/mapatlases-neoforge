@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.networking;
 
 import net.mehvahdjukaar.moonlight.api.platform.network.Message;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -12,40 +12,36 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 
-public class C2SRemoveMapPacket implements Message {
+import java.util.Optional;
+
+public record C2SRemoveMapPacket(MapId mapId, MapType mapType, Optional<BlockPos> lecternPos) implements Message {
 
     public static final TypeAndCodec<RegistryFriendlyByteBuf, C2SRemoveMapPacket> TYPE = Message.makeType(
             MapAtlasesMod.res("remove_map"),
             C2SRemoveMapPacket::new
     );
 
-    private final MapId mapId;
-    private final MapType mapType;
-
-    public C2SRemoveMapPacket(MapId mapId, MapType type) {
-        this.mapId = mapId;
-        this.mapType = type;
-    }
-
-    public C2SRemoveMapPacket(FriendlyByteBuf buf) {
-        this.mapId = MapId.STREAM_CODEC.decode(buf);
-        this.mapType = MapType.STREAM_CODEC.decode(buf);
+    public C2SRemoveMapPacket(RegistryFriendlyByteBuf buf) {
+        this(MapId.STREAM_CODEC.decode(buf), MapType.STREAM_CODEC.decode(buf),
+                buf.readOptional(BlockPos.STREAM_CODEC));
     }
 
     @Override
     public void write(RegistryFriendlyByteBuf buf) {
         MapId.STREAM_CODEC.encode(buf, mapId);
         MapType.STREAM_CODEC.encode(buf, mapType);
+        buf.writeOptional(lecternPos, BlockPos.STREAM_CODEC);
     }
 
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
+        if (lecternPos.isPresent() && !player.mayBuild()) return;
 
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-        if (!atlas.isEmpty()) {
-            MapAtlasItem.removeAndDropMap(mapId, mapType, atlas, player);
-        }
+        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+        if (atlas.isEmpty()) return;
+        MapAtlasItem.removeAndDropMap(mapId, mapType, atlas, player);
+        MapAtlasesAccessUtils.syncLecternAtlas(player, lecternPos);
     }
 
     @Override

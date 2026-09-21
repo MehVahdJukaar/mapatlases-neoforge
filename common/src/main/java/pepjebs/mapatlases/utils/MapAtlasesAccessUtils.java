@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -8,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +22,8 @@ import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapGridKey;
+
+import java.util.Optional;
 
 public class MapAtlasesAccessUtils {
 
@@ -102,6 +107,29 @@ public class MapAtlasesAccessUtils {
     public static boolean playerAtlasHasMap(Player player, MapId id, MapType type) {
         ItemStack atlas = getAtlasFromPlayerByConfig(player);
         return !atlas.isEmpty() && MapAtlasItem.getMaps(atlas, player.level()).hasMap(id, type);
+    }
+
+    @NotNull
+    public static ItemStack getAtlasFromLecternOrPlayer(ServerPlayer player, Optional<BlockPos> lecternPos) {
+        if (lecternPos.isEmpty()) return getAtlasFromPlayerByConfig(player);
+        LecternBlockEntity lectern = getLecternInReach(player, lecternPos.get());
+        if (lectern != null && lectern.getBook().is(MapAtlasesMod.MAP_ATLAS.get())) return lectern.getBook();
+        return ItemStack.EMPTY;
+    }
+
+    @Nullable
+    public static LecternBlockEntity getLecternInReach(ServerPlayer player, BlockPos pos) {
+        if (!player.canInteractWithBlock(pos, 4)) return null;
+        return player.level().getBlockEntity(pos) instanceof LecternBlockEntity lectern ? lectern : null;
+    }
+
+    public static void syncLecternAtlas(ServerPlayer player, Optional<BlockPos> lecternPos) {
+        if (lecternPos.isEmpty()) return;
+        LecternBlockEntity lectern = getLecternInReach(player, lecternPos.get());
+        if (lectern == null) return;
+        lectern.setChanged();
+        BlockState state = lectern.getBlockState();
+        player.level().sendBlockUpdated(lecternPos.get(), state, state, 3);
     }
 
     public static ItemStack getAtlasFromCurioOrTrinket(Player player) {

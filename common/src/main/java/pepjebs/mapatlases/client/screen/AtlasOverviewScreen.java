@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -62,7 +63,7 @@ public class AtlasOverviewScreen extends Screen {
     private final int OVERLAY_UR = bigTexture ? 304 : 189;
     private final int OVERLAY_UL = bigTexture ? 309 : 194;
 
-    private final ItemStack atlas;
+    private ItemStack atlas;
     private final Player player;
     private final Level level;
     @Nullable
@@ -109,27 +110,30 @@ public class AtlasOverviewScreen extends Screen {
                 (float) (double) MapAtlasesClientConfig.lecternWorldMapScale.get();
 
         this.currentMaps = MapAtlasItem.getMaps(atlas, level);
-        MapDataHolder closest = getMapClosestToPlayer();
-        this.selectedSlice = closest.slice;
+        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+        MapDataHolder closest = findMapClosestToPlayer();
+        if (closest == null) closest = anyMap();
+        if (closest != null) this.selectedSlice = closest.slice;
 
         this.isPinOnly = placingPin;
         this.selectedCursorAction = placingPin ? CursorAction.PLACING_PIN : CursorAction.NONE;
         if (!isPinOnly) {
             this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                     (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
-        } else {
+        } else if (closest != null) {
             partialPin = Pair.of(closest, new ColumnPos(player.blockPosition().getX(), player.blockPosition().getZ()));
         }
     }
 
-    @NotNull
-    private MapDataHolder getMapClosestToPlayer() {
-        this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
-        MapDataHolder closest = currentMaps.getClosest(player, selectedSlice);
-        if (closest == null) {
-            closest = currentMaps.getAllFound().stream().findFirst().get();
-        }
-        return closest;
+    @Nullable
+    private MapDataHolder findMapClosestToPlayer() {
+        return currentMaps.getClosest(player, selectedSlice);
+    }
+
+    @Nullable
+    private MapDataHolder anyMap() {
+        var all = currentMaps.getAllFound();
+        return all.isEmpty() ? null : all.getFirst();
     }
 
     public ItemStack getAtlas() {
@@ -140,11 +144,19 @@ public class AtlasOverviewScreen extends Screen {
         return selectedSlice;
     }
 
+    public Optional<BlockPos> lecternPos() {
+        return Optional.ofNullable(lectern).map(BlockEntity::getBlockPos);
+    }
+
     // ── Initialisation ────────────────────────────────────────────────────
 
     @Override
     protected void init() {
         super.init();
+        if (currentMaps.isEmpty()) {
+            this.onClose();
+            return;
+        }
         initEditBox();
         initFilterBox();
         initSliceWidgets();
@@ -221,11 +233,13 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private void initMapWidget() {
+        MapDataHolder center = findMapClosestToPlayer();
+        if (center == null) center = anyMap();
         this.mapWidget = this.addRenderableWidget(new MapWidget(
                 (width - MAP_WIDGET_WIDTH) / 2,
                 (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 2 : 5),
                 MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
-                this, getMapClosestToPlayer()));
+                this, center));
         this.setFocused(mapWidget);
     }
 
@@ -292,14 +306,43 @@ public class AtlasOverviewScreen extends Screen {
 
     @Override
     public void tick() {
-        this.currentMaps = MapAtlasItem.getMaps(atlas, level);
+        if (!isValid()) {
+            this.minecraft.setScreen(null);
+            return;
+        }
+        // the inventory stack gets replaced on every server sync, so the one we opened with goes stale
+        ItemStack syncedAtlas = lectern == null ? MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player) : lectern.getBook();
+        if (syncedAtlas.isEmpty()) {
+            this.onClose();
+            return;
+        }
+        this.atlas = syncedAtlas;
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        maps.updateNotSynced(level);
+        boolean mapsChanged = !maps.equals(currentMaps) || maps.getAllFound().size() != currentMaps.getAllFound().size();
+        this.currentMaps = maps;
+        if (mapsChanged) onMapsChanged();
 
         if (mapWidget != null) mapWidget.tick();
         if (this.pinNameBox != null && pinNameBox.active) this.pinNameBox.tick();
         if (decorationPanel != null) decorationPanel.flush();
         if (dimensionPanel != null) dimensionPanel.flush();
+    }
 
-        if (!isValid()) this.minecraft.setScreen(null);
+    private void onMapsChanged() {
+        if (currentMaps.isEmpty()) {
+            this.onClose();
+            return;
+        }
+        var dimensions = currentMaps.getAvailableDimensions();
+        dimensionPanel.build(dimensions);
+        ResourceKey<Level> dim = selectedSlice.dimension();
+        if (!dimensions.contains(dim)) {
+            selectDimension(dimensions.iterator().next());
+            return;
+        }
+        dimensionPanel.setSelectedDimension(dim);
+        if (!updateSlice(closestAvailableSlice(dim, selectedSlice))) recalculateDecorationWidgets();
     }
 
     // ── Input handling ────────────────────────────────────────────────────
@@ -472,7 +515,8 @@ public class AtlasOverviewScreen extends Screen {
 
     public MapItemSavedData getCenterMapForSelectedDim() {
         if (selectedSlice.dimension().equals(level.dimension())) {
-            return getMapClosestToPlayer().data;
+            MapDataHolder closest = findMapClosestToPlayer();
+            return closest == null ? null : closest.data;
         }
         MapItemSavedData best = null;
         float averageX = 0;
@@ -517,18 +561,27 @@ public class AtlasOverviewScreen extends Screen {
         boolean sameDim = selectedSlice.dimension().equals(dimension);
         if (sameDim) this.selectedSlice = new Slice(selectedSlice.type(), selectedSlice.height(), dimension);
         // On first call from init we keep the atlas's saved slice; afterwards use the per-dim saved slice.
-        updateSlice(!initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension));
+        Slice saved = !initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension);
+        updateSlice(closestAvailableSlice(dimension, saved));
         boolean isWherePlayerIs = level.dimension().equals(dimension);
 
-        MapItemSavedData center = isWherePlayerIs ? getMapClosestToPlayer().data : this.getCenterMapForSelectedDim();
+        MapItemSavedData center = this.getCenterMapForSelectedDim();
         if (center == null) return;
         this.mapWidget.resetAndCenter(center.centerX, center.centerZ, isWherePlayerIs, sameDim);
         dimensionPanel.setSelectedDimension(dimension);
         recalculateDecorationWidgets();
+    }
 
-        TreeSet<Integer> tree = currentMaps.getHeightTree(selectedSlice.dimension(), selectedSlice.type());
-        this.sliceDown.setMaxSlice(tree);
-        this.sliceUp.setMaxSlice(tree);
+    // the saved slice can point at nothing after shearing or when a dimension only has sliced maps
+    private Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
+        if (!currentMaps.selectSection(preferred).isEmpty()) return preferred;
+        var types = currentMaps.getAvailableTypes(dimension);
+        if (types.isEmpty()) return preferred;
+        MapType type = types.contains(preferred.type()) ? preferred.type() : types.iterator().next();
+        TreeSet<Integer> heights = currentMaps.getHeightTree(dimension, type);
+        Integer height = heights.floor(preferred.heightOrTop());
+        if (height == null) height = heights.first();
+        return Slice.of(type, height, dimension);
     }
 
     protected void recalculateDecorationWidgets() {
@@ -593,18 +646,20 @@ public class AtlasOverviewScreen extends Screen {
         if (!Objects.equals(selectedSlice, newSlice)) {
             selectedSlice = newSlice;
             sliceButton.setSlice(selectedSlice);
-            NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice,
-                    Optional.ofNullable(lectern).map(BlockEntity::getBlockPos)));
+            NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice, lecternPos()));
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice, level);
             recalculateDecorationWidgets();
             changed = true;
         }
         var dim = selectedSlice.dimension();
-        boolean manySlices = currentMaps.getHeightTree(dim, selectedSlice.type()).size() > 1;
+        TreeSet<Integer> tree = currentMaps.getHeightTree(dim, selectedSlice.type());
+        boolean manySlices = tree.size() > 1;
         boolean manyTypes = currentMaps.getAvailableTypes(dim).size() != 1;
         sliceButton.refreshState(manySlices, manyTypes);
         sliceDown.setActive(manySlices);
         sliceUp.setActive(manySlices);
+        sliceDown.setMaxSlice(tree);
+        sliceUp.setMaxSlice(tree);
         mapWidget.resetZoom();
         return changed;
     }
@@ -638,17 +693,17 @@ public class AtlasOverviewScreen extends Screen {
     public void shearMapAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
-            NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type));
-            currentMaps.removeDataAndAssign(atlas, level, selected);
-            recalculateDecorationWidgets();
+            NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type, lecternPos()));
+            currentMaps = currentMaps.removeDataAndAssign(atlas, level, selected);
+            onMapsChanged();
         }
         this.clearCursorAction();
     }
 
     public void shearSlice(Slice slice) {
-        NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice));
-        currentMaps.removeSliceAndAssign(atlas, level, slice);
-        recalculateDecorationWidgets();
+        NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice, lecternPos()));
+        currentMaps = currentMaps.removeSliceAndAssign(atlas, level, slice);
+        onMapsChanged();
         this.clearCursorAction();
     }
 

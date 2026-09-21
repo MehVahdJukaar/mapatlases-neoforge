@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.LightTexture;
@@ -22,6 +23,7 @@ import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static pepjebs.mapatlases.client.AbstractAtlasDisplay.MAP_DIMENSION;
 
@@ -85,11 +87,11 @@ public final class VanillaDecorationHolder extends DecorationHolder {
     }
 
     @Override
-    public void deleteMarker() {
+    public void deleteMarker(Optional<BlockPos> lecternPos) {
         Map<String, MapDecoration> decorations = data.data.decorations;
         var d = decorations.get(id);
         if (d != null) {
-            NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(data.id, data.type, d.hashCode(), false));
+            NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(data.id, data.type, d.hashCode(), false, lecternPos));
             decorations.remove(id);
         }
     }

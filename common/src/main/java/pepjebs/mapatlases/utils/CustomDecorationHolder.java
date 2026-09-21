@@ -3,6 +3,7 @@ package pepjebs.mapatlases.utils;
 import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -14,6 +15,7 @@ import pepjebs.mapatlases.integration.moonlight.PinDecoration;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static pepjebs.mapatlases.client.AbstractAtlasDisplay.MAP_DIMENSION;
 
@@ -65,12 +67,12 @@ public final class CustomDecorationHolder extends DecorationHolder {
     }
 
     @Override
-    public void deleteMarker() {
+    public void deleteMarker(Optional<BlockPos> lecternPos) {
         var decorations = ((ExpandedMapData) data.data).ml$getCustomDecorations();
         MLMapDecoration d = decorations.get(id);
         if (d != null) {
             if (!ClientMarkers.removeClientDeco(data.id, id)) {
-                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(data.id, data.type, d.hashCode(), true));
+                NetworkHelper.sendToServer(new C2SRemoveMarkerPacket(data.id, data.type, d.hashCode(), true, lecternPos));
             }
             decorations.remove(id);
         }

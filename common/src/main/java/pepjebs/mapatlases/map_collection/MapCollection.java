@@ -340,6 +340,13 @@ public class MapCollection {
         return newColl;
     }
 
+    //full swap of the id lists, keeps whatever slice is selected
+    public MapCollection replaceAllAndAssign(ItemStack atlas, Level level, Map<MapType, List<MapId>> newIds) {
+        var newColl = new MapCollection(newIds, level);
+        atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newColl);
+        return newColl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

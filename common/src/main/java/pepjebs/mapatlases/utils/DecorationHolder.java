@@ -2,8 +2,11 @@ package pepjebs.mapatlases.utils;
 
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+
+import java.util.Optional;
 
 public abstract sealed class DecorationHolder permits VanillaDecorationHolder, CustomDecorationHolder {
     protected final String id;
@@ -38,7 +41,7 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
 
     public abstract void renderDecoration(GuiGraphics graphics, float centerX, float centerY);
 
-    public abstract void deleteMarker();
+    public abstract void deleteMarker(Optional<BlockPos> lecternPos);
 
     public boolean canDeleteMarker() {
         return true;

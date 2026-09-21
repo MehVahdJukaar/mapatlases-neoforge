@@ -13,6 +13,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.config.UpdateType;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
@@ -58,10 +59,12 @@ public class MapDataHolder {
 
     public void updateMapColorsAndMarkers(ServerPlayer player) {
         if (canMultiThread(player.level())) {
-            EXECUTORS.submit(() -> {
-                //the only unsafe operation that this does is data.getHoldingPlayer
-                //we need to redirect it.
-                type.getFilled().update(player.level(), player, data);
+            EXECUTORS.execute(() -> {
+                try {
+                    type.getFilled().update(player.level(), player, data);
+                } catch (Exception e) {
+                    MapAtlasesMod.LOGGER.error("Failed to update map {} off thread", id, e);
+                }
             });
             //update markers on the main thread. has to be done because block entities cant be accessed off thread
 
@@ -113,7 +116,11 @@ public class MapDataHolder {
         }
     }
 
-    private static final ExecutorService EXECUTORS = Executors.newFixedThreadPool(6);
+    private static final ExecutorService EXECUTORS = Executors.newFixedThreadPool(6, runnable -> {
+        Thread thread = new Thread(runnable, "Map Atlases Map Updater");
+        thread.setDaemon(true);
+        return thread;
+    });
 
 
     @Override

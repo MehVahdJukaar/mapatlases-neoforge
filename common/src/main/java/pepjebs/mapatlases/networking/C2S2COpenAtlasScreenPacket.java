@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -55,22 +54,13 @@ public class C2S2COpenAtlasScreenPacket implements Message {
         // we need all this craziness as we need to ensure maps are sent before gui is opened
 
         if (context.getDirection() == NetworkDir.CLIENT_BOUND) {
-            // open screen
             MapAtlasesClient.openScreen(lecternPos, pinOnly);
         } else {
             // sends all atlas and then send this but to client
             if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
-            ItemStack atlas = ItemStack.EMPTY;
-            if (lecternPos.isPresent()) {
-                BlockPos pos = lecternPos.get();
-                if (player.canInteractWithBlock(pos, 4) && player.level().getBlockEntity(pos) instanceof LecternBlockEntity le) {
-                    atlas = le.getBook();
-                }
-            } else {
-                atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
-            }
-            if (atlas.getItem() instanceof MapAtlasItem) {
+            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+            if (!atlas.isEmpty()) {
                 if (pinOnly) {
                     player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);
                 }
