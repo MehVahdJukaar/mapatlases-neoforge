@@ -14,6 +14,7 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.RelativeMovement;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -77,6 +79,11 @@ public class C2STeleportPacket implements Message {
         return false;
     }
 
+    //TODO: move into MapAtlasesAccessUtils
+    public static boolean canPlayerTeleport(Player player) {
+        return MapAtlasesConfig.creativeTeleport.get() && player.isCreative();
+    }
+
     private static String formatDouble(double pValue) {
         return String.format(Locale.ROOT, "%f", pValue);
     }
@@ -92,8 +99,10 @@ public class C2STeleportPacket implements Message {
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
+        if (!canPlayerTeleport(player)) return;
 
         ServerLevel level = player.getServer().getLevel(dimension);
+        if (level == null) return;
 
         int y;
         if (this.y.isEmpty()) {

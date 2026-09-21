@@ -19,6 +19,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.mixin.MapItemSavedDataAccessor;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class C2SMarkerPacket implements Message {
         this.mapType = MapType.STREAM_CODEC.decode(buf);
         this.pos = fromLong(buf.readLong());
 
-        this.name = buf.readOptional(FriendlyByteBuf::readUtf).orElse(null);
+        this.name = buf.readOptional(b -> b.readUtf(64)).orElse(null);
     }
 
     public ColumnPos fromLong(long combinedValue) {
@@ -67,6 +68,7 @@ public class C2SMarkerPacket implements Message {
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
+        if (!MapAtlasesAccessUtils.playerAtlasHasMap(player, mapId, mapType)) return;
 
         Level level = player.level();
         MapItemSavedData data = mapType.getMapData(level, mapId);

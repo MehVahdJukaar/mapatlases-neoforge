@@ -11,6 +11,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
+import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 
 public class C2SRemoveMarkerPacket implements Message {
@@ -53,6 +54,7 @@ public class C2SRemoveMarkerPacket implements Message {
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
+        if (!MapAtlasesAccessUtils.playerAtlasHasMap(player, mapId, mapType)) return;
 
         Level level = player.level();
         MapItemSavedData data = mapType.getMapData(level, mapId);

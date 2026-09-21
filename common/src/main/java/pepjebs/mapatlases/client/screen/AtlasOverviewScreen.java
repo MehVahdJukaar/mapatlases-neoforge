@@ -40,6 +40,7 @@ import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SRemoveSlicePacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
+import pepjebs.mapatlases.networking.C2STeleportPacket;
 import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
@@ -706,7 +707,7 @@ public class AtlasOverviewScreen extends Screen {
     // ── Misc ──────────────────────────────────────────────────────────────
 
     public boolean canTeleport() {
-        return hasShiftDown() && minecraft.gameMode.getPlayerMode().isCreative() &&
+        return hasShiftDown() && C2STeleportPacket.canPlayerTeleport(player) &&
                 selectedCursorAction == CursorAction.NONE && !pinNameBox.active;
     }
 

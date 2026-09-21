@@ -35,6 +35,7 @@ public class C2STakeAtlasPacket implements Message {
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
+        if (!player.canInteractWithBlock(pos, 4)) return;
 
         if (player.level().getBlockEntity(pos) instanceof AtlasLectern lectern) {
             if (!player.mayBuild()) {

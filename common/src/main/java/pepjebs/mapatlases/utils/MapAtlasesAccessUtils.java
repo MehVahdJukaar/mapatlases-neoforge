@@ -99,6 +99,11 @@ public class MapAtlasesAccessUtils {
         return ItemStack.EMPTY;
     }
 
+    public static boolean playerAtlasHasMap(Player player, MapId id, MapType type) {
+        ItemStack atlas = getAtlasFromPlayerByConfig(player);
+        return !atlas.isEmpty() && MapAtlasItem.getMaps(atlas, player.level()).hasMap(id, type);
+    }
+
     public static ItemStack getAtlasFromCurioOrTrinket(Player player) {
         if (MapAtlasesMod.CURIOS) {
             ItemStack itemStack = CuriosCompat.getAtlasInCurio(player);

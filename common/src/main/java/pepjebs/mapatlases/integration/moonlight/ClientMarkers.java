@@ -63,14 +63,10 @@ public class ClientMarkers {
     }
 
     @ApiStatus.Internal
-    public static synchronized void loadClientMarkers(long seed, String worldId, HolderLookup.Provider registries) {
-
+    public static synchronized void loadClientMarkers(long hashedSeed, String worldId, HolderLookup.Provider registries) {
         MARKERS_PER_MAP.clear();
-
-        // keyed off server-sent data; the quick play log hook is skipped by non-vanilla
-        // connection flows (Essential SPS, server transfers, proxies)
         boolean singleplayer = Minecraft.getInstance().hasSingleplayerServer();
-        currentPath = singleplayer ? getSingleplayerFilePath(worldId) : getMultiplayerFilePath(seed, worldId);
+        currentPath = singleplayer ? getSingleplayerFilePath(worldId) : getMultiplayerFilePath(hashedSeed, worldId);
 
         migrateLegacyFile(worldId, singleplayer);
 
@@ -130,7 +126,6 @@ public class ClientMarkers {
                 .replaceAll("[^a-z0-9 ]", "_");
     }
 
-    // folder name only, so world deletion can find it without knowing the seed
     @NotNull
     private static Path getSingleplayerFilePath(String worldFolderName) {
         String hash = Long.toUnsignedString(Integer.toUnsignedLong(worldFolderName.hashCode()), 36);
@@ -138,10 +133,9 @@ public class ClientMarkers {
                 .resolve(sanitiseFileName(worldFolderName) + "-" + hash + ".nbt");
     }
 
-    // seed disambiguates servers that share a folder name (usually "world")
     @NotNull
-    private static Path getMultiplayerFilePath(long seed, String worldId) {
-        String hash = Long.toUnsignedString(seed * 31 + worldId.hashCode(), 36);
+    private static Path getMultiplayerFilePath(long hashedSeed, String worldId) {
+        String hash = Long.toUnsignedString(hashedSeed * 31 + worldId.hashCode(), 36);
         return getMarkersDir(QuickPlayLog.Type.MULTIPLAYER)
                 .resolve(sanitiseFileName(worldId) + "-" + hash + ".nbt");
     }
@@ -166,7 +160,6 @@ public class ClientMarkers {
 
     public static void clearClientMarkers() {
         MARKERS_PER_MAP.clear();
-        // so a later session with no world hash packet can't save onto this world's file
         currentPath = null;
     }
 
@@ -177,10 +170,8 @@ public class ClientMarkers {
         CompoundTag snapshot;
         int count;
 
-        // Only lock long enough to snapshot
         synchronized (ClientMarkers.class) {
             if (MARKERS_PER_MAP.isEmpty()) {
-                // removing the last pin must persist too
                 try {
                     Files.deleteIfExists(path);
                 } catch (Exception e) {

@@ -76,7 +76,6 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             this.access.execute((world, blockPos) -> {
                 var maps = MapAtlasItem.getMaps(topItem, world);
                 if (maps.isEmpty()) return;
-                // index against the resolved maps, getCount can be higher if some ids didnt resolve
                 var found = maps.getAllFound();
                 if (mapatlases$selectedMapIndex >= found.size()) {
                     mapatlases$selectedMapIndex = 0;
@@ -92,7 +91,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         // merge atlases
         else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
             this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copy();
+                ItemStack result = topItem.copyWithCount(1);
                 MapCollection resultMaps = MapAtlasItem.getMaps(result, world);
                 MapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
                 // an empty atlas has no scale yet so it can merge with anything
@@ -119,7 +118,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         // add empty
         else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(bottomItem)) {
             this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copy();
+                ItemStack result = topItem.copyWithCount(1);
                 var amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);
                 if (amountToAdd != null) {
                     MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, Map.of(amountToAdd.getFirst(), amountToAdd.getSecond()));
@@ -132,7 +131,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         // add a filled map
         else if (bottomItem.getItem() == Items.FILLED_MAP) {
             this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copy();
+                ItemStack result = topItem.copyWithCount(1);
                 MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(world, bottomItem);
                 if (mapHolder == null) return;
                 MapCollection maps = MapAtlasItem.getMaps(result, world);

@@ -18,6 +18,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.platform.MapAtlasesClientImpl;
+import pepjebs.mapatlases.integration.RouteRelicCompat;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 
@@ -28,6 +29,10 @@ public class MapAtlasesForge {
         RegHelper.startRegisteringFor(bus);
         MapAtlasesMod.init();
         NeoForge.EVENT_BUS.register(this);
+        if (PlatHelper.isModLoaded("routerelic")) {
+            NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, RouteRelicCompat::onEntityInteract);
+            NeoForge.EVENT_BUS.addListener(RouteRelicCompat::onItemStackedOnOther);
+        }
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesClientImpl.init(bus);

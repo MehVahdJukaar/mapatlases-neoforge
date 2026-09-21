@@ -1,14 +1,9 @@
-import org.apache.commons.io.output.ByteArrayOutputStream
-import org.gradle.internal.extensions.core.serviceOf
-import java.nio.charset.Charset
-
 plugins {
     id("com.possible-triangle.core")
     id("com.possible-triangle.common") apply false
     id("com.possible-triangle.fabric") apply false
     id("com.possible-triangle.neoforge") apply false
-    id("net.mehvahdjukaar.candlelight") version "1.2.6" apply false
-    id("dev.mixinmcp.decompile") version "1.3.0" apply false
+    id("net.mehvahdjukaar.candlelight") version "1.2.4" apply false
 }
 
 mod {
@@ -33,7 +28,6 @@ subprojects {
 
     apply(plugin = "com.possible-triangle.core")
     apply(plugin = "net.mehvahdjukaar.candlelight")
-    apply(plugin = "dev.mixinmcp.decompile")
     apply(plugin = "maven-publish")
 
     dependencies {
@@ -127,5 +121,6 @@ subprojects {
         maven { url = uri("https://raw.githubusercontent.com/Fuzss/modresources/main/maven") } // Fuzss' Mod Resources
         maven { url = uri("https://maven.jamieswhiteshirt.com/libs-release") } // Jamie's Mods
         maven { url = uri("https://maven.ryanhcode.dev/releases") }
+        maven { url = uri("https://api.modrinth.com/maven") }
     }
 }

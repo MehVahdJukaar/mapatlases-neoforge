@@ -125,7 +125,7 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
     public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
         NonNullList<ItemStack> list = NonNullList.create();
         for (ItemStack i : inv.items()) {
-            ItemStack stack = i.copy();
+            ItemStack stack = i.copyWithCount(1);
 
             if (stack.getItem() == Items.SHEARS) {
                 AtomicReference<Boolean> broken = new AtomicReference<>(false);
