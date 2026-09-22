@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,46 +19,51 @@ public class DecorationBookmarkButton extends AtlasButton {
     private static final int BUTTON_W = 24;
 
     protected final DecorationHolder holder;
-    protected int index = 0;
-    protected boolean shifting = false;
-    protected boolean control = false;
+    protected final int index;
+    protected boolean shifting;
+    protected boolean control;
 
-    public DecorationBookmarkButton(int pX, int pY, AtlasOverviewScreen parentScreen, DecorationHolder holder) {
+    public DecorationBookmarkButton(int pX, int pY, int index, DecorationHolder holder, AtlasOverviewScreen parentScreen) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, parentScreen,
                 MapAtlasesClient.BOOKMARK_LEFT_SPRITE, MapAtlasesClient.BOOKMARK_LEFT_SELECTED_SPRITE);
         this.holder = holder;
-        this.shifting = Screen.hasShiftDown();
-        this.control = Screen.hasControlDown();
-        this.setTooltip(createTooltip());
-    }
-
-    public static DecorationBookmarkButton of(int px, int py, DecorationHolder holder, AtlasOverviewScreen screen) {
-        return new DecorationBookmarkButton(px, py, screen, holder);
-    }
-
-    @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
-        this.shifting = Screen.hasShiftDown();
-        this.control = Screen.hasControlDown();
-        this.setTooltip(this.createTooltip());
-        return false;
+        this.index = index;
+        updateModifierKeys();
     }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        updateModifierKeys();
+        return false;
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+        updateModifierKeys();
+        return false;
+    }
+
+    private void updateModifierKeys() {
         this.shifting = Screen.hasShiftDown();
         this.control = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
-        return false;
+    }
+
+    private boolean willDelete() {
+        return shifting && holder.canDeleteMarker();
+    }
+
+    private boolean willFocus() {
+        return control && holder.canFocusMarker();
     }
 
     @Override
     public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
-        if (shifting && holder.canDeleteMarker()) {
+        if (willDelete()) {
             holder.deleteMarker(parentScreen.lecternPos());
             parentScreen.recalculateDecorationWidgets();
-        } else if (control && holder.canFocusMarker()) {
+        } else if (willFocus()) {
             holder.focusMarker();
         } else {
             parentScreen.centerOnDecoration(this);
@@ -76,42 +80,34 @@ public class DecorationBookmarkButton extends AtlasButton {
         }
     }
 
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
     public double getWorldX() { return holder.getWorldX(); }
     public double getWorldZ() { return holder.getWorldZ(); }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack matrices = graphics.pose();
-        matrices.pushPose();
-        matrices.translate(0, 0, 0.01 * this.index);
-        super.renderWidget(graphics, pMouseX, pMouseY, pPartialTick);
+    protected float zOffset() {
+        return 0.01f * index;
+    }
+
+    @Override
+    protected void renderContents(GuiGraphics graphics) {
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
-            if (this.control && holder.canFocusMarker()) {
+            if (willFocus()) {
                 graphics.blitSprite(FOCUS_MARKER_SPRITE, getX(), getY(), 5, 5);
-            } else if (this.shifting && holder.canDeleteMarker()) {
+            } else if (willDelete()) {
                 graphics.blitSprite(DELETE_MARKER_SPRITE, getX(), getY(), 5, 5);
             }
         }
         holder.renderDecoration(graphics, getX() + width / 2f, getY() + height / 2f);
-        matrices.popPose();
     }
 
     @Override
     public Tooltip createTooltip() {
-        if (control && holder.canFocusMarker()) {
-            return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
-        }
-        if (shifting && holder.canDeleteMarker()) {
-            return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
-        }
-        Tooltip t = Tooltip.create(holder.getDecorationName());
-        if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return t;
+        if (willFocus()) return Tooltip.create(Component.translatable("tooltip.map_atlases.focus_marker"));
+        if (willDelete()) return Tooltip.create(Component.translatable("tooltip.map_atlases.delete_marker"));
+        Tooltip name = Tooltip.create(holder.getDecorationName());
+        if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return name;
         Component coords = Component.literal("X: " + (int) holder.getWorldX() + ", Z: " + (int) holder.getWorldZ())
                 .withStyle(ChatFormatting.GRAY);
-        return CompoundTooltip.create(t, Tooltip.create(coords));
+        return CompoundTooltip.create(name, Tooltip.create(coords));
     }
 }

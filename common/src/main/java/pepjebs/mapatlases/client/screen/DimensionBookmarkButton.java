@@ -1,11 +1,10 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -13,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class DimensionBookmarkButton extends AtlasButton {
 
@@ -23,18 +21,20 @@ public class DimensionBookmarkButton extends AtlasButton {
     private final ResourceKey<Level> dimension;
     private final ResourceLocation dimensionIconSprite;
 
-
     protected DimensionBookmarkButton(int pX, int pY, ResourceKey<Level> dimension, AtlasOverviewScreen screen) {
         super(pX, pY, BUTTON_W, BUTTON_H, screen,
                 MapAtlasesClient.BOOKMARK_RIGHT_SPRITE, MapAtlasesClient.BOOKMARK_RIGHT_SELECTED_SPRITE);
         this.dimension = dimension;
+        this.dimensionIconSprite = findDimensionIcon(dimension);
         this.setTooltip(createTooltip());
-        ResourceLocation res = MapAtlasesMod.res("dimensions/" + dimension.location().getPath());
-        if (Minecraft.getInstance().getGuiSprites().getSprite(res) ==
-                Minecraft.getInstance().getGuiSprites().getSprite(MapAtlasesMod.res("missing"))) {
-            res = MapAtlasesMod.res("dimension/overworld");
-        }
-        this.dimensionIconSprite = res;
+    }
+
+    private static ResourceLocation findDimensionIcon(ResourceKey<Level> dimension) {
+        var guiSprites = Minecraft.getInstance().getGuiSprites();
+        ResourceLocation icon = MapAtlasesMod.res("dimensions/" + dimension.location().getPath());
+        TextureAtlasSprite missing = guiSprites.getSprite(MapAtlasesMod.res("missing"));
+        if (guiSprites.getSprite(icon) == missing) return MapAtlasesMod.res("dimension/overworld");
+        return icon;
     }
 
     @Override
@@ -47,18 +47,13 @@ public class DimensionBookmarkButton extends AtlasButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
+    protected float zOffset() {
+        return selected() ? 2 : 0;
+    }
 
-        if (selected()) {
-            pose.translate(0, 0, 2);
-        }
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.blitSprite(dimensionIconSprite,
-                this.getX() + 4, this.getY(), 16, 16);
-        pose.popPose();
-
+    @Override
+    protected void renderContents(GuiGraphics graphics) {
+        graphics.blitSprite(dimensionIconSprite, this.getX() + 4, this.getY(), 16, 16);
     }
 
     @Override
@@ -73,9 +68,7 @@ public class DimensionBookmarkButton extends AtlasButton {
     }
 
     @Override
-    public void playDownSound(SoundManager pHandler) {
-        //  super.playDownSound(pHandler);
-        pHandler.play(SimpleSoundInstance.forUI(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
-                (float) (double) MapAtlasesClientConfig.soundScalar.get()));
+    public void playDownSound(SoundManager soundManager) {
+        playPageTurnSound(soundManager);
     }
 }

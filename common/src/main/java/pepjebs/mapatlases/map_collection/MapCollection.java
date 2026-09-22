@@ -130,6 +130,36 @@ public class MapCollection {
         return TOP;
     }
 
+    public Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
+        if (!selectSection(preferred).isEmpty()) return preferred;
+        var types = getAvailableTypes(dimension);
+        if (types.isEmpty()) return preferred;
+        MapType type = types.contains(preferred.type()) ? preferred.type() : types.iterator().next();
+        return sliceNearHeight(dimension, type, preferred.heightOrTop());
+    }
+
+    public Slice sliceNearHeight(ResourceKey<Level> dimension, MapType type, int height) {
+        TreeSet<Integer> heights = getHeightTree(dimension, type);
+        Integer below = heights.floor(height);
+        return Slice.of(type, below == null ? heights.first() : below, dimension);
+    }
+
+    @Nullable
+    public Slice adjacentSlice(Slice slice, boolean up) {
+        TreeSet<Integer> heights = getHeightTree(slice.dimension(), slice.type());
+        int current = slice.heightOrTop();
+        Integer next = up ? heights.ceiling(current + 1) : heights.floor(current - 1);
+        return next == null ? null : Slice.of(slice.type(), next, slice.dimension());
+    }
+
+    @Nullable
+    public Slice nextTypeSlice(Slice slice) {
+        var types = new ArrayList<>(getAvailableTypes(slice.dimension()));
+        if (types.isEmpty()) return null;
+        MapType next = types.get((types.indexOf(slice.type()) + 1) % types.size());
+        return sliceNearHeight(slice.dimension(), next, slice.heightOrTop());
+    }
+
     public List<MapDataHolder> getAllFound() {
         assertInitialized();
         return new ArrayList<>(maps.values());

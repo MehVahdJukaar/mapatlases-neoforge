@@ -1,7 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
@@ -45,56 +43,47 @@ public class SliceBookmarkButton extends AtlasButton {
         return slice;
     }
 
+    public void setSlice(Slice slice) {
+        this.slice = slice;
+    }
+
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        if (!active || !visible) return;
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
+    protected float zOffset() {
+        return 2;
+    }
 
-        pose.translate(0, 0, 2);
-        RenderSystem.enableDepthTest();
-
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        ResourceLocation sprite = switch (slice.type()) {
+    @Override
+    protected void renderContents(GuiGraphics graphics) {
+        ResourceLocation typeSprite = switch (slice.type()) {
             case VANILLA, SLICED -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
             case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
             case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;
             case MAGIC -> MapAtlasesClient.MAP_TYPE_MAGIC_SPRITE;
         };
-        pGuiGraphics.blitSprite(sprite,
-                this.getX() + 8, this.getY() + 2, 16, 16);
+        graphics.blitSprite(typeSprite, this.getX() + 8, this.getY() + 2, 16, 16);
 
         if (hasMoreThan1Slice) {
-            pose.translate(0, 0, 1);
-            var h = slice.height();
-            Component text = h.map(integer -> Component.literal(String.valueOf(integer)))
+            graphics.pose().translate(0, 0, 1);
+            Component text = slice.height().map(h -> (Component) Component.literal(String.valueOf(h)))
                     .orElseGet(() -> Component.translatable("message.map_atlases.atlas.slice_default"));
-            pGuiGraphics.drawCenteredString(parentScreen.getMinecraft().font,
+            graphics.drawCenteredString(parentScreen.getMinecraft().font,
                     text, this.getX() + (compact ? 17 : 39), this.getY() + 7, -1);
         }
 
         if (isHovered && parentScreen.isShearing()) {
             parentScreen.notifyOfClickActionUsage();
         }
-
-        pose.popPose();
     }
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        if (parentScreen.isShearing()) {
-            parentScreen.shearSlice(slice);
-        } else parentScreen.cycleSliceType();
-
+        if (parentScreen.isShearing()) parentScreen.shearSlice(slice);
+        else parentScreen.cycleSliceType();
     }
 
     @VirtualOverride("neoforge")
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
-    }
-
-    public void setSlice(Slice slice) {
-        this.slice = slice;
     }
 
     @Override

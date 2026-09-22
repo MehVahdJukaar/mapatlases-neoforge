@@ -40,11 +40,8 @@ class DimensionListPanel extends BookmarkListPanel<DimensionBookmarkButton> {
         for (int i = from; i < to; i++) {
             int localIndex = i - from;
             ResourceKey<Level> dim = allDimensions.get(i);
-            DimensionBookmarkButton btn = new DimensionBookmarkButton(
-                    buttonX,
-                    yStart + localIndex * separation,
-                    dim, screen);
-            btn.setSelected(selectedDimension != null && dim.equals(selectedDimension));
+            var btn = new DimensionBookmarkButton(buttonX, yStart + localIndex * separation, dim, screen);
+            btn.setSelected(dim.equals(selectedDimension));
             widgetAdder.accept(btn);
             visibleButtons.add(btn);
         }
@@ -52,13 +49,15 @@ class DimensionListPanel extends BookmarkListPanel<DimensionBookmarkButton> {
 
     void build(Collection<ResourceKey<Level>> dimensions) {
         allDimensions.clear();
-        allDimensions.addAll(dimensions.stream().sorted(Comparator.comparingInt(e -> {
-            var s = e.location().toString();
-            return MapAtlasesClient.DIMENSION_TEXTURE_ORDER.contains(s)
-                    ? MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(s) : 999;
-        })).toList());
+        allDimensions.addAll(dimensions);
+        allDimensions.sort(Comparator.comparingInt(DimensionListPanel::displayOrder));
         scrollOffset = 0;
         refreshVisible();
+    }
+
+    private static int displayOrder(ResourceKey<Level> dimension) {
+        int i = MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        return i == -1 ? 999 : i;
     }
 
     void setSelectedDimension(ResourceKey<Level> dimension) {

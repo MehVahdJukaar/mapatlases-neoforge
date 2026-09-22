@@ -1,105 +1,48 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.resources.ResourceLocation;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 import java.util.TreeSet;
 
-public class SliceArrowButton extends AtlasButton {
-
-    private static final int BUTTON_H = 5;
-    private static final int BUTTON_W = 8;
+public class SliceArrowButton extends ArrowButton {
 
     private final SliceBookmarkButton button;
-    private final boolean down;
-    private final ResourceLocation inactiveSprite;
-    private Integer maxSlice;
-
+    private int limitHeight;
 
     protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
-        super(getpX(button), getpY(down, button),
-                BUTTON_W, BUTTON_H,
-                screen, down ? MapAtlasesClient.SLICE_DOWN_SPRITE : MapAtlasesClient.SLICE_UP_SPRITE,
-                down ? MapAtlasesClient.SLICE_DOWN_HOVERED_SPRITE : MapAtlasesClient.SLICE_UP_HOVERED_SPRITE);
+        super(arrowX(button), arrowY(down, button), down, screen);
         this.button = button;
-        this.down = down;
-        this.inactiveSprite = down ? MapAtlasesClient.SLICE_DOWN_INACTIVE_SPRITE : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
-        this.setSelected(false);
-
-        maxSlice = down ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        this.limitHeight = down ? Integer.MIN_VALUE : Integer.MAX_VALUE;
     }
 
-    private static int getpX(SliceBookmarkButton button) {
+    private static int arrowX(SliceBookmarkButton button) {
         return button.getX() + button.getWidth() + 6 + (button.compact ? -22 : 0);
     }
 
-    private static int getpY(boolean down, SliceBookmarkButton button) {
-        int i = button.getY() - 1 + (down ? button.getHeight() - BUTTON_H + 2 : 0);
-        if (button.compact) {
-            i += (down ? 7 : -7);
-        }
-        return i;
+    private static int arrowY(boolean down, SliceBookmarkButton button) {
+        int y = button.getY() - 1 + (down ? button.getHeight() - HEIGHT + 2 : 0);
+        if (button.compact) y += (down ? 7 : -7);
+        return y;
     }
 
     @Override
-    public ResourceLocation getSprite() {
-        int h = button.getSlice().heightOrTop();
-        if (h == maxSlice) return inactiveSprite;
-
-        return super.getSprite();
+    protected boolean isAtLimit() {
+        return button.getSlice().heightOrTop() == limitHeight;
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
-
-        if (selected()) {
-            pose.translate(0, 0, 2);
-        }
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        this.setSelected(this.isHovered);
-        pose.popPose();
+    protected void step() {
+        parentScreen.stepSlice(!down);
     }
 
     @Override
-    protected boolean clicked(double mouseX, double mouseY) {
-        boolean b = super.clicked(mouseX, mouseY);
-        if (b) {
-            int h = button.getSlice().heightOrTop();
-            if (h == maxSlice) return false;
-        }
-        return b;
+    public void playDownSound(SoundManager soundManager) {
+        super.playDownSound(soundManager);
+        playPageTurnSound(soundManager);
     }
 
-    @Override
-    public void onClick(double mouseX, double mouseY) {
-        if (down) this.parentScreen.decreaseSlice();
-        else this.parentScreen.increaseSlice();
-    }
-
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
-    }
-
-
-    @Override
-    public void playDownSound(SoundManager pHandler) {
-        super.playDownSound(pHandler);
-        pHandler.play(SimpleSoundInstance.forUI(MapAtlasesMod.ATLAS_PAGE_TURN_SOUND_EVENT.get(), 1.0F,
-                (float) (double) MapAtlasesClientConfig.soundScalar.get()));
-    }
-
-    public void setMaxSlice(TreeSet<Integer> heightTree) {
+    public void setLimitHeight(TreeSet<Integer> heightTree) {
         if (heightTree.isEmpty()) return;
-        maxSlice = down ? heightTree.first() : heightTree.last();
+        limitHeight = down ? heightTree.first() : heightTree.last();
     }
 }

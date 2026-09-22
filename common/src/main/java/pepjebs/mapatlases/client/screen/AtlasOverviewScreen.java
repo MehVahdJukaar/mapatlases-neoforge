@@ -33,6 +33,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -45,22 +46,14 @@ import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.*;
+import static pepjebs.mapatlases.client.MapAtlasesClient.GUI_ICONS_TEXTURE;
 
 public class AtlasOverviewScreen extends Screen {
 
-    private final boolean bigTexture = MapAtlasesClientConfig.worldMapBigTexture.get();
-    private final ResourceLocation texture = bigTexture ? ATLAS_BACKGROUND_TEXTURE_BIG : ATLAS_BACKGROUND_TEXTURE;
+    private static final int MODAL_W = 100;
+    private static final int MODAL_H = 20;
 
-    private final int BOOK_WIDTH = bigTexture ? 290 : 162;
-    private final int BOOK_HEIGHT = bigTexture ? 231 : 167;
-    private final int H_BOOK_WIDTH = BOOK_WIDTH / 2;
-    private final int H_BOOK_HEIGHT = BOOK_HEIGHT / 2;
-    private final int MAP_WIDGET_WIDTH = bigTexture ? 256 : 128;
-    private final int MAP_WIDGET_HEIGHT = bigTexture ? 192 : 128;
-    private final int TEXTURE_W = bigTexture ? 512 : 256;
-    private final int OVERLAY_UR = bigTexture ? 304 : 189;
-    private final int OVERLAY_UL = bigTexture ? 309 : 194;
+    private final BookTexture bookBackground = MapAtlasesClientConfig.worldMapBigTexture.get() ? BookTexture.BIG : BookTexture.SMALL;
 
     private ItemStack atlas;
     private final Player player;
@@ -76,6 +69,8 @@ public class AtlasOverviewScreen extends Screen {
     private SliceArrowButton sliceDown;
     private DimensionListPanel dimensionPanel;
     private DecorationListPanel decorationPanel;
+    @Nullable
+    private CursorActionButton pinButton;
     public final float globalScale;
     private final boolean isPinOnly;
     private Slice selectedSlice;
@@ -85,10 +80,8 @@ public class AtlasOverviewScreen extends Screen {
     boolean inMouseClick = false;
     private boolean pendingRecalculate = false;
 
-    // ── Pin flow state ────────────────────────────────────────────────────
     @Nullable
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
-    private PinButton pinButton;
 
     @NotNull
     private MapCollection currentMaps;
@@ -110,17 +103,16 @@ public class AtlasOverviewScreen extends Screen {
 
         this.currentMaps = MapAtlasItem.getMaps(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-        MapDataHolder closest = findMapClosestToPlayer();
-        if (closest == null) closest = anyMap();
-        if (closest != null) this.selectedSlice = closest.slice;
+        MapDataHolder startingMap = findStartingMap();
+        if (startingMap != null) this.selectedSlice = startingMap.slice;
 
         this.isPinOnly = placingPin;
         this.selectedCursorAction = placingPin ? CursorAction.PLACING_PIN : CursorAction.NONE;
         if (!isPinOnly) {
             this.player.playSound(MapAtlasesMod.ATLAS_OPEN_SOUND_EVENT.get(),
                     (float) (double) MapAtlasesClientConfig.soundScalar.get(), 1.0F);
-        } else if (closest != null) {
-            partialPin = Pair.of(closest, new ColumnPos(player.blockPosition().getX(), player.blockPosition().getZ()));
+        } else if (startingMap != null) {
+            partialPin = Pair.of(startingMap, new ColumnPos(player.getBlockX(), player.getBlockZ()));
         }
     }
 
@@ -130,7 +122,9 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    private MapDataHolder anyMap() {
+    private MapDataHolder findStartingMap() {
+        MapDataHolder closest = findMapClosestToPlayer();
+        if (closest != null) return closest;
         var all = currentMaps.getAllFound();
         return all.isEmpty() ? null : all.getFirst();
     }
@@ -147,8 +141,6 @@ public class AtlasOverviewScreen extends Screen {
         return Optional.ofNullable(lectern).map(BlockEntity::getBlockPos);
     }
 
-    // ── Initialisation ────────────────────────────────────────────────────
-
     @Override
     protected void init() {
         super.init();
@@ -156,13 +148,34 @@ public class AtlasOverviewScreen extends Screen {
             this.onClose();
             return;
         }
-        initEditBox();
-        initFilterBox();
-        initSliceWidgets();
-        initDimensionPanel();
-        initDecorationPanel();
-        initMapWidget();
-        initActionButtons();
+        int bookLeft = (width - bookBackground.width()) / 2;
+        int bookRight = (width + bookBackground.width()) / 2;
+        int bookTop = (height - bookBackground.height()) / 2;
+
+        // text boxes render above the scaled book so they arent added as widgets
+        this.pinNameBox = new PinNameBox(this.font, modalX(), modalY(), MODAL_W, MODAL_H,
+                Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
+        this.filterBox = new EditBox(this.font, modalX(), modalY(), MODAL_W, MODAL_H, Component.empty());
+        filterBox.setMaxLength(50);
+        filterBox.active = false;
+        filterBox.visible = false;
+
+        this.sliceButton = addRenderableWidget(new SliceBookmarkButton(bookRight - 13, bookTop + bookBackground.height() - 36, selectedSlice, this));
+        this.sliceUp = addRenderableWidget(new SliceArrowButton(false, sliceButton, this));
+        this.sliceDown = addRenderableWidget(new SliceArrowButton(true, sliceButton, this));
+
+        this.dimensionPanel = new DimensionListPanel(this, bookRight, bookTop, bookBackground.height(),
+                this::addRenderableWidget, this::removeWidget);
+        dimensionPanel.build(currentMaps.getAvailableDimensions());
+        this.decorationPanel = new DecorationListPanel(this, bookLeft, bookTop, bookBackground.height(),
+                this::addRenderableWidget, this::removeWidget);
+
+        this.mapWidget = addRenderableWidget(new MapWidget(
+                (width - bookBackground.mapWidth()) / 2, (height - bookBackground.mapHeight()) / 2 + bookBackground.mapYOffset(),
+                bookBackground.mapWidth(), bookBackground.mapHeight(), 3, this, findStartingMap()));
+        this.setFocused(mapWidget);
+
+        initSideButtons(bookLeft, bookRight, bookTop + 16);
         initLecternButtons();
 
         selectDimension(level.dimension());
@@ -170,9 +183,6 @@ public class AtlasOverviewScreen extends Screen {
         if (isPinOnly) setPinNameBoxState(true);
         this.initialized = true;
     }
-
-    private static final int MODAL_W = 100;
-    private static final int MODAL_H = 20;
 
     private int modalX() {
         return (width - MODAL_W) / 2;
@@ -182,120 +192,52 @@ public class AtlasOverviewScreen extends Screen {
         return (height - MODAL_H) / 2;
     }
 
-    private void initEditBox() {
-        this.pinNameBox = new PinNameBox(this.font,
-                modalX(), modalY(), MODAL_W, MODAL_H,
-                Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
-        // Managed separately; not added as a renderable widget here
-    }
-
-    private void initFilterBox() {
-        this.filterBox = new EditBox(this.font,
-                modalX(), modalY(), MODAL_W, MODAL_H, Component.empty());
-        filterBox.setMaxLength(50);
-        filterBox.active = false;
-        filterBox.visible = false;
-        // Managed separately; not added as a renderable widget here
-    }
-
-    private void initSliceWidgets() {
-        this.sliceButton = new SliceBookmarkButton(
-                (width + BOOK_WIDTH) / 2 - 13,
-                (height - BOOK_HEIGHT) / 2 + (BOOK_HEIGHT - 36),
-                selectedSlice, this);
-        this.addRenderableWidget(sliceButton);
-        sliceUp = new SliceArrowButton(false, sliceButton, this);
-        this.addRenderableWidget(sliceUp);
-        sliceDown = new SliceArrowButton(true, sliceButton, this);
-        this.addRenderableWidget(sliceDown);
-    }
-
-    private void initDimensionPanel() {
-        dimensionPanel = new DimensionListPanel(
-                this,
-                (width + BOOK_WIDTH) / 2,
-                (height - BOOK_HEIGHT) / 2,
-                BOOK_HEIGHT,
-                this::addRenderableWidget,
-                this::removeWidget);
-        dimensionPanel.build(currentMaps.getAvailableDimensions());
-    }
-
-    private void initDecorationPanel() {
-        decorationPanel = new DecorationListPanel(
-                this,
-                (width - BOOK_WIDTH) / 2,
-                (height - BOOK_HEIGHT) / 2,
-                BOOK_HEIGHT,
-                this::addRenderableWidget,
-                this::removeWidget);
-    }
-
-    private void initMapWidget() {
-        MapDataHolder center = findMapClosestToPlayer();
-        if (center == null) center = anyMap();
-        this.mapWidget = this.addRenderableWidget(new MapWidget(
-                (width - MAP_WIDGET_WIDTH) / 2,
-                (height - MAP_WIDGET_HEIGHT) / 2 + (bigTexture ? 2 : 5),
-                MAP_WIDGET_WIDTH, MAP_WIDGET_HEIGHT, 3,
-                this, center));
-        this.setFocused(mapWidget);
-    }
-
-    private void initActionButtons() {
-        int rightX = (width + BOOK_WIDTH) / 2 + 20;
-        int topY = (height - BOOK_HEIGHT) / 2 + 16;
-        int rightOffset = 0;
-
-        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty()
-                && MapAtlasesClientConfig.moonlightCompat.get()) {
-            this.pinButton = new PinButton(rightX, topY, this);
-            this.addRenderableWidget(pinButton);
-            rightOffset += 20;
+    private void initSideButtons(int bookLeft, int bookRight, int topY) {
+        int rightX = bookRight + 20;
+        int rightY = topY;
+        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesClientConfig.moonlightCompat.get()) {
+            this.pinButton = addRenderableWidget(CursorActionButton.pin(rightX, rightY, this));
+            rightY += 20;
         }
         if (MapAtlasesClientConfig.shearButton.get()) {
-            this.addRenderableWidget(new ShearButton(rightX, topY + rightOffset, this));
+            addRenderableWidget(CursorActionButton.shear(rightX, rightY, this));
         }
 
-        int leftX = (width - BOOK_WIDTH) / 2 - 20 - 16;
-        int leftOffset = 0;
+        int leftX = bookLeft - 20 - 16;
+        int leftY = topY;
         if (MapAtlasesClientConfig.compass.get()) {
-            this.addRenderableWidget(new ItemWidget(leftX, topY, this, Items.COMPASS.getDefaultInstance()));
-            leftOffset += 20;
+            addRenderableWidget(new ItemWidget(leftX, leftY, Items.COMPASS.getDefaultInstance()));
+            leftY += 20;
         }
         if (MapAtlasesClientConfig.clock.get()) {
-            this.addRenderableWidget(new ItemWidget(leftX, topY + leftOffset, this, Items.CLOCK.getDefaultInstance()));
+            addRenderableWidget(new ItemWidget(leftX, leftY, Items.CLOCK.getDefaultInstance()));
         }
     }
 
     private void initLecternButtons() {
         if (lectern == null) return;
-        int pY = (int) (globalScale * (height + BOOK_HEIGHT + 4) / 2);
-        if (player.mayBuild()) {
-            this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> this.onClose())
-                    .bounds(this.width / 2 - 100, pY, 98, 20).build());
-            this.addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), b -> {
+        int y = (int) (globalScale * (height + bookBackground.height() + 4) / 2);
+        boolean canTakeBook = player.mayBuild();
+        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> this.onClose())
+                .bounds(this.width / 2 - 100, y, canTakeBook ? 98 : 200, 20).build());
+        if (canTakeBook) {
+            addRenderableWidget(Button.builder(Component.translatable("lectern.take_book"), b -> {
                 NetworkHelper.sendToServer(new C2STakeAtlasPacket(lectern.getBlockPos()));
                 this.onClose();
-            }).bounds(this.width / 2 + 2, pY, 98, 20).build());
-        } else {
-            this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> this.onClose())
-                    .bounds(this.width / 2 - 100, pY, 200, 20).build());
+            }).bounds(this.width / 2 + 2, y, 98, 20).build());
         }
     }
 
-    // ── Validity / lifecycle ──────────────────────────────────────────────
-
     protected boolean isValid() {
-        return this.minecraft != null && this.minecraft.player != null &&
-                (this.lectern == null || (
-                        !this.lectern.isRemoved() && this.lectern.getBook().is(MapAtlasesMod.MAP_ATLAS.get())
-                                && !playerIsTooFarAwayToEdit(this.minecraft.player, this.lectern)));
+        if (this.minecraft == null || this.minecraft.player == null) return false;
+        if (lectern == null) return true;
+        return !lectern.isRemoved() && lectern.getBook().is(MapAtlasesMod.MAP_ATLAS.get())
+                && !playerIsTooFarAwayToEdit(this.minecraft.player, lectern);
     }
 
     protected static boolean playerIsTooFarAwayToEdit(Player player, LecternBlockEntity tile) {
-        return player.distanceToSqr(tile.getBlockPos().getX(), tile.getBlockPos().getY(),
-                tile.getBlockPos().getZ()) > 64.0D;
+        BlockPos pos = tile.getBlockPos();
+        return player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) > 64.0D;
     }
 
     @Override
@@ -323,7 +265,7 @@ public class AtlasOverviewScreen extends Screen {
         if (mapsChanged) onMapsChanged();
 
         if (mapWidget != null) mapWidget.tick();
-        if (this.pinNameBox != null && pinNameBox.active) this.pinNameBox.tick();
+        if (pinNameBox != null && pinNameBox.active) pinNameBox.tick();
         if (decorationPanel != null) decorationPanel.flush();
         if (dimensionPanel != null) dimensionPanel.flush();
     }
@@ -341,27 +283,12 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         dimensionPanel.setSelectedDimension(dim);
-        if (!updateSlice(closestAvailableSlice(dim, selectedSlice))) recalculateDecorationWidgets();
+        if (!updateSlice(currentMaps.closestAvailableSlice(dim, selectedSlice))) recalculateDecorationWidgets();
     }
-
-    // ── Input handling ────────────────────────────────────────────────────
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (pKeyCode == GLFW.GLFW_KEY_ESCAPE) {
-            if (pinNameBox.active) {
-                setPinNameBoxState(false);
-                partialPin = null;
-                if (isPinOnly) this.onClose();
-                return true;
-            } else if (filterBox.active) {
-                setFilterBoxState(false);
-                return true;
-            } else if (this.selectedCursorAction != CursorAction.NONE) {
-                this.selectedCursorAction = CursorAction.NONE;
-                return true;
-            }
-        }
+        if (pKeyCode == GLFW.GLFW_KEY_ESCAPE && cancelCurrentKeyPressed()) return true;
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound()
                 && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) toggleCursorAction(CursorAction.PLACING_PIN);
@@ -369,10 +296,11 @@ public class AtlasOverviewScreen extends Screen {
         }
         if (filterBox.active) {
             if (pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) {
-                applyFilterAndClose();
-                return true;
+                decorationPanel.applyFilter(filterBox.getValue());
+                setFilterBoxState(false);
+            } else {
+                filterBox.keyPressed(pKeyCode, pScanCode, pModifiers);
             }
-            filterBox.keyPressed(pKeyCode, pScanCode, pModifiers);
             return true;
         }
         if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || pinNameBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
@@ -388,6 +316,24 @@ public class AtlasOverviewScreen extends Screen {
         return false;
     }
 
+    private boolean cancelCurrentKeyPressed() {
+        if (pinNameBox.active) {
+            setPinNameBoxState(false);
+            partialPin = null;
+            if (isPinOnly) this.onClose();
+            return true;
+        }
+        if (filterBox.active) {
+            setFilterBoxState(false);
+            return true;
+        }
+        if (selectedCursorAction != CursorAction.NONE) {
+            clearCursorAction();
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
         for (var v : decorationPanel.getVisibleButtons()) {
@@ -396,23 +342,10 @@ public class AtlasOverviewScreen extends Screen {
         return super.keyReleased(pKeyCode, pScanCode, pModifiers);
     }
 
-    // ── Rendering ─────────────────────────────────────────────────────────
-
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(graphics);
-
-        graphics.pose().pushPose();
-        graphics.pose().translate(width / 2f, height / 2f, 0);
-
-        RenderSystem.enableDepthTest();
-        graphics.blit(texture, -H_BOOK_WIDTH, -H_BOOK_HEIGHT, 0, 0, BOOK_WIDTH, BOOK_HEIGHT, TEXTURE_W, 256);
-        graphics.blit(ATLAS_OVERLAY_TEXTURE, -H_BOOK_WIDTH, -H_BOOK_HEIGHT, 0, 0, BOOK_WIDTH, BOOK_HEIGHT, TEXTURE_W, 256);
-
-        graphics.pose().translate(0, 0, 1);
-        graphics.blit(texture, H_BOOK_WIDTH - 10, -H_BOOK_HEIGHT, OVERLAY_UR, 0, 5, BOOK_HEIGHT, TEXTURE_W, 256);
-        graphics.blit(texture, -H_BOOK_WIDTH + 5, -H_BOOK_HEIGHT, OVERLAY_UL, 0, 5, BOOK_HEIGHT, TEXTURE_W, 256);
-        graphics.pose().popPose();
+        bookBackground.render(graphics, width, height);
     }
 
     @Override
@@ -423,32 +356,23 @@ public class AtlasOverviewScreen extends Screen {
             poseStack.pushPose();
             poseStack.translate(width / 2f, height / 2f, 0);
             poseStack.scale(globalScale, globalScale, 1);
-            poseStack.pushPose();
-            RenderSystem.enableDepthTest();
             poseStack.translate(-width / 2f, -height / 2f, 0.2);
+            RenderSystem.enableDepthTest();
             var v = transformMousePos(mouseX, mouseY);
             boolean editing = isEditingText();
             super.render(graphics, editing ? -1 : (int) v.x, editing ? -1 : (int) v.y, delta);
-            poseStack.popPose();
             poseStack.popPose();
         }
 
         if (pinNameBox.active) {
             pinNameBox.render(graphics, mouseX, mouseY, delta);
         } else if (filterBox.active) {
-            graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, 30);
-            filterBox.render(graphics, mouseX, mouseY, delta);
-            graphics.pose().popPose();
-        } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
             poseStack.pushPose();
-            poseStack.translate(0, 0, 5);
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                    GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                    GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-            graphics.blit(GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2, 0, 0, 15, 15);
-            RenderSystem.defaultBlendFunc();
+            poseStack.translate(0, 0, 30);
+            filterBox.render(graphics, mouseX, mouseY, delta);
             poseStack.popPose();
+        } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
+            renderCrosshair(graphics);
         }
 
         ResourceLocation cursorIcon = selectedCursorAction.getIcon(canPerformCursorAction);
@@ -461,20 +385,28 @@ public class AtlasOverviewScreen extends Screen {
         this.canPerformCursorAction = false;
     }
 
-    // ── Mouse handling ────────────────────────────────────────────────────
+    private void renderCrosshair(GuiGraphics graphics) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, 5);
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        graphics.blit(GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2, 0, 0, 15, 15);
+        RenderSystem.defaultBlendFunc();
+        graphics.pose().popPose();
+    }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (!isEditingText()) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-        return false;
+        if (isEditingText()) return false;
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
-        if (!isEditingText()) {
-            var v = transformMousePos(pMouseX, pMouseY);
-            super.mouseMoved(v.x, v.y);
-        }
+        if (isEditingText()) return;
+        var v = transformMousePos(pMouseX, pMouseY);
+        super.mouseMoved(v.x, v.y);
     }
 
     @Override
@@ -510,36 +442,37 @@ public class AtlasOverviewScreen extends Screen {
         return AtlasScreenUtils.scaleVector(mouseX, mouseZ, globalScale, width, height);
     }
 
-    // ── Map queries ───────────────────────────────────────────────────────
+    @Nullable
+    private MapItemSavedData getCenterMapForSelectedDim() {
+        MapDataHolder center = selectedSlice.dimension().equals(level.dimension())
+                ? findMapClosestToPlayer()
+                : findMarkedOrMiddleMap();
+        return center == null ? null : center.data;
+    }
 
-    public MapItemSavedData getCenterMapForSelectedDim() {
-        if (selectedSlice.dimension().equals(level.dimension())) {
-            MapDataHolder closest = findMapClosestToPlayer();
-            return closest == null ? null : closest.data;
-        }
-        MapItemSavedData best = null;
-        float averageX = 0;
-        float averageZ = 0;
-        int count = 0;
-        for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
+    @Nullable
+    private MapDataHolder findMarkedOrMiddleMap() {
+        List<MapDataHolder> section = currentMaps.selectSection(selectedSlice);
+        if (section.isEmpty()) return null;
+        MapDataHolder best = null;
+        double sumX = 0;
+        double sumZ = 0;
+        for (MapDataHolder holder : section) {
             MapItemSavedData d = holder.data;
-            averageX += d.centerX;
-            averageZ += d.centerZ;
-            count++;
-            if (d.decorations.values().stream().anyMatch(e -> e.type().value().showOnItemFrame())) {
-                if (best != null) {
-                    if (Mth.lengthSquared(best.centerX, best.centerZ) > Mth.lengthSquared(d.centerX, d.centerZ)) {
-                        best = d;
-                    }
-                } else best = d;
+            sumX += d.centerX;
+            sumZ += d.centerZ;
+            boolean hasMarkers = d.decorations.values().stream()
+                    .anyMatch(e -> e.type().value().showOnItemFrame());
+            if (hasMarkers && (best == null || distFromOriginSq(best.data) > distFromOriginSq(d))) {
+                best = holder;
             }
         }
         if (best != null) return best;
-        if (count == 0) return null;
-        averageX /= count;
-        averageZ /= count;
-        MapDataHolder closest = currentMaps.getClosest(averageX, averageZ, selectedSlice);
-        return closest == null ? null : closest.data;
+        return currentMaps.getClosest(sumX / section.size(), sumZ / section.size(), selectedSlice);
+    }
+
+    private static double distFromOriginSq(MapItemSavedData data) {
+        return Mth.lengthSquared(data.centerX, data.centerZ);
     }
 
     @Nullable
@@ -552,43 +485,29 @@ public class AtlasOverviewScreen extends Screen {
         return currentMaps.select(MapGridKey.at(currentMaps.getScale(), selectedSlice, x, z));
     }
 
-    // ── Dimension & slice selection ───────────────────────────────────────
-
     public void selectDimension(ResourceKey<Level> dimension) {
-        // sameDim = true means we are staying on (or re-selecting) the current dimension;
-        // in that case, we rebuild the slice object but keep the same dimension key.
         boolean sameDim = selectedSlice.dimension().equals(dimension);
         if (sameDim) this.selectedSlice = new Slice(selectedSlice.type(), selectedSlice.height(), dimension);
         // On first call from init we keep the atlas's saved slice; afterwards use the per-dim saved slice.
         Slice saved = !initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension);
-        updateSlice(closestAvailableSlice(dimension, saved));
-        boolean isWherePlayerIs = level.dimension().equals(dimension);
+        updateSlice(currentMaps.closestAvailableSlice(dimension, saved));
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
         if (center == null) return;
+        boolean isWherePlayerIs = level.dimension().equals(dimension);
         this.mapWidget.resetAndCenter(center.centerX, center.centerZ, isWherePlayerIs, sameDim);
         dimensionPanel.setSelectedDimension(dimension);
         recalculateDecorationWidgets();
     }
 
-    // the saved slice can point at nothing after shearing or when a dimension only has sliced maps
-    private Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
-        if (!currentMaps.selectSection(preferred).isEmpty()) return preferred;
-        var types = currentMaps.getAvailableTypes(dimension);
-        if (types.isEmpty()) return preferred;
-        MapType type = types.contains(preferred.type()) ? preferred.type() : types.iterator().next();
-        TreeSet<Integer> heights = currentMaps.getHeightTree(dimension, type);
-        Integer height = heights.floor(preferred.heightOrTop());
-        if (height == null) height = heights.first();
-        return Slice.of(type, height, dimension);
-    }
-
     protected void recalculateDecorationWidgets() {
-        if (inMouseClick) { pendingRecalculate = true; return; }
+        if (inMouseClick) {
+            pendingRecalculate = true;
+            return;
+        }
         List<DecorationHolder> mapIcons = new ArrayList<>();
         for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
-            MapItemSavedData data = holder.data;
-            for (var d : data.decorations.entrySet()) {
+            for (var d : holder.data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame() && !deco.type().is(MapAtlasesMod.NON_REMOVABLE_DECORATIONS)) {
                     mapIcons.add(DecorationHolder.vanilla(deco, d.getKey(), holder));
@@ -604,66 +523,39 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void centerOnDecoration(DecorationBookmarkButton button) {
-        int x = (int) button.getWorldX();
-        int z = (int) button.getWorldZ();
-        this.mapWidget.resetAndCenter(x, z, false, true);
+        this.mapWidget.resetAndCenter((int) button.getWorldX(), (int) button.getWorldZ(), false, true);
     }
 
-    public boolean decreaseSlice() {
-        int current = selectedSlice.heightOrTop();
-        MapType type = selectedSlice.type();
-        ResourceKey<Level> dim = selectedSlice.dimension();
-        Integer newHeight = currentMaps.getHeightTree(dim, type).floor(current - 1);
-        if (newHeight != null) return updateSlice(Slice.of(type, newHeight, dim));
-        return false;
-    }
-
-    public boolean increaseSlice() {
-        int current = selectedSlice.heightOrTop();
-        MapType type = selectedSlice.type();
-        ResourceKey<Level> dim = selectedSlice.dimension();
-        Integer newHeight = currentMaps.getHeightTree(dim, type).ceiling(current + 1);
-        if (newHeight != null) return updateSlice(Slice.of(type, newHeight, dim));
-        return false;
+    public void stepSlice(boolean up) {
+        Slice next = currentMaps.adjacentSlice(selectedSlice, up);
+        if (next != null) updateSlice(next);
     }
 
     public void cycleSliceType() {
-        ResourceKey<Level> dim = selectedSlice.dimension();
-        var slices = new ArrayList<>(currentMaps.getAvailableTypes(dim));
-        if (!slices.isEmpty()) {
-            int index = (slices.indexOf(selectedSlice.type()) + 1) % slices.size();
-            MapType type = slices.get(index);
-            TreeSet<Integer> heightTree = currentMaps.getHeightTree(dim, type);
-            Integer h = heightTree.floor(selectedSlice.heightOrTop());
-            if (h == null) h = heightTree.first();
-            updateSlice(Slice.of(type, h, dim));
-        }
+        Slice next = currentMaps.nextTypeSlice(selectedSlice);
+        if (next != null) updateSlice(next);
     }
 
     private boolean updateSlice(Slice newSlice) {
-        boolean changed = false;
-        if (!Objects.equals(selectedSlice, newSlice)) {
+        boolean changed = !Objects.equals(selectedSlice, newSlice);
+        if (changed) {
             selectedSlice = newSlice;
             sliceButton.setSlice(selectedSlice);
             NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice, lecternPos()));
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice, level);
             recalculateDecorationWidgets();
-            changed = true;
         }
         var dim = selectedSlice.dimension();
-        TreeSet<Integer> tree = currentMaps.getHeightTree(dim, selectedSlice.type());
-        boolean manySlices = tree.size() > 1;
-        boolean manyTypes = currentMaps.getAvailableTypes(dim).size() != 1;
-        sliceButton.refreshState(manySlices, manyTypes);
-        sliceDown.setActive(manySlices);
-        sliceUp.setActive(manySlices);
-        sliceDown.setMaxSlice(tree);
-        sliceUp.setMaxSlice(tree);
+        TreeSet<Integer> heights = currentMaps.getHeightTree(dim, selectedSlice.type());
+        boolean manyHeights = heights.size() > 1;
+        sliceButton.refreshState(manyHeights, currentMaps.getAvailableTypes(dim).size() != 1);
+        sliceDown.setActive(manyHeights);
+        sliceUp.setActive(manyHeights);
+        sliceDown.setLimitHeight(heights);
+        sliceUp.setLimitHeight(heights);
         mapWidget.resetZoom();
         return changed;
     }
-
-    // ── Cursor action state ───────────────────────────────────────────────
 
     public boolean isEditingText() {
         return pinNameBox.active || filterBox.active;
@@ -671,6 +563,10 @@ public class AtlasOverviewScreen extends Screen {
 
     public boolean isPlacingPin() {
         return this.selectedCursorAction == CursorAction.PLACING_PIN;
+    }
+
+    public boolean isShearing() {
+        return this.selectedCursorAction == CursorAction.SHEARING;
     }
 
     public void clearCursorAction() {
@@ -683,10 +579,6 @@ public class AtlasOverviewScreen extends Screen {
 
     public void notifyOfClickActionUsage() {
         this.canPerformCursorAction = true;
-    }
-
-    public boolean isShearing() {
-        return this.selectedCursorAction == CursorAction.SHEARING;
     }
 
     public void shearMapAt(ColumnPos pos) {
@@ -706,59 +598,42 @@ public class AtlasOverviewScreen extends Screen {
         this.clearCursorAction();
     }
 
-    // ── Pin flow ──────────────────────────────────────────────────────────
-
     public void placePinAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
-            if (hasShiftDown() || hasAltDown()) {
-                setPinNameBoxState(true);
-            } else {
-                addNewPin();
-            }
+            if (hasShiftDown() || hasAltDown()) setPinNameBoxState(true);
+            else addNewPin();
         }
         this.clearCursorAction();
     }
 
-    public void setPinNameBoxState(boolean on) {
-        pinNameBox.active = on;
-        pinNameBox.visible = on;
-        pinNameBox.setCanLoseFocus(!on);
-        pinNameBox.setFocused(on);
-        this.setFocused(on ? pinNameBox : mapWidget);
-    }
-
     private void addNewPin() {
-        if (partialPin != null) {
-            String text = pinNameBox.getValue();
-            PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, pinNameBox.getIndex());
-            pinNameBox.increasePinIndex();
-            setPinNameBoxState(false);
-            partialPin = null;
-            this.recalculateDecorationWidgets();
-        }
+        if (partialPin == null) return;
+        ClientMarkers.placePin(partialPin.getFirst(), partialPin.getSecond(), pinNameBox.getValue(), pinNameBox.getIndex());
+        pinNameBox.increasePinIndex();
+        setPinNameBoxState(false);
+        partialPin = null;
+        this.recalculateDecorationWidgets();
     }
 
-    // ── Filter flow ───────────────────────────────────────────────────────
+    public void setPinNameBoxState(boolean on) {
+        setTextBoxState(pinNameBox, on);
+    }
 
     public void setFilterBoxState(boolean on) {
-        filterBox.active = on;
-        filterBox.visible = on;
-        filterBox.setCanLoseFocus(!on);
-        filterBox.setFocused(on);
         if (on) filterBox.setValue("");
-        this.setFocused(on ? filterBox : mapWidget);
+        setTextBoxState(filterBox, on);
     }
 
-    private void applyFilterAndClose() {
-        String text = filterBox.getValue();
-        if (decorationPanel != null) decorationPanel.applyFilter(text);
-        setFilterBoxState(false);
+    private void setTextBoxState(EditBox box, boolean on) {
+        box.active = on;
+        box.visible = on;
+        box.setCanLoseFocus(!on);
+        box.setFocused(on);
+        this.setFocused(on ? box : mapWidget);
     }
-
-    // ── Misc ──────────────────────────────────────────────────────────────
 
     public boolean canTeleport() {
         return hasShiftDown() && MapAtlasesAccessUtils.canPlayerTeleport(player) &&
