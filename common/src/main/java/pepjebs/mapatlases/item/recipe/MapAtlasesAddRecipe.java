@@ -2,13 +2,10 @@ package pepjebs.mapatlases.item.recipe;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -17,7 +14,6 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,9 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MapAtlasesAddRecipe extends CustomRecipe {
-
-    private WeakReference<Level> levelRef = new WeakReference<>(null);
+public class MapAtlasesAddRecipe extends AbstractAtlasRecipe {
 
     public MapAtlasesAddRecipe(CraftingBookCategory category) {
         super(category);
@@ -47,7 +41,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 filledMaps.add(MapAtlasesAccessUtils.findMapFromItemStack(level, itemstack));
             } else {
-                MapType mapType = getEmptyMapType(itemstack);
+                MapType mapType = MapAtlasesAccessUtils.getEmptyMapType(itemstack);
                 if (mapType != null) {
                     //increment empty
                     newEmptyCount++;
@@ -60,13 +54,8 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
             int extraMaps = newEmptyCount + filledMaps.size();
 
             // Ensure we're not trying to add too many Maps
+            if (extraMaps > MapAtlasItem.getFreeMapSlots(atlas, level)) return false;
             MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-            EmptyMaps em = MapAtlasItem.getEmptyMaps(atlas);
-            int oldCount = maps.getCount() + em.getSize();
-            int maxMapCount = MapAtlasItem.getMaxMapCount();
-            if (maxMapCount != -1 && oldCount + extraMaps > maxMapCount) {
-                return false;
-            }
             Integer atlasScale = maps.isEmpty() ? null : (int) maps.getScale();
 
             // Ensure Filled Maps are all same Scale & no duplicates, neither with the atlas nor within the grid
@@ -79,29 +68,17 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 if (maps.select(key) != null) return false;
                 if (!gridKeys.add(key)) return false;
             }
-            levelRef = new WeakReference<>(level);
+            rememberLevel(level);
             return true;
         }
         return false;
     }
 
-    @Nullable
-    private MapType getEmptyMapType(ItemStack itemstack) {
-        if (itemstack.isEmpty()) return null;
-        MapType mapType = MapType.fromEmptyMap(itemstack.getItem());
-        if (mapType != null && MapAtlasesConfig.enableEmptyMapEntryAndFill.get()) {
-            return mapType;
-        }
-        if (itemstack.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()) {
-            return MapType.VANILLA;
-        }
-        return null;
-    }
-
     @Override
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
 
-        Level level = levelRef.get();
+        Level level = getLevel();
+        if (level == null) return ItemStack.EMPTY;
         ItemStack atlas = ItemStack.EMPTY;
         Map<MapType, Integer> emptyMapCount = new HashMap<>();
         Map<MapType, List<MapId>> mapIds = new HashMap<>();
@@ -115,7 +92,7 @@ public class MapAtlasesAddRecipe extends CustomRecipe {
                 MapId mapId = mapType.getMapId(itemstack);
                 mapIds.computeIfAbsent(mapType, k -> new ArrayList<>()).add(mapId);
             }else{
-                MapType mapType = getEmptyMapType(itemstack);
+                MapType mapType = MapAtlasesAccessUtils.getEmptyMapType(itemstack);
                 if (mapType != null) {
                     emptyMapCount.put(mapType, emptyMapCount.getOrDefault(mapType, 0) + 1);
                 }

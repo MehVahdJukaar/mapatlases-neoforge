@@ -3,6 +3,7 @@ package pepjebs.mapatlases.item.recipe;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -10,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -23,14 +23,9 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class MapAtlasesCutExistingRecipe extends CustomRecipe {
-
-    private WeakReference<Level> levelRef = new WeakReference<>(null);
+public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
 
     public MapAtlasesCutExistingRecipe(CraftingBookCategory category) {
         super(category);
@@ -53,14 +48,13 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
             }
         }
         boolean b = !shears.isEmpty() && !atlas.isEmpty();
-        if (b) {
-            levelRef = new WeakReference<>(level);
-        }
+        if (b) rememberLevel(level);
         return b;
     }
 
     @Override
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+        Level level = getLevel();
         ItemStack atlas = ItemStack.EMPTY;
         for (ItemStack i : inv.items()) {
             if (i.is(MapAtlasesMod.MAP_ATLAS.get())) {
@@ -68,16 +62,14 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 break;
             }
         }
-        MapCollection maps = MapAtlasItem.getMaps(atlas, levelRef.get());
+        if (atlas.isEmpty() || level == null) return ItemStack.EMPTY;
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         //not using count. we want actual maps
-        Slice slice = MapAtlasItem.getSelectedSlice(atlas, levelRef.get().dimension());
-        if (!maps.getAllFound().isEmpty()) {
-            //TODO: very ugly and wont work in many cases
-            MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
-            return toRemove.createExistingMapItem();
-        }
-        EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(atlas);
-        MapType emptyToRemove = getEmptyMapToRemove(emptyMaps, slice);
+        Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+        //TODO: very ugly and wont work in many cases
+        MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
+        if (toRemove != null) return toRemove.createExistingMapItem();
+        MapType emptyToRemove = getEmptyMapToRemove(MapAtlasItem.getEmptyMaps(atlas), slice);
         if (emptyToRemove != null) {
             return emptyToRemove.getEmpty().getDefaultInstance();
         }
@@ -100,68 +92,53 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
         return removedEmptyMap;
     }
 
+    @Nullable
     private static MapDataHolder getMapToRemove(CraftingInput inv, MapCollection maps, Slice slice) {
+        List<MapDataHolder> found = maps.getAllFound();
+        if (found.isEmpty()) return null;
+        Player crafter = null;
         if (inv instanceof ICraftingInputWithContext ct) {
             AbstractContainerMenu menu = ct.mapAtlases$getMenu();
-            if (menu instanceof CraftingMenu cm) {
-                MapDataHolder c = maps.getClosest(cm.player, slice);
-                if (c != null) {
-                    return c;
-                }
-            } else if (menu instanceof InventoryMenu im) {
-                MapDataHolder c = maps.getClosest(im.owner, slice);
-                if (c != null) {
-                    return c;
-                }
-            }
+            if (menu instanceof CraftingMenu cm) crafter = cm.player;
+            else if (menu instanceof InventoryMenu im) crafter = im.owner;
         }
-        return maps.getAllFound().stream().findAny().get();
+        if (crafter != null) {
+            MapDataHolder closest = maps.getClosest(crafter, slice);
+            if (closest != null) return closest;
+        }
+        return found.getFirst();
     }
 
 
     @Override
     public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
         NonNullList<ItemStack> list = NonNullList.create();
+        Level level = getLevel();
         for (ItemStack i : inv.items()) {
             ItemStack stack = i.copyWithCount(1);
-
-            if (stack.getItem() == Items.SHEARS) {
-                AtomicReference<Boolean> broken = new AtomicReference<>(false);
-                Level l = levelRef.get();
-                if (l instanceof ServerLevel sl) {
-                    stack.hurtAndBreak(1, sl, null, s -> broken.set(true));
-                }
-                if (broken.get()) {
-                    stack = ItemStack.EMPTY;
-                }
-            } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get())) {
-                boolean didRemoveFilled = false;
-                MapCollection maps = MapAtlasItem.getMaps(stack, levelRef.get());
-                Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
-                if (!maps.getAllFound().isEmpty()) {
-                    MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
-                    maps.removeAndAssigns(stack, levelRef.get(), List.of(toRemove));
-                    maps = MapAtlasItem.getMaps(stack, levelRef.get());
-                    var tree = maps.getHeightTree(slice.dimension(), slice.type());
-                    if (!tree.contains(slice.heightOrTop())) {
-                        Optional<Integer> first = tree.stream().findFirst();
-                        if (first.isPresent()) {
-                            Integer newH = first.get();
-                            MapAtlasItem.setSelectedSlice(stack, Slice.of(slice.type(),
-                                    newH, slice.dimension()), levelRef.get());
-                        }
-                    }
-                    didRemoveFilled = true;
-                }
-                EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(stack);
-                if (emptyMaps.getSize() > 0 && !didRemoveFilled) {
-                    MapType emptyToRemove = getEmptyMapToRemove(emptyMaps, slice);
-                    emptyMaps.addAndAssigns(stack, emptyToRemove, -1);
-                }
+            if (stack.is(Items.SHEARS)) {
+                if (level instanceof ServerLevel sl) stack.hurtAndBreak(1, sl, null, s -> {}); //shrinks to empty on its own
+            } else if (stack.is(MapAtlasesMod.MAP_ATLAS.get()) && level != null) {
+                cutOneMap(inv, stack, level);
             }
             list.add(stack);
         }
         return list;
+    }
+
+    private static void cutOneMap(CraftingInput inv, ItemStack atlas, Level level) {
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
+        MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
+        if (toRemove != null) {
+            maps.removeAndAssigns(atlas, level, List.of(toRemove));
+            maps = MapAtlasItem.getMaps(atlas, level);
+            MapAtlasItem.setSelectedSlice(atlas, maps.closestAvailableSlice(slice.dimension(), slice), level);
+            return;
+        }
+        EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(atlas);
+        MapType emptyToRemove = getEmptyMapToRemove(emptyMaps, slice);
+        if (emptyToRemove != null) emptyMaps.addAndAssigns(atlas, emptyToRemove, -1);
     }
 
     @Override

@@ -19,19 +19,15 @@ import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapAtlasCreateRecipe extends CustomRecipe {
+public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
 
     // some logic copied from shapeless recipes
     private final NonNullList<Ingredient> ingredients;
     private final boolean isSimple;
     private final String group;
-
-    // to prevent the world from not being unloaded
-    private WeakReference<Level> levelReference = new WeakReference<>(null);
 
     public MapAtlasCreateRecipe(String group, CraftingBookCategory category, NonNullList<Ingredient> ingredients) {
         super(category);
@@ -75,7 +71,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
                         PlatStuff.findMatches(inputs, ingredients));
 
         if (matches) {
-            levelReference = new WeakReference<>(level);
+            rememberLevel(level);
         }
         return matches;
     }
@@ -89,7 +85,7 @@ public class MapAtlasCreateRecipe extends CustomRecipe {
                 break;
             }
         }
-        Level level = levelReference.get();
+        Level level = getLevel();
         if (mapItemStack == null || level == null) {
             return ItemStack.EMPTY; //this should never happen
         }

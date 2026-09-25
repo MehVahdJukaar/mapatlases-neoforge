@@ -227,6 +227,10 @@ public class MapAtlasItem extends Item {
         return MapAtlasesConfig.maxMapCount.get();
     }
 
+    public static int getFreeMapSlots(ItemStack atlas, Level level) {
+        return getMaxMapCount() - getMaps(atlas, level).getCount() - getEmptyMaps(atlas).getSize();
+    }
+
     public static EmptyMaps getEmptyMaps(ItemStack atlas) {
         return atlas.getOrDefault(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.EMPTY);
     }

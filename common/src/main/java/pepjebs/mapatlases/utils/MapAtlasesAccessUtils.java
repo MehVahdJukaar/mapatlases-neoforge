@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.utils;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
@@ -149,30 +148,15 @@ public class MapAtlasesAccessUtils {
     }
 
 
-    //must match the one below
-    public static boolean isValidEmptyMapIngredient(ItemStack bottomItem) {
-        int amountToAdd = bottomItem.getCount();
-        MapType bottomType = MapType.fromEmptyMap(bottomItem.getItem());
-        if (bottomItem.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()) {
-            bottomType = MapType.VANILLA;
-        }
-        return bottomType != null && amountToAdd > 0;
-    }
-
     @Nullable
-    public static Pair<MapType, Integer> getMapCountToAdd(ItemStack atlas, ItemStack bottomItem, Level level) {
-        int amountToAdd = bottomItem.getCount();
-        MapType bottomType = MapType.fromEmptyMap(bottomItem.getItem());
-        if (bottomItem.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()) {
-            bottomType = MapType.VANILLA;
+    public static MapType getEmptyMapType(ItemStack stack) {
+        if (stack.isEmpty() || !MapAtlasesConfig.enableEmptyMapEntryAndFill.get()){
+            return null;
         }
-        if (bottomType == null || amountToAdd == 0) return null;
-        int existingMapCount = MapAtlasItem.getMaps(atlas, level).getCount() + MapAtlasItem.getEmptyMaps(atlas).getSize();
-        if (MapAtlasItem.getMaxMapCount() != -1
-                && existingMapCount + bottomItem.getCount() > MapAtlasItem.getMaxMapCount()) {
-            amountToAdd = MapAtlasItem.getMaxMapCount() - existingMapCount;
+        if (stack.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()){
+            return MapType.VANILLA;
         }
-        return Pair.of(bottomType, amountToAdd);
+        return MapType.fromEmptyMap(stack.getItem());
     }
 
     public static void tickHoldingPlayerAndSync(

@@ -6,6 +6,7 @@
  */
 package pepjebs.mapatlases.mixin;
 
+import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
@@ -34,10 +35,10 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 
 @Mixin(CartographyTableMenu.class)
@@ -70,81 +71,89 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
 
 
     @Inject(method = "setupResultSlot", at = @At("HEAD"), cancellable = true)
-    void mapAtlasUpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
+   private void mapAtlasUpdateResult(ItemStack topItem, ItemStack bottomItem, ItemStack oldResult, CallbackInfo info) {
         if (!topItem.is(MapAtlasesMod.MAP_ATLAS.get())) return;
-        // cut map
-        if (PlatStuff.isShear(bottomItem)) {
-            this.access.execute((world, blockPos) -> {
-                var maps = MapAtlasItem.getMaps(topItem, world);
-                if (maps.isEmpty()) return;
-                var found = maps.getAllFound();
-                if (mapatlases$selectedMapIndex >= found.size()) {
-                    mapatlases$selectedMapIndex = 0;
-                }
-                MapDataHolder map = found.get(mapatlases$selectedMapIndex);
-                ItemStack result = map.createExistingMapItem();
-                this.mapatlases$selectedSlice = map.slice;
-                this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
-                this.broadcastChanges();
-                info.cancel();
-            });
-        }
-        // merge atlases
-        else if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) {
-            this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copyWithCount(1);
-                MapCollection resultMaps = MapAtlasItem.getMaps(result, world);
-                MapCollection bottomMaps = MapAtlasItem.getMaps(bottomItem, world);
-                // an empty atlas has no scale yet so it can merge with anything
-                if (!resultMaps.isEmpty() && !bottomMaps.isEmpty()
-                        && resultMaps.getScale() != bottomMaps.getScale()) return;
-                resultMaps.addAndAssigns(result, world, bottomMaps.getIds().getAll());
+        this.access.execute((world, blockPos) -> {
+            ItemStack result = mapatlases$makeResult(topItem, bottomItem, world);
+            if (result == null) return;
+            this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
+            this.broadcastChanges();
+            info.cancel();
+        });
+    }
 
-                // Both atlases leave the table, so split the pool rather than giving each the full sum.
-                Map<MapType, Integer> pooled = new EnumMap<>(MapType.class);
-                MapAtlasItem.getEmptyMaps(topItem).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
-                MapAtlasItem.getEmptyMaps(bottomItem).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
-                pooled.replaceAll((type, count) -> count / 2);
-                pooled.values().removeIf(count -> count == 0);
-                result.set(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.of(pooled));
+    @Unique
+    @Nullable
+    private ItemStack mapatlases$makeResult(ItemStack atlas, ItemStack bottomItem, Level level) {
+        if (PlatStuff.isShear(bottomItem)) return mapatlases$cutSelectedMap(atlas, level);
+        if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) return mapatlases$mergeAtlases(atlas, bottomItem, level);
+        MapType emptyType = MapAtlasesAccessUtils.getEmptyMapType(bottomItem);
+        if (emptyType != null) return mapatlases$addEmptyMaps(atlas, emptyType, bottomItem.getCount(), level);
+        if (bottomItem.is(Items.FILLED_MAP)) return mapatlases$addFilledMap(atlas, bottomItem, level);
+        return null;
+    }
 
-                result.grow(1);
-                this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
-                this.broadcastChanges();
-                info.cancel();
-            });
+    @Unique
+    @Nullable
+    private ItemStack mapatlases$cutSelectedMap(ItemStack atlas, Level level) {
+        List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+        if (found.isEmpty()) return null;
+        if (mapatlases$selectedMapIndex >= found.size()) mapatlases$selectedMapIndex = 0;
+        MapDataHolder map = found.get(mapatlases$selectedMapIndex);
+        this.mapatlases$selectedSlice = map.slice;
+        return map.createExistingMapItem();
+    }
 
-        }
-        // add empty
-        else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(bottomItem)) {
-            this.access.execute((world, blockPos) -> {
-                var amountToAdd = MapAtlasesAccessUtils.getMapCountToAdd(topItem, bottomItem, world);
-                boolean atlasIsFull = amountToAdd == null || amountToAdd.getSecond() <= 0;
-                ItemStack result = ItemStack.EMPTY;
-                if (!atlasIsFull) {
-                    result = topItem.copyWithCount(1);
-                    MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, amountToAdd.getFirst(), amountToAdd.getSecond());
-                }
-                this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
-                this.broadcastChanges();
-                info.cancel();
-            });
-        }
-        // add a filled map
-        else if (bottomItem.getItem() == Items.FILLED_MAP) {
-            this.access.execute((world, blockPos) -> {
-                ItemStack result = topItem.copyWithCount(1);
-                MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(world, bottomItem);
-                if (mapHolder == null) return;
-                MapCollection maps = MapAtlasItem.getMaps(result, world);
-                if (!maps.isEmpty() && maps.getScale() != mapHolder.data.scale) return;
-                if (maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id)) {
-                    this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
-                    this.broadcastChanges();
-                    info.cancel();
-                }
-            });
-        }
+    @Unique
+    @Nullable
+    private ItemStack mapatlases$mergeAtlases(ItemStack atlas, ItemStack other, Level level) {
+        ItemStack result = atlas.copyWithCount(1);
+        MapCollection resultMaps = MapAtlasItem.getMaps(result, level);
+        MapCollection otherMaps = MapAtlasItem.getMaps(other, level);
+        //empty atlas has no scale yet so it can merge with anything
+        if (!resultMaps.isEmpty() && !otherMaps.isEmpty()
+                && resultMaps.getScale() != otherMaps.getScale()) return null;
+        resultMaps.addAndAssigns(result, level, otherMaps.getIds().getAll());
+
+        // Both atlases leave the table, so split the pool rather than giving each the full sum.
+        Map<MapType, Integer> pooled = new EnumMap<>(MapType.class);
+        MapAtlasItem.getEmptyMaps(atlas).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
+        MapAtlasItem.getEmptyMaps(other).getAll().forEach((type, count) -> pooled.merge(type, count, Integer::sum));
+        pooled.replaceAll((type, count) -> count / 2);
+        pooled.values().removeIf(count -> count == 0);
+        result.set(MapAtlasesMod.EMPTY_MAPS.get(), EmptyMaps.of(pooled));
+
+        result.grow(1);
+        return result;
+    }
+
+    @Unique
+    private ItemStack mapatlases$addEmptyMaps(ItemStack atlas, MapType type, int count, Level level) {
+        int amount = Math.min(count, MapAtlasItem.getFreeMapSlots(atlas, level));
+        //full atlas still takes the result slot, just leaves it empty
+        if (amount <= 0) return ItemStack.EMPTY;
+        ItemStack result = atlas.copyWithCount(1);
+        MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, type, amount);
+        return result;
+    }
+
+    @Unique
+    @Nullable
+    private ItemStack mapatlases$addFilledMap(ItemStack atlas, ItemStack map, Level level) {
+        MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(level, map);
+        if (holder == null) return null;
+        ItemStack result = atlas.copyWithCount(1);
+        MapCollection maps = MapAtlasItem.getMaps(result, level);
+        if (!maps.isEmpty() && maps.getScale() != holder.data.scale) return null;
+        if (!maps.addAndAssigns(result, level, holder.type, holder.id)) return null;
+        return result;
+    }
+
+    @Unique
+    private static List<MapDataHolder> mapatlases$getMapsInOrder(ItemStack atlas, Level level) {
+        List<MapDataHolder> found = MapAtlasItem.getMaps(atlas, level).getAllFound();
+        found.sort(Comparator.comparingInt((MapDataHolder h) -> h.type.ordinal()).thenComparingInt(h -> h.id.id()));
+        return found;
     }
 
     @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
@@ -191,43 +200,39 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Override
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
-            MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-            MapDataHolder m = maps.getAllFound().get(mapatlases$selectedMapIndex);
-            maps.removeAndAssigns(atlas, level, List.of(m));
+            List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+            if (mapatlases$selectedMapIndex >= found.size()) return;
+            MapDataHolder m = found.get(mapatlases$selectedMapIndex);
+            MapAtlasItem.getMaps(atlas, level).removeAndAssigns(atlas, level, List.of(m));
         });
     }
 
     @Override
     public boolean clickMenuButton(Player pPlayer, int pId) {
+        if (pId != 4 && pId != 5) return super.clickMenuButton(pPlayer, pId);
         ItemStack atlas = this.slots.get(0).getItem();
-        if (pId == 4 || pId == 5) {
-            AtomicReference<Level> l = new AtomicReference<>();
-            access.execute((level, pos) -> {
-                l.set(level);
-            });
-            if (l.get() == null) {
-                try {
-                    MapAtlasesClient.getClientAccess().execute((level, pos) -> l.set(level));
-                } catch (Exception ignored) {
-                    int aa = 1;
-                }
+        Level level = mapatlases$getLevel();
+        if (level != null && atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
+            List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+            if (found.isEmpty()) {
+                this.mapatlases$selectedSlice = null;
+            } else {
+                mapatlases$selectedMapIndex = Math.floorMod(mapatlases$selectedMapIndex + (pId == 4 ? -1 : 1), found.size());
+                this.mapatlases$selectedSlice = found.get(mapatlases$selectedMapIndex).slice;
             }
-            if (l.get() != null) {
-                if (atlas.getItem() == MapAtlasesMod.MAP_ATLAS.get()) {
-                    MapCollection maps = MapAtlasItem.getMaps(atlas, l.get());
-                    var found = maps.getAllFound();
-                    if (!found.isEmpty()) {
-                        mapatlases$selectedMapIndex = Math.floorMod(
-                                mapatlases$selectedMapIndex + (pId == 4 ? -1 : 1), found.size());
-                        this.mapatlases$selectedSlice = found.get(mapatlases$selectedMapIndex).slice;
-                    } else {
-                        this.mapatlases$selectedSlice = null;
-                    }
-                }
-            }
-            this.slotsChanged(this.container);
-            return true;
         }
-        return super.clickMenuButton(pPlayer, pId);
+        this.slotsChanged(this.container);
+        return true;
+    }
+
+    //access is NULL on the client...
+    @Unique
+    @Nullable
+    private Level mapatlases$getLevel() {
+        Level level = access.evaluate((l, p) -> l, null);
+        if (level == null && PlatHelper.getPhysicalSide().isClient()){
+            return MapAtlasesClient.getLevel();
+        }
+        return level;
     }
 }

@@ -110,18 +110,19 @@ public enum MapType implements StringRepresentable {
                 .orElse(null));
     }
 
+    //twilight types only have an item when the mod is on
+    public boolean isLoaded() {
+        return filled.get() != null;
+    }
+
     @Nullable
     public MapItemSavedData getMapData(Level level, MapId id) {
-        MapItemSavedData data = null;
-        if (this == VANILLA || this == SLICED) {
-            data = level.getMapData(id);
-        }
-        if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
-            data = TwilightForestCompat.getMagic(level, id);
-        } else if ((this == MAZE || this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
-            data = TwilightForestCompat.getMaze(level, id);
-        }
-        return data;
+        if (!isLoaded()) return null;
+        return switch (this) {
+            case VANILLA, SLICED -> level.getMapData(id);
+            case MAGIC -> TwilightForestCompat.getMagic(level, id);
+            case MAZE, ORE_MAZE -> TwilightForestCompat.getMaze(level, id);
+        };
     }
 
     public Integer getHeight(@NotNull MapItemSavedData data) {
@@ -133,7 +134,7 @@ public enum MapType implements StringRepresentable {
     }
 
     public ColumnPos getCenter(double px, double pz, int width) {
-        if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
+        if (this == MAGIC && isLoaded()) {
             return TwilightForestCompat.getMagicMapCenter((int) px, (int) pz);
         } else {
             //map logic
@@ -146,57 +147,39 @@ public enum MapType implements StringRepresentable {
     }
 
     public ItemStack createExistingMapItem(MapId id, Optional<Integer> height) {
-        ItemStack map = ItemStack.EMPTY;
-        if (this == VANILLA) {
-            if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
-                map = SupplementariesCompat.createExistingSliced(id);
-            } else {
-                map = new ItemStack(Items.FILLED_MAP);
+        if (!isLoaded()) return ItemStack.EMPTY;
+        return switch (this) {
+            case VANILLA, SLICED -> {
+                if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) yield SupplementariesCompat.createExistingSliced(id);
+                ItemStack map = new ItemStack(Items.FILLED_MAP);
                 map.set(DataComponents.MAP_ID, id);
+                yield map;
             }
-        } else if (this == MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
-            map = TwilightForestCompat.makeExistingMagic(id);
-        } else if ((this == MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
-            map = TwilightForestCompat.makeExistingMaze(id);
-        } else if ((this == ORE_MAZE) && MapAtlasesMod.TWILIGHTFOREST) {
-            map = TwilightForestCompat.makeExistingOre(id);
-        }
-        return map;
+            case MAGIC -> TwilightForestCompat.makeExistingMagic(id);
+            case MAZE -> TwilightForestCompat.makeExistingMaze(id);
+            case ORE_MAZE -> TwilightForestCompat.makeExistingOre(id);
+        };
     }
 
     public ItemStack createNewMapItem(int destX, int destZ, byte scale, Level level, Optional<Integer> height, ItemStack atlas) {
-        ItemStack newMap = ItemStack.EMPTY;
-        if (this == MapType.VANILLA) {
-            if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
-                newMap = SupplementariesCompat.createSliced(
-                        level,
-                        destX,
-                        destZ,
-                        scale,
-                        true,
-                        false, height.get());
-            } else {
-                newMap = MapItem.create(
-                        level,
-                        destX,
-                        destZ,
-                        scale,
-                        true,
-                        false);
+        if (!isLoaded()) return ItemStack.EMPTY;
+        return switch (this) {
+            case VANILLA, SLICED -> {
+                ItemStack newMap;
+                if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
+                    newMap = SupplementariesCompat.createSliced(level, destX, destZ, scale, true, false, height.get());
+                } else {
+                    newMap = MapItem.create(level, destX, destZ, scale, true, false);
+                }
+                if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)) {
+                    SupplementariesCompat.setMapAntique(newMap, level);
+                }
+                yield newMap;
             }
-            if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)) {
-                SupplementariesCompat.setMapAntique(newMap, level);
-            }
-        } else if (this == MapType.MAZE && MapAtlasesMod.TWILIGHTFOREST) {
-            if (height.isEmpty()) return ItemStack.EMPTY;
-            newMap = TwilightForestCompat.makeMaze(destX, destZ, scale, level, height.get());
-        } else if (this == MapType.ORE_MAZE && MapAtlasesMod.TWILIGHTFOREST) {
-            if (height.isEmpty()) return ItemStack.EMPTY;
-            newMap = TwilightForestCompat.makeOre(destX, destZ, scale, level, height.get());
-        } else if (this == MapType.MAGIC && MapAtlasesMod.TWILIGHTFOREST) {
-            newMap = TwilightForestCompat.makeMagic(destX, destZ, scale, level);
-        }
-        return newMap;
+            case MAGIC -> TwilightForestCompat.makeMagic(destX, destZ, scale, level);
+            case MAZE -> height.isEmpty() ? ItemStack.EMPTY : TwilightForestCompat.makeMaze(destX, destZ, scale, level, height.get());
+            case ORE_MAZE -> height.isEmpty() ? ItemStack.EMPTY : TwilightForestCompat.makeOre(destX, destZ, scale, level, height.get());
+        };
     }
 
     public int getDiscoveryReach(Optional<Integer> height) {
