@@ -20,7 +20,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,8 +85,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
 
         Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
-        if (player == null) return;
+        if (mc.player == null) return;
 
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
@@ -101,8 +99,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             MapDataHolder d = getHoveredMap(pMouseX, pMouseY);
             hoveredData = d != null ? d.data : null;
         }
-        this.drawAtlas(graphics, x, y, width, height, player, zoomLevel,
-                MapAtlasesClientConfig.worldMapBorder.get(), mapScreen.getSelectedSlice().type(),
+        this.drawAtlas(graphics, x, y, width, height, zoomLevel, mapScreen.getSelectedSlice().type(),
                 LightTexture.FULL_BRIGHT, shearing ? hoveredData : null);
 
         MapAtlasesClient.setDecorationsScale(1);
@@ -153,6 +150,11 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     @Override
     protected boolean showMapBackground() {
         return MapAtlasesClientConfig.showsMapBackground.get();
+    }
+
+    @Override
+    protected boolean showMapBorders() {
+        return MapAtlasesClientConfig.worldMapBorder.get();
     }
 
     @Override

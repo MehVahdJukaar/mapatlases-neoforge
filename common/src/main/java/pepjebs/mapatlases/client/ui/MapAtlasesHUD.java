@@ -13,9 +13,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Vec3i;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -41,7 +42,6 @@ import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXT
 
 public class MapAtlasesHUD extends AbstractAtlasDisplay {
 
-    private static final int BACKGROUND_SIZE = 128;
     protected final int BG_SIZE = 64;
 
     private final Minecraft mc;
@@ -65,6 +65,11 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
     @Override
     protected boolean showMapBackground() {
         return false;
+    }
+
+    @Override
+    protected boolean showMapBorders() {
+        return MapAtlasesClientConfig.miniMapBorder.get();
     }
 
     @Nullable
@@ -92,7 +97,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
                 (int) (x1 * globalScale), (int) (y1 * globalScale));
     }
 
-    // ── Main render entry ─────────────────────────────────────────────────
 
     public void render(GuiGraphics graphics, DeltaTracker partialTick) {
         Window window = Minecraft.getInstance().getWindow();
@@ -113,8 +117,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         if (activeMap == null || currentMapKey == null) return;
 
         if (MapAtlasesClientConfig.hideWhenInHand.get()
-                && (mc.player.getMainHandItem().is(MapAtlasesMod.MAP_ATLAS.get())
-                || mc.player.getOffhandItem().is(MapAtlasesMod.MAP_ATLAS.get()))) return;
+                && mc.player.isHolding(MapAtlasesMod.MAP_ATLAS.get())) return;
 
         if (currentAtlas != atlas) needsInit = true;
         currentAtlas = atlas;
@@ -162,7 +165,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         poseStack.popPose();  // closes globalScale push
     }
 
-    // ── Render sub-steps ──────────────────────────────────────────────────
 
     private void playMapChangeSoundIfNeeded() {
         if (!Objects.equals(lastMapKey, currentMapKey)) {
@@ -199,8 +201,9 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
     private void updatePlayerCenter() {
         LocalPlayer player = mc.player;
         if (!followingPlayer) {
-            currentXCenter = Math.floor((player.getX() + 64) / mapBlocksSize) * mapBlocksSize + (mapBlocksSize / 2f - 64);
-            currentZCenter = Math.floor((player.getZ() + 64) / mapBlocksSize) * mapBlocksSize + (mapBlocksSize / 2f - 64);
+            ColumnPos center = currentMapKey.slice.type().getCenter(player.getX(), player.getZ(), mapBlocksSize);
+            currentXCenter = center.x();
+            currentZCenter = center.z();
         } else {
             currentXCenter = player.getX();
             currentZCenter = player.getZ();
@@ -214,10 +217,9 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         if (rotatesWithPlayer) MapAtlasesClient.setDecorationRotation(yRot - 180);
 
         graphics.pose().pushPose();
-        drawAtlas(graphics, x + borderSize, y + borderSize,
-                mapWidgetSize, mapWidgetSize, mc.player,
+        drawAtlas(graphics, x + borderSize, y + borderSize, mapWidgetSize, mapWidgetSize,
                 zoomLevel * (float) (double) MapAtlasesClientConfig.miniMapZoomMultiplier.get(),
-                MapAtlasesClientConfig.miniMapBorder.get(), currentMapKey.slice.type(), light, null);
+                currentMapKey.slice.type(), light, null);
         graphics.pose().popPose();
     }
 
@@ -248,10 +250,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         boolean global = MapAtlasesClientConfig.drawMinimapCoords.get();
         boolean local = MapAtlasesClientConfig.drawMinimapChunkCoords.get();
         if (global || local) {
-            BlockPos pos = new BlockPos(new Vec3i(
-                    AtlasScreenUtils.towardsZero(mc.player.position().x),
-                    AtlasScreenUtils.towardsZero(mc.player.position().y),
-                    AtlasScreenUtils.towardsZero(mc.player.position().z)));
+            BlockPos pos = new BlockPos((int) mc.player.getX(), (int) mc.player.getY(), (int) mc.player.getZ());
             if (global) {
                 drawMapComponentCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
                         actualBgSize, textScaling, pos, false);
@@ -301,7 +300,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         poseStack.popPose();
     }
 
-    // ── Text drawing helpers ──────────────────────────────────────────────
 
     private void drawLetter(GuiGraphics graphics, Font font, float a, float b, String letter) {
         PoseStack pose = graphics.pose();
@@ -318,7 +316,8 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         String coordsToDisplay;
         if (chunk) {
             coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
-                    pos.getX() / 16, pos.getZ() / 16, pos.getX() % 16, pos.getZ() % 16).getString();
+                    SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()),
+                    SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getZ())).getString();
         } else {
             coordsToDisplay = displaysY
                     ? Component.translatable("message.map_atlases.coordinates_full",
@@ -342,7 +341,6 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
-    // ── Zoom ─────────────────────────────────────────────────────────────
 
     public void increaseZoom() {
         zoomLevel = Math.max(1, zoomLevel - 0.5f);

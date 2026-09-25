@@ -89,11 +89,11 @@ public class MapIds {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof MapIds mapIds)) return false;
-        return count == mapIds.count;
+        return Objects.equals(ids, mapIds.ids);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(count);
+        return Objects.hashCode(ids);
     }
 }

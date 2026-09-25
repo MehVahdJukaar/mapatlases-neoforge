@@ -7,6 +7,7 @@ import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
 
+//not record cuz private constructor
 public final class MapGridKey {
     public final int mapX;
     public final int mapZ;

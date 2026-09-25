@@ -53,24 +53,12 @@ public class MapAtlasesClientEvents {
     public static void onKeyPressed(int key, int code) {
 
         Minecraft client = Minecraft.getInstance();
-        if (client.screen != null) return;
+        if (client.screen != null || client.level == null || client.player == null) return;
         if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
-            if (client.level == null || client.player == null) return;
-            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
-            if (atlas.getItem() instanceof MapAtlasItem) {
-                // needed as we might not have all mas needed
-                NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket());
-            }
+            requestAtlasScreen(client.player, false);
         }
-
-        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code)) {
-            if (MapAtlasesClientConfig.moonlightCompat.get()) {
-                if (client.level == null || client.player == null) return;
-                ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(client.player);
-                if (atlas.getItem() instanceof MapAtlasItem) {
-                    NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(Optional.empty(), true));
-                }
-            }
+        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code) && MapAtlasesClientConfig.moonlightCompat.get()) {
+            requestAtlasScreen(client.player, true);
         }
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
@@ -83,30 +71,24 @@ public class MapAtlasesClientEvents {
                 MapAtlasesClient.increaseHoodZoom();
             }
 
-            if (MapAtlasesClient.INCREASE_SLICE.matches(key, code)) {
+            boolean up = MapAtlasesClient.INCREASE_SLICE.matches(key, code);
+            if (up || MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
                 MapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
-                ResourceKey<Level> dim = client.level.dimension();
-                Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
-                int current = selectedSlice.heightOrTop();
-                MapType type = selectedSlice.type();
-                Integer newHeight = maps.getHeightTree(dim, type).ceiling(current + 1);
-                if (newHeight != null) maybeSyncNewSlice(atlas, selectedSlice, newHeight);
-            }
-
-            if (MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
-                MapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
-                ResourceKey<Level> dim = client.level.dimension();
-                Slice selectedSlice = MapAtlasItem.getSelectedSlice(atlas, dim);
-                int current = selectedSlice.heightOrTop();
-                MapType type = selectedSlice.type();
-                Integer newHeight = maps.getHeightTree(dim, type).floor(current - 1);
-                if (newHeight != null) maybeSyncNewSlice(atlas, selectedSlice, newHeight);
+                Slice selected = MapAtlasItem.getSelectedSlice(atlas, client.level.dimension());
+                Slice next = maps.adjacentSlice(selected, up);
+                if (next != null) maybeSyncNewSlice(atlas, selected, next);
             }
         }
     }
 
-    private static void maybeSyncNewSlice(ItemStack atlas, Slice oldSlice, Integer newHeight) {
-        Slice newSlice = Slice.of(oldSlice.type(), newHeight, oldSlice.dimension());
+    private static void requestAtlasScreen(Player player, boolean pinOnly) {
+        if (!MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player).isEmpty()) {
+            // needed as we might not have all mas needed
+            NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(Optional.empty(), pinOnly));
+        }
+    }
+
+    private static void maybeSyncNewSlice(ItemStack atlas, Slice oldSlice, Slice newSlice) {
         if (!newSlice.equals(oldSlice)) {
             NetworkHelper.sendToServer(new C2SSelectSlicePacket(newSlice, Optional.empty()));
             //update the client immediately
@@ -126,7 +108,7 @@ public class MapAtlasesClientEvents {
         ResourceKey<Level> dim = lastSlice.dimension();
         Integer newHeight = getClosestSlice(player, level, maps, dim, type);
         if (newHeight != null) {
-            maybeSyncNewSlice(atlas, lastSlice, newHeight);
+            maybeSyncNewSlice(atlas, lastSlice, Slice.of(type, newHeight, dim));
         }
     }
 

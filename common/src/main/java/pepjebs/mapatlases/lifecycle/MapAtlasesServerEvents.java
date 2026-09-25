@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.lifecycle;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
@@ -208,14 +207,6 @@ public class MapAtlasesServerEvents {
         // sets new center map
         MapGridKey activeKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
-
-        //TODO: figure out why its not synced automatically
-        if (PlatHelper.getPlatform().isFabric()) {
-            for (var info : maps.getAllFound()) {
-                // update all maps and sends them to player, if needed
-                // MapAtlasesAccessUtils.updateMapDataAndSync(info, player, atlas, InteractionResult.PASS);
-            }
-        }
     }
 
 
