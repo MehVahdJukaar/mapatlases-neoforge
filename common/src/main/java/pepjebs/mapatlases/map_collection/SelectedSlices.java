@@ -47,15 +47,13 @@ public class SelectedSlices {
         //copy map,remove and assign new comp
         Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
         newMap.remove(location);
-        SelectedSlices newSlice = new SelectedSlices(newMap);
-        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), newSlice);
+        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), new SelectedSlices(newMap));
     }
 
     public void addAndAssigns(ItemStack stack, ResourceKey<Level> location, Slice slice) {
         Map<ResourceKey<Level>, Slice> newMap = new HashMap<>(this.map);
         newMap.put(location, slice);
-        SelectedSlices newSlice = new SelectedSlices(newMap);
-        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), newSlice);
+        stack.set(MapAtlasesMod.SELECTED_SLICES.get(), new SelectedSlices(newMap));
     }
 
     @Override

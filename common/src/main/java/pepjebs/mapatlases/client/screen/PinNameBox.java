@@ -80,24 +80,17 @@ public class PinNameBox extends EditBox {
                 closestInd, this.markerHovered, aa);
 
         if (popIn != 0) {
-            p.pushPose();
-            for (int j = 1; j < 4; j++) {
-                int al = (int) Mth.clamp(255 - (remainder + j) * alphaDecrement, 0, 255);
-                p.translate(0, 0, -0.01);
-                if (al <= 0) break;
-                ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, j * popIn, closestInd - j,
-                        false, al);
+            for (int dir = 1; dir >= -1; dir -= 2) {
+                p.pushPose();
+                for (int j = 1; j < 4; j++) {
+                    int al = (int) Mth.clamp(255 - (dir * remainder + j) * alphaDecrement, 0, 255);
+                    p.translate(0, 0, -0.01);
+                    if (al <= 0) break;
+                    ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, dir * j * popIn, closestInd - dir * j,
+                            false, al);
+                }
+                p.popPose();
             }
-            p.popPose();
-            p.pushPose();
-            for (int j = 1; j < 4; j++) {
-                int al = (int) Mth.clamp(255 - (-remainder + j) * alphaDecrement, 0, 255);
-                p.translate(0, 0, -0.01);
-                if (al <= 0) break;
-                ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, -j * popIn, closestInd + j,
-                        false, al);
-            }
-            p.popPose();
         }
         p.popPose();
         p.popPose();
@@ -116,12 +109,14 @@ public class PinNameBox extends EditBox {
         }
         float popInSpeed = 0.2f;
         float popOutSpeed = 0.4f;
-        if (scrollVisibleCounter < 10 && index != displayIndex) {
-        } else if (scrollVisibleCounter > 0) scrollVisibleCounter--;
+        boolean stillScrolling = scrollVisibleCounter < 10 && index != displayIndex;
+        if (!stillScrolling && scrollVisibleCounter > 0){
+            scrollVisibleCounter--;
+        }
         if (scrollVisibleCounter == 0 && scrollPopInAnimation > 0) {
-            scrollPopInAnimation = smoothStep(scrollPopInAnimation, 0, popInSpeed); // Smoothly interpolate towards 0
+            scrollPopInAnimation = Mth.lerp(popInSpeed, scrollPopInAnimation, 0);
         } else if (scrollVisibleCounter != 0 && scrollPopInAnimation < 1) {
-            scrollPopInAnimation = smoothStep(scrollPopInAnimation, 1.0f, popOutSpeed); // Smoothly interpolate back towards 1
+            scrollPopInAnimation = Mth.lerp(popOutSpeed, scrollPopInAnimation, 1.0f);
         }
     }
 
@@ -150,20 +145,15 @@ public class PinNameBox extends EditBox {
     }
 
     public void increasePinIndex() {
-        this.currentIndex++;
-        this.displayIndex = (int) currentIndex;
-        this.displayIndexO = displayIndex;
+        currentIndex++;
+        displayIndex = (int) currentIndex;
+        displayIndexO = displayIndex;
     }
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double xDelta, double yDelta) {
         scrollVisibleCounter = 40;
-        this.currentIndex -= (float) yDelta;
+        currentIndex -= (float) yDelta;
         return super.mouseScrolled(pMouseX, pMouseY, xDelta, yDelta);
-    }
-
-    private static float smoothStep(float start, float end, float speed) {
-        float delta = end - start;
-        return start + delta * speed;
     }
 }

@@ -33,7 +33,7 @@ public class SupplementariesClientCompat {
     public static class R extends SimpleJsonResourceReloadListener {
 
         public R() {
-            super(new Gson().newBuilder().create(), "lightmap");
+            super(new Gson(), "lightmap");
         }
 
         @Override

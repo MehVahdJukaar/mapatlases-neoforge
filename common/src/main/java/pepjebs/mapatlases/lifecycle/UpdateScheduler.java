@@ -26,8 +26,7 @@ public abstract class UpdateScheduler {
         double speed = new Vec2(currentPos.x - lastPlayerPos.x, currentPos.y - lastPlayerPos.y).length();
         lastPlayerPos = currentPos;
         //magic numbers yay
-        return Mth.clamp(Mth.map((float) speed, 0.001f, 1.2f,
-                0.1f, 2f), 0.1f, 2f) * MapAtlasesConfig.mapUpdatePerTick.get();
+        return Mth.clampedMap((float) speed, 0.001f, 1.2f, 0.1f, 2f) * MapAtlasesConfig.mapUpdatePerTick.get();
     }
 
 
