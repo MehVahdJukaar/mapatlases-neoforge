@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.item;
 
-import com.google.common.base.Preconditions;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
@@ -30,6 +29,7 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapGridKey;
+import pepjebs.mapatlases.map_collection.MapIds;
 import pepjebs.mapatlases.map_collection.SelectedSlices;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.utils.*;
@@ -49,7 +49,7 @@ public class MapAtlasItem extends Item {
     public static void removeAndDropSliceMaps(Slice slice, ItemStack atlas, ServerPlayer player) {
         MapCollection data = getMaps(atlas, player.level());
         Collection<MapDataHolder> allInSlice = data.selectSection(slice);
-        data.removeSliceAndAssign(atlas, player.level(), slice);
+        data.removeAndAssigns(atlas, player.level(), allInSlice);
         for (MapDataHolder holder : allInSlice) {
             giveMapToPlayer(player, holder);
         }
@@ -58,7 +58,7 @@ public class MapAtlasItem extends Item {
     public static void removeAndDropMap(MapId id, MapType type, ItemStack atlas, ServerPlayer player) {
         MapCollection data = getMaps(atlas, player.level());
         MapDataHolder holder = MapDataHolder.find(id, type, player.level());
-        if (holder != null && data != data.removeDataAndAssign(atlas, player.level(), holder)) {
+        if (holder != null && data.removeAndAssigns(atlas, player.level(), List.of(holder))) {
             giveMapToPlayer(player, holder);
         }
     }
@@ -220,13 +220,7 @@ public class MapAtlasItem extends Item {
         return updateSlice(Slice.of(type, newHeight, dim));
     }*/
     public static MapCollection getMaps(ItemStack stack, Level level) {
-        //gets and assure initialized
-        MapCollection comp = stack.get(MapAtlasesMod.MAP_COLLECTION.get());
-        Preconditions.checkNotNull(comp, "Map collection component was null");
-        if (!comp.isInitialized()) {
-            comp.initialize(level);
-        }
-        return comp;
+        return stack.getOrDefault(MapAtlasesMod.MAP_COLLECTION.get(), MapIds.EMPTY).resolve(level);
     }
 
     public static int getMaxMapCount() {

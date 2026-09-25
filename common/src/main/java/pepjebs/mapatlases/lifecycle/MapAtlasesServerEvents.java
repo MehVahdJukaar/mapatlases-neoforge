@@ -179,7 +179,7 @@ public class MapAtlasesServerEvents {
                 if (newData != null) {
                     MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
                 }
-                boolean addedMap = maps.addAndAssigns(atlas, level, slice.type(), newMapId) != maps;
+                boolean addedMap = maps.addAndAssigns(atlas, level, slice.type(), newMapId);
 
 
                 if (addedMap) {

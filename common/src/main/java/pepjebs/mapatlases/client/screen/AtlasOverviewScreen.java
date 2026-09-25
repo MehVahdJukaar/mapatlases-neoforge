@@ -260,7 +260,7 @@ public class AtlasOverviewScreen extends Screen {
         this.atlas = syncedAtlas;
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         maps.updateNotSynced(level);
-        boolean mapsChanged = !maps.equals(currentMaps) || maps.getAllFound().size() != currentMaps.getAllFound().size();
+        boolean mapsChanged = !maps.getIds().equals(currentMaps.getIds()) || maps.getAllFound().size() != currentMaps.getAllFound().size();
         this.currentMaps = maps;
         if (mapsChanged) onMapsChanged();
 
@@ -585,7 +585,8 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type, lecternPos()));
-            currentMaps = currentMaps.removeDataAndAssign(atlas, level, selected);
+            currentMaps.removeAndAssigns(atlas, level, List.of(selected));
+            currentMaps = MapAtlasItem.getMaps(atlas, level);
             onMapsChanged();
         }
         this.clearCursorAction();
@@ -593,7 +594,8 @@ public class AtlasOverviewScreen extends Screen {
 
     public void shearSlice(Slice slice) {
         NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice, lecternPos()));
-        currentMaps = currentMaps.removeSliceAndAssign(atlas, level, slice);
+        currentMaps.removeAndAssigns(atlas, level, currentMaps.selectSection(slice));
+        currentMaps = MapAtlasItem.getMaps(atlas, level);
         onMapsChanged();
         this.clearCursorAction();
     }

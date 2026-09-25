@@ -35,6 +35,7 @@ import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -97,8 +98,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 // an empty atlas has no scale yet so it can merge with anything
                 if (!resultMaps.isEmpty() && !bottomMaps.isEmpty()
                         && resultMaps.getScale() != bottomMaps.getScale()) return;
-                var idsToAdd = bottomMaps.getIdsCopy();
-                resultMaps.addAndAssigns(result, world, idsToAdd);
+                resultMaps.addAndAssigns(result, world, bottomMaps.getIds().getAll());
 
                 // Both atlases leave the table, so split the pool rather than giving each the full sum.
                 Map<MapType, Integer> pooled = new EnumMap<>(MapType.class);
@@ -138,7 +138,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
                 if (mapHolder == null) return;
                 MapCollection maps = MapAtlasItem.getMaps(result, world);
                 if (!maps.isEmpty() && maps.getScale() != mapHolder.data.scale) return;
-                if (maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id) != maps) {
+                if (maps.addAndAssigns(result, world, mapHolder.type, mapHolder.id)) {
                     this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
                     this.broadcastChanges();
                     info.cancel();
@@ -193,7 +193,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         access.execute((level, pos) -> {
             MapCollection maps = MapAtlasItem.getMaps(atlas, level);
             MapDataHolder m = maps.getAllFound().get(mapatlases$selectedMapIndex);
-            maps.removeDataAndAssign(atlas, level, m);
+            maps.removeAndAssigns(atlas, level, List.of(m));
         });
     }
 

@@ -24,6 +24,7 @@ import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -139,7 +140,8 @@ public class MapAtlasesCutExistingRecipe extends CustomRecipe {
                 Slice slice = MapAtlasItem.getSelectedSlice(stack, levelRef.get().dimension());
                 if (!maps.getAllFound().isEmpty()) {
                     MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
-                    maps = maps.removeDataAndAssign(stack, levelRef.get(), toRemove);
+                    maps.removeAndAssigns(stack, levelRef.get(), List.of(toRemove));
+                    maps = MapAtlasItem.getMaps(stack, levelRef.get());
                     var tree = maps.getHeightTree(slice.dimension(), slice.type());
                     if (!tree.contains(slice.heightOrTop())) {
                         Optional<Integer> first = tree.stream().findFirst();

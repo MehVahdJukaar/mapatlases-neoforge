@@ -28,7 +28,7 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
-import pepjebs.mapatlases.map_collection.MapCollection;
+import pepjebs.mapatlases.map_collection.MapIds;
 import pepjebs.mapatlases.networking.MapAtlasesNetworking;
 import pepjebs.mapatlases.item.recipe.AntiqueAtlasRecipe;
 import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
@@ -56,10 +56,10 @@ public class MapAtlasesMod {
     public static final Supplier<SoundEvent> ATLAS_PAGE_TURN_SOUND_EVENT = RegHelper.registerSound(res("atlas_page_turn"));
     public static final Supplier<SoundEvent> ATLAS_CREATE_MAP_SOUND_EVENT = RegHelper.registerSound(res("atlas_create_map"));
     
-    public static final Supplier<DataComponentType<MapCollection>> MAP_COLLECTION = RegHelper.registerDataComponent(
-            res("map_collection"), () -> DataComponentType.<MapCollection>builder()
-                    .networkSynchronized(MapCollection.STREAM_CODEC)
-                    .persistent(MapCollection.CODEC).build()
+    public static final Supplier<DataComponentType<MapIds>> MAP_COLLECTION = RegHelper.registerDataComponent(
+            res("map_collection"), () -> DataComponentType.<MapIds>builder()
+                    .networkSynchronized(MapIds.STREAM_CODEC)
+                    .persistent(MapIds.CODEC).build()
     );
 
     public static final Supplier<DataComponentType<Unit>> LOCKED = RegHelper.registerDataComponent(
@@ -143,7 +143,7 @@ public class MapAtlasesMod {
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
                 () -> new MapAtlasItem(new Item.Properties()
                         .component(EMPTY_MAPS.get(), EmptyMaps.EMPTY)
-                        .component(MAP_COLLECTION.get(), MapCollection.EMPTY)
+                        .component(MAP_COLLECTION.get(), MapIds.EMPTY)
                         .stacksTo(16)));
 
     }

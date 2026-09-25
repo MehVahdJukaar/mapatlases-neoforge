@@ -17,7 +17,6 @@ classes/
 .vscode
 .settings
 *.launch
-/unique_lines.txt
 /common/build/
 /fabric/build/
 /neoforge/build/
