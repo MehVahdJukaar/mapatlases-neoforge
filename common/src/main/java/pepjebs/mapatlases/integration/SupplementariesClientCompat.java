@@ -18,7 +18,6 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
-import pepjebs.mapatlases.mixin.ClientLevelAccessor;
 
 import java.io.IOException;
 import java.util.Map;
@@ -60,8 +59,7 @@ public class SupplementariesClientCompat {
                 MapLightHandler.setLightMap(lastTickWasDay ? dayTexture : nightTexture);
                 MapRenderer mapRenderer = Minecraft.getInstance().gameRenderer.getMapRenderer();
                 //lag
-                //dumb but fabric doesnt like the AW
-                for (var e :  ((ClientLevelAccessor)level).getMapData().entrySet()) {
+                for (var e : level.mapData.entrySet()) {
                     MapId keyId = e.getKey();
                     MapItemSavedData data = e.getValue();
                     mapRenderer.update(keyId, data);

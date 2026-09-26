@@ -21,7 +21,6 @@
   "client": [
     "CartographyTableScreenMixin",
     "ClientBoundMapPacketMixin",
-    "ClientLevelAccessor",
     "CompatTFMapRendererMixin",
     "LecternRendererMixin",
     "MapRendererMixin",
