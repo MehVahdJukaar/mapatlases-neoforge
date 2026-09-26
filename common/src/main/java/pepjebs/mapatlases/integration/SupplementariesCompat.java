@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class SupplementariesCompat {
     }
 
     public static boolean canPlayerSeeDeathMarker(Player p) {
-        return false;// TODO  !MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(p).isEmpty();
+        return false;// TODO  !AtlasLookup.getAtlasFromPlayerByConfig(p).isEmpty();
     }
 
     public static boolean hasAntiqueInk(ItemStack itemstack) {
@@ -76,9 +76,9 @@ public class SupplementariesCompat {
     // swaps every non antique map for an antique copy. server only
     public static void convertAllMapsToAntique(ItemStack atlas, Level level) {
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        List<MapDataHolder> replaced = new ArrayList<>();
+        List<AtlasMap> replaced = new ArrayList<>();
         Map<MapType, List<MapId>> antiqueIds = new EnumMap<>(MapType.class);
-        for (MapDataHolder holder : maps.getAllFound()) {
+        for (AtlasMap holder : maps.getAllFound()) {
             if (WeatheredHandler.getAntiqueData(holder.data).isAntique()) continue;
             MapId antiqueId = WeatheredHandler.createAntiqueMapData(holder.data, level, true, false);
             if (antiqueId == null) continue;

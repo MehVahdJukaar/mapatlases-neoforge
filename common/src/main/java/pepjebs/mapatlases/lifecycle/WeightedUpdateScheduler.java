@@ -4,7 +4,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.*;
@@ -15,12 +15,12 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
     private final Map<MapId, UpdateTicket> tickets = new HashMap<>();
 
     @Override
-    protected void syncTickets(ServerPlayer player, List<MapDataHolder> visibleMaps) {
+    protected void syncTickets(ServerPlayer player, List<AtlasMap> visibleMaps) {
         Set<MapId> visibleIds = new HashSet<>();
-        for (MapDataHolder map : visibleMaps) visibleIds.add(map.id);
+        for (AtlasMap map : visibleMaps) visibleIds.add(map.id);
         tickets.keySet().retainAll(visibleIds);
 
-        for (MapDataHolder map : visibleMaps) {
+        for (AtlasMap map : visibleMaps) {
             tickets.computeIfAbsent(map.id, id -> new UpdateTicket(map));
         }
 
@@ -33,7 +33,7 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
 
     @Nullable
     @Override
-    protected MapDataHolder poll() {
+    protected AtlasMap poll() {
         UpdateTicket best = null;
         for (UpdateTicket ticket : tickets.values()) {
             if (best == null || ticket.getPriority() > best.getPriority()) best = ticket;
@@ -44,7 +44,7 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
     }
 
     private static class UpdateTicket {
-        private final MapDataHolder holder;
+        private final AtlasMap holder;
         private int waitTime = 20;
         private double lastDistance = 1_000_000;
         private double approachSpeed = 0;
@@ -54,7 +54,7 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
         private int lastI = 0;
         private final float lowUpdateWeight;
 
-        private UpdateTicket(MapDataHolder data) {
+        private UpdateTicket(AtlasMap data) {
             this.holder = data;
             this.updateHasBlankPixels();
             if (data.type == MapType.VANILLA && data.slice.height().isPresent()) {

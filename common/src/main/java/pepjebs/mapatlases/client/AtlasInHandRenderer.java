@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 public class AtlasInHandRenderer {
 
@@ -29,7 +29,7 @@ public class AtlasInHandRenderer {
         if (mc.screen instanceof AtlasOverviewScreen) return;
 
 
-        MapDataHolder state = MapAtlasesClient.getActiveMap();
+        AtlasMap state = MapAtlasesClient.getActiveMap();
         if (state != null) {
             MapAtlasesClient.setIsDrawingAtlas(true);
             pPoseStack.mulPose(Axis.YP.rotationDegrees(180.0F));

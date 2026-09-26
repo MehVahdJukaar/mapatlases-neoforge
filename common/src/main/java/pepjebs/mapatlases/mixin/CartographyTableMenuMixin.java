@@ -30,8 +30,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -87,8 +86,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     private ItemStack mapatlases$makeResult(ItemStack atlas, ItemStack bottomItem, Level level) {
         if (PlatStuff.isShear(bottomItem)) return mapatlases$cutSelectedMap(atlas, level);
         if (bottomItem.is(MapAtlasesMod.MAP_ATLAS.get())) return mapatlases$mergeAtlases(atlas, bottomItem, level);
-        MapType emptyType = MapAtlasesAccessUtils.getEmptyMapType(bottomItem);
-        if (emptyType != null) return mapatlases$addEmptyMaps(atlas, emptyType, bottomItem.getCount(), level);
+        MapType emptyType = MapType.acceptedEmptyMapType(bottomItem);
+        if (emptyType != null) return mapatlases$addEmptyMaps(atlas, emptyType, MapAtlasItem.countEmptyMapsToAdd(atlas, bottomItem, level), level);
         if (bottomItem.is(Items.FILLED_MAP)) return mapatlases$addFilledMap(atlas, bottomItem, level);
         return null;
     }
@@ -96,10 +95,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Unique
     @Nullable
     private ItemStack mapatlases$cutSelectedMap(ItemStack atlas, Level level) {
-        List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+        List<AtlasMap> found = mapatlases$getMapsInOrder(atlas, level);
         if (found.isEmpty()) return null;
         if (mapatlases$selectedMapIndex >= found.size()) mapatlases$selectedMapIndex = 0;
-        MapDataHolder map = found.get(mapatlases$selectedMapIndex);
+        AtlasMap map = found.get(mapatlases$selectedMapIndex);
         this.mapatlases$selectedSlice = map.slice;
         return map.createExistingMapItem();
     }
@@ -128,8 +127,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     }
 
     @Unique
-    private ItemStack mapatlases$addEmptyMaps(ItemStack atlas, MapType type, int count, Level level) {
-        int amount = Math.min(count, MapAtlasItem.getFreeMapSlots(atlas, level));
+    private ItemStack mapatlases$addEmptyMaps(ItemStack atlas, MapType type, int amount, Level level) {
         //full atlas still takes the result slot, just leaves it empty
         if (amount <= 0) return ItemStack.EMPTY;
         ItemStack result = atlas.copyWithCount(1);
@@ -140,7 +138,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Unique
     @Nullable
     private ItemStack mapatlases$addFilledMap(ItemStack atlas, ItemStack map, Level level) {
-        MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(level, map);
+        AtlasMap holder = AtlasMap.fromFilledMapItem(level, map);
         if (holder == null) return null;
         ItemStack result = atlas.copyWithCount(1);
         MapCollection maps = MapAtlasItem.getMaps(result, level);
@@ -150,9 +148,9 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     }
 
     @Unique
-    private static List<MapDataHolder> mapatlases$getMapsInOrder(ItemStack atlas, Level level) {
-        List<MapDataHolder> found = MapAtlasItem.getMaps(atlas, level).getAllFound();
-        found.sort(Comparator.comparingInt((MapDataHolder h) -> h.type.ordinal()).thenComparingInt(h -> h.id.id()));
+    private static List<AtlasMap> mapatlases$getMapsInOrder(ItemStack atlas, Level level) {
+        List<AtlasMap> found = MapAtlasItem.getMaps(atlas, level).getAllFound();
+        found.sort(Comparator.comparingInt((AtlasMap h) -> h.type.ordinal()).thenComparingInt(h -> h.id.id()));
         return found;
     }
 
@@ -200,10 +198,10 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
     @Override
     public void mapatlases$removeSelectedMap(ItemStack atlas) {
         access.execute((level, pos) -> {
-            List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+            List<AtlasMap> found = mapatlases$getMapsInOrder(atlas, level);
             if (mapatlases$selectedMapIndex >= found.size()) return;
-            MapDataHolder m = found.get(mapatlases$selectedMapIndex);
-            MapAtlasItem.getMaps(atlas, level).removeAndAssign(atlas, level, List.of(m));
+            AtlasMap m = found.get(mapatlases$selectedMapIndex);
+            MapAtlasItem.removeMaps(atlas, level, List.of(m));
         });
     }
 
@@ -213,7 +211,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         ItemStack atlas = this.slots.get(0).getItem();
         Level level = mapatlases$getLevel();
         if (level != null && atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
-            List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
+            List<AtlasMap> found = mapatlases$getMapsInOrder(atlas, level);
             if (found.isEmpty()) {
                 this.mapatlases$selectedSlice = null;
             } else {

@@ -25,10 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.AbstractAtlasDisplay;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.Slice;
 
 public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEventListener, NarratableEntry {
@@ -57,7 +56,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     private float scaleAlpha = 0;
 
     public MapWidget(int x, int y, int width, int height, int atlasesCount,
-                     AtlasOverviewScreen screen, MapDataHolder originalCenterMap) {
+                     AtlasOverviewScreen screen, AtlasMap originalCenterMap) {
         super(atlasesCount);
         initialize(originalCenterMap);
         this.targetZoomLevel = zoomLevel;
@@ -96,7 +95,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         MapItemSavedData hoveredData = null;
         boolean shearing = mapScreen.isShearing();
         if (shearing || mapScreen.isPlacingPin()) {
-            MapDataHolder d = getHoveredMap(pMouseX, pMouseY);
+            AtlasMap d = getHoveredMap(pMouseX, pMouseY);
             hoveredData = d != null ? d.data : null;
         }
         this.drawAtlas(graphics, x, y, width, height, zoomLevel, mapScreen.getSelectedSlice().type(),
@@ -158,7 +157,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     @Override
-    public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
+    public AtlasMap getMapWithCenter(int centerX, int centerZ) {
         return mapScreen.findMapWithCenter(centerX, centerZ);
     }
 
@@ -254,7 +253,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     @Nullable
-    private MapDataHolder getHoveredMap(double mouseX, double mouseY) {
+    private AtlasMap getHoveredMap(double mouseX, double mouseY) {
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         return mapScreen.findMapContaining(pos.x(), pos.z());
     }

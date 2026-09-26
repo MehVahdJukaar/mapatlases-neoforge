@@ -8,7 +8,7 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.*;
@@ -71,9 +71,9 @@ public class MapIds {
         return new MapIds(copy);
     }
 
-    public MapIds minus(Collection<MapDataHolder> holders) {
+    public MapIds minus(Collection<AtlasMap> holders) {
         Map<MapType, List<MapId>> copy = copyIds();
-        for (MapDataHolder h : holders) {
+        for (AtlasMap h : holders) {
             List<MapId> l = copy.get(h.type);
             if (l != null) l.remove(h.id);
         }

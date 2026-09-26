@@ -82,14 +82,14 @@ public class AtlasOverviewScreen extends Screen {
     private boolean pendingRecalculate = false;
 
     @Nullable
-    private Pair<MapDataHolder, ColumnPos> partialPin = null;
+    private Pair<AtlasMap, ColumnPos> partialPin = null;
 
     @NotNull
     private MapCollection currentMaps;
 
     // for fancy menu or something
     public AtlasOverviewScreen() {
-        this(MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(Minecraft.getInstance().player), null, false);
+        this(AtlasLookup.getAtlasFromPlayerByConfig(Minecraft.getInstance().player), null, false);
     }
 
     public AtlasOverviewScreen(ItemStack atlas, @Nullable LecternBlockEntity lectern, boolean placingPin) {
@@ -104,7 +104,7 @@ public class AtlasOverviewScreen extends Screen {
 
         this.currentMaps = MapAtlasItem.getMaps(atlas, level);
         this.selectedSlice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-        MapDataHolder startingMap = findStartingMap();
+        AtlasMap startingMap = findStartingMap();
         if (startingMap != null) this.selectedSlice = startingMap.slice;
 
         this.isPinOnly = placingPin;
@@ -118,13 +118,13 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    private MapDataHolder findMapClosestToPlayer() {
+    private AtlasMap findMapClosestToPlayer() {
         return currentMaps.getClosest(player, selectedSlice);
     }
 
     @Nullable
-    private MapDataHolder findStartingMap() {
-        MapDataHolder closest = findMapClosestToPlayer();
+    private AtlasMap findStartingMap() {
+        AtlasMap closest = findMapClosestToPlayer();
         if (closest != null) return closest;
         var all = currentMaps.getAllFound();
         return all.isEmpty() ? null : all.getFirst();
@@ -248,7 +248,7 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         // the inventory stack gets replaced on every server sync, so the one we opened with goes stale
-        ItemStack syncedAtlas = lectern == null ? MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player) : lectern.getBook();
+        ItemStack syncedAtlas = lectern == null ? AtlasLookup.getAtlasFromPlayerByConfig(player) : lectern.getBook();
         if (syncedAtlas.isEmpty()) {
             this.onClose();
             return;
@@ -440,20 +440,20 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     private MapItemSavedData getCenterMapForSelectedDim() {
-        MapDataHolder center = selectedSlice.dimension().equals(level.dimension())
+        AtlasMap center = selectedSlice.dimension().equals(level.dimension())
                 ? findMapClosestToPlayer()
                 : findMarkedOrMiddleMap();
         return center == null ? null : center.data;
     }
 
     @Nullable
-    private MapDataHolder findMarkedOrMiddleMap() {
-        List<MapDataHolder> section = currentMaps.getMapsInSlice(selectedSlice);
+    private AtlasMap findMarkedOrMiddleMap() {
+        List<AtlasMap> section = currentMaps.getMapsInSlice(selectedSlice);
         if (section.isEmpty()) return null;
-        MapDataHolder best = null;
+        AtlasMap best = null;
         double sumX = 0;
         double sumZ = 0;
-        for (MapDataHolder holder : section) {
+        for (AtlasMap holder : section) {
             MapItemSavedData d = holder.data;
             sumX += d.centerX;
             sumZ += d.centerZ;
@@ -472,12 +472,12 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Nullable
-    protected MapDataHolder findMapWithCenter(int reqXCenter, int reqZCenter) {
+    protected AtlasMap findMapWithCenter(int reqXCenter, int reqZCenter) {
         return currentMaps.getMapAt(reqXCenter, reqZCenter, selectedSlice);
     }
 
     @Nullable
-    protected MapDataHolder findMapContaining(int x, int z) {
+    protected AtlasMap findMapContaining(int x, int z) {
         return currentMaps.getMapAt(MapGridKey.at(currentMaps.getScale(), selectedSlice, x, z));
     }
 
@@ -502,7 +502,7 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         List<DecorationHolder> mapIcons = new ArrayList<>();
-        for (MapDataHolder holder : currentMaps.getMapsInSlice(selectedSlice)) {
+        for (AtlasMap holder : currentMaps.getMapsInSlice(selectedSlice)) {
             for (var d : holder.data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame() && !deco.type().is(MapAtlasesMod.NON_REMOVABLE_DECORATIONS)) {
@@ -578,10 +578,10 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public void shearMapAt(ColumnPos pos) {
-        MapDataHolder selected = findMapContaining(pos.x(), pos.z());
+        AtlasMap selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type, lecternPos()));
-            currentMaps.removeAndAssign(atlas, level, List.of(selected));
+            MapAtlasItem.removeMaps(atlas, level, List.of(selected));
             currentMaps = MapAtlasItem.getMaps(atlas, level);
             onMapsChanged();
         }
@@ -590,14 +590,14 @@ public class AtlasOverviewScreen extends Screen {
 
     public void shearSlice(Slice slice) {
         NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice, lecternPos()));
-        currentMaps.removeAndAssign(atlas, level, currentMaps.getMapsInSlice(slice));
+        MapAtlasItem.removeMaps(atlas, level, currentMaps.getMapsInSlice(slice));
         currentMaps = MapAtlasItem.getMaps(atlas, level);
         onMapsChanged();
         this.clearCursorAction();
     }
 
     public void placePinAt(ColumnPos pos) {
-        MapDataHolder selected = findMapContaining(pos.x(), pos.z());
+        AtlasMap selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
@@ -634,7 +634,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean canTeleport() {
-        return hasShiftDown() && MapAtlasesAccessUtils.canPlayerTeleport(player) &&
+        return hasShiftDown() && MapAtlasItem.canPlayerTeleport(player) &&
                 selectedCursorAction == CursorAction.NONE && !pinNameBox.active;
     }
 

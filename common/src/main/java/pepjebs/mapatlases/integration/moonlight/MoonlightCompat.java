@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.CustomDecorationHolder;
 import pepjebs.mapatlases.utils.DecorationHolder;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 import java.util.*;
 
@@ -47,7 +47,7 @@ public class MoonlightCompat {
         }
     }
 
-    public static Collection<CustomDecorationHolder> getCustomDecorations(MapDataHolder map) {
+    public static Collection<CustomDecorationHolder> getCustomDecorations(AtlasMap map) {
         return ((ExpandedMapData) map.data).ml$getCustomDecorations().entrySet().stream()
                 .filter(e -> !e.getValue().getType().is(NOT_ON_ATLAS))
                 .map(a -> DecorationHolder.custom(a.getValue(), a.getKey(), map)).toList();

@@ -19,10 +19,9 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.item.MapAtlasItem;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -93,7 +92,7 @@ public class C2STeleportPacket implements Message {
     @Override
     public void handle(Context context) {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
-        if (!MapAtlasesAccessUtils.canPlayerTeleport(player)) return;
+        if (!MapAtlasItem.canPlayerTeleport(player)) return;
 
         ServerLevel level = player.getServer().getLevel(dimension);
         if (level == null) return;

@@ -4,6 +4,7 @@ import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -113,7 +115,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
                 MapCollection maps = getMaps(stack, level);
-                MapDataHolder mapUnderPlayer = maps.getMapAt(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
+                AtlasMap mapUnderPlayer = maps.getMapAt(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
                 if (mapUnderPlayer == null || !mapUnderPlayer.data.toggleBanner(level, blockPos)) return InteractionResult.FAIL;
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -144,24 +146,24 @@ public class MapAtlasItem extends Item {
         TriState carried = lecternPos.isPresent() ? TriState.SET_TRUE : TriState.PASS;
         for (var info : maps.getAllFound()) {
             // update all maps and sends them to player, if needed
-            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(info, player, atlas, carried);
+            info.tickCarriedByAndSync(player, atlas, carried);
         }
         NetworkHelper.sendToClientPlayer(player, new C2S2COpenAtlasScreenPacket(lecternPos, pinOnly));
     }
 
     public static void removeAndDropMap(MapId id, MapType type, ItemStack atlas, ServerPlayer player) {
         Level level = player.level();
-        MapDataHolder holder = MapDataHolder.find(id, type, level);
+        AtlasMap holder = AtlasMap.find(id, type, level);
         if (holder != null && removeMaps(atlas, level, List.of(holder))) {
             giveMapToPlayer(player, holder);
         }
     }
 
-    private static boolean removeMaps(ItemStack atlas, Level level, Collection<MapDataHolder> holders) {
+    public static boolean removeMaps(ItemStack atlas, Level level, Collection<AtlasMap> holders) {
         if (!getMaps(atlas, level).removeAndAssign(atlas, holders)) return false;
         //dont leave a slice selected that has no maps left
         MapCollection remaining = getMaps(atlas, level);
-        for (MapDataHolder h : holders) {
+        for (AtlasMap h : holders) {
             var dim = h.slice.dimension();
             boolean sliceGone = remaining.getMapsInSlice(h.slice).isEmpty();
             if (sliceGone && getSelectedSlice(atlas, dim).equals(h.slice)) {
@@ -171,15 +173,57 @@ public class MapAtlasItem extends Item {
         return true;
     }
 
-    private static void giveMapToPlayer(ServerPlayer player, MapDataHolder holder) {
+    private static void giveMapToPlayer(ServerPlayer player, AtlasMap holder) {
         player.getInventory().placeItemBackInInventory(holder.createExistingMapItem());
+    }
+
+    //TODO: optimize
+    @Nullable
+    public static AtlasMap createMapAt(ServerPlayer player, ItemStack atlas, MapGridKey key) {
+        Level level = player.level();
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
+        if (maps.getCount() == 0 && MapAtlasItem.getEmptyMaps(atlas).getTotalCount() == 0) {
+            // If the Atlas is "inactive", give it a pity Empty Map count
+            MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
+        }
+
+        Slice slice = key.slice;
+        boolean consumesEmptyMap = MapAtlasesConfig.requireEmptyMapsToExpand.get() && !player.isCreative();
+        if (consumesEmptyMap && MapAtlasItem.getEmptyMaps(atlas).getCount(slice) == 0) return null;
+
+        //validate height
+        var height = slice.height();
+        if (height.isPresent() && !maps.getHeightTree(level.dimension(), slice.type()).contains(height.get())) {
+            MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
+            return null;
+        }
+
+        ItemStack newMap = slice.createNewMap(key.mapX, key.mapZ, maps.getScale(), level, atlas);
+        MapId newMapId = newMap.get(DataComponents.MAP_ID);
+        if (newMapId == null) return null;
+        if (!maps.addAndAssign(atlas, level, slice.type(), newMapId)) return null;
+
+        AtlasMap newData = AtlasMap.find(newMapId, slice.type(), level);
+        // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
+        if (newData != null) {
+            newData.tickCarriedByAndSync(player, newMap, TriState.SET_TRUE);
+        }
+        if (consumesEmptyMap) {
+            //remove 1 map
+            MapAtlasItem.getEmptyMaps(atlas).addAndAssign(atlas, slice, -1);
+        }
+        return newData;
+    }
+
+    public static boolean canPlayerTeleport(Player player) {
+        return MapAtlasesConfig.creativeTeleport.get() && player.isCreative();
     }
 
     public static void removeAndDropSliceMaps(Slice slice, ItemStack atlas, ServerPlayer player) {
         Level level = player.level();
-        Collection<MapDataHolder> allInSlice = getMaps(atlas, level).getMapsInSlice(slice);
+        Collection<AtlasMap> allInSlice = getMaps(atlas, level).getMapsInSlice(slice);
         removeMaps(atlas, level, allInSlice);
-        for (MapDataHolder holder : allInSlice) {
+        for (AtlasMap holder : allInSlice) {
             giveMapToPlayer(player, holder);
         }
     }
@@ -236,6 +280,11 @@ public class MapAtlasItem extends Item {
 
     public static int getFreeMapSlots(ItemStack atlas, Level level) {
         return MapAtlasesConfig.maxMapCount.get() - getMaps(atlas, level).getCount() - getEmptyMaps(atlas).getTotalCount();
+    }
+
+    //how many of a stack of empty maps this atlas actually takes in
+    public static int countEmptyMapsToAdd(ItemStack atlas, ItemStack emptyMaps, Level level) {
+        return Math.min(emptyMaps.getCount(), getFreeMapSlots(atlas, level));
     }
 
     public static EmptyMaps getEmptyMaps(ItemStack atlas) {

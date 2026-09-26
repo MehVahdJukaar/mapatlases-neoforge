@@ -17,7 +17,7 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.AbstractMap;
@@ -33,7 +33,7 @@ public abstract class AbstractAtlasDisplay {
     //internally controls how many maps are displayed
     protected final int atlasesCount;
     protected int mapBlocksSize;
-    protected MapDataHolder mapWherePlayerIs;
+    protected AtlasMap mapWherePlayerIs;
 
     protected boolean followingPlayer = true;
     protected double currentXCenter;
@@ -47,7 +47,7 @@ public abstract class AbstractAtlasDisplay {
         this.atlasesCount = atlasesCount;
     }
 
-    protected void initialize(MapDataHolder newCenter) {
+    protected void initialize(AtlasMap newCenter) {
         if (mapWherePlayerIs == null || !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
             this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
         }
@@ -134,7 +134,7 @@ public abstract class AbstractAtlasDisplay {
                             Math.abs(gridCenterJ - mapCenterOffsetX * zoomScale) < maxDist;
                 }
                 if (shouldDraw) {
-                    MapDataHolder state = getMapWithCenter(centerMapX + (j * mapBlocksSize), centerMapZ + (i * mapBlocksSize));
+                    AtlasMap state = getMapWithCenter(centerMapX + (j * mapBlocksSize), centerMapZ + (i * mapBlocksSize));
                     if (state != null) {
                         Matrix4f pose = drawMap(player, poseStack, vcp, i, j, state, light);
                         (state.data == selectedData ? hoveredMaps : drawnMaps).add(pose);
@@ -198,14 +198,14 @@ public abstract class AbstractAtlasDisplay {
     }
 
     @Nullable
-    public abstract MapDataHolder getMapWithCenter(int centerX, int centerZ);
+    public abstract AtlasMap getMapWithCenter(int centerX, int centerZ);
 
     public void setFollowingPlayer(boolean followingPlayer) {
         this.followingPlayer = followingPlayer;
     }
 
     private Matrix4f drawMap(Player player, PoseStack poseStack, MultiBufferSource.BufferSource vcp,
-                             int ix, int iy, MapDataHolder state, int light) {
+                             int ix, int iy, AtlasMap state, int light) {
         // Draw the map
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
         int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;

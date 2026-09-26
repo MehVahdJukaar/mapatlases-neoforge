@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasLookup;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.Optional;
@@ -38,10 +38,10 @@ public record C2SRemoveMapPacket(MapId mapId, MapType mapType, Optional<BlockPos
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
         if (lecternPos.isPresent() && !player.mayBuild()) return;
 
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+        ItemStack atlas = AtlasLookup.getAtlasFromLecternOrPlayer(player, lecternPos);
         if (atlas.isEmpty()) return;
         MapAtlasItem.removeAndDropMap(mapId, mapType, atlas, player);
-        MapAtlasesAccessUtils.syncLecternAtlas(player, lecternPos);
+        AtlasLookup.syncLecternAtlas(player, lecternPos);
     }
 
     @Override

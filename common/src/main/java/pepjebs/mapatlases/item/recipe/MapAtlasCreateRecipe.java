@@ -16,8 +16,8 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
+import pepjebs.mapatlases.utils.MapType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +54,7 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
         boolean hasMap = false;
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
-            if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
+            if (MapType.isFilledMap(itemstack)) {
                 if (hasMap) {
                     return false;
                 }
@@ -80,7 +80,7 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
     public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
         ItemStack mapItemStack = null;
         for (var item : inv.items()) {
-            if (MapAtlasesAccessUtils.isValidFilledMap(item)) {
+            if (MapType.isFilledMap(item)) {
                 mapItemStack = item;
                 break;
             }
@@ -89,7 +89,7 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
         if (mapItemStack == null || level == null) {
             return ItemStack.EMPTY; //this should never happen
         }
-        MapDataHolder mapHolder = MapAtlasesAccessUtils.findMapFromItemStack(level, mapItemStack);
+        AtlasMap mapHolder = AtlasMap.fromFilledMapItem(level, mapItemStack);
         if (mapHolder == null) {
             MapAtlasesMod.LOGGER.error("MapAtlasCreateRecipe found null Map ID from Filled Map");
             return ItemStack.EMPTY;

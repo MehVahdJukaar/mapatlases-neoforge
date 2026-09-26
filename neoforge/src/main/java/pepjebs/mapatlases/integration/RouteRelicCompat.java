@@ -17,7 +17,7 @@ import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 //route relics only changes maps in item frames for some reason
 public class RouteRelicCompat {
@@ -78,7 +78,7 @@ public class RouteRelicCompat {
     private static boolean bake(Player player, ItemStack atlas, RouteSession session, String color) {
         String routeDimension = session.getLastFinishedDimension();
         boolean baked = false;
-        for (MapDataHolder holder : MapAtlasItem.getMaps(atlas, player.level()).getAllFound()) {
+        for (AtlasMap holder : MapAtlasItem.getMaps(atlas, player.level()).getAllFound()) {
             if (!holder.data.dimension.location().toString().equals(routeDimension)) continue;
             ItemStack mapStack = new ItemStack(Items.FILLED_MAP);
             mapStack.set(DataComponents.MAP_ID, holder.id);

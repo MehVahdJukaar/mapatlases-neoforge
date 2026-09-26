@@ -13,7 +13,6 @@ import net.minecraft.client.quickplay.QuickPlayLog;
 import net.minecraft.core.*;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.XaeroMinimapCompat;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -251,7 +250,7 @@ public class ClientMarkers {
         return Set.of();
     }
 
-    public static synchronized void placePin(MapDataHolder holder, ColumnPos pos, String text, int index) {
+    public static synchronized void placePin(AtlasMap holder, ColumnPos pos, String text, int index) {
         Holder<MLMapDecorationType<?, ?>> type = getPinWithIndex(index);
         Optional<Component> name;
         if (!text.isEmpty()) {
@@ -308,13 +307,13 @@ public class ClientMarkers {
 
 
     //TODO: change
-    public static void focusClientDeco(MapDataHolder map, MLMapDecoration deco, boolean focused) {
+    public static void focusClientDeco(AtlasMap map, MLMapDecoration deco, boolean focused) {
         if (deco instanceof PinDecoration mp) {
             mp.forceFocused(focused);
         }
     }
 
-    public static boolean isClientDecoFocused(MapDataHolder map, MLMapDecoration deco) {
+    public static boolean isClientDecoFocused(AtlasMap map, MLMapDecoration deco) {
         if (deco instanceof PinDecoration mp) {
             return mp.isFocused();
         }

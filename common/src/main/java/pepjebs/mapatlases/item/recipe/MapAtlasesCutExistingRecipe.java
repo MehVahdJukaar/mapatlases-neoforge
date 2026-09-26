@@ -19,7 +19,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.ICraftingInputWithContext;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -67,7 +67,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
         //not using count. we want actual maps
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         //TODO: very ugly and wont work in many cases
-        MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
+        AtlasMap toRemove = getMapToRemove(inv, maps, slice);
         if (toRemove != null) return toRemove.createExistingMapItem();
         MapType emptyToRemove = getEmptyMapToRemove(MapAtlasItem.getEmptyMaps(atlas), slice);
         if (emptyToRemove != null) {
@@ -89,8 +89,8 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
     }
 
     @Nullable
-    private static MapDataHolder getMapToRemove(CraftingInput inv, MapCollection maps, Slice slice) {
-        List<MapDataHolder> found = maps.getAllFound();
+    private static AtlasMap getMapToRemove(CraftingInput inv, MapCollection maps, Slice slice) {
+        List<AtlasMap> found = maps.getAllFound();
         if (found.isEmpty()) return null;
         Player crafter = null;
         if (inv instanceof ICraftingInputWithContext ct) {
@@ -99,7 +99,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
             else if (menu instanceof InventoryMenu im) crafter = im.owner;
         }
         if (crafter != null) {
-            MapDataHolder closest = maps.getClosest(crafter, slice);
+            AtlasMap closest = maps.getClosest(crafter, slice);
             if (closest != null) return closest;
         }
         return found.getFirst();
@@ -125,7 +125,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
     private static void cutOneMap(CraftingInput inv, ItemStack atlas, Level level) {
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-        MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
+        AtlasMap toRemove = getMapToRemove(inv, maps, slice);
         if (toRemove != null) {
             maps.removeAndAssign(atlas, level, List.of(toRemove));
             maps = MapAtlasItem.getMaps(atlas, level);

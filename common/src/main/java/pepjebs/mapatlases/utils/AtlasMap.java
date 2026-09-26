@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MapDataHolder {
+public class AtlasMap {
     public final MapId id;
     public final MapItemSavedData data;
 
@@ -37,7 +38,7 @@ public class MapDataHolder {
     public final Integer height;
 
 
-    public MapDataHolder(MapId id, MapType type, @NotNull MapItemSavedData data) {
+    public AtlasMap(MapId id, MapType type, @NotNull MapItemSavedData data) {
         Preconditions.checkNotNull(data);
         this.id = id;
         this.data = data;
@@ -47,10 +48,36 @@ public class MapDataHolder {
     }
 
     @Nullable
-    public static MapDataHolder find(MapId id, MapType type, Level level) {
+    public static AtlasMap find(MapId id, MapType type, Level level) {
         MapItemSavedData data = type.getMapData(level, id);
         if (data == null) return null;
-        return new MapDataHolder(id, type, data);
+        return new AtlasMap(id, type, data);
+    }
+
+    @Nullable
+    public static AtlasMap fromFilledMapItem(Level level, ItemStack stack) {
+        MapId id = MapType.filledMapId(stack);
+        if (id == null) return null;
+        return find(id, MapType.fromFilledMap(stack.getItem()), level);
+    }
+
+    public void tickCarriedByAndSync(ServerPlayer player, ItemStack atlas, TriState forceBeingCarried) {
+        MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
+        //hack. just to be sure so contains will fail
+        data.tickCarriedBy(player, atlas);
+        syncToClient(player);
+        MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
+    }
+
+    // will fail if tickCarriedBy isnt sent
+    private void syncToClient(ServerPlayer player) {
+        //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
+        // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
+        //TODO: maybe use isComplex  update packet and inventory tick
+        Packet<?> p = data.getUpdatePacket(id, player);
+        if (p != null) {
+            player.connection.send(p);
+        }
     }
 
     public MapGridKey makeKey() {
@@ -127,7 +154,7 @@ public class MapDataHolder {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MapDataHolder holder = (MapDataHolder) o;
+        AtlasMap holder = (AtlasMap) o;
         return Objects.equals(data, holder.data);
     }
 

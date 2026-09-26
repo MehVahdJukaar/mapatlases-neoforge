@@ -15,13 +15,13 @@ import java.util.Optional;
 
 public abstract sealed class DecorationHolder permits VanillaDecorationHolder, CustomDecorationHolder {
     protected final String id;
-    protected final MapDataHolder data;
+    protected final AtlasMap data;
     protected final String sortingString;
     private final ResourceLocation typeId;
     @Nullable
     private final Component name;
 
-    protected DecorationHolder(String id, MapDataHolder data, ResourceLocation typeId, @Nullable Component name) {
+    protected DecorationHolder(String id, AtlasMap data, ResourceLocation typeId, @Nullable Component name) {
         this.id = id;
         this.data = data;
         this.typeId = typeId;
@@ -34,7 +34,7 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
         return id;
     }
 
-    public MapDataHolder data() {
+    public AtlasMap data() {
         return data;
     }
 
@@ -77,11 +77,11 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
     public void focusMarker() {
     }
 
-    public static VanillaDecorationHolder vanilla(MapDecoration deco, String id, MapDataHolder data) {
+    public static VanillaDecorationHolder vanilla(MapDecoration deco, String id, AtlasMap data) {
         return new VanillaDecorationHolder(deco, id, data);
     }
 
-    public static CustomDecorationHolder custom(MLMapDecoration deco, String id, MapDataHolder data) {
+    public static CustomDecorationHolder custom(MLMapDecoration deco, String id, AtlasMap data) {
         return new CustomDecorationHolder(deco, id, data);
     }
 }

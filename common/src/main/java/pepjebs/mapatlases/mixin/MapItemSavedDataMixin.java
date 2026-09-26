@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasLookup;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.Map;
@@ -38,7 +38,7 @@ public class MapItemSavedDataMixin {
         //needs to call these for some reason... before the rest
         if(state == TriState.SET_TRUE) return stack -> true;
         return  stack -> predicate.test(stack)
-                || (MapAtlasesAccessUtils.getAtlasFromCurioOrTrinket(player) == stack);
+                || (AtlasLookup.getAtlasFromCurioOrTrinket(player) == stack);
 
     }
 

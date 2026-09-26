@@ -14,7 +14,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasLookup;
 
 import java.util.Optional;
 
@@ -59,7 +59,7 @@ public class C2S2COpenAtlasScreenPacket implements Message {
             // sends all atlas and then send this but to client
             if (!(context.getPlayer() instanceof ServerPlayer player)) return;
 
-            ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+            ItemStack atlas = AtlasLookup.getAtlasFromLecternOrPlayer(player, lecternPos);
             if (!atlas.isEmpty()) {
                 if (pinOnly) {
                     player.level().playSound(null, player, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.PLAYERS, 1.7F, 2f);

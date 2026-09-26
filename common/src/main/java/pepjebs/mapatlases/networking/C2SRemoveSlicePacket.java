@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.item.MapAtlasItem;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasLookup;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Optional;
@@ -35,10 +35,10 @@ public record C2SRemoveSlicePacket(Slice slice, Optional<BlockPos> lecternPos) i
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
         if (lecternPos.isPresent() && !player.mayBuild()) return;
 
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromLecternOrPlayer(player, lecternPos);
+        ItemStack atlas = AtlasLookup.getAtlasFromLecternOrPlayer(player, lecternPos);
         if (atlas.isEmpty()) return;
         MapAtlasItem.removeAndDropSliceMaps(slice, atlas, player);
-        MapAtlasesAccessUtils.syncLecternAtlas(player, lecternPos);
+        AtlasLookup.syncLecternAtlas(player, lecternPos);
     }
 
     @Override

@@ -1,13 +1,10 @@
 package pepjebs.mapatlases.lifecycle;
 
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.saveddata.maps.MapId;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.config.UpdateFashion;
@@ -30,10 +27,10 @@ public class MapAtlasesServerEvents {
     // keyed by UUID, not by player instance: the map data these values point at lists the players holding it,
     // so a value can reach its own key and weak keys would never be collected
     private static final Map<UUID, UpdateScheduler> SCHEDULERS_PER_PLAYER = new HashMap<>();
-    private static final Map<UUID, MapDataHolder> LAST_CENTER_MAP_PER_PLAYER = new HashMap<>();
+    private static final Map<UUID, AtlasMap> LAST_CENTER_MAP_PER_PLAYER = new HashMap<>();
 
     public static void onPlayerTick(ServerPlayer player) {
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = AtlasLookup.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
         if (MapAtlasItem.isLocked(atlas)) return;
 
@@ -48,14 +45,14 @@ public class MapAtlasesServerEvents {
 
 
         boolean createdNewMap = false;
-        List<MapDataHolder> mapsInView = new ArrayList<>();
+        List<AtlasMap> mapsInView = new ArrayList<>();
         //create missing maps
         boolean canFillEmpty = MapAtlasesConfig.enableEmptyMapEntryAndFill.get();
         for (var m : neighborhood.keys()) {
-            MapDataHolder info = maps.getMapAt(m);
+            AtlasMap info = maps.getMapAt(m);
             if (info == null && canFillEmpty) {
                 //can alter map collection
-                info = maybeCreateNewMapEntry(player, atlas, m);
+                info = MapAtlasItem.createMapAt(player, atlas, m);
                 if (info != null) {
                     //update maps reference
                     maps = MapAtlasItem.getMaps(atlas, level);
@@ -76,14 +73,14 @@ public class MapAtlasesServerEvents {
         UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player.getUUID(), p -> createScheduler());
         scheduler.performUpdate(player, mapsInView);
 
-        for (MapDataHolder mapHolder : mapsInView) {
-            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(mapHolder, player, atlas, TriState.SET_TRUE);
+        for (AtlasMap mapHolder : mapsInView) {
+            mapHolder.tickCarriedByAndSync(player, atlas, TriState.SET_TRUE);
             //if data has changed, a packet will be sent
         }
         // for far away maps so we remove player marker
-        MapDataHolder lastData = LAST_CENTER_MAP_PER_PLAYER.get(player.getUUID());
+        AtlasMap lastData = LAST_CENTER_MAP_PER_PLAYER.get(player.getUUID());
         if (lastData != null && !mapsInView.contains(lastData)) {
-            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(lastData, player, atlas, TriState.SET_FALSE);
+            lastData.tickCarriedByAndSync(player, atlas, TriState.SET_FALSE);
         }
         LAST_CENTER_MAP_PER_PLAYER.put(player.getUUID(), maps.getMapAt(neighborhood.center()));
 
@@ -109,52 +106,13 @@ public class MapAtlasesServerEvents {
         for (int h : maps.getHeightTree(dimension, slice.type())) {
             if (h == slice.heightOrTop()) continue;
             var other = maps.getMapAt(activeKey.mapX, activeKey.mapZ, Slice.of(slice.type(), h, dimension));
-            if (other != null) MapAtlasesAccessUtils.tickHoldingPlayerAndSync(other, player, atlas, TriState.SET_TRUE);
+            if (other != null) other.tickCarriedByAndSync(player, atlas, TriState.SET_TRUE);
         }
     }
-
-    //TODO: optimize
-    @Nullable
-    private static MapDataHolder maybeCreateNewMapEntry(ServerPlayer player, ItemStack atlas, MapGridKey key) {
-        Level level = player.level();
-        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        if (maps.getCount() == 0 && MapAtlasItem.getEmptyMaps(atlas).getTotalCount() == 0) {
-            // If the Atlas is "inactive", give it a pity Empty Map count
-            MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
-        }
-
-        Slice slice = key.slice;
-        boolean consumesEmptyMap = MapAtlasesConfig.requireEmptyMapsToExpand.get() && !player.isCreative();
-        if (consumesEmptyMap && MapAtlasItem.getEmptyMaps(atlas).getCount(slice) == 0) return null;
-
-        //validate height
-        var height = slice.height();
-        if (height.isPresent() && !maps.getHeightTree(level.dimension(), slice.type()).contains(height.get())) {
-            MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
-            return null;
-        }
-
-        ItemStack newMap = slice.createNewMap(key.mapX, key.mapZ, maps.getScale(), level, atlas);
-        MapId newMapId = newMap.get(DataComponents.MAP_ID);
-        if (newMapId == null) return null;
-        if (!maps.addAndAssign(atlas, level, slice.type(), newMapId)) return null;
-
-        MapDataHolder newData = MapDataHolder.find(newMapId, slice.type(), level);
-        // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
-        if (newData != null) {
-            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
-        }
-        if (consumesEmptyMap) {
-            //remove 1 map
-            MapAtlasItem.getEmptyMaps(atlas).addAndAssign(atlas, slice, -1);
-        }
-        return newData;
-    }
-
 
     public static void onPlayerJoin(ServerPlayer player) {
         NetworkHelper.sendToClientPlayer(player, new S2CWorldHashPacket(player));
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = AtlasLookup.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
 
         Level level = player.level();

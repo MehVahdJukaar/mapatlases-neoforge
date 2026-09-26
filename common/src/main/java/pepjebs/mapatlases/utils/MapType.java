@@ -3,13 +3,10 @@ package pepjebs.mapatlases.utils;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.mehvahdjukaar.moonlight.api.misc.OptRegSupplier;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
@@ -23,6 +20,8 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.CompatObjects;
 import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.TwilightForestCompat;
 
@@ -35,10 +34,10 @@ import java.util.function.Supplier;
 //mainly for integration puposes
 public enum MapType implements StringRepresentable {
     VANILLA("map_", () -> Items.FILLED_MAP, () -> Items.MAP),
-    MAGIC("magicmap_", tf("filled_magic_map"), tf("magic_map")),
-    MAZE("mazemap_", tf("filled_maze_map"), tf("maze_map")),
-    ORE_MAZE("mazemap_", tf("filled_ore_map"), tf("ore_map")),
-    SLICED("map_", () -> Items.FILLED_MAP, modItem("supplementaries", "slice_map")); //just used for empty maps
+    MAGIC("magicmap_", CompatObjects.TF_FILLED_MAGIC_MAP, CompatObjects.TF_MAGIC_MAP),
+    MAZE("mazemap_", CompatObjects.TF_FILLED_MAZE_MAP, CompatObjects.TF_MAZE_MAP),
+    ORE_MAZE("mazemap_", CompatObjects.TF_FILLED_ORE_MAP, CompatObjects.TF_ORE_MAP),
+    SLICED("map_", () -> Items.FILLED_MAP, CompatObjects.SUPPLEMENTARIES_SLICE_MAP); //just used for empty maps
 
     public static final Codec<MapType> CODEC = StringRepresentable.fromEnum(MapType::values);
     public static final StreamCodec<ByteBuf, MapType> STREAM_CODEC =
@@ -90,7 +89,7 @@ public enum MapType implements StringRepresentable {
     }
 
     @Nullable
-    public static MapType fromEmptyMap(Item item) {
+    private static MapType fromEmptyMap(Item item) {
         return EMPTY.get().get(item);
     }
 
@@ -99,12 +98,29 @@ public enum MapType implements StringRepresentable {
         return FILLED.get().get(item);
     }
 
-    private static Supplier<Item> tf(String id) {
-        return modItem("twilightforest", id);
+    public static boolean isFilledMap(ItemStack stack) {
+        return filledMapId(stack) != null;
     }
 
-    private static Supplier<Item> modItem(String namespace, String id) {
-        return OptRegSupplier.of(ResourceLocation.fromNamespaceAndPath(namespace, id), BuiltInRegistries.ITEM);
+    @Nullable
+    public static MapId filledMapId(ItemStack stack) {
+        if (fromFilledMap(stack.getItem()) == null) return null;
+        return stack.get(DataComponents.MAP_ID);
+    }
+
+    //what this stack counts as when fed to an atlas as an empty map. null if it doesnt
+    @Nullable
+    public static MapType acceptedEmptyMapType(ItemStack stack) {
+        if (stack.isEmpty() || !MapAtlasesConfig.enableEmptyMapEntryAndFill.get()){
+            return null;
+        }
+        if (stack.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()){
+            return VANILLA;
+        }
+        MapType type = fromEmptyMap(stack.getItem());
+        //slice maps count as normal empties unless the config asks for them
+        if (type == SLICED && !MapAtlasesConfig.requireSliceMaps.get()) return VANILLA;
+        return type;
     }
 
     //twilight types only have an item when the mod is on

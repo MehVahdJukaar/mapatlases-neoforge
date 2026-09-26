@@ -20,8 +20,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.MapType;
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$3")
 class MixinCartographyTableHandlerFirstSlot {
@@ -39,7 +40,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlot {
     @ModifyReturnValue(method = "mayPlace", at = @At("RETURN"))
     boolean mapAtlasCanInsert(boolean original, ItemStack stack) {
         return original || stack.is(MapAtlasesMod.MAP_ATLAS.get()) ||
-                MapAtlasesAccessUtils.isValidFilledMap(stack) ||
+                MapType.isFilledMap(stack) ||
                 PlatStuff.isShear(stack);
     }
 }
@@ -68,11 +69,10 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                     });
                 }
                 menu.mapatlases$setSelectedMapIndex(0);
-            } else if (MapAtlasesAccessUtils.isValidEmptyMapIngredient(slotOneItem)) {
-                var amountToTake = MapAtlasesAccessUtils.getMapCountToAdd(atlas, slotOneItem, player.level());
+            } else if (MapType.acceptedEmptyMapType(slotOneItem) != null) {
+                int added = MapAtlasItem.countEmptyMapsToAdd(atlas, slotOneItem, player.level());
                 // onTakeItem already calls takeStack(1) so we subtract that out
-                if (amountToTake != null && amountToTake.getSecond() > 1)
-                    slotOne.remove(amountToTake.getSecond() - 1);
+                if (added > 1) slotOne.remove(added - 1);
             }
         }
     }

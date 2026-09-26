@@ -33,7 +33,7 @@ import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapGridKey;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Objects;
@@ -74,13 +74,13 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
 
     @Nullable
     @Override
-    public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
+    public AtlasMap getMapWithCenter(int centerX, int centerZ) {
         Slice slice = currentMapKey.slice;
         return currentMaps.getMapAt(centerX, centerZ, slice);
     }
 
     @Override
-    protected void initialize(MapDataHolder originalCenterMap) {
+    protected void initialize(AtlasMap originalCenterMap) {
         super.initialize(originalCenterMap);
         this.followingPlayer = MapAtlasesClientConfig.miniMapFollowPlayer.get();
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
@@ -112,7 +112,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (atlas.isEmpty()) return;
 
-        MapDataHolder activeMap = MapAtlasesClient.getActiveMap();
+        AtlasMap activeMap = MapAtlasesClient.getActiveMap();
         currentMapKey = MapAtlasesClient.getActiveMapKey();
         if (activeMap == null || currentMapKey == null) return;
 

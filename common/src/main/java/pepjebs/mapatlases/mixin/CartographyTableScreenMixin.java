@@ -17,8 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.CartographyTableAtlasButton;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 @Mixin(CartographyTableScreen.class)
 public abstract class CartographyTableScreenMixin extends AbstractContainerScreen<CartographyTableMenu> {
@@ -41,7 +40,7 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
 
         if (pMapData == null && pMapId == null && this.menu.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack item = this.menu.slots.get(2).getItem();
-            MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(this.minecraft.level, item);
+            AtlasMap holder = AtlasMap.fromFilledMapItem(this.minecraft.level, item);
             if (holder != null) {
                 mapid.set(holder.id);
                 data.set(holder.data);

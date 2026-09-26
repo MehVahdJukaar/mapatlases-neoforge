@@ -14,7 +14,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -26,7 +26,7 @@ public class MapCollection {
     private static final NavigableSet<Integer> TOP = Collections.unmodifiableNavigableSet(new TreeSet<>(List.of(Integer.MAX_VALUE)));
 
     private final MapIds ids;
-    private final Map<MapGridKey, MapDataHolder> maps = new HashMap<>();
+    private final Map<MapGridKey, AtlasMap> maps = new HashMap<>();
     //available dimensions and slices
     private final Map<ResourceKey<Level>, Map<MapType, TreeSet<Integer>>> mapHeights = new HashMap<>();
     private byte scale = 0;
@@ -110,40 +110,40 @@ public class MapCollection {
         return sliceNearHeight(slice.dimension(), next, slice.heightOrTop());
     }
 
-    public List<MapDataHolder> getAllFound() {
+    public List<AtlasMap> getAllFound() {
         return new ArrayList<>(maps.values());
     }
 
-    public List<MapDataHolder> getMapsInSlice(Slice slice) {
+    public List<AtlasMap> getMapsInSlice(Slice slice) {
         return filter(m -> Objects.equals(m.slice, slice));
     }
 
-    public List<MapDataHolder> filter(Predicate<MapDataHolder> predicate) {
-        List<MapDataHolder> matching = new ArrayList<>();
-        for (MapDataHolder holder : maps.values()) {
+    public List<AtlasMap> filter(Predicate<AtlasMap> predicate) {
+        List<AtlasMap> matching = new ArrayList<>();
+        for (AtlasMap holder : maps.values()) {
             if (predicate.test(holder)) matching.add(holder);
         }
         return matching;
     }
 
     @Nullable
-    public MapDataHolder getMapAt(MapGridKey key) {
+    public AtlasMap getMapAt(MapGridKey key) {
         return maps.get(key);
     }
 
     @Nullable
-    public MapDataHolder getMapAt(int x, int z, Slice slice) {
+    public AtlasMap getMapAt(int x, int z, Slice slice) {
         return getMapAt(MapGridKey.at(scale, slice, x, z));
     }
 
     @Nullable
-    public MapDataHolder getClosest(Player player, Slice slice) {
+    public AtlasMap getClosest(Player player, Slice slice) {
         return getClosest(player.getX(), player.getZ(), slice);
     }
 
     @Nullable
-    public MapDataHolder getClosest(double x, double z, Slice slice) {
-        MapDataHolder minDistState = null;
+    public AtlasMap getClosest(double x, double z, Slice slice) {
+        AtlasMap minDistState = null;
         for (var e : maps.entrySet()) {
             var key = e.getKey();
             if (key.isSameSlice(slice)) {
@@ -169,7 +169,7 @@ public class MapCollection {
     }
 
     private boolean populateInDataStructure(MapId id, MapType type, Level level) {
-        MapDataHolder found = MapDataHolder.find(id, type, level);
+        AtlasMap found = AtlasMap.find(id, type, level);
         if (found == null) {
             if (level instanceof ServerLevel) {
                 MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", id, level.dimension().location());
@@ -216,7 +216,7 @@ public class MapCollection {
         for (MapId id : candidates) {
             if (ids.contains(type, id)) continue;
             if (accepted.contains(id)) continue;
-            MapDataHolder found = MapDataHolder.find(id, type, level);
+            AtlasMap found = AtlasMap.find(id, type, level);
             if (found == null) {
                 // not resolvable yet on the client, so let indexMap judge it later
                 accepted.add(id);
@@ -251,7 +251,7 @@ public class MapCollection {
         return true;
     }
 
-    public boolean removeAndAssign(ItemStack atlas, Collection<MapDataHolder> holders) {
+    public boolean removeAndAssign(ItemStack atlas, Collection<AtlasMap> holders) {
         MapIds newIds = ids.minus(holders);
         if (newIds.getCount() == ids.getCount()) return false;
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newIds);

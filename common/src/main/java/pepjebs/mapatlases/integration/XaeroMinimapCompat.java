@@ -16,7 +16,7 @@ import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.io.IOException;
@@ -83,7 +83,7 @@ public class XaeroMinimapCompat {
             var waypoints = WAYPOINTS_MAP.get(dimKey);
             List<Waypoint> toRemove = new ArrayList<>();
             if (waypoints != null) {
-                MapDataHolder holder = new MapDataHolder(pMapName, MapType.VANILLA, data);
+                AtlasMap holder = new AtlasMap(pMapName, MapType.VANILLA, data);
                 for (var w : waypoints) {
                     if (w.y > holder.slice.heightOrTop()) continue;
                     //hack to see if it will be contained

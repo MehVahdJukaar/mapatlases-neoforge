@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasMap;
 
 import java.util.List;
 
@@ -27,20 +27,20 @@ public abstract class UpdateScheduler {
         return Mth.clampedMap((float) speed, 0.001f, 1.2f, 0.1f, 2f) * MapAtlasesConfig.mapUpdatePerTick.get();
     }
 
-    public void performUpdate(ServerPlayer player, List<MapDataHolder> visibleMaps) {
+    public void performUpdate(ServerPlayer player, List<AtlasMap> visibleMaps) {
         syncTickets(player, visibleMaps);
         accumulator += computeUpdateRate(player);
 
         while (accumulator >= 1f) {
-            MapDataHolder next = poll();
+            AtlasMap next = poll();
             if (next != null) next.updateMapColorsAndMarkers(player);
             accumulator -= 1f;
         }
     }
 
     //drop tickets for maps no longer in view and add ones for maps that just entered it
-    protected abstract void syncTickets(ServerPlayer player, List<MapDataHolder> visibleMaps);
+    protected abstract void syncTickets(ServerPlayer player, List<AtlasMap> visibleMaps);
 
     @Nullable
-    protected abstract MapDataHolder poll();
+    protected abstract AtlasMap poll();
 }

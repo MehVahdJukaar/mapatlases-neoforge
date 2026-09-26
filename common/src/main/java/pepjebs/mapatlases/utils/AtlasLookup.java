@@ -1,18 +1,14 @@
 package pepjebs.mapatlases.utils;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.maps.MapId;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -21,49 +17,10 @@ import pepjebs.mapatlases.integration.CuriosCompat;
 import pepjebs.mapatlases.integration.TrinketsCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
-import pepjebs.mapatlases.map_collection.MapGridKey;
 
 import java.util.Optional;
 
-public class MapAtlasesAccessUtils {
-
-    public static boolean canPlayerTeleport(Player player) {
-        return MapAtlasesConfig.creativeTeleport.get() && player.isCreative();
-    }
-
-    //Helper function
-    @Nullable
-    public static MapItemSavedData getSavedDataAt(ItemStack atlas, Level level, int x, int z) {
-        if (atlas.is(MapAtlasesMod.MAP_ATLAS.get())) {
-            MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-            Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
-            MapGridKey key = MapGridKey.at(maps.getScale(), slice, x, z);
-            MapDataHolder select = maps.getMapAt(key);
-            if (select != null) {
-                return select.data;
-            }
-        }
-        return null;
-    }
-
-    public static boolean isValidFilledMap(ItemStack item) {
-        return findMapId(item) != null;
-    }
-
-    @Nullable
-    public static MapId findMapId(ItemStack itemstack) {
-        if (MapType.fromFilledMap(itemstack.getItem()) == null) {
-            return null;
-        }
-        return itemstack.get(DataComponents.MAP_ID);
-    }
-
-    @Nullable
-    public static MapDataHolder findMapFromItemStack(Level level, ItemStack itemStack) {
-        MapId id = findMapId(itemStack);
-        if (id == null) return null;
-        return MapDataHolder.find(id, MapType.fromFilledMap(itemStack.getItem()), level);
-    }
+public class AtlasLookup {
 
     @NotNull
     private static ItemStack getAtlasFromInventory(Inventory inventory, boolean onlyHotbar) {
@@ -145,46 +102,4 @@ public class MapAtlasesAccessUtils {
         }
         return ItemStack.EMPTY;
     }
-
-
-    @Nullable
-    public static MapType getEmptyMapType(ItemStack stack) {
-        if (stack.isEmpty() || !MapAtlasesConfig.enableEmptyMapEntryAndFill.get()){
-            return null;
-        }
-        if (stack.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()){
-            return MapType.VANILLA;
-        }
-        MapType type = MapType.fromEmptyMap(stack.getItem());
-        //slice maps count as normal empties unless the config asks for them
-        if (type == MapType.SLICED && !MapAtlasesConfig.requireSliceMaps.get()) return MapType.VANILLA;
-        return type;
-    }
-
-    public static void tickHoldingPlayerAndSync(
-            MapDataHolder holder,
-            ServerPlayer player,
-            ItemStack atlas,
-            TriState forceBeingCarried
-    ) {
-        MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
-        //hack. just to be sure so contains will fail
-        holder.data.tickCarriedBy(player, atlas);
-        MapAtlasesAccessUtils.syncMapDataToClient(holder, player);
-        MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
-    }
-
-
-    // will fail if tickCarriedBy isnt sent
-    private static void syncMapDataToClient(MapDataHolder holder, ServerPlayer player) {
-        //ok so hear me out. we use this to send new map holder to the client when needed. thing is this packet isnt enough on its own
-        // i need it for another mod so i'm using some code in moonlight which upgrades it to send center and dimension too (as well as custom colors)
-        //TODO: maybe use isComplex  update packet and inventory tick
-        Packet<?> p = holder.data.getUpdatePacket(holder.id, player);
-        if (p != null) {
-            player.connection.send(p);
-        }
-    }
-
-
 }

@@ -17,7 +17,7 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.networking.C2S2COpenAtlasScreenPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
+import pepjebs.mapatlases.utils.AtlasLookup;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.Optional;
@@ -79,7 +79,7 @@ public class MapAtlasesClientEvents {
     }
 
     private static void requestAtlasScreen(Player player, boolean pinOnly) {
-        if (!MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player).isEmpty()) {
+        if (!AtlasLookup.getAtlasFromPlayerByConfig(player).isEmpty()) {
             // needed as we might not have all mas needed
             NetworkHelper.sendToServer(new C2S2COpenAtlasScreenPacket(Optional.empty(), pinOnly));
         }

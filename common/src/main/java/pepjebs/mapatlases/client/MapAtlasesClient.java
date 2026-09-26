@@ -34,8 +34,8 @@ import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapGridKey;
-import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
-import pepjebs.mapatlases.utils.MapDataHolder;
+import pepjebs.mapatlases.utils.AtlasLookup;
+import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -178,7 +178,7 @@ public class MapAtlasesClient {
 
     @Nullable
     private static MapGridKey currentActiveMapKey = null;
-    private static MapDataHolder currentActiveMap = null;
+    private static AtlasMap currentActiveMap = null;
     private static ItemStack currentActiveAtlas = ItemStack.EMPTY;
     private static boolean isDrawingAtlas = false;
 
@@ -186,7 +186,7 @@ public class MapAtlasesClient {
     public static void refreshActiveAtlas(Player player) {
 
         if (player != Minecraft.getInstance().player) return;
-        ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+        ItemStack atlas = AtlasLookup.getAtlasFromPlayerByConfig(player);
         currentActiveAtlas = atlas;
         currentActiveMap = null;
         currentActiveMapKey = null;
@@ -196,7 +196,7 @@ public class MapAtlasesClient {
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
-            MapDataHolder select = maps.getMapAt(currentActiveMapKey);
+            AtlasMap select = maps.getMapAt(currentActiveMapKey);
             if (select == null) {
                 select = maps.getClosest(player, slice);
             }
@@ -215,7 +215,7 @@ public class MapAtlasesClient {
         return currentActiveMapKey;
     }
 
-    public static MapDataHolder getActiveMap() {
+    public static AtlasMap getActiveMap() {
         return currentActiveMap;
     }
 
@@ -287,7 +287,7 @@ public class MapAtlasesClient {
         ItemStack atlas = ItemStack.EMPTY;
         Player player = Minecraft.getInstance().player;
         if (lecternPos.isEmpty()) {
-            atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
+            atlas = AtlasLookup.getAtlasFromPlayerByConfig(player);
         } else {
             if (player.level().getBlockEntity(lecternPos.get()) instanceof LecternBlockEntity lec) {
                 lectern = lec;
