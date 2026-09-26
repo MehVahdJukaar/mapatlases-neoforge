@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 
 import java.util.Optional;
 
@@ -38,6 +39,13 @@ public record Slice(MapType type, Optional<Integer> height, ResourceKey<Level> d
 
     public int heightOrTop() {
         return height.orElse(Integer.MAX_VALUE);
+    }
+
+    public MapType emptyMapType() {
+        if (type == MapType.VANILLA && height.isPresent() && MapAtlasesConfig.requireSliceMaps.get()) {
+            return MapType.SLICED;
+        }
+        return type;
     }
 
     public int getDiscoveryReach() {

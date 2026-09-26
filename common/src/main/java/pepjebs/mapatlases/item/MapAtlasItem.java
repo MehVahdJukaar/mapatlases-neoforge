@@ -203,7 +203,7 @@ public class MapAtlasItem extends Item {
     }
 
     public static int getFreeMapSlots(ItemStack atlas, Level level) {
-        return getMaxMapCount() - getMaps(atlas, level).getCount() - getEmptyMaps(atlas).getSize();
+        return getMaxMapCount() - getMaps(atlas, level).getCount() - getEmptyMaps(atlas).getTotalCount();
     }
 
     public static EmptyMaps getEmptyMaps(ItemStack atlas) {

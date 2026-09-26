@@ -38,7 +38,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
         for (ItemStack i : inv.items()) {
             if (!i.isEmpty()) {
                 if (i.is(MapAtlasesMod.MAP_ATLAS.get()) &&
-                        (MapAtlasItem.getEmptyMaps(i).getSize() > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
+                        (MapAtlasItem.getEmptyMaps(i).getTotalCount() > 0 || MapAtlasItem.getMaps(i, level).getCount() > 0)) {
                     if (!atlas.isEmpty()) return false;
                     atlas = i;
                 } else if (i.is(Items.SHEARS) && i.getDamageValue() < i.getMaxDamage() - 1) {
@@ -79,17 +79,13 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
 
     @Nullable
     private static MapType getEmptyMapToRemove(EmptyMaps emptyMaps, Slice slice) {
-        MapType removedEmptyMap = null;
-        if (emptyMaps.get(slice.type()) > 0) {
-            removedEmptyMap = slice.type();
-        } else {
-            for (MapType t : MapType.values()) {
-                if (emptyMaps.get(t) > 0) {
-                    removedEmptyMap = t;
-                }
-            }
+        if (emptyMaps.getCount(slice) > 0) {
+            return slice.emptyMapType();
         }
-        return removedEmptyMap;
+        for (var e : emptyMaps.getAll().entrySet()) {
+            if (e.getValue() > 0) return e.getKey();
+        }
+        return null;
     }
 
     @Nullable

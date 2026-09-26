@@ -155,7 +155,10 @@ public class MapAtlasesAccessUtils {
         if (stack.is(Items.PAPER) && MapAtlasesConfig.acceptPaperForEmptyMaps.get()){
             return MapType.VANILLA;
         }
-        return MapType.fromEmptyMap(stack.getItem());
+        MapType type = MapType.fromEmptyMap(stack.getItem());
+        //slice maps count as normal empties unless the config asks for them
+        if (type == MapType.SLICED && !MapAtlasesConfig.requireSliceMaps.get()) return MapType.VANILLA;
+        return type;
     }
 
     public static void tickHoldingPlayerAndSync(

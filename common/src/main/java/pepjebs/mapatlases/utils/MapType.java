@@ -59,8 +59,6 @@ public enum MapType implements StringRepresentable {
             Item filled = v.empty.get();
             if (filled != null) map.put(filled, v);
         }
-        BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse("supplementaries:slice_map")).ifPresent(i -> map.put(i, VANILLA));
-
         return map;
     });
 

@@ -147,7 +147,7 @@ public class MapAtlasesServerEvents {
     ) {
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         Level level = player.level();
-        if (maps.getCount() == 0) {
+        if (maps.getCount() == 0 && MapAtlasItem.getEmptyMaps(atlas).getTotalCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
         }
@@ -155,7 +155,7 @@ public class MapAtlasesServerEvents {
         Slice slice = key.slice;
         int destX = key.mapX;
         int destZ = key.mapZ;
-        int emptyCount = MapAtlasItem.getEmptyMaps(atlas).get(slice);
+        int emptyCount = MapAtlasItem.getEmptyMaps(atlas).getCount(slice);
         boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
         MapDataHolder newMapHolder = null;
         if (emptyCount > 0 || player.isCreative() || bypassEmptyMaps) {
