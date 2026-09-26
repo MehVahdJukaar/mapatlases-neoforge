@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
+import pepjebs.mapatlases.utils.DummyEmptyChunk;
 
 @Mixin(value = MapItem.class, priority = 1200)
 public class MapItemMixin {
@@ -47,7 +47,7 @@ public class MapItemMixin {
             }*/
         }
         //return empty
-        return MapAtlasesServerEvents.getDummyChunk(level);
+        return DummyEmptyChunk.get(level);
     }
 
 

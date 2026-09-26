@@ -8,7 +8,6 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 //TODO: improve . lower updates when stationary
 public class WeightedUpdateScheduler extends UpdateScheduler {
@@ -16,14 +15,11 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
     private final Map<MapId, UpdateTicket> tickets = new HashMap<>();
 
     @Override
-    public void performUpdate(ServerPlayer player, List<MapDataHolder> visibleMaps) {
-        //Remove tickets for maps no longer visible
-        Set<MapId> visibleIds = visibleMaps.stream()
-                .map(m -> m.id)
-                .collect(Collectors.toSet());
-        tickets.entrySet().removeIf(entry -> !visibleIds.contains(entry.getKey()));
+    protected void syncTickets(ServerPlayer player, List<MapDataHolder> visibleMaps) {
+        Set<MapId> visibleIds = new HashSet<>();
+        for (MapDataHolder map : visibleMaps) visibleIds.add(map.id);
+        tickets.keySet().retainAll(visibleIds);
 
-        //Add new tickets for newly visible maps
         for (MapDataHolder map : visibleMaps) {
             tickets.computeIfAbsent(map.id, id -> new UpdateTicket(map));
         }
@@ -33,7 +29,6 @@ public class WeightedUpdateScheduler extends UpdateScheduler {
             ticket.updatePriority(player.getBlockX(), player.getBlockZ());
             ticket.updateHasBlankPixels();
         }
-        super.performUpdate(player, visibleMaps);
     }
 
     @Nullable

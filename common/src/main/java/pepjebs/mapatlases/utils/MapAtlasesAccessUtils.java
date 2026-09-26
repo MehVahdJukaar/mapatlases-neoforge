@@ -38,7 +38,7 @@ public class MapAtlasesAccessUtils {
             MapCollection maps = MapAtlasItem.getMaps(atlas, level);
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
             MapGridKey key = MapGridKey.at(maps.getScale(), slice, x, z);
-            MapDataHolder select = maps.select(key);
+            MapDataHolder select = maps.getMapAt(key);
             if (select != null) {
                 return select.data;
             }

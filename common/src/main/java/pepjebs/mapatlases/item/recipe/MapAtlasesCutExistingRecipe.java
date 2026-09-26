@@ -127,14 +127,14 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         MapDataHolder toRemove = getMapToRemove(inv, maps, slice);
         if (toRemove != null) {
-            maps.removeAndAssigns(atlas, level, List.of(toRemove));
+            maps.removeAndAssign(atlas, level, List.of(toRemove));
             maps = MapAtlasItem.getMaps(atlas, level);
             MapAtlasItem.setSelectedSlice(atlas, maps.closestAvailableSlice(slice.dimension(), slice), level);
             return;
         }
         EmptyMaps emptyMaps = MapAtlasItem.getEmptyMaps(atlas);
         MapType emptyToRemove = getEmptyMapToRemove(emptyMaps, slice);
-        if (emptyToRemove != null) emptyMaps.addAndAssigns(atlas, emptyToRemove, -1);
+        if (emptyToRemove != null) emptyMaps.addAndAssign(atlas, emptyToRemove, -1);
     }
 
     @Override

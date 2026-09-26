@@ -67,7 +67,7 @@ public final class MapGridKey {
 
     @Override
     public String toString() {
-        return "MapIndexKey[" +
+        return "MapGridKey[" +
                 "x=" + mapX + ", " +
                 "z=" + mapZ + ", " +
                 "slice=" + slice + ", " +

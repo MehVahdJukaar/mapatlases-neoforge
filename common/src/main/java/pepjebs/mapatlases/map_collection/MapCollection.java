@@ -258,9 +258,10 @@ public class MapCollection {
         return true;
     }
 
-    // height the atlas should switch to given where the player stands. null when it should stay where it is
+    //height to auto switch to for where the player stands, null to stay put
     @Nullable
-    public Integer findAutomaticSliceHeight(Player player, Level level, ResourceKey<Level> dimension, MapType type) {
+    public Integer nearestReachableSliceHeight(Player player, ResourceKey<Level> dimension, MapType type) {
+        Level level = player.level();
         NavigableSet<Integer> heightTree = getHeightTree(dimension, type);
         if (heightTree.size() == 1) return null;
         int y = player.getBlockY();

@@ -113,7 +113,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         //empty atlas has no scale yet so it can merge with anything
         if (!resultMaps.isEmpty() && !otherMaps.isEmpty()
                 && resultMaps.getScale() != otherMaps.getScale()) return null;
-        resultMaps.addAndAssigns(result, level, otherMaps.getIds().getAll());
+        resultMaps.addAndAssign(result, level, otherMaps.getIds().getAll());
 
         // Both atlases leave the table, so split the pool rather than giving each the full sum.
         Map<MapType, Integer> pooled = new EnumMap<>(MapType.class);
@@ -133,7 +133,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         //full atlas still takes the result slot, just leaves it empty
         if (amount <= 0) return ItemStack.EMPTY;
         ItemStack result = atlas.copyWithCount(1);
-        MapAtlasItem.getEmptyMaps(result).addAndAssigns(result, type, amount);
+        MapAtlasItem.getEmptyMaps(result).addAndAssign(result, type, amount);
         return result;
     }
 
@@ -145,7 +145,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         ItemStack result = atlas.copyWithCount(1);
         MapCollection maps = MapAtlasItem.getMaps(result, level);
         if (!maps.isEmpty() && maps.getScale() != holder.data.scale) return null;
-        if (!maps.addAndAssigns(result, level, holder.type, holder.id)) return null;
+        if (!maps.addAndAssign(result, level, holder.type, holder.id)) return null;
         return result;
     }
 
@@ -203,7 +203,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             List<MapDataHolder> found = mapatlases$getMapsInOrder(atlas, level);
             if (mapatlases$selectedMapIndex >= found.size()) return;
             MapDataHolder m = found.get(mapatlases$selectedMapIndex);
-            MapAtlasItem.getMaps(atlas, level).removeAndAssigns(atlas, level, List.of(m));
+            MapAtlasItem.getMaps(atlas, level).removeAndAssign(atlas, level, List.of(m));
         });
     }
 

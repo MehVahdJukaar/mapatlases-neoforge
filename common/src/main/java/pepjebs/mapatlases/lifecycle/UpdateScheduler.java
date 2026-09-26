@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.lifecycle;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
+import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.utils.MapDataHolder;
 
@@ -27,8 +27,8 @@ public abstract class UpdateScheduler {
         return Mth.clampedMap((float) speed, 0.001f, 1.2f, 0.1f, 2f) * MapAtlasesConfig.mapUpdatePerTick.get();
     }
 
-
-    public void performUpdate(ServerPlayer player, List<MapDataHolder> visible) {
+    public void performUpdate(ServerPlayer player, List<MapDataHolder> visibleMaps) {
+        syncTickets(player, visibleMaps);
         accumulator += computeUpdateRate(player);
 
         while (accumulator >= 1f) {
@@ -38,5 +38,9 @@ public abstract class UpdateScheduler {
         }
     }
 
+    //drop tickets for maps no longer in view and add ones for maps that just entered it
+    protected abstract void syncTickets(ServerPlayer player, List<MapDataHolder> visibleMaps);
+
+    @Nullable
     protected abstract MapDataHolder poll();
 }

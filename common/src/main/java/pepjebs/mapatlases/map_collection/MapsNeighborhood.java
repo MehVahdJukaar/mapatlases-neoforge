@@ -30,7 +30,7 @@ public final class MapsNeighborhood {
         return new MapsNeighborhood(around, centerKey);
     }
 
-    public Iterable<MapGridKey> all() {
+    public Iterable<MapGridKey> keys() {
         return around;
     }
 

@@ -2,16 +2,10 @@ package pepjebs.mapatlases.lifecycle;
 
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.chunk.EmptyLevelChunk;
-import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
@@ -38,21 +32,6 @@ public class MapAtlasesServerEvents {
     private static final Map<UUID, UpdateScheduler> SCHEDULERS_PER_PLAYER = new HashMap<>();
     private static final Map<UUID, MapDataHolder> LAST_CENTER_MAP_PER_PLAYER = new HashMap<>();
 
-    private static volatile LevelChunk dummyChunk;
-
-    public static LevelChunk getDummyChunk(Level level) {
-        LevelChunk cached = dummyChunk;
-        if (cached != null && cached.getLevel() == level) return cached;
-
-        LevelChunk fresh = new EmptyLevelChunk(level, ChunkPos.ZERO,
-                level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
-        MinecraftServer server = level.getServer();
-        if (server != null && server.isRunning()) {
-            dummyChunk = fresh;
-        }
-        return fresh;
-    }
-
     public static void onPlayerTick(ServerPlayer player) {
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
         if (atlas.isEmpty()) return;
@@ -72,7 +51,7 @@ public class MapAtlasesServerEvents {
         List<MapDataHolder> mapsInView = new ArrayList<>();
         //create missing maps
         boolean canFillEmpty = MapAtlasesConfig.enableEmptyMapEntryAndFill.get();
-        for (var m : neighborhood.all()) {
+        for (var m : neighborhood.keys()) {
             MapDataHolder info = maps.getMapAt(m);
             if (info == null && canFillEmpty) {
                 //can alter map collection
@@ -89,19 +68,12 @@ public class MapAtlasesServerEvents {
 
         //sync the slice below and above so we can update slice automatically
         if ((level.getGameTime() + 13) % 40 == 0) {
-            sendSlicesAboveAndBelow(player, atlas, maps, neighborhood.center());
+            syncOtherHeightsAtSameCell(player, atlas, maps, neighborhood.center());
         }
 
         if (mapsInView.isEmpty()) return;
 
-        UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player.getUUID(), p -> {
-            if (MapAtlasesConfig.updateFashion.get() == UpdateFashion.ROUND_ROBIN) {
-                return new RoundRobinUpdateScheduler();
-            } else {
-                return new WeightedUpdateScheduler();
-            }
-        });
-
+        UpdateScheduler scheduler = SCHEDULERS_PER_PLAYER.computeIfAbsent(player.getUUID(), p -> createScheduler());
         scheduler.performUpdate(player, mapsInView);
 
         for (MapDataHolder mapHolder : mapsInView) {
@@ -123,8 +95,15 @@ public class MapAtlasesServerEvents {
         }
     }
 
-    private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas,
-                                                MapCollection maps, MapGridKey activeKey) {
+    private static UpdateScheduler createScheduler() {
+        if (MapAtlasesConfig.updateFashion.get() == UpdateFashion.ROUND_ROBIN) {
+            return new RoundRobinUpdateScheduler();
+        }
+        return new WeightedUpdateScheduler();
+    }
+
+    private static void syncOtherHeightsAtSameCell(ServerPlayer player, ItemStack atlas,
+                                                   MapCollection maps, MapGridKey activeKey) {
         Slice slice = activeKey.slice;
         var dimension = slice.dimension();
         for (int h : maps.getHeightTree(dimension, slice.type())) {
@@ -136,11 +115,7 @@ public class MapAtlasesServerEvents {
 
     //TODO: optimize
     @Nullable
-    private static MapDataHolder maybeCreateNewMapEntry(
-            ServerPlayer player,
-            ItemStack atlas,
-            MapGridKey key
-    ) {
+    private static MapDataHolder maybeCreateNewMapEntry(ServerPlayer player, ItemStack atlas, MapGridKey key) {
         Level level = player.level();
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         if (maps.getCount() == 0 && MapAtlasItem.getEmptyMaps(atlas).getTotalCount() == 0) {
@@ -156,18 +131,19 @@ public class MapAtlasesServerEvents {
         var height = slice.height();
         if (height.isPresent() && !maps.getHeightTree(level.dimension(), slice.type()).contains(height.get())) {
             MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
+            return null;
         }
 
         ItemStack newMap = slice.createNewMap(key.mapX, key.mapZ, maps.getScale(), level, atlas);
         MapId newMapId = newMap.get(DataComponents.MAP_ID);
         if (newMapId == null) return null;
+        if (!maps.addAndAssign(atlas, level, slice.type(), newMapId)) return null;
 
         MapDataHolder newData = MapDataHolder.find(newMapId, slice.type(), level);
         // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
         if (newData != null) {
             MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
         }
-        if (!maps.addAndAssign(atlas, level, slice.type(), newMapId)) return null;
         if (consumesEmptyMap) {
             //remove 1 map
             MapAtlasItem.getEmptyMaps(atlas).addAndAssign(atlas, slice, -1);
@@ -186,7 +162,7 @@ public class MapAtlasesServerEvents {
         Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         // sets new center map
         MapGridKey activeKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
-        sendSlicesAboveAndBelow(player, atlas, maps, activeKey);
+        syncOtherHeightsAtSameCell(player, atlas, maps, activeKey);
     }
 
 
@@ -198,7 +174,7 @@ public class MapAtlasesServerEvents {
 
     public static void onDimensionUnload() {
         EntityRadar.unloadLevel();
-        dummyChunk = null;
+        DummyEmptyChunk.clear();
     }
 
 }

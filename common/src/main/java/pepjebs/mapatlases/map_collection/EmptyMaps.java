@@ -2,15 +2,11 @@ package pepjebs.mapatlases.map_collection;
 
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -22,12 +18,10 @@ public class EmptyMaps {
 
     private final Map<MapType, Integer> maps;
     private final int size;
-    private final boolean hasNonVanilla;
 
     private EmptyMaps(Map<MapType, Integer> maps) {
         this.maps = maps;
         this.size = maps.values().stream().mapToInt(Integer::intValue).sum();
-        this.hasNonVanilla = maps.keySet().stream().anyMatch(type -> type != MapType.VANILLA);
     }
 
     public static final Codec<EmptyMaps> CODEC = Codec.simpleMap(
@@ -58,15 +52,15 @@ public class EmptyMaps {
         return getCount(slice.emptyMapType());
     }
 
-    public void addAndAssigns(ItemStack stack, Slice slice, int amount) {
-        addAndAssigns(stack, slice.emptyMapType(), amount);
+    public void addAndAssign(ItemStack stack, Slice slice, int amount) {
+        addAndAssign(stack, slice.emptyMapType(), amount);
     }
 
-    public void addAndAssigns(ItemStack stack, MapType type, int amount) {
-        addAndAssigns(stack, Map.of(type, amount));
+    public void addAndAssign(ItemStack stack, MapType type, int amount) {
+        addAndAssign(stack, Map.of(type, amount));
     }
 
-    public void addAndAssigns(ItemStack atlas, Map<MapType, Integer> emptyMapCount) {
+    public void addAndAssign(ItemStack atlas, Map<MapType, Integer> emptyMapCount) {
         Map<MapType, Integer> newMap = new HashMap<>(this.maps);
         for (var entry : emptyMapCount.entrySet()) {
             newMap.merge(entry.getKey(), entry.getValue(), Integer::sum);
@@ -95,38 +89,6 @@ public class EmptyMaps {
     @Override
     public int hashCode() {
         return Objects.hashCode(maps);
-    }
-
-
-    public List<Component> getTooltips(int fullSize) {
-        int maxMapCount = MapAtlasItem.getMaxMapCount();
-        if (maxMapCount != -1 && fullSize + size >= maxMapCount) {
-            return List.of(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
-                    .withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
-        }
-
-        if (fullSize + size == 0) {
-            int pity = MapAtlasesConfig.pityActivationMapCount.get();
-            boolean usesEmptyMaps = MapAtlasesConfig.requireEmptyMapsToExpand.get() && MapAtlasesConfig.enableEmptyMapEntryAndFill.get();
-            // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
-            // they *would* receive if they activated the atlas
-            if (usesEmptyMaps && pity > 0) {
-                return List.of(Component.translatable("item.map_atlases.atlas.tooltip_empty", pity).withStyle(ChatFormatting.GRAY));
-            }
-            return List.of();
-        }
-
-        List<Component> tooltips = new ArrayList<>();
-        for (var entry : maps.entrySet()) {
-            MapType type = entry.getKey();
-            int empties = entry.getValue();
-            if (hasNonVanilla) {
-                tooltips.add(Component.translatable("item.map_atlases.atlas.tooltip_empty_type", type.getName(), empties).withStyle(ChatFormatting.GRAY));
-            } else {
-                tooltips.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
-            }
-        }
-        return tooltips;
     }
 
     public Map<MapType, Integer> getAll() {

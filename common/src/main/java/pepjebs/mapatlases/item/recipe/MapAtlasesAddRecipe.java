@@ -66,7 +66,7 @@ public class MapAtlasesAddRecipe extends AbstractAtlasRecipe {
                 if (atlasScale == null) atlasScale = (int) d.data.scale;
                 if (d.data.scale != atlasScale) return false;
                 MapGridKey key = d.makeKey();
-                if (maps.select(key) != null) return false;
+                if (maps.getMapAt(key) != null) return false;
                 if (!gridKeys.add(key)) return false;
             }
             rememberLevel(level);
@@ -103,10 +103,10 @@ public class MapAtlasesAddRecipe extends AbstractAtlasRecipe {
         // Get the Map Ids in the Grid
         // Set NBT Data
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        maps.addAndAssigns(atlas, level, mapIds);
+        maps.addAndAssign(atlas, level, mapIds);
 
         EmptyMaps em = MapAtlasItem.getEmptyMaps(atlas);
-        em.addAndAssigns(atlas, emptyMapCount);
+        em.addAndAssign(atlas, emptyMapCount);
 
         return atlas;
     }
