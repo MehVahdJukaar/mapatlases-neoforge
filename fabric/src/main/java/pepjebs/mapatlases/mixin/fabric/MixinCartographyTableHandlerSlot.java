@@ -6,7 +6,6 @@
  */
 package pepjebs.mapatlases.mixin.fabric;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CartographyTableMenu;
@@ -23,27 +22,6 @@ import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapType;
-
-@Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$3")
-class MixinCartographyTableHandlerFirstSlot {
-
-    @ModifyReturnValue(method = "mayPlace", at = @At("RETURN"))
-    boolean mapAtlasCanInsert(boolean original, ItemStack stack) {
-        return original || stack.is(MapAtlasesMod.MAP_ATLAS.get());
-
-    }
-}
-
-@Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$4")
-class MixinCartographyTableAbstractContainerMenuSecondSlot {
-
-    @ModifyReturnValue(method = "mayPlace", at = @At("RETURN"))
-    boolean mapAtlasCanInsert(boolean original, ItemStack stack) {
-        return original || stack.is(MapAtlasesMod.MAP_ATLAS.get()) ||
-                MapType.isFilledMap(stack) ||
-                PlatStuff.isShear(stack);
-    }
-}
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$5")
 class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {

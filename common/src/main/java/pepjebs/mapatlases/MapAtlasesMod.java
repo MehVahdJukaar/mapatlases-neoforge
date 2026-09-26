@@ -4,6 +4,7 @@ package pepjebs.mapatlases;
 import com.mojang.serialization.Codec;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
+import net.mehvahdjukaar.moonlight.api.util.CartographyTableHelper;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -12,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Unit;
+import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -35,6 +37,7 @@ import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
 import pepjebs.mapatlases.item.recipe.MapAtlasesAddRecipe;
 import pepjebs.mapatlases.item.recipe.MapAtlasesCutExistingRecipe;
 import pepjebs.mapatlases.map_collection.SelectedSlices;
+import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.TriState;
 
 import java.util.function.Supplier;
@@ -112,6 +115,13 @@ public class MapAtlasesMod {
             MapAtlasesClient.init();
         }
         RegHelper.addItemsToTabsRegistration(MapAtlasesMod::addItemsToTabs);
+
+        CartographyTableHelper.addAllowedItem(CartographyTableMenu.MAP_SLOT, s -> s.is(MAP_ATLAS.get()));
+        CartographyTableHelper.addAllowedItem(CartographyTableMenu.ADDITIONAL_SLOT,
+                s -> s.is(MAP_ATLAS.get()) || MapType.isFilledMap(s) || PlatStuff.isShear(s));
+        CartographyTableHelper.addSlotIcon(CartographyTableMenu.MAP_SLOT, res("item/gui_slots/empty_slot_atlas"));
+        CartographyTableHelper.addSlotIcon(CartographyTableMenu.ADDITIONAL_SLOT, res("item/gui_slots/empty_slot_atlas"));
+        CartographyTableHelper.addSlotIcon(CartographyTableMenu.ADDITIONAL_SLOT, res("item/gui_slots/empty_slot_shears"));
 
         //TODO
         //fix text scaling not being pixel multiple

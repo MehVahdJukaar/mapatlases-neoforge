@@ -22,7 +22,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -153,31 +152,6 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         List<AtlasMap> found = MapAtlasItem.getMaps(atlas, level).getAllFound();
         found.sort(Comparator.comparingInt((AtlasMap h) -> h.type.ordinal()).thenComparingInt(h -> h.id.id()));
         return found;
-    }
-
-    @Inject(method = "quickMoveStack", at = @At("HEAD"), cancellable = true)
-    void mapAtlasTransferSlot(Player player, int index, CallbackInfoReturnable<ItemStack> info) {
-        if (index >= 0 && index <= 2) return;
-
-        Slot slot = this.slots.get(index);
-
-        if (slot.hasItem()) {
-            ItemStack stack = slot.getItem();
-
-            if (PlatStuff.isShear(stack)) {
-                if (!this.moveItemStackTo(stack, 1, 2, false)) {
-                    info.setReturnValue(ItemStack.EMPTY);
-                    return;
-                }
-            }
-            if (stack.getItem() != MapAtlasesMod.MAP_ATLAS.get()) return;
-
-            boolean result = this.moveItemStackTo(stack, 0, 2, false);
-
-            if (!result) {
-                info.setReturnValue(ItemStack.EMPTY);
-            }
-        }
     }
 
     @Override
