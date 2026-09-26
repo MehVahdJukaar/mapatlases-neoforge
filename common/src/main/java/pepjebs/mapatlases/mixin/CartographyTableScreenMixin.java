@@ -50,10 +50,10 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta,double yDelta) {
-        if (CartographyTableAtlasButton.pressMenuButton(this.menu, pDelta > 0 ? 4 : 5)) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double scrollX,double scrollY) {
+        if (CartographyTableAtlasButton.pressMenuButton(this.menu, scrollY > 0 ? 4 : 5)) {
             return true;
         }
-        return super.mouseScrolled(pMouseX, pMouseY, pDelta, yDelta);
+        return super.mouseScrolled(pMouseX, pMouseY, scrollX, scrollY);
     }
 }
