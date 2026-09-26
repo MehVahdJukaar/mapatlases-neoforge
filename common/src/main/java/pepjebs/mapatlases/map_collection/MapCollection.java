@@ -203,14 +203,8 @@ public class MapCollection {
         notSyncedIds.removeIf(i -> populateInDataStructure(i.getValue(), i.getKey(), level));
     }
 
-    /**
-     * Returns the subset of {@code candidates} this collection does not already cover, by map
-     * id and by grid cell. {@code claimed} carries cells taken earlier in the same batch, so
-     * one call cannot add two maps covering the same cell.
-     */
-    private List<MapId> selectNotAlreadyCovered(Level level, MapType type,
-                                                Collection<MapId> candidates,
-                                                Set<MapGridKey> claimed) {
+    //takenCells is shared across the whole batch so two maps cant land on the same cell
+    private List<MapId> filterMapsThatCanBeAdded(Level level, MapType type, Collection<MapId> candidates, Set<MapGridKey> takenCells) {
         List<MapId> accepted = new ArrayList<>();
         for (MapId id : candidates) {
             if (ids.contains(type, id)) continue;
@@ -221,11 +215,11 @@ public class MapCollection {
                 accepted.add(id);
                 continue;
             }
-            // an empty collection has no scale yet, the first map added decides it
+            //an empty collection has no scale yet, the first map added decides it
             if (!maps.isEmpty() && found.data.scale != scale) continue;
-            MapGridKey key = found.makeKey();
-            if (maps.containsKey(key)) continue;
-            if (!claimed.add(key)) continue;
+            MapGridKey cell = found.makeKey();
+            if (maps.containsKey(cell)) continue;
+            if (!takenCells.add(cell)) continue;
             accepted.add(id);
         }
         return accepted;
@@ -238,10 +232,12 @@ public class MapCollection {
     //true if at least one map made it in, dupes and scale mismatches just get dropped
     public boolean addAndAssigns(ItemStack atlas, Level level, Map<MapType, ? extends Collection<MapId>> candidates) {
         Map<MapType, List<MapId>> toAdd = new EnumMap<>(MapType.class);
-        Set<MapGridKey> claimed = new HashSet<>();
+        Set<MapGridKey> takenCells = new HashSet<>();
         for (var e : candidates.entrySet()) {
-            List<MapId> accepted = selectNotAlreadyCovered(level, e.getKey(), e.getValue(), claimed);
-            if (!accepted.isEmpty()) toAdd.put(e.getKey(), accepted);
+            List<MapId> accepted = filterMapsThatCanBeAdded(level, e.getKey(), e.getValue(), takenCells);
+            if (!accepted.isEmpty()){
+                toAdd.put(e.getKey(), accepted);
+            }
         }
         if (toAdd.isEmpty()) return false;
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), ids.plus(toAdd));

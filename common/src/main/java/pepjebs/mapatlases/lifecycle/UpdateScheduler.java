@@ -12,9 +12,7 @@ import java.util.List;
 
 public abstract class UpdateScheduler {
 
-    /**
-     * Accumulator for fractional updates per tick
-     */
+     //Accumulator for fractional updates per tick
     protected float accumulator = 0f;
     protected Vec2 lastPlayerPos = null;
 

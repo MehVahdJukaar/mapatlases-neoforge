@@ -17,10 +17,7 @@ public final class MapsNeighborhood {
         this.center = center;
     }
 
-    public static MapsNeighborhood around(Player player,
-                                          byte scale,
-                                          Slice slice) {
-
+    public static MapsNeighborhood around(Player player, byte scale, Slice slice) {
         MapGridKey centerKey = MapGridKey.atEntityPosition(scale, slice, player);
 
         Set<MapGridKey> around = computeDiscoveryNeighbors(
@@ -44,11 +41,7 @@ public final class MapsNeighborhood {
 
 
     private static Set<MapGridKey> computeDiscoveryNeighbors(
-            MapGridKey center,
-            int playerX,
-            int playerZ,
-            int reach
-    ) {
+            MapGridKey center, int playerX, int playerZ, int reach) {
         int width = center.gridWidth;
         int halfWidth = width / 2;
 
