@@ -31,7 +31,7 @@ subprojects {
     apply(plugin = "maven-publish")
 
     dependencies {
-        compileOnly("net.mehvahdjukaar:candlelight:1.2.6")
+        compileOnly("net.mehvahdjukaar:candlelight:1.2.4")
     }
 
 
@@ -50,9 +50,9 @@ subprojects {
 
 
     upload {
-        maven {
-            nexus()
-        }
+        //maven {
+        //    nexus()
+        //}
         curseforge {
             projectId = if (project.name == "fabric") {
                 curseforge_project_id_fabric;

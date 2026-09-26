@@ -17,13 +17,15 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 
 public abstract class AbstractAtlasDisplay {
@@ -213,9 +215,8 @@ public abstract class AbstractAtlasDisplay {
         poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
 
         MapItemSavedData data = state.data;
-        boolean drawPlayerIcons = !this.drawBigPlayerMarker && data.dimension.equals(player.level().dimension());
-
-        var hidden = swapOutPlayerMarkers(data, player, drawPlayerIcons);
+        Map<String, MapDecoration> originalDecorations = new LinkedHashMap<>(data.decorations);
+        replacePlayerMarkers(data, player);
 
         light = MapAtlasesClient.debugIsMapUpdated(light, state.id, state.type);
 
@@ -230,10 +231,8 @@ public abstract class AbstractAtlasDisplay {
                             light //
                     );
         } finally {
-            //adds back the off-map player icons after render
-            for (Map.Entry<String, MapDecoration> e : hidden) {
-                data.decorations.put(e.getKey(), e.getValue());
-            }
+            data.decorations.clear();
+            data.decorations.putAll(originalDecorations);
         }
 
         Matrix4f pose = new Matrix4f(poseStack.last().pose());
@@ -241,42 +240,32 @@ public abstract class AbstractAtlasDisplay {
         return pose;
     }
 
-    private List<Map.Entry<String, MapDecoration>> swapOutPlayerMarkers(MapItemSavedData data, Player player, boolean drawPlayerIcons) {
-        // Remove the off-map player icons temporarily during render
-        List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
-        List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
-        String ownKey = player.getName().getString();
-        // Only remove the off-map icon if it's not the active map, or it's not the active dimension
-        for (var e : data.decorations.entrySet()) {
-            if (!e.getKey().equals(ownKey)) continue;
-            MapDecoration dec = e.getValue();
-            var type = dec.type();
-            if (type.is(MapDecorationTypes.PLAYER_OFF_MAP) || type.is(MapDecorationTypes.PLAYER_OFF_LIMITS)) {
-                if (data == mapWherePlayerIs.data && drawPlayerIcons) {
-                    removed.add(e);
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
-                            dec.x(), dec.y(), getPlayerMarkerRot(player), dec.name())));
-                } else removed.add(e);
+    // client side decorations are keyed icon-N so we cant tell whose is whose. just redraw every player
+    private void replacePlayerMarkers(MapItemSavedData data, Player player) {
+        data.decorations.values().removeIf(d -> d.type().is(MapDecorationTypes.PLAYER)
+                || d.type().is(MapDecorationTypes.PLAYER_OFF_MAP) || d.type().is(MapDecorationTypes.PLAYER_OFF_LIMITS));
+        if (!data.dimension.equals(player.level().dimension())) return;
 
-            } else if (type.is(MapDecorationTypes.PLAYER)) {
-                if (!drawPlayerIcons || data != mapWherePlayerIs.data) {
-                    removed.add(e);
-                } else {
-                    int i = 1 << data.scale;
-                    float f = (float) (player.getX() - data.centerX) / i;
-                    float f1 = (float) (player.getZ() - data.centerZ) / i;
-                    byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
-                    byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
-                    added.add(new AbstractMap.SimpleEntry<>(e.getKey(), new MapDecoration(MapDecorationTypes.PLAYER,
-                            b0, b1, getPlayerMarkerRot(player), dec.name())));
-                    //add accurate player
-                }
+        int i = 1 << data.scale;
+        int radius = MapAtlasesClientConfig.playerMarkersRadius.get();
+        for (Player p : player.level().players()) {
+            float f = (float) (p.getX() - data.centerX) / i;
+            float f1 = (float) (p.getZ() - data.centerZ) / i;
+            if (p == player) {
+                if (this.drawBigPlayerMarker || data != mapWherePlayerIs.data) continue;
+                //stick to the edge like vanilla off map icon
+                f = Mth.clamp(f, -63, 63);
+                f1 = Mth.clamp(f1, -63, 63);
+            } else {
+                boolean offThisMap = Math.abs(f) > 63 || Math.abs(f1) > 63;
+                if (offThisMap || p.distanceToSqr(player) > radius * radius) continue;
             }
-        }
 
-        removed.forEach(d -> data.decorations.remove(d.getKey()));
-        added.forEach(d -> data.decorations.put(d.getKey(), d.getValue()));
-        return removed;
+            byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
+            byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
+            data.decorations.put("map_atlases_player_" + p.getStringUUID(), new MapDecoration(MapDecorationTypes.PLAYER,
+                    b0, b1, getPlayerMarkerRot(p), Optional.empty()));
+        }
     }
 
     private static byte getPlayerMarkerRot(Player p) {

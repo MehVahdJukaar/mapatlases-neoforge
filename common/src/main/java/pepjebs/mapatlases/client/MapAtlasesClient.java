@@ -11,7 +11,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
@@ -54,16 +53,19 @@ public class MapAtlasesClient {
     public static final Material OTHER_TEXTURE =
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
+    //not Sheets.SHULKER_SHEET, that would load Sheets too early
+    private static final ResourceLocation SHULKER_SHEET = ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png");
+
     public static final Material MAP_BORDER_TEXTURE = new Material(
-            Sheets.SHULKER_SHEET, //so we have mipmap here too
+            SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final Material MAP_HOVERED_TEXTURE = new Material(
-            Sheets.SHULKER_SHEET, //so we have mipmap here too
+            SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
     public static final Material MAP_BACKGROUND_TEXTURE = new Material(
-            Sheets.SHULKER_SHEET, //so we have mipmap here too
+            SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_background"));
 
     //sprites

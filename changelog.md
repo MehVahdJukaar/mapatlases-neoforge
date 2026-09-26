@@ -1,5 +1,6 @@
 many internal improvements and fixes
 added new api classes
+many many fixes:
 fixes #301
 fixes #295
 fixes #251

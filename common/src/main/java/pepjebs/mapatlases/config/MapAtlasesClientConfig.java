@@ -180,6 +180,8 @@ public class MapAtlasesClientConfig {
                 .feature("mob_radar", false);
         radarRadius = builder.comment("How far around the player mobs are picked up by the radar")
                 .define("radar_radius", 64, 0, 256);
+        playerMarkersRadius = builder.comment("How far around you other players show up on atlas maps. 0 hides them")
+                .define("player_markers_radius", 128, 0, 1024);
         radarRotation = builder.comment("Entities on radar will have their icon rotate")
                 .define("radar_pins_rotate", false);
         radarColor = builder.comment("Uses yellow markers for all mobs")
@@ -244,6 +246,7 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> pinTracking;
     public static final Supplier<Boolean> entityRadar;
     public static final Supplier<Integer> radarRadius;
+    public static final Supplier<Integer> playerMarkersRadius;
     public static final Supplier<Boolean> radarColor;
     public static final Supplier<Boolean> nightLightMap;
     public static final Supplier<Boolean> radarRotation;
