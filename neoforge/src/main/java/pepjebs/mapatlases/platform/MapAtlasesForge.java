@@ -50,7 +50,7 @@ public class MapAtlasesForge {
     public void mapAtlasesPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
         if (player.level().isClientSide) {
-            MapAtlasesClient.cachePlayerState(event.getEntity());
+            MapAtlasesClient.refreshActiveAtlas(event.getEntity());
         } else if (player instanceof ServerPlayer sp) {
             MapAtlasesServerEvents.onPlayerTick(sp);
         }

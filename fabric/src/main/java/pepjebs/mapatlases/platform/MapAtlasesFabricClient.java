@@ -11,7 +11,7 @@ public class MapAtlasesFabricClient {
 
         MapAtlasesClientImpl.init();
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null) MapAtlasesClient.cachePlayerState(client.player);
+            if (client.player != null) MapAtlasesClient.refreshActiveAtlas(client.player);
             if (client.level != null) MapAtlasesClientEvents.onClientTick(client, client.level);
         });
     }

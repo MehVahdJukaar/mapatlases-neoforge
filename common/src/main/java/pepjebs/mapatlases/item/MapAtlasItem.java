@@ -46,8 +46,8 @@ public class MapAtlasItem extends Item {
 
     public static void removeAndDropSliceMaps(Slice slice, ItemStack atlas, ServerPlayer player) {
         MapCollection maps = getMaps(atlas, player.level());
-        Collection<MapDataHolder> allInSlice = maps.selectSection(slice);
-        maps.removeAndAssigns(atlas, player.level(), allInSlice);
+        Collection<MapDataHolder> allInSlice = maps.getMapsInSlice(slice);
+        maps.removeAndAssign(atlas, player.level(), allInSlice);
         for (MapDataHolder holder : allInSlice) {
             giveMapToPlayer(player, holder);
         }
@@ -56,7 +56,7 @@ public class MapAtlasItem extends Item {
     public static void removeAndDropMap(MapId id, MapType type, ItemStack atlas, ServerPlayer player) {
         MapCollection maps = getMaps(atlas, player.level());
         MapDataHolder holder = MapDataHolder.find(id, type, player.level());
-        if (holder != null && maps.removeAndAssigns(atlas, player.level(), List.of(holder))) {
+        if (holder != null && maps.removeAndAssign(atlas, player.level(), List.of(holder))) {
             giveMapToPlayer(player, holder);
         }
     }
@@ -138,7 +138,7 @@ public class MapAtlasItem extends Item {
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide) {
                 MapCollection maps = getMaps(stack, level);
-                MapDataHolder mapState = maps.select(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
+                MapDataHolder mapState = maps.getMapAt(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
                 if (mapState == null || !mapState.data.toggleBanner(level, blockPos)) return InteractionResult.FAIL;
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
@@ -167,13 +167,13 @@ public class MapAtlasItem extends Item {
         var dimension = slice.dimension();
         if (slice.equals(Slice.defaultVanillaFor(dimension))) {
             SelectedSlices selectedSlice = stack.get(MapAtlasesMod.SELECTED_SLICES.get());
-            if (selectedSlice != null) selectedSlice.removeAndAssigns(stack, dimension);
+            if (selectedSlice != null) selectedSlice.removeAndAssign(stack, dimension);
             return;
         }
         //validate:
         MapCollection maps = getMaps(stack, level);
         if (!maps.getHeightTree(dimension, slice.type()).contains(slice.heightOrTop())) return;
-        stack.getOrDefault(MapAtlasesMod.SELECTED_SLICES.get(), SelectedSlices.EMPTY).addAndAssigns(stack, dimension, slice);
+        stack.getOrDefault(MapAtlasesMod.SELECTED_SLICES.get(), SelectedSlices.EMPTY).addAndAssign(stack, dimension, slice);
     }
 
     public static MapCollection getMaps(ItemStack stack, Level level) {

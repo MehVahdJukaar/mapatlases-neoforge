@@ -48,7 +48,7 @@ public abstract class ItemInHandRendererMixin {
                                    CallbackInfo ci, @Local(argsOnly = true) ItemStack pStack,
                                    @Local HumanoidArm humanoidarm, @Local(ordinal = 0) boolean flag) {
         if (pStack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(pStack)) {
-            if (!MapAtlasItem.getMaps(stack, player.level()).mapsDimension(player.level().dimension())) return;
+            if (!MapAtlasItem.getMaps(stack, player.level()).hasDimension(player.level().dimension())) return;
             mapatlases$renderingAtlas = true;
             if (flag && this.offHandItem.isEmpty()) {
                 this.renderTwoHandedMap(poseStack, buffer, combinedLight, pitch, equippedProgress, swingProgress);

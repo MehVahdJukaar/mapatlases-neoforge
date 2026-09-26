@@ -255,7 +255,7 @@ public class AtlasOverviewScreen extends Screen {
         }
         this.atlas = syncedAtlas;
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-        maps.updateNotSynced(level);
+        maps.resolvePendingMaps(level);
         boolean mapsChanged = !maps.getIds().equals(currentMaps.getIds()) || maps.getAllFound().size() != currentMaps.getAllFound().size();
         this.currentMaps = maps;
         if (mapsChanged) onMapsChanged();
@@ -448,7 +448,7 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     private MapDataHolder findMarkedOrMiddleMap() {
-        List<MapDataHolder> section = currentMaps.selectSection(selectedSlice);
+        List<MapDataHolder> section = currentMaps.getMapsInSlice(selectedSlice);
         if (section.isEmpty()) return null;
         MapDataHolder best = null;
         double sumX = 0;
@@ -473,12 +473,12 @@ public class AtlasOverviewScreen extends Screen {
 
     @Nullable
     protected MapDataHolder findMapWithCenter(int reqXCenter, int reqZCenter) {
-        return currentMaps.select(reqXCenter, reqZCenter, selectedSlice);
+        return currentMaps.getMapAt(reqXCenter, reqZCenter, selectedSlice);
     }
 
     @Nullable
     protected MapDataHolder findMapContaining(int x, int z) {
-        return currentMaps.select(MapGridKey.at(currentMaps.getScale(), selectedSlice, x, z));
+        return currentMaps.getMapAt(MapGridKey.at(currentMaps.getScale(), selectedSlice, x, z));
     }
 
     public void selectDimension(ResourceKey<Level> dimension) {
@@ -502,7 +502,7 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         List<DecorationHolder> mapIcons = new ArrayList<>();
-        for (MapDataHolder holder : currentMaps.selectSection(selectedSlice)) {
+        for (MapDataHolder holder : currentMaps.getMapsInSlice(selectedSlice)) {
             for (var d : holder.data.decorations.entrySet()) {
                 MapDecoration deco = d.getValue();
                 if (deco.renderOnFrame() && !deco.type().is(MapAtlasesMod.NON_REMOVABLE_DECORATIONS)) {
@@ -581,7 +581,7 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type, lecternPos()));
-            currentMaps.removeAndAssigns(atlas, level, List.of(selected));
+            currentMaps.removeAndAssign(atlas, level, List.of(selected));
             currentMaps = MapAtlasItem.getMaps(atlas, level);
             onMapsChanged();
         }
@@ -590,7 +590,7 @@ public class AtlasOverviewScreen extends Screen {
 
     public void shearSlice(Slice slice) {
         NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice, lecternPos()));
-        currentMaps.removeAndAssigns(atlas, level, currentMaps.selectSection(slice));
+        currentMaps.removeAndAssign(atlas, level, currentMaps.getMapsInSlice(slice));
         currentMaps = MapAtlasItem.getMaps(atlas, level);
         onMapsChanged();
         this.clearCursorAction();

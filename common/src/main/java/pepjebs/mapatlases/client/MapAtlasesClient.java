@@ -183,7 +183,7 @@ public class MapAtlasesClient {
     private static boolean isDrawingAtlas = false;
 
 
-    public static void cachePlayerState(Player player) {
+    public static void refreshActiveAtlas(Player player) {
 
         if (player != Minecraft.getInstance().player) return;
         ItemStack atlas = MapAtlasesAccessUtils.getAtlasFromPlayerByConfig(player);
@@ -192,11 +192,11 @@ public class MapAtlasesClient {
         currentActiveMapKey = null;
         if (!atlas.isEmpty()) {
             MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
-            maps.updateNotSynced(player.level());
+            maps.resolvePendingMaps(player.level());
             Slice slice = MapAtlasItem.getSelectedSlice(atlas, player.level().dimension());
             // I hate this
             currentActiveMapKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
-            MapDataHolder select = maps.select(currentActiveMapKey);
+            MapDataHolder select = maps.getMapAt(currentActiveMapKey);
             if (select == null) {
                 select = maps.getClosest(player, slice);
             }
@@ -303,7 +303,7 @@ public class MapAtlasesClient {
         ClientLevel level = Minecraft.getInstance().level;
         var maps = MapAtlasItem.getMaps(atlas, level);
         //we arent ticking these so we have to fix duplicates
-        maps.updateNotSynced(level);
+        maps.resolvePendingMaps(level);
         if (!maps.isEmpty()) {
             Minecraft.getInstance().setScreen(new AtlasOverviewScreen(atlas, lectern, pinOnly));
         }

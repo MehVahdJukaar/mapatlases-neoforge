@@ -32,7 +32,7 @@ public abstract class ItemInHandRendererMixin {
             target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
     public boolean renderMapAtlasItem(boolean isNormalMap, @Local(argsOnly = true) ItemStack pStack, @Local(argsOnly = true) AbstractClientPlayer player){
         if(pStack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(pStack)){
-            if (!MapAtlasItem.getMaps(pStack, player.level()).mapsDimension(player.level().dimension())) return isNormalMap;
+            if (!MapAtlasItem.getMaps(pStack, player.level()).hasDimension(player.level().dimension())) return isNormalMap;
             mapatlases$renderingAtlas = true;
             return true;
         }

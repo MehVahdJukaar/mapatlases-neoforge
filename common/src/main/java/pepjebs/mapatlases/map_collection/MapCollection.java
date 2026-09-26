@@ -1,17 +1,19 @@
 package pepjebs.mapatlases.map_collection;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
@@ -68,7 +70,7 @@ public class MapCollection {
         return mapHeights.keySet();
     }
 
-    public boolean mapsDimension(ResourceKey<Level> levelResourceKey) {
+    public boolean hasDimension(ResourceKey<Level> levelResourceKey) {
         return mapHeights.containsKey(levelResourceKey);
     }
 
@@ -79,7 +81,7 @@ public class MapCollection {
     }
 
     public Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
-        if (!selectSection(preferred).isEmpty()) return preferred;
+        if (!getMapsInSlice(preferred).isEmpty()) return preferred;
         var types = getAvailableTypes(dimension);
         if (types.isEmpty()) return preferred;
         MapType type = types.contains(preferred.type()) ? preferred.type() : types.iterator().next();
@@ -112,22 +114,26 @@ public class MapCollection {
         return new ArrayList<>(maps.values());
     }
 
-    public List<MapDataHolder> selectSection(Slice slice) {
+    public List<MapDataHolder> getMapsInSlice(Slice slice) {
         return filter(m -> Objects.equals(m.slice, slice));
     }
 
     public List<MapDataHolder> filter(Predicate<MapDataHolder> predicate) {
-        return new ArrayList<>(maps.values().stream().filter(predicate).toList());
+        List<MapDataHolder> matching = new ArrayList<>();
+        for (MapDataHolder holder : maps.values()) {
+            if (predicate.test(holder)) matching.add(holder);
+        }
+        return matching;
     }
 
     @Nullable
-    public MapDataHolder select(MapGridKey key) {
+    public MapDataHolder getMapAt(MapGridKey key) {
         return maps.get(key);
     }
 
     @Nullable
-    public MapDataHolder select(int x, int z, Slice slice) {
-        return select(MapGridKey.at(scale, slice, x, z));
+    public MapDataHolder getMapAt(int x, int z, Slice slice) {
+        return getMapAt(MapGridKey.at(scale, slice, x, z));
     }
 
     @Nullable
@@ -153,12 +159,12 @@ public class MapCollection {
         return minDistState;
     }
 
-    public static double distSquare(MapItemSavedData mapState, double x, double z) {
+    private static double distSquare(MapItemSavedData mapState, double x, double z) {
         return Mth.square(mapState.centerX - x) + Mth.square(mapState.centerZ - z);
     }
 
 
-    public boolean hasOneSlicedMap() {
+    public boolean hasAnySlicedMap() {
         return maps.keySet().stream().anyMatch(k -> k.slice.height().isPresent());
     }
 
@@ -200,7 +206,7 @@ public class MapCollection {
     }
 
     // if a duplicate exists its likely that its data was not synced yet
-    public void updateNotSynced(Level level) {
+    public void resolvePendingMaps(Level level) {
         notSyncedIds.removeIf(i -> populateInDataStructure(i.getValue(), i.getKey(), level));
     }
 
@@ -226,12 +232,12 @@ public class MapCollection {
         return accepted;
     }
 
-    public boolean addAndAssigns(ItemStack atlas, Level level, MapType type, MapId map) {
-        return addAndAssigns(atlas, level, Map.of(type, List.of(map)));
+    public boolean addAndAssign(ItemStack atlas, Level level, MapType type, MapId map) {
+        return addAndAssign(atlas, level, Map.of(type, List.of(map)));
     }
 
     //true if at least one map made it in, dupes and scale mismatches just get dropped
-    public boolean addAndAssigns(ItemStack atlas, Level level, Map<MapType, ? extends Collection<MapId>> candidates) {
+    public boolean addAndAssign(ItemStack atlas, Level level, Map<MapType, ? extends Collection<MapId>> candidates) {
         Map<MapType, List<MapId>> toAdd = new EnumMap<>(MapType.class);
         Set<MapGridKey> takenCells = new HashSet<>();
         for (var e : candidates.entrySet()) {
@@ -245,21 +251,63 @@ public class MapCollection {
         return true;
     }
 
-    public boolean removeAndAssigns(ItemStack atlas, Level level, Collection<MapDataHolder> holders) {
+    public boolean removeAndAssign(ItemStack atlas, Collection<MapDataHolder> holders) {
         MapIds newIds = ids.minus(holders);
         if (newIds.getCount() == ids.getCount()) return false;
         atlas.set(MapAtlasesMod.MAP_COLLECTION.get(), newIds);
-
-        //dont leave a slice selected that has no maps left
-        MapCollection remaining = newIds.resolve(level);
-        for (MapDataHolder h : holders) {
-            var dim = h.slice.dimension();
-            boolean sliceGone = remaining.selectSection(h.slice).isEmpty();
-            if (sliceGone && MapAtlasItem.getSelectedSlice(atlas, dim).equals(h.slice)) {
-                MapAtlasItem.setSelectedSlice(atlas, Slice.defaultVanillaFor(dim), level);
-            }
-        }
         return true;
+    }
+
+    // height the atlas should switch to given where the player stands. null when it should stay where it is
+    @Nullable
+    public Integer findAutomaticSliceHeight(Player player, Level level, ResourceKey<Level> dimension, MapType type) {
+        NavigableSet<Integer> heightTree = getHeightTree(dimension, type);
+        if (heightTree.size() == 1) return null;
+        int y = player.getBlockY();
+
+        int worldSurface = level.getHeight(Heightmap.Types.OCEAN_FLOOR, player.getBlockX(), player.getBlockZ());
+        boolean isAboveHeightMap = y >= worldSurface;
+        Integer ceiling = heightTree.ceiling(y);
+        if (isAboveHeightMap) {
+            return ceiling;
+        }
+        //if not aove check one below and above where we are
+        else {
+            Integer floor = heightTree.floor(y);
+
+            int aboveDist = ceiling == null ? 0 : ceiling - y;
+            int belowDist = floor == null ? 0 : y - floor;
+            int max = Math.max(belowDist, aboveDist);
+            boolean canGoUp = true;
+            boolean canGoDown = true;
+            BlockPos.MutableBlockPos pos = player.blockPosition().mutable();
+            int startY = pos.getY();
+            for (int j = 1; j <= max; j++) {
+                //nothing found. we dont change
+                if (!canGoUp && !canGoDown) {
+                    return null;
+                }
+                if (j == aboveDist) {
+                    return ceiling;
+                }
+                if (j == belowDist) {
+                    return floor;
+                }
+                if (canGoUp) {
+                    pos.setY(startY + j);
+                    if (level.getBlockState(pos).getMapColor(level, pos) != MapColor.NONE) {
+                        canGoUp = false;
+                    }
+                }
+                if (canGoDown) {
+                    pos.setY(startY - j);
+                    if (level.getBlockState(pos).getMapColor(level, pos) != MapColor.NONE) {
+                        canGoDown = false;
+                    }
+                }
+            }
+            return null;
+        }
     }
 
 }

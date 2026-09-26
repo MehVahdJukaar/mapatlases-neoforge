@@ -76,7 +76,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
     @Override
     public MapDataHolder getMapWithCenter(int centerX, int centerZ) {
         Slice slice = currentMapKey.slice;
-        return currentMaps.select(centerX, centerZ, slice);
+        return currentMaps.getMapAt(centerX, centerZ, slice);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         this.rotatesWithPlayer = MapAtlasesClientConfig.miniMapRotate.get();
         this.globalScale = (float) (double) MapAtlasesClientConfig.miniMapScale.get();
         this.currentMaps = MapAtlasItem.getMaps(currentAtlas, mc.level);
-        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasOneSlicedMap();
+        this.displaysY = !MapAtlasesClientConfig.yOnlyWithSlice.get() || currentMaps.hasAnySlicedMap();
         this.drawBigPlayerMarker = followingPlayer;
     }
 

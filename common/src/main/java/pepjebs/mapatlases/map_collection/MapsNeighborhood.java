@@ -1,7 +1,6 @@
-package pepjebs.mapatlases.lifecycle;
+package pepjebs.mapatlases.map_collection;
 
 import net.minecraft.world.entity.player.Player;
-import pepjebs.mapatlases.map_collection.MapGridKey;
 import pepjebs.mapatlases.utils.Slice;
 
 import java.util.HashSet;

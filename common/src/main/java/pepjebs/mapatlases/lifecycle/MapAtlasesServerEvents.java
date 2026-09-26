@@ -21,6 +21,7 @@ import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.map_collection.MapGridKey;
+import pepjebs.mapatlases.map_collection.MapsNeighborhood;
 import pepjebs.mapatlases.networking.S2CWorldHashPacket;
 import pepjebs.mapatlases.utils.*;
 
@@ -72,7 +73,7 @@ public class MapAtlasesServerEvents {
         //create missing maps
         boolean canFillEmpty = MapAtlasesConfig.enableEmptyMapEntryAndFill.get();
         for (var m : neighborhood.all()) {
-            MapDataHolder info = maps.select(m);
+            MapDataHolder info = maps.getMapAt(m);
             if (info == null && canFillEmpty) {
                 //can alter map collection
                 info = maybeCreateNewMapEntry(player, atlas, m);
@@ -112,7 +113,7 @@ public class MapAtlasesServerEvents {
         if (lastData != null && !mapsInView.contains(lastData)) {
             MapAtlasesAccessUtils.tickHoldingPlayerAndSync(lastData, player, atlas, TriState.SET_FALSE);
         }
-        LAST_CENTER_MAP_PER_PLAYER.put(player.getUUID(), maps.select(neighborhood.center()));
+        LAST_CENTER_MAP_PER_PLAYER.put(player.getUUID(), maps.getMapAt(neighborhood.center()));
 
         if (createdNewMap) {
             // Play the sound
@@ -128,7 +129,7 @@ public class MapAtlasesServerEvents {
         var dimension = slice.dimension();
         for (int h : maps.getHeightTree(dimension, slice.type())) {
             if (h == slice.heightOrTop()) continue;
-            var other = maps.select(activeKey.mapX, activeKey.mapZ, Slice.of(slice.type(), h, dimension));
+            var other = maps.getMapAt(activeKey.mapX, activeKey.mapZ, Slice.of(slice.type(), h, dimension));
             if (other != null) MapAtlasesAccessUtils.tickHoldingPlayerAndSync(other, player, atlas, TriState.SET_TRUE);
         }
     }
@@ -166,10 +167,10 @@ public class MapAtlasesServerEvents {
         if (newData != null) {
             MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
         }
-        if (!maps.addAndAssigns(atlas, level, slice.type(), newMapId)) return null;
+        if (!maps.addAndAssign(atlas, level, slice.type(), newMapId)) return null;
         if (consumesEmptyMap) {
             //remove 1 map
-            MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
+            MapAtlasItem.getEmptyMaps(atlas).addAndAssign(atlas, slice, -1);
         }
         return newData;
     }
