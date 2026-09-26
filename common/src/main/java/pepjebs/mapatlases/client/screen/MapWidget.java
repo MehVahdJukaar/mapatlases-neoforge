@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -116,10 +117,9 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
 
             if (mapScreen.canTeleport()) {
-                graphics.renderTooltip(mc.font,
-                        Component.translatable("chat.coordinates.tooltip")
-                                .withStyle(ChatFormatting.GREEN),
-                        pMouseX, pMouseY);
+                //deferred so it doesnt get the book scale
+                mapScreen.setTooltipForNextRenderPass(Tooltip.splitTooltip(mc,
+                        Component.translatable("chat.coordinates.tooltip").withStyle(ChatFormatting.GREEN)));
             }
             if (PlatHelper.isDev()) {
                 var d = getHoveredMap(pMouseX, pMouseY);

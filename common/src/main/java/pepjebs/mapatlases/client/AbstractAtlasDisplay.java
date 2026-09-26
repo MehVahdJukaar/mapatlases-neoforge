@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -178,8 +177,6 @@ public abstract class AbstractAtlasDisplay {
 
     private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC) {
         //cause of vertex consumer chaining bug...
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         float zOffset = -1;
         outlineVC.addVertex(matrix4f, 0.0F, 128.0F, zOffset).setColor(255, 255, 255, 255);
         outlineVC.setUv(0.0F, 1.0F)
