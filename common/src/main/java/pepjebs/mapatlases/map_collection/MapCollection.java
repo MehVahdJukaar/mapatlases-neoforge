@@ -256,7 +256,7 @@ public class MapCollection {
             var dim = h.slice.dimension();
             boolean sliceGone = remaining.selectSection(h.slice).isEmpty();
             if (sliceGone && MapAtlasItem.getSelectedSlice(atlas, dim).equals(h.slice)) {
-                MapAtlasItem.setSelectedSlice(atlas, Slice.of(MapType.VANILLA, null, dim), level);
+                MapAtlasItem.setSelectedSlice(atlas, Slice.defaultVanillaFor(dim), level);
             }
         }
         return true;

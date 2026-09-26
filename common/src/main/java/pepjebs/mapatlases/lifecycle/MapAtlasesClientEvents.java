@@ -35,17 +35,19 @@ public class MapAtlasesClientEvents {
     public static void onClientTick(Minecraft client, ClientLevel level) {
         long gameTime = level.getGameTime();
 
+        //offsets so these dont all run on the same tick
         if (MapAtlasesMod.SUPPLEMENTARIES && (gameTime + 27) % 40 == 0) {
             SupplementariesClientCompat.onClientTick(level);
-        } else if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
+        }
+        if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {
                 MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-
                 Slice s = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
                 maybeChangeSlice(client.player, level, maps, s, atlas);
             }
-        } else if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get() && MapAtlasesConfig.entityRadar.get()) {
+        }
+        if ((gameTime + 7) % 40 == 0 && MapAtlasesClientConfig.entityRadar.get() && MapAtlasesConfig.entityRadar.get()) {
             EntityRadar.onClientTick(client.player);
         }
     }

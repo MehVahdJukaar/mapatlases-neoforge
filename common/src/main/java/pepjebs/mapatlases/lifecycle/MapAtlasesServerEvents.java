@@ -3,7 +3,6 @@ package pepjebs.mapatlases.lifecycle;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -59,12 +58,11 @@ public class MapAtlasesServerEvents {
         if (MapAtlasItem.isLocked(atlas)) return;
 
         Level level = player.level();
-        ResourceKey<Level> dimension = level.dimension();
         if (level.dimensionTypeRegistration().is(MapAtlasesMod.NON_TRACKED_DIMENSIONS)) {
             //don't do anything if player is in a non-tracked dimension
             return;
         }
-        Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
+        Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         MapsNeighborhood neighborhood = MapsNeighborhood.around(player, maps.getScale(), slice);
 
@@ -118,7 +116,7 @@ public class MapAtlasesServerEvents {
 
         if (createdNewMap) {
             // Play the sound
-            player.level().playSound(null, player.blockPosition(),
+            level.playSound(null, player.blockPosition(),
                     MapAtlasesMod.ATLAS_CREATE_MAP_SOUND_EVENT.get(),
                     SoundSource.PLAYERS, 1, 1.0F);
         }
@@ -127,14 +125,11 @@ public class MapAtlasesServerEvents {
     private static void sendSlicesAboveAndBelow(ServerPlayer player, ItemStack atlas,
                                                 MapCollection maps, MapGridKey activeKey) {
         Slice slice = activeKey.slice;
-        var dimension = activeKey.slice.dimension();
-        var tree = maps.getHeightTree(dimension, slice.type());
-        for (Integer hh : tree) {
-            if (hh != slice.heightOrTop()) {
-                var below = maps.select(activeKey.mapX, activeKey.mapZ, Slice.of(slice.type(), hh, dimension));
-                if (below != null)
-                    MapAtlasesAccessUtils.tickHoldingPlayerAndSync(below, player, atlas, TriState.SET_TRUE);
-            }
+        var dimension = slice.dimension();
+        for (int h : maps.getHeightTree(dimension, slice.type())) {
+            if (h == slice.heightOrTop()) continue;
+            var other = maps.select(activeKey.mapX, activeKey.mapZ, Slice.of(slice.type(), h, dimension));
+            if (other != null) MapAtlasesAccessUtils.tickHoldingPlayerAndSync(other, player, atlas, TriState.SET_TRUE);
         }
     }
 
@@ -145,52 +140,38 @@ public class MapAtlasesServerEvents {
             ItemStack atlas,
             MapGridKey key
     ) {
-        MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
         Level level = player.level();
+        MapCollection maps = MapAtlasItem.getMaps(atlas, level);
         if (maps.getCount() == 0 && MapAtlasItem.getEmptyMaps(atlas).getTotalCount() == 0) {
             // If the Atlas is "inactive", give it a pity Empty Map count
             MapAtlasItem.getEmptyMaps(atlas).setAndAssign(atlas, MapType.VANILLA, MapAtlasesConfig.pityActivationMapCount.get());
         }
 
         Slice slice = key.slice;
-        int destX = key.mapX;
-        int destZ = key.mapZ;
-        int emptyCount = MapAtlasItem.getEmptyMaps(atlas).getCount(slice);
-        boolean bypassEmptyMaps = !MapAtlasesConfig.requireEmptyMapsToExpand.get();
-        MapDataHolder newMapHolder = null;
-        if (emptyCount > 0 || player.isCreative() || bypassEmptyMaps) {
-            // Make the new map
+        boolean consumesEmptyMap = MapAtlasesConfig.requireEmptyMapsToExpand.get() && !player.isCreative();
+        if (consumesEmptyMap && MapAtlasItem.getEmptyMaps(atlas).getCount(slice) == 0) return null;
 
-            //validate height
-            var height = slice.height();
-            if (height.isPresent() && !maps.getHeightTree(player.level().dimension(), slice.type()).contains(height.get())) {
-                MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
-            }
-
-            byte scale = maps.getScale();
-
-            ItemStack newMap = slice.createNewMap(destX, destZ, scale, player.level(), atlas);
-            MapId newMapId = newMap.get(DataComponents.MAP_ID);
-
-            if (newMapId != null) {
-                MapDataHolder newData = MapDataHolder.find(newMapId, slice.type(), level);
-                // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
-                if (newData != null) {
-                    MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
-                }
-                boolean addedMap = maps.addAndAssigns(atlas, level, slice.type(), newMapId);
-
-
-                if (addedMap) {
-                    if (!player.isCreative() && !bypassEmptyMaps) {
-                        //remove 1 map
-                        MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
-                    }
-                    newMapHolder = newData;
-                }
-            }
+        //validate height
+        var height = slice.height();
+        if (height.isPresent() && !maps.getHeightTree(level.dimension(), slice.type()).contains(height.get())) {
+            MapAtlasesMod.LOGGER.error("Invalid height for slice: {} height: {}", slice, height.get());
         }
-        return newMapHolder;
+
+        ItemStack newMap = slice.createNewMap(key.mapX, key.mapZ, maps.getScale(), level, atlas);
+        MapId newMapId = newMap.get(DataComponents.MAP_ID);
+        if (newMapId == null) return null;
+
+        MapDataHolder newData = MapDataHolder.find(newMapId, slice.type(), level);
+        // for custom map data to be sent immediately... crappy and hacky. TODO: change custom map data impl
+        if (newData != null) {
+            MapAtlasesAccessUtils.tickHoldingPlayerAndSync(newData, player, newMap, TriState.SET_TRUE);
+        }
+        if (!maps.addAndAssigns(atlas, level, slice.type(), newMapId)) return null;
+        if (consumesEmptyMap) {
+            //remove 1 map
+            MapAtlasItem.getEmptyMaps(atlas).addAndAssigns(atlas, slice, -1);
+        }
+        return newData;
     }
 
 
@@ -200,10 +181,8 @@ public class MapAtlasesServerEvents {
         if (atlas.isEmpty()) return;
 
         Level level = player.level();
-        ResourceKey<Level> dimension = level.dimension();
         MapCollection maps = MapAtlasItem.getMaps(atlas, level);
-
-        Slice slice = MapAtlasItem.getSelectedSlice(atlas, dimension);
+        Slice slice = MapAtlasItem.getSelectedSlice(atlas, level.dimension());
         // sets new center map
         MapGridKey activeKey = MapGridKey.atEntityPosition(maps.getScale(), slice, player);
         sendSlicesAboveAndBelow(player, atlas, maps, activeKey);

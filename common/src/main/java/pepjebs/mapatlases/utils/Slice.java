@@ -37,6 +37,10 @@ public record Slice(MapType type, Optional<Integer> height, ResourceKey<Level> d
         return new Slice(type, Optional.ofNullable(height), dimension);
     }
 
+    public static Slice defaultVanillaFor(ResourceKey<Level> dimension) {
+        return new Slice(MapType.VANILLA, Optional.empty(), dimension);
+    }
+
     public int heightOrTop() {
         return height.orElse(Integer.MAX_VALUE);
     }
