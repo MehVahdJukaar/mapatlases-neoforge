@@ -15,6 +15,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.config.MapAtlasesConfig;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
 import pepjebs.mapatlases.map_collection.MapCollection;
@@ -71,6 +72,9 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
         if (toRemove != null) return toRemove.createExistingMapItem();
         MapType emptyToRemove = getEmptyMapToRemove(MapAtlasItem.getEmptyMaps(atlas), slice);
         if (emptyToRemove != null) {
+            //paper went in, paper comes out
+            boolean mightBePaper = emptyToRemove == MapType.VANILLA && MapAtlasesConfig.acceptPaperForEmptyMaps.get();
+            if (mightBePaper) return Items.PAPER.getDefaultInstance();
             return emptyToRemove.getEmpty().getDefaultInstance();
         }
         //should never run

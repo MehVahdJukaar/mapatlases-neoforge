@@ -167,7 +167,7 @@ public class MapAtlasItem extends Item {
             var dim = h.slice.dimension();
             boolean sliceGone = remaining.getMapsInSlice(h.slice).isEmpty();
             if (sliceGone && getSelectedSlice(atlas, dim).equals(h.slice)) {
-                setSelectedSlice(atlas, Slice.defaultVanillaFor(dim), level);
+                setSelectedSlice(atlas, remaining.closestAvailableSlice(dim, Slice.defaultVanillaFor(dim)), level);
             }
         }
         return true;
@@ -222,7 +222,7 @@ public class MapAtlasItem extends Item {
     public static void removeAndDropSliceMaps(Slice slice, ItemStack atlas, ServerPlayer player) {
         Level level = player.level();
         Collection<AtlasMap> allInSlice = getMaps(atlas, level).getMapsInSlice(slice);
-        removeMaps(atlas, level, allInSlice);
+        if (!removeMaps(atlas, level, allInSlice)) return;
         for (AtlasMap holder : allInSlice) {
             giveMapToPlayer(player, holder);
         }

@@ -245,8 +245,10 @@ public abstract class AbstractAtlasDisplay {
         // Remove the off-map player icons temporarily during render
         List<Map.Entry<String, MapDecoration>> removed = new ArrayList<>();
         List<Map.Entry<String, MapDecoration>> added = new ArrayList<>();
+        String ownKey = player.getName().getString();
         // Only remove the off-map icon if it's not the active map, or it's not the active dimension
         for (var e : data.decorations.entrySet()) {
+            if (!e.getKey().equals(ownKey)) continue;
             MapDecoration dec = e.getValue();
             var type = dec.type();
             if (type.is(MapDecorationTypes.PLAYER_OFF_MAP) || type.is(MapDecorationTypes.PLAYER_OFF_LIMITS)) {

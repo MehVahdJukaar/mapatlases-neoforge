@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.Util;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -337,7 +338,9 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         var key = level.getBiome(blockPos).unwrapKey();
         if (key.isPresent()) {
             ResourceKey<Biome> biomeKey = key.get();
-            biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
+            // datapack biomes often ship no lang
+            biomeToDisplay = Component.translatableWithFallback(Util.makeDescriptionId("biome", biomeKey.location()),
+                    LangBuilder.getReadableName(biomeKey.location().getPath())).getString();
         }
         AtlasGuiUtils.drawScaledText(context, font, x, y, biomeToDisplay,
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));

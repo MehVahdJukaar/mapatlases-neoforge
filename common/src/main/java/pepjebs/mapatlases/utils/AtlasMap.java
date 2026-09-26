@@ -164,6 +164,6 @@ public class AtlasMap {
     }
 
     public ItemStack createExistingMapItem() {
-        return type.createExistingMapItem(id, slice.height());
+        return type.createExistingMapItem(id);
     }
 }

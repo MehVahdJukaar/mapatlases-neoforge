@@ -601,12 +601,14 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private void addNewPin() {
-        if (partialPin == null) return;
-        ClientMarkers.placePin(partialPin.getFirst(), partialPin.getSecond(), pinNameBox.getValue(), pinNameBox.getPinIndex());
-        pinNameBox.increasePinIndex();
-        closeTextBox();
-        partialPin = null;
-        this.recalculateDecorationWidgets();
+        if (partialPin != null) {
+            ClientMarkers.placePin(partialPin.getFirst(), partialPin.getSecond(), pinNameBox.getValue(), pinNameBox.getPinIndex());
+            pinNameBox.increasePinIndex();
+            closeTextBox();
+            partialPin = null;
+            this.recalculateDecorationWidgets();
+        }
+        if (isPinOnly) this.onClose();
     }
 
     private void openPinNameBox() {

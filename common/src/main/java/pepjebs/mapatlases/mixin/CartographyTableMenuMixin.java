@@ -74,7 +74,8 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
         if (!topItem.is(MapAtlasesMod.MAP_ATLAS.get())) return;
         this.access.execute((world, blockPos) -> {
             ItemStack result = mapatlases$makeResult(topItem, bottomItem, world);
-            if (result == null) return;
+            //vanilla doesnt clear the slot for an atlas, so a stale result would stay takeable
+            if (result == null) result = ItemStack.EMPTY;
             this.resultContainer.setItem(CartographyTableMenu.RESULT_SLOT, result);
             this.broadcastChanges();
             info.cancel();
@@ -164,7 +165,7 @@ public abstract class CartographyTableMenuMixin extends AbstractContainerMenu im
             ItemStack stack = slot.getItem();
 
             if (PlatStuff.isShear(stack)) {
-                if (!this.moveItemStackTo(stack, 1, 1, false)) {
+                if (!this.moveItemStackTo(stack, 1, 2, false)) {
                     info.setReturnValue(ItemStack.EMPTY);
                     return;
                 }

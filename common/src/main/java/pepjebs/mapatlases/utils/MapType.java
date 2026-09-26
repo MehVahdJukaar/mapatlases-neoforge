@@ -159,10 +159,8 @@ public enum MapType implements StringRepresentable {
         }
     }
 
-    public ItemStack createExistingMapItem(MapId id, Optional<Integer> height) {
+    public ItemStack createExistingMapItem(MapId id) {
         if (!isLoaded()) return ItemStack.EMPTY;
-        boolean isSupplementariesSlice = (this == VANILLA || this == SLICED) && height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES;
-        if (isSupplementariesSlice) return SupplementariesCompat.createExistingSliced(id);
         ItemStack map = new ItemStack(getFilled());
         map.set(DataComponents.MAP_ID, id);
         return map;
