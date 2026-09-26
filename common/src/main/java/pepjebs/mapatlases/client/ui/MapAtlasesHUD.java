@@ -289,7 +289,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
     }
 
     private void renderPinTracking(GuiGraphics graphics, int x, int y) {
-        if (!MapAtlasesClientConfig.moonlightPinTracking.get()) return;
+        if (!MapAtlasesClientConfig.pinTracking.get()) return;
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
         RenderSystem.enableDepthTest();

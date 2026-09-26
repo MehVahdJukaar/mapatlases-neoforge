@@ -54,7 +54,7 @@ public class MapAtlasesClientEvents {
         if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
             requestAtlasScreen(client.player, false);
         }
-        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code) && MapAtlasesClientConfig.moonlightCompat.get()) {
+        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code) && MapAtlasesClientConfig.pinsEnabled.get()) {
             requestAtlasScreen(client.player, true);
         }
 

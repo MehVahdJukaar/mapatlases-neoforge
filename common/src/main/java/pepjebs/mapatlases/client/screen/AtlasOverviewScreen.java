@@ -199,7 +199,7 @@ public class AtlasOverviewScreen extends Screen {
     private void initSideButtons(int bookLeft, int bookRight, int topY) {
         int rightX = bookRight + 20;
         int rightY = topY;
-        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesClientConfig.moonlightCompat.get()) {
+        if (!MapAtlasesConfig.pinMarkerId.get().isEmpty() && MapAtlasesClientConfig.pinsEnabled.get()) {
             this.pinButton = addRenderableWidget(CursorActionButton.pin(rightX, rightY, this));
             rightY += 20;
         }

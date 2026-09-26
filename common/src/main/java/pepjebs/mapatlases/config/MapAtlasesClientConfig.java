@@ -169,11 +169,11 @@ public class MapAtlasesClientConfig {
 
         builder.pop();
 
-        builder.icon("minecraft:red_banner").push("moonlight_integration");
-        moonlightCompat = builder
+        builder.icon("minecraft:red_banner").push("markers");
+        pinsEnabled = builder
                 .comment("Enables custom map markers, which you can place on the map via a special pin button")
                 .mainFeature();
-        moonlightPinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
+        pinTracking = builder.comment("Allows tracking pins by pressing control, making them follow you on minimap")
                 .define("pin_tracking", true);
         entityRadar = builder.icon("minecraft:spider_eye")
                 .comment("Show nearby mobs on minimap. Also requires matching server config")
@@ -240,8 +240,8 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Double> miniMapScale;
     public static final Supplier<Double> worldMapScale;
     public static final Supplier<Double> lecternWorldMapScale;
-    public static final Supplier<Boolean> moonlightCompat;
-    public static final Supplier<Boolean> moonlightPinTracking;
+    public static final Supplier<Boolean> pinsEnabled;
+    public static final Supplier<Boolean> pinTracking;
     public static final Supplier<Boolean> entityRadar;
     public static final Supplier<Integer> radarRadius;
     public static final Supplier<Boolean> radarColor;
