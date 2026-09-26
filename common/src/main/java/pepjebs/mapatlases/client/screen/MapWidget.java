@@ -24,6 +24,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.AbstractAtlasDisplay;
+import pepjebs.mapatlases.client.AtlasGuiUtils;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.networking.C2STeleportPacket;
@@ -55,9 +56,9 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     private boolean isHovered;
     private float scaleAlpha = 0;
 
-    public MapWidget(int x, int y, int width, int height, int atlasesCount,
+    public MapWidget(int x, int y, int width, int height, int mapsPerSide,
                      AtlasOverviewScreen screen, AtlasMap originalCenterMap) {
-        super(atlasesCount);
+        super(mapsPerSide);
         initialize(originalCenterMap);
         this.targetZoomLevel = zoomLevel;
         this.x = x;
@@ -75,8 +76,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
     @Override
     protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
-        var v = mapScreen.transformPos(x, y);
-        var v2 = mapScreen.transformPos(x1, y1);
+        var v = mapScreen.bookToScreenCoords(x, y);
+        var v2 = mapScreen.bookToScreenCoords(x1, y1);
         super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
     }
 
@@ -104,11 +105,11 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         MapAtlasesClient.setDecorationsScale(1);
         MapAtlasesClient.setDecorationsTextScale(1);
 
-        mapScreen.updateVisibleDecoration((int) currentXCenter, (int) currentZCenter,
+        mapScreen.onMapViewMoved((int) currentXCenter, (int) currentZCenter,
                 (zoomLevel / 2) * mapBlocksSize);
 
         if (isHovered && hoveredData != null) {
-            mapScreen.notifyOfClickActionUsage();
+            mapScreen.markCursorActionHasTarget();
         }
 
         if (this.isHovered && !mapScreen.isEditingText()) {
@@ -123,7 +124,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             if (PlatHelper.isDev()) {
                 var d = getHoveredMap(pMouseX, pMouseY);
                 if (d != null) {
-                    AtlasScreenUtils.drawScaledComponent(
+                    AtlasGuiUtils.drawScaledText(
                             graphics, mc.font, x, y + height + 8 + 10, "Map: [id=" + d.id.id() + ", type=" + d.type + ", y=" + d.height + "]", 1, width, width);
                 }
             }
@@ -166,7 +167,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
         String coordsToDisplay = Component.translatable("message.map_atlases.coordinates", pos.x(), pos.z()).getString();
-        AtlasScreenUtils.drawScaledComponent(
+        AtlasGuiUtils.drawScaledText(
                 graphics, font, x, y + height + 8, coordsToDisplay, textScaling, width, width);
     }
 
@@ -312,7 +313,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     public void resetZoom() {
-        this.targetZoomLevel = atlasesCount * mapScreen.getSelectedSlice().type().getDefaultZoomFactor();
+        this.targetZoomLevel = mapsPerSide * mapScreen.getSelectedSlice().type().getDefaultZoomFactor();
     }
 
     public void tick() {

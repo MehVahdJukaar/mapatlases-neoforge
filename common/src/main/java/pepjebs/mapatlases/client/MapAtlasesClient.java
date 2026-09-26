@@ -75,10 +75,8 @@ public class MapAtlasesClient {
     public static final ResourceLocation SLICE_BOOKMARK_SPRITE = MapAtlasesMod.res("slice_bookmark");
 
     public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_SPRITE = MapAtlasesMod.res("cartography_table_left");
-    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("cartography_table_left_selected");
     public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_left_hovered");
     public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_SPRITE = MapAtlasesMod.res("cartography_table_right");
-    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_SELECTED_SPRITE = MapAtlasesMod.res("cartography_table_right_selected");
     public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_right_hovered");
 
     public static final ResourceLocation DELETE_MARKER_SPRITE = MapAtlasesMod.res("delete_marker");

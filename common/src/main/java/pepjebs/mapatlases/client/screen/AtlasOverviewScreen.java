@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4d;
 import org.lwjgl.glfw.GLFW;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.client.AtlasGuiUtils;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
@@ -65,6 +66,8 @@ public class AtlasOverviewScreen extends Screen {
     private MapWidget mapWidget;
     private PinNameBox pinNameBox;
     private EditBox filterBox;
+    @Nullable
+    private EditBox activeTextBox;
     private SliceBookmarkButton sliceButton;
     private SliceArrowButton sliceUp;
     private SliceArrowButton sliceDown;
@@ -72,14 +75,12 @@ public class AtlasOverviewScreen extends Screen {
     private DecorationListPanel decorationPanel;
     @Nullable
     private CursorActionButton pinButton;
-    public final float globalScale;
+    final float globalScale;
     private final boolean isPinOnly;
     private Slice selectedSlice;
     private boolean initialized = false;
     private CursorAction selectedCursorAction;
-    private boolean canPerformCursorAction;
-    boolean inMouseClick = false;
-    private boolean pendingRecalculate = false;
+    private boolean cursorActionHasTarget;
 
     @Nullable
     private Pair<AtlasMap, ColumnPos> partialPin = null;
@@ -154,6 +155,7 @@ public class AtlasOverviewScreen extends Screen {
         int bookTop = (height - bookBackground.height()) / 2;
 
         // text boxes render above the scaled book so they arent added as widgets
+        this.activeTextBox = null;
         this.pinNameBox = new PinNameBox(this.font, modalX(), modalY(), MODAL_W, MODAL_H,
                 Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
         this.filterBox = new EditBox(this.font, modalX(), modalY(), MODAL_W, MODAL_H, Component.empty());
@@ -180,8 +182,9 @@ public class AtlasOverviewScreen extends Screen {
         initLecternButtons();
 
         selectDimension(level.dimension());
+        applyPendingPanelRefreshes();
 
-        if (isPinOnly) setPinNameBoxState(true);
+        if (isPinOnly) openPinNameBox();
         this.initialized = true;
     }
 
@@ -229,7 +232,7 @@ public class AtlasOverviewScreen extends Screen {
         }
     }
 
-    protected boolean isValid() {
+    private boolean isValid() {
         if (this.minecraft == null || this.minecraft.player == null) return false;
         if (lectern == null) return true;
         return Container.stillValidBlockEntity(lectern, this.minecraft.player)
@@ -247,6 +250,7 @@ public class AtlasOverviewScreen extends Screen {
             this.minecraft.setScreen(null);
             return;
         }
+        if (!initialized) return;
         // the inventory stack gets replaced on every server sync, so the one we opened with goes stale
         ItemStack syncedAtlas = lectern == null ? AtlasLookup.getAtlasFromPlayerByConfig(player) : lectern.getBook();
         if (syncedAtlas.isEmpty()) {
@@ -260,10 +264,14 @@ public class AtlasOverviewScreen extends Screen {
         this.currentMaps = maps;
         if (mapsChanged) onMapsChanged();
 
-        if (mapWidget != null) mapWidget.tick();
-        if (pinNameBox != null && pinNameBox.active) pinNameBox.tick();
-        if (decorationPanel != null) decorationPanel.flush();
-        if (dimensionPanel != null) dimensionPanel.flush();
+        mapWidget.tick();
+        if (activeTextBox == pinNameBox) pinNameBox.tick();
+        applyPendingPanelRefreshes();
+    }
+
+    private void applyPendingPanelRefreshes() {
+        decorationPanel.applyPendingRefresh();
+        dimensionPanel.applyPendingRefresh();
     }
 
     private void onMapsChanged() {
@@ -279,30 +287,29 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         dimensionPanel.setSelectedDimension(dim);
-        if (!updateSlice(currentMaps.closestAvailableSlice(dim, selectedSlice))) recalculateDecorationWidgets();
+        if (!selectSlice(currentMaps.closestAvailableSlice(dim, selectedSlice))) recalculateDecorationWidgets();
     }
 
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (pKeyCode == GLFW.GLFW_KEY_ESCAPE && cancelCurrentKeyPressed()) return true;
+        if (activeTextBox != null) {
+            boolean enter = pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER;
+            if (enter && activeTextBox == filterBox) {
+                decorationPanel.applyFilter(filterBox.getValue());
+                closeTextBox();
+            } else {
+                activeTextBox.keyPressed(pKeyCode, pScanCode, pModifiers);
+            }
+            return true;
+        }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound()
                 && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) toggleCursorAction(CursorAction.PLACING_PIN);
             return true;
         }
-        if (filterBox.active) {
-            if (pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) {
-                decorationPanel.applyFilter(filterBox.getValue());
-                setFilterBoxState(false);
-            } else {
-                filterBox.keyPressed(pKeyCode, pScanCode, pModifiers);
-            }
-            return true;
-        }
-        if (super.keyPressed(pKeyCode, pScanCode, pModifiers) || pinNameBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
-            return true;
-        }
-        if (!isEditingText() && MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) return true;
+        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
             this.onClose();
             return true;
         }
@@ -313,14 +320,14 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     private boolean cancelCurrentKeyPressed() {
-        if (pinNameBox.active) {
-            setPinNameBoxState(false);
+        if (activeTextBox == pinNameBox) {
+            closeTextBox();
             partialPin = null;
             if (isPinOnly) this.onClose();
             return true;
         }
-        if (filterBox.active) {
-            setFilterBoxState(false);
+        if (activeTextBox == filterBox) {
+            closeTextBox();
             return true;
         }
         if (selectedCursorAction != CursorAction.NONE) {
@@ -354,31 +361,29 @@ public class AtlasOverviewScreen extends Screen {
             poseStack.scale(globalScale, globalScale, 1);
             poseStack.translate(-width / 2f, -height / 2f, 0.2);
             RenderSystem.enableDepthTest();
-            var v = transformMousePos(mouseX, mouseY);
+            var v = screenToBookCoords(mouseX, mouseY);
             boolean editing = isEditingText();
             super.render(graphics, editing ? -1 : (int) v.x, editing ? -1 : (int) v.y, delta);
             poseStack.popPose();
         }
 
-        if (pinNameBox.active) {
-            pinNameBox.render(graphics, mouseX, mouseY, delta);
-        } else if (filterBox.active) {
+        if (activeTextBox != null) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 30);
-            filterBox.render(graphics, mouseX, mouseY, delta);
+            activeTextBox.render(graphics, mouseX, mouseY, delta);
             poseStack.popPose();
         } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
             renderCrosshair(graphics);
         }
 
-        ResourceLocation cursorIcon = selectedCursorAction.getIcon(canPerformCursorAction);
+        ResourceLocation cursorIcon = selectedCursorAction.getIcon(cursorActionHasTarget);
         if (cursorIcon != null) {
             poseStack.pushPose();
             poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
             graphics.blitSprite(cursorIcon, 0, 0, 8, 8);
             poseStack.popPose();
         }
-        this.canPerformCursorAction = false;
+        this.cursorActionHasTarget = false;
     }
 
     private void renderCrosshair(GuiGraphics graphics) {
@@ -401,41 +406,32 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public void mouseMoved(double pMouseX, double pMouseY) {
         if (isEditingText()) return;
-        var v = transformMousePos(pMouseX, pMouseY);
+        var v = screenToBookCoords(pMouseX, pMouseY);
         super.mouseMoved(v.x, v.y);
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (pinNameBox.active) return pinNameBox.mouseClicked(pMouseX, pMouseY, pButton);
-        if (filterBox.active) return filterBox.mouseClicked(pMouseX, pMouseY, pButton);
-        var v = transformMousePos(pMouseX, pMouseY);
-        inMouseClick = true;
+        if (activeTextBox != null) return activeTextBox.mouseClicked(pMouseX, pMouseY, pButton);
+        var v = screenToBookCoords(pMouseX, pMouseY);
         boolean result = super.mouseClicked(v.x, v.y, pButton);
-        inMouseClick = false;
-        dimensionPanel.flush();
-        decorationPanel.flush();
-        if (pendingRecalculate) {
-            pendingRecalculate = false;
-            recalculateDecorationWidgets();
-        }
+        applyPendingPanelRefreshes();
         return result;
     }
 
     @Override
     public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
-        if (pinNameBox.active) return pinNameBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
-        if (filterBox.active) return filterBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
-        var v = transformMousePos(pMouseX, pMouseY);
+        if (activeTextBox != null) return activeTextBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
+        var v = screenToBookCoords(pMouseX, pMouseY);
         return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
     }
 
-    public Vector4d transformMousePos(double mouseX, double mouseZ) {
-        return AtlasScreenUtils.scaleVector(mouseX, mouseZ, 1 / globalScale, width, height);
+    public Vector4d screenToBookCoords(double mouseX, double mouseY) {
+        return AtlasGuiUtils.scaleVector(mouseX, mouseY, 1 / globalScale, width, height);
     }
 
-    public Vector4d transformPos(double mouseX, double mouseZ) {
-        return AtlasScreenUtils.scaleVector(mouseX, mouseZ, globalScale, width, height);
+    public Vector4d bookToScreenCoords(double x, double y) {
+        return AtlasGuiUtils.scaleVector(x, y, globalScale, width, height);
     }
 
     @Nullable
@@ -483,24 +479,19 @@ public class AtlasOverviewScreen extends Screen {
 
     public void selectDimension(ResourceKey<Level> dimension) {
         boolean sameDim = selectedSlice.dimension().equals(dimension);
-        if (sameDim) this.selectedSlice = new Slice(selectedSlice.type(), selectedSlice.height(), dimension);
         // On first call from init we keep the atlas's saved slice; afterwards use the per-dim saved slice.
         Slice saved = !initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension);
-        updateSlice(currentMaps.closestAvailableSlice(dimension, saved));
+        boolean sliceChanged = selectSlice(currentMaps.closestAvailableSlice(dimension, saved));
+        dimensionPanel.setSelectedDimension(dimension);
+        if (!sliceChanged) recalculateDecorationWidgets();
 
         MapItemSavedData center = this.getCenterMapForSelectedDim();
         if (center == null) return;
         boolean isWherePlayerIs = level.dimension().equals(dimension);
         this.mapWidget.resetAndCenter(center.centerX, center.centerZ, isWherePlayerIs, sameDim);
-        dimensionPanel.setSelectedDimension(dimension);
-        recalculateDecorationWidgets();
     }
 
     protected void recalculateDecorationWidgets() {
-        if (inMouseClick) {
-            pendingRecalculate = true;
-            return;
-        }
         List<DecorationHolder> mapIcons = new ArrayList<>();
         for (AtlasMap holder : currentMaps.getMapsInSlice(selectedSlice)) {
             for (var d : holder.data.decorations.entrySet()) {
@@ -514,8 +505,8 @@ public class AtlasOverviewScreen extends Screen {
         decorationPanel.rebuild(mapIcons);
     }
 
-    public void updateVisibleDecoration(int currentXCenter, int currentZCenter, float radius) {
-        decorationPanel.markInView(currentXCenter, currentZCenter, radius);
+    public void onMapViewMoved(int currentXCenter, int currentZCenter, float radius) {
+        decorationPanel.onMapViewMoved(currentXCenter, currentZCenter, radius);
     }
 
     public void centerOnDecoration(DecorationBookmarkButton button) {
@@ -524,15 +515,15 @@ public class AtlasOverviewScreen extends Screen {
 
     public void stepSlice(boolean up) {
         Slice next = currentMaps.adjacentSlice(selectedSlice, up);
-        if (next != null) updateSlice(next);
+        if (next != null) selectSlice(next);
     }
 
     public void cycleSliceType() {
         Slice next = currentMaps.nextTypeSlice(selectedSlice);
-        if (next != null) updateSlice(next);
+        if (next != null) selectSlice(next);
     }
 
-    private boolean updateSlice(Slice newSlice) {
+    private boolean selectSlice(Slice newSlice) {
         boolean changed = !Objects.equals(selectedSlice, newSlice);
         if (changed) {
             selectedSlice = newSlice;
@@ -540,21 +531,21 @@ public class AtlasOverviewScreen extends Screen {
             NetworkHelper.sendToServer(new C2SSelectSlicePacket(selectedSlice, lecternPos()));
             MapAtlasItem.setSelectedSlice(atlas, selectedSlice, level);
             recalculateDecorationWidgets();
+            mapWidget.resetZoom();
         }
         var dim = selectedSlice.dimension();
         NavigableSet<Integer> heights = currentMaps.getHeightTree(dim, selectedSlice.type());
         boolean manyHeights = heights.size() > 1;
-        sliceButton.refreshState(manyHeights, currentMaps.getAvailableTypes(dim).size() != 1);
-        sliceDown.setActive(manyHeights);
-        sliceUp.setActive(manyHeights);
+        sliceButton.setAvailableChoices(manyHeights, currentMaps.getAvailableTypes(dim).size() != 1);
+        sliceDown.setActiveAndVisible(manyHeights);
+        sliceUp.setActiveAndVisible(manyHeights);
         sliceDown.setLimitHeight(heights);
         sliceUp.setLimitHeight(heights);
-        mapWidget.resetZoom();
         return changed;
     }
 
     public boolean isEditingText() {
-        return pinNameBox.active || filterBox.active;
+        return activeTextBox != null;
     }
 
     public boolean isPlacingPin() {
@@ -573,27 +564,29 @@ public class AtlasOverviewScreen extends Screen {
         this.selectedCursorAction = (this.selectedCursorAction == targetAction) ? CursorAction.NONE : targetAction;
     }
 
-    public void notifyOfClickActionUsage() {
-        this.canPerformCursorAction = true;
+    public void markCursorActionHasTarget() {
+        this.cursorActionHasTarget = true;
     }
 
     public void shearMapAt(ColumnPos pos) {
         AtlasMap selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             NetworkHelper.sendToServer(new C2SRemoveMapPacket(selected.id, selected.type, lecternPos()));
-            MapAtlasItem.removeMaps(atlas, level, List.of(selected));
-            currentMaps = MapAtlasItem.getMaps(atlas, level);
-            onMapsChanged();
+            removeMapsClientSide(List.of(selected));
         }
         this.clearCursorAction();
     }
 
     public void shearSlice(Slice slice) {
         NetworkHelper.sendToServer(new C2SRemoveSlicePacket(slice, lecternPos()));
-        MapAtlasItem.removeMaps(atlas, level, currentMaps.getMapsInSlice(slice));
+        removeMapsClientSide(currentMaps.getMapsInSlice(slice));
+        this.clearCursorAction();
+    }
+
+    private void removeMapsClientSide(List<AtlasMap> maps) {
+        MapAtlasItem.removeMaps(atlas, level, maps);
         currentMaps = MapAtlasItem.getMaps(atlas, level);
         onMapsChanged();
-        this.clearCursorAction();
     }
 
     public void placePinAt(ColumnPos pos) {
@@ -601,7 +594,7 @@ public class AtlasOverviewScreen extends Screen {
         if (selected != null) {
             pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
-            if (hasShiftDown() || hasAltDown()) setPinNameBoxState(true);
+            if (hasShiftDown() || hasAltDown()) openPinNameBox();
             else addNewPin();
         }
         this.clearCursorAction();
@@ -609,33 +602,43 @@ public class AtlasOverviewScreen extends Screen {
 
     private void addNewPin() {
         if (partialPin == null) return;
-        ClientMarkers.placePin(partialPin.getFirst(), partialPin.getSecond(), pinNameBox.getValue(), pinNameBox.getIndex());
+        ClientMarkers.placePin(partialPin.getFirst(), partialPin.getSecond(), pinNameBox.getValue(), pinNameBox.getPinIndex());
         pinNameBox.increasePinIndex();
-        setPinNameBoxState(false);
+        closeTextBox();
         partialPin = null;
         this.recalculateDecorationWidgets();
     }
 
-    public void setPinNameBoxState(boolean on) {
-        setTextBoxState(pinNameBox, on);
+    private void openPinNameBox() {
+        showTextBox(pinNameBox);
     }
 
-    public void setFilterBoxState(boolean on) {
-        if (on) filterBox.setValue("");
-        setTextBoxState(filterBox, on);
+    void openFilterBox() {
+        filterBox.setValue("");
+        showTextBox(filterBox);
     }
 
-    private void setTextBoxState(EditBox box, boolean on) {
-        box.active = on;
-        box.visible = on;
-        box.setCanLoseFocus(!on);
-        box.setFocused(on);
-        this.setFocused(on ? box : mapWidget);
+    private void closeTextBox() {
+        showTextBox(null);
+    }
+
+    private void showTextBox(@Nullable EditBox box) {
+        if (activeTextBox != null) setTextBoxOpen(activeTextBox, false);
+        activeTextBox = box;
+        if (box != null) setTextBoxOpen(box, true);
+        this.setFocused(box != null ? box : mapWidget);
+    }
+
+    private static void setTextBoxOpen(EditBox box, boolean open) {
+        box.active = open;
+        box.visible = open;
+        box.setCanLoseFocus(!open);
+        box.setFocused(open);
     }
 
     public boolean canTeleport() {
         return hasShiftDown() && MapAtlasItem.canPlayerTeleport(player) &&
-                selectedCursorAction == CursorAction.NONE && !pinNameBox.active;
+                selectedCursorAction == CursorAction.NONE && !isEditingText();
     }
 
     public Minecraft getMinecraft() {

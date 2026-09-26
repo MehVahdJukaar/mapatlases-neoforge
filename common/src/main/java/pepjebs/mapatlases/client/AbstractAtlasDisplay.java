@@ -31,7 +31,7 @@ public abstract class AbstractAtlasDisplay {
     public static final int MAP_DIMENSION = 128;
 
     //internally controls how many maps are displayed
-    protected final int atlasesCount;
+    protected final int mapsPerSide;
     protected int mapBlocksSize;
     protected AtlasMap mapWherePlayerIs;
 
@@ -43,13 +43,13 @@ public abstract class AbstractAtlasDisplay {
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
 
-    protected AbstractAtlasDisplay(int atlasesCount) {
-        this.atlasesCount = atlasesCount;
+    protected AbstractAtlasDisplay(int mapsPerSide) {
+        this.mapsPerSide = mapsPerSide;
     }
 
     protected void initialize(AtlasMap newCenter) {
         if (mapWherePlayerIs == null || !mapWherePlayerIs.slice.isSameGroup(newCenter.slice)) {
-            this.zoomLevel = atlasesCount * newCenter.type.getDefaultZoomFactor();
+            this.zoomLevel = mapsPerSide * newCenter.type.getDefaultZoomFactor();
         }
         this.mapWherePlayerIs = newCenter;
         this.mapBlocksSize = (1 << mapWherePlayerIs.data.scale) * MAP_DIMENSION;
@@ -67,8 +67,8 @@ public abstract class AbstractAtlasDisplay {
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
 
-        float widgetScale = width / (float) (atlasesCount * MAP_DIMENSION);
-        float zoomScale = atlasesCount / zoomLevelDim;
+        float widgetScale = width / (float) (mapsPerSide * MAP_DIMENSION);
+        float zoomScale = mapsPerSide / zoomLevelDim;
 
         int intXCenter = (int) (currentXCenter);
         int intZCenter = (int) (currentZCenter);
@@ -107,7 +107,7 @@ public abstract class AbstractAtlasDisplay {
         //grid side len
         double sideLength = mapBlocksSize * zoomScale;
         //radius of widget
-        int radius = (int) (mapBlocksSize * atlasesCount * 0.71f); // radius using hyp
+        int radius = (int) (mapBlocksSize * mapsPerSide * 0.71f); // radius using hyp
 
         // Calculate the distance from the circle's center to the center of each grid square
         int o = Mth.ceil(zoomLevelDim);

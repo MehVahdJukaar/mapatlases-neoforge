@@ -52,7 +52,7 @@ class DimensionListPanel extends BookmarkListPanel<DimensionBookmarkButton> {
         allDimensions.addAll(dimensions);
         allDimensions.sort(Comparator.comparingInt(DimensionListPanel::displayOrder));
         scrollOffset = 0;
-        refreshVisible();
+        requestRefresh();
     }
 
     private static int displayOrder(ResourceKey<Level> dimension) {

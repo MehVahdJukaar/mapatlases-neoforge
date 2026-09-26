@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -34,7 +33,7 @@ public class DimensionBookmarkButton extends AtlasButton {
         var guiSprites = Minecraft.getInstance().getGuiSprites();
         ResourceLocation icon = MapAtlasesMod.res("dimensions/" + dimension.location().getPath());
         TextureAtlasSprite missing = guiSprites.getSprite(MapAtlasesMod.res("missing"));
-        if (guiSprites.getSprite(icon) == missing) return MapAtlasesMod.res("dimension/overworld");
+        if (guiSprites.getSprite(icon) == missing) return MapAtlasesMod.res("dimensions/overworld");
         return icon;
     }
 
@@ -62,11 +61,6 @@ public class DimensionBookmarkButton extends AtlasButton {
     public void onClick(double mouseX, double mouseY) {
         this.setSelected(true);
         parentScreen.selectDimension(dimension);
-    }
-
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 
     @Override

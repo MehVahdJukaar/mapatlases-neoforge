@@ -20,7 +20,7 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
 
     protected final List<B> visibleButtons = new ArrayList<>();
     protected int scrollOffset = 0;
-    private boolean pendingRefresh = false;
+    private boolean refreshPending = false;
 
     BookmarkListPanel(AtlasOverviewScreen screen,
                       int arrowX, int yStart, int maxVisible, int separation,
@@ -37,23 +37,22 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
         this.arrowDown = new ScrollArrow(true, arrowX, yStart + maxVisible * separation - 1);
         widgetAdder.accept(arrowUp);
         widgetAdder.accept(arrowDown);
-        arrowUp.setActive(false);
-        arrowDown.setActive(false);
+        arrowUp.setActiveAndVisible(false);
+        arrowDown.setActiveAndVisible(false);
     }
 
     protected abstract int totalCount();
 
     protected abstract void createVisibleWidgets(int from, int to);
 
-    void flush() {
-        if (pendingRefresh) {
-            pendingRefresh = false;
-            refreshVisible();
-        }
+    void requestRefresh() {
+        refreshPending = true;
     }
 
-    protected void markRefreshPending() {
-        pendingRefresh = true;
+    void applyPendingRefresh() {
+        if (!refreshPending) return;
+        refreshPending = false;
+        rebuildVisibleButtons();
     }
 
     boolean canScrollUp() {
@@ -64,16 +63,12 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
         return scrollOffset + maxVisible < totalCount();
     }
 
-    protected void refreshVisible() {
-        if (screen.inMouseClick) {
-            pendingRefresh = true;
-            return;
-        }
+    protected void rebuildVisibleButtons() {
         for (var btn : visibleButtons) widgetRemover.accept(btn);
         visibleButtons.clear();
         boolean needsScroll = totalCount() > maxVisible;
-        arrowUp.setActive(needsScroll);
-        arrowDown.setActive(needsScroll);
+        arrowUp.setActiveAndVisible(needsScroll);
+        arrowDown.setActiveAndVisible(needsScroll);
         createVisibleWidgets(scrollOffset, Math.min(scrollOffset + maxVisible, totalCount()));
     }
 
@@ -95,7 +90,7 @@ abstract class BookmarkListPanel<B extends AbstractWidget> {
         @Override
         protected void step() {
             scrollOffset += down ? 1 : -1;
-            pendingRefresh = true;
+            requestRefresh();
         }
     }
 }

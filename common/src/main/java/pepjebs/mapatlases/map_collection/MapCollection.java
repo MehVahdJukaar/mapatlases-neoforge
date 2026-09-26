@@ -15,6 +15,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.AtlasMap;
+import pepjebs.mapatlases.utils.MapDataHolder;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
@@ -129,6 +130,13 @@ public class MapCollection {
     @Nullable
     public AtlasMap getMapAt(MapGridKey key) {
         return maps.get(key);
+    }
+
+    @Deprecated(forRemoval = true)
+    @Nullable
+    public MapDataHolder select(MapGridKey key) {
+        AtlasMap map = getMapAt(key);
+        return map == null ? null : new MapDataHolder(map.id, map.type, map.data);
     }
 
     @Nullable

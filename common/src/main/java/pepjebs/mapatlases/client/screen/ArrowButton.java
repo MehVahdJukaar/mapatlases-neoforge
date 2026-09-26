@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.resources.ResourceLocation;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
@@ -27,7 +26,7 @@ abstract class ArrowButton extends AtlasButton {
     @Override
     public ResourceLocation getSprite() {
         if (isAtLimit()) return inactiveSprite;
-        return isHovered ? selectedSprite : sprite;
+        return isHovered ? highlightedSprite : sprite;
     }
 
     @Override
@@ -43,10 +42,5 @@ abstract class ArrowButton extends AtlasButton {
     @Override
     public void onClick(double mouseX, double mouseY) {
         step();
-    }
-
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 }

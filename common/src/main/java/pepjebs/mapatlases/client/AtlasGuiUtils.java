@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.client.screen;
+package pepjebs.mapatlases.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
@@ -9,27 +9,27 @@ import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.PlatStuff;
 
-public final class AtlasScreenUtils {
+public final class AtlasGuiUtils {
 
-    public static Vector4d scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
+    public static Vector4d scaleVector(double mouseX, double mouseY, float scale, int w, int h) {
         Matrix4d matrix4d = new Matrix4d();
         double translateX = w / 2.0;
         double translateY = h / 2.0;
         matrix4d.translate(translateX, translateY, 0);
         matrix4d.scale(scale);
         matrix4d.translate(-translateX, -translateY, 0);
-        Vector4d v = new Vector4d(mouseX, mouseZ, 0, 1.0F);
+        Vector4d v = new Vector4d(mouseX, mouseY, 0, 1.0F);
         matrix4d.transform(v);
         return v;
     }
 
-    public static void drawScaledComponent(
+    public static void drawScaledText(
             GuiGraphics context, Font font, int x, int y,
-            String text, float textScaling, int maxWidth, int targetWidth) {
+            String text, float textScaling, int maxTextWidth, int centeredAreaWidth) {
         PoseStack pose = context.pose();
         float textWidth = font.width(text);
-        float scale = Math.min(1, maxWidth * textScaling / textWidth) * textScaling;
-        float centerX = x + targetWidth / 2f;
+        float scale = Math.min(1, maxTextWidth * textScaling / textWidth) * textScaling;
+        float centerX = x + centeredAreaWidth / 2f;
         pose.pushPose();
         pose.translate(centerX, y + 4, 5);
         pose.scale(scale, scale, 1);

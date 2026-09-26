@@ -43,7 +43,7 @@ public class PinNameBox extends EditBox {
         this.setMaxLength(16);
     }
 
-    public int getIndex() {
+    public int getPinIndex() {
         return (int) currentIndex;
     }
 
@@ -99,7 +99,7 @@ public class PinNameBox extends EditBox {
     public void tick() {
         scrollPopInAnimationO = scrollPopInAnimation;
         displayIndexO = displayIndex;
-        int index = getIndex();
+        int index = getPinIndex();
         double scrollInSpeed = 0.4;
         if (displayIndex < index) {
             displayIndex = (float) Math.min(index, displayIndex + scrollInSpeed);
@@ -107,16 +107,16 @@ public class PinNameBox extends EditBox {
         if (displayIndex > index) {
             displayIndex = (float) Math.max(index, displayIndex - scrollInSpeed);
         }
-        float popInSpeed = 0.2f;
-        float popOutSpeed = 0.4f;
+        float popOutSpeed = 0.2f;
+        float popInSpeed = 0.4f;
         boolean stillScrolling = scrollVisibleCounter < 10 && index != displayIndex;
         if (!stillScrolling && scrollVisibleCounter > 0){
             scrollVisibleCounter--;
         }
         if (scrollVisibleCounter == 0 && scrollPopInAnimation > 0) {
-            scrollPopInAnimation = Mth.lerp(popInSpeed, scrollPopInAnimation, 0);
+            scrollPopInAnimation = Mth.lerp(popOutSpeed, scrollPopInAnimation, 0);
         } else if (scrollVisibleCounter != 0 && scrollPopInAnimation < 1) {
-            scrollPopInAnimation = Mth.lerp(popOutSpeed, scrollPopInAnimation, 1.0f);
+            scrollPopInAnimation = Mth.lerp(popInSpeed, scrollPopInAnimation, 1.0f);
         }
     }
 

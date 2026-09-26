@@ -19,15 +19,15 @@ public class DecorationBookmarkButton extends AtlasButton {
     private static final int BUTTON_W = 24;
 
     protected final DecorationHolder holder;
-    protected final int index;
-    protected boolean shifting;
-    protected boolean control;
+    protected final int listIndex;
+    protected boolean shiftDown;
+    protected boolean controlDown;
 
-    public DecorationBookmarkButton(int pX, int pY, int index, DecorationHolder holder, AtlasOverviewScreen parentScreen) {
+    public DecorationBookmarkButton(int pX, int pY, int listIndex, DecorationHolder holder, AtlasOverviewScreen parentScreen) {
         super(pX - BUTTON_W, pY, BUTTON_W, BUTTON_H, parentScreen,
                 MapAtlasesClient.BOOKMARK_LEFT_SPRITE, MapAtlasesClient.BOOKMARK_LEFT_SELECTED_SPRITE);
         this.holder = holder;
-        this.index = index;
+        this.listIndex = listIndex;
         updateModifierKeys();
     }
 
@@ -44,17 +44,17 @@ public class DecorationBookmarkButton extends AtlasButton {
     }
 
     private void updateModifierKeys() {
-        this.shifting = Screen.hasShiftDown();
-        this.control = Screen.hasControlDown();
+        this.shiftDown = Screen.hasShiftDown();
+        this.controlDown = Screen.hasControlDown();
         this.setTooltip(this.createTooltip());
     }
 
     private boolean willDelete() {
-        return shifting && holder.canDeleteMarker();
+        return shiftDown && holder.canDeleteMarker();
     }
 
     private boolean willFocus() {
-        return control && holder.canFocusMarker();
+        return controlDown && holder.canFocusMarker();
     }
 
     @Override
@@ -85,7 +85,7 @@ public class DecorationBookmarkButton extends AtlasButton {
 
     @Override
     protected float zOffset() {
-        return 0.01f * index;
+        return 0.01f * listIndex;
     }
 
     @Override

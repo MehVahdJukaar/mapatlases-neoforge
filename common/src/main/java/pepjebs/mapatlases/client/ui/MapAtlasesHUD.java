@@ -27,7 +27,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.AbstractAtlasDisplay;
 import pepjebs.mapatlases.client.Anchoring;
 import pepjebs.mapatlases.client.MapAtlasesClient;
-import pepjebs.mapatlases.client.screen.AtlasScreenUtils;
+import pepjebs.mapatlases.client.AtlasGuiUtils;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkersRenderer;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -42,7 +42,7 @@ import static pepjebs.mapatlases.client.MapAtlasesClient.MAP_HUD_BACKGROUND_TEXT
 
 public class MapAtlasesHUD extends AbstractAtlasDisplay {
 
-    protected final int BG_SIZE = 64;
+    private static final int BG_SIZE = 64;
 
     private final Minecraft mc;
 
@@ -252,18 +252,18 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         if (global || local) {
             BlockPos pos = new BlockPos((int) mc.player.getX(), (int) mc.player.getY(), (int) mc.player.getZ());
             if (global) {
-                drawMapComponentCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
-                        actualBgSize, textScaling, pos, false);
+                drawCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+                        actualBgSize, textScaling, pos);
                 textHeightOffset += (int) (10 * textScaling);
             }
             if (local) {
-                drawMapComponentCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
-                        actualBgSize, textScaling, pos, true);
+                drawChunkCoords(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+                        actualBgSize, textScaling, pos);
                 textHeightOffset += (int) (10 * textScaling);
             }
         }
         if (MapAtlasesClientConfig.drawMinimapBiome.get()) {
-            drawMapComponentBiome(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
+            drawBiome(graphics, font, x, (int) (y + BG_SIZE + (textHeightOffset / globalScale)),
                     actualBgSize, textScaling, mc.player.blockPosition(), mc.level);
         }
         poseStack.popPose();
@@ -274,7 +274,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         PoseStack poseStack = graphics.pose();
         poseStack.pushPose();
         poseStack.translate(x + BG_SIZE / 2f, y + BG_SIZE / 2f, 5);
-        var p = AtlasScreenUtils.getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
+        var p = AtlasGuiUtils.getDirectionPos(BG_SIZE / 2f - 3, rotatesWithPlayer ? yRot : 180);
         float a = p.getFirst();
         float b = p.getSecond();
         Font font = mc.font;
@@ -306,38 +306,40 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         pose.pushPose();
         float scale = (float) (double) MapAtlasesClientConfig.miniMapCardinalsScale.get() / globalScale;
         pose.scale(scale, scale, 1);
-        AtlasScreenUtils.drawStringWithLighterShadow(graphics, font, letter,
+        AtlasGuiUtils.drawStringWithLighterShadow(graphics, font, letter,
                 a / scale - font.width(letter) / 2f, b / scale - font.lineHeight / 2f);
         pose.popPose();
     }
 
-    public void drawMapComponentCoords(GuiGraphics context, Font font, int x, int y,
-                                       int targetWidth, float textScaling, BlockPos pos, boolean chunk) {
-        String coordsToDisplay;
-        if (chunk) {
-            coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
-                    SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()),
-                    SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getZ())).getString();
-        } else {
-            coordsToDisplay = displaysY
-                    ? Component.translatable("message.map_atlases.coordinates_full",
-                            pos.getX(), pos.getY(), pos.getZ()).getString()
-                    : Component.translatable("message.map_atlases.coordinates",
-                            pos.getX(), pos.getZ()).getString();
-        }
-        AtlasScreenUtils.drawScaledComponent(context, font, x, y, coordsToDisplay,
+    private void drawCoords(GuiGraphics context, Font font, int x, int y,
+                            int targetWidth, float textScaling, BlockPos pos) {
+        String coordsToDisplay = displaysY
+                ? Component.translatable("message.map_atlases.coordinates_full",
+                        pos.getX(), pos.getY(), pos.getZ()).getString()
+                : Component.translatable("message.map_atlases.coordinates",
+                        pos.getX(), pos.getZ()).getString();
+        AtlasGuiUtils.drawScaledText(context, font, x, y, coordsToDisplay,
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 
-    public void drawMapComponentBiome(GuiGraphics context, Font font, int x, int y,
-                                      int targetWidth, float textScaling, BlockPos blockPos, Level level) {
+    private void drawChunkCoords(GuiGraphics context, Font font, int x, int y,
+                                 int targetWidth, float textScaling, BlockPos pos) {
+        String coordsToDisplay = Component.translatable("message.map_atlases.chunk_coordinates",
+                SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()),
+                SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getZ())).getString();
+        AtlasGuiUtils.drawScaledText(context, font, x, y, coordsToDisplay,
+                textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
+    }
+
+    private void drawBiome(GuiGraphics context, Font font, int x, int y,
+                           int targetWidth, float textScaling, BlockPos blockPos, Level level) {
         String biomeToDisplay = "";
         var key = level.getBiome(blockPos).unwrapKey();
         if (key.isPresent()) {
             ResourceKey<Biome> biomeKey = key.get();
             biomeToDisplay = Component.translatable(Util.makeDescriptionId("biome", biomeKey.location())).getString();
         }
-        AtlasScreenUtils.drawScaledComponent(context, font, x, y, biomeToDisplay,
+        AtlasGuiUtils.drawScaledText(context, font, x, y, biomeToDisplay,
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));
     }
 

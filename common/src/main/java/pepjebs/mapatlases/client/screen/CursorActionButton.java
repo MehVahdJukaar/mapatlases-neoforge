@@ -41,7 +41,7 @@ public class CursorActionButton extends AtlasButton {
 
     @Override
     public ResourceLocation getSprite() {
-        return isHovered ? selectedSprite : sprite;
+        return isHovered ? highlightedSprite : sprite;
     }
 
     @Override

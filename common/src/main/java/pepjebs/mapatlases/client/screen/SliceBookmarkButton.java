@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -17,8 +16,8 @@ public class SliceBookmarkButton extends AtlasButton {
     protected final boolean compact = MapAtlasesClientConfig.worldMapCompactSliceIndicator.get();
 
     private Slice slice;
-    private boolean hasMoreThan1Type = true;
-    private boolean hasMoreThan1Slice = true;
+    private boolean hasMultipleTypes = true;
+    private boolean hasMultipleHeights = true;
 
     protected SliceBookmarkButton(int pX, int pY, Slice slice, AtlasOverviewScreen screen) {
         super(pX, pY, BUTTON_W, BUTTON_H, screen, MapAtlasesClient.SLICE_BOOKMARK_SPRITE, MapAtlasesClient.SLICE_BOOKMARK_SPRITE);
@@ -27,10 +26,10 @@ public class SliceBookmarkButton extends AtlasButton {
         this.setTooltip(createTooltip());
     }
 
-    public void refreshState(boolean slice, boolean types) {
-        hasMoreThan1Type = types;
-        hasMoreThan1Slice = slice;
-        this.setActive(slice || types);
+    public void setAvailableChoices(boolean multipleHeights, boolean multipleTypes) {
+        hasMultipleTypes = multipleTypes;
+        hasMultipleHeights = multipleHeights;
+        this.setActiveAndVisible(multipleHeights || multipleTypes);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class SliceBookmarkButton extends AtlasButton {
         };
         graphics.blitSprite(typeSprite, this.getX() + 8, this.getY() + 2, 16, 16);
 
-        if (hasMoreThan1Slice) {
+        if (hasMultipleHeights) {
             graphics.pose().translate(0, 0, 1);
             Component text = slice.height().map(h -> (Component) Component.literal(String.valueOf(h)))
                     .orElseGet(() -> Component.translatable("message.map_atlases.atlas.slice_default"));
@@ -71,7 +70,7 @@ public class SliceBookmarkButton extends AtlasButton {
         }
 
         if (isHovered && parentScreen.isShearing()) {
-            parentScreen.notifyOfClickActionUsage();
+            parentScreen.markCursorActionHasTarget();
         }
     }
 
@@ -81,13 +80,8 @@ public class SliceBookmarkButton extends AtlasButton {
         else parentScreen.cycleSliceType();
     }
 
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
-    }
-
     @Override
     protected boolean isValidClickButton(int pButton) {
-        return hasMoreThan1Type;
+        return hasMultipleTypes;
     }
 }

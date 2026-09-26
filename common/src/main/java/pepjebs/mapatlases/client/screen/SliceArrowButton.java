@@ -6,12 +6,12 @@ import java.util.NavigableSet;
 
 public class SliceArrowButton extends ArrowButton {
 
-    private final SliceBookmarkButton button;
+    private final SliceBookmarkButton sliceButton;
     private int limitHeight;
 
-    protected SliceArrowButton(boolean down, SliceBookmarkButton button, AtlasOverviewScreen screen) {
-        super(arrowX(button), arrowY(down, button), down, screen);
-        this.button = button;
+    protected SliceArrowButton(boolean down, SliceBookmarkButton sliceButton, AtlasOverviewScreen screen) {
+        super(arrowX(sliceButton), arrowY(down, sliceButton), down, screen);
+        this.sliceButton = sliceButton;
         this.limitHeight = down ? Integer.MIN_VALUE : Integer.MAX_VALUE;
     }
 
@@ -27,7 +27,7 @@ public class SliceArrowButton extends ArrowButton {
 
     @Override
     protected boolean isAtLimit() {
-        return button.getSlice().heightOrTop() == limitHeight;
+        return sliceButton.getSlice().heightOrTop() == limitHeight;
     }
 
     @Override

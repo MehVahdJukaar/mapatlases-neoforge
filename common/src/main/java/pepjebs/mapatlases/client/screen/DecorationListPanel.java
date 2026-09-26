@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
@@ -69,11 +68,11 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         allHolders.addAll(holders);
         lastSortCx = Integer.MIN_VALUE;
         scrollOffset = 0;
-        refreshVisible();
+        requestRefresh();
     }
 
     @Override
-    protected void refreshVisible() {
+    protected void rebuildVisibleButtons() {
         if (filterText.isEmpty()) {
             displayList = allHolders;
         } else {
@@ -82,10 +81,10 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
                     .toList();
         }
         if (filter != null) filter.updateActiveState(totalCount() > maxVisible);
-        super.refreshVisible();
+        super.rebuildVisibleButtons();
     }
 
-    void markInView(int cx, int cz, float radius) {
+    void onMapViewMoved(int cx, int cz, float radius) {
         lastViewCx = cx;
         lastViewCz = cz;
         lastViewRadius = radius;
@@ -95,7 +94,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
             sortHolders(cx, cz);
             lastSortCx = cx;
             lastSortCz = cz;
-            markRefreshPending();
+            requestRefresh();
         }
 
         for (var btn : visibleButtons) {
@@ -112,7 +111,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
     void applyFilter(String text) {
         filterText = text.toLowerCase(Locale.ROOT);
         scrollOffset = 0;
-        refreshVisible();
+        requestRefresh();
     }
 
     boolean hasActiveFilter() {
@@ -138,7 +137,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         @Override
         public ResourceLocation getSprite() {
             if (hasActiveFilter()) return MapAtlasesClient.FILTER_ACTIVE_SPRITE;
-            return isHovered ? selectedSprite : sprite;
+            return isHovered ? highlightedSprite : sprite;
         }
 
         @Override
@@ -155,12 +154,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         @Override
         public void onClick(double mouseX, double mouseY) {
             if (hasActiveFilter()) applyFilter("");
-            else screen.setFilterBoxState(true);
-        }
-
-        @VirtualOverride("neoforge")
-        public void onClick(double mouseX, double mouseY, int button) {
-            onClick(mouseX, mouseY);
+            else screen.openFilterBox();
         }
 
         @Nullable

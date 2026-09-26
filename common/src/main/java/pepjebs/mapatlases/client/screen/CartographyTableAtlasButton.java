@@ -25,11 +25,10 @@ import pepjebs.mapatlases.utils.Slice;
 
 public class CartographyTableAtlasButton extends AbstractWidget {
 
-    protected final boolean left;
-    protected final AbstractContainerMenu menu;
-    protected final ResourceLocation hoveredSprite;
-    protected final ResourceLocation sprite;
-    protected final ResourceLocation selectedSprite;
+    private final boolean left;
+    private final AbstractContainerMenu menu;
+    private final ResourceLocation hoveredSprite;
+    private final ResourceLocation sprite;
 
     public CartographyTableAtlasButton(AbstractContainerScreen<?> screen, boolean left, AbstractContainerMenu menu) {
         super(screen.leftPos + (left ? 71 : 122), screen.topPos + 65, 7, 11, Component.empty());
@@ -38,11 +37,9 @@ public class CartographyTableAtlasButton extends AbstractWidget {
         if (left) {
             sprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_SPRITE;
             hoveredSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE;
-            selectedSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_LEFT_SELECTED_SPRITE;
         } else {
             sprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_SPRITE;
             hoveredSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE;
-            selectedSprite = MapAtlasesClient.CARTOGRAPHY_TABLE_RIGHT_SELECTED_SPRITE;
         }
     }
 
