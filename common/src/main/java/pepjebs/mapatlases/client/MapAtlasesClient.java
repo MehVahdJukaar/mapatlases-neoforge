@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -54,7 +54,7 @@ public class MapAtlasesClient {
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
     //not Sheets.SHULKER_SHEET, that would load Sheets too early
-    private static final ResourceLocation SHULKER_SHEET = ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png");
+    private static final Identifier SHULKER_SHEET = Identifier.withDefaultNamespace("textures/atlas/shulker_boxes.png");
 
     public static final Material MAP_BORDER_TEXTURE = new Material(
             SHULKER_SHEET, //so we have mipmap here too
@@ -69,64 +69,64 @@ public class MapAtlasesClient {
             MapAtlasesMod.res("gui/screen/map_background"));
 
     //sprites
-    public static final ResourceLocation PLAYER_MARKER_SPRITE = MapAtlasesMod.res("player_marker");
-    public static final ResourceLocation BOOKMARK_LEFT_SPRITE = MapAtlasesMod.res("bookmark_left");
-    public static final ResourceLocation BOOKMARK_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_left_selected");
-    public static final ResourceLocation BOOKMARK_RIGHT_SPRITE = MapAtlasesMod.res("bookmark_right");
-    public static final ResourceLocation BOOKMARK_RIGHT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_right_selected");
-    public static final ResourceLocation SLICE_BOOKMARK_SPRITE = MapAtlasesMod.res("slice_bookmark");
+    public static final Identifier PLAYER_MARKER_SPRITE = MapAtlasesMod.res("player_marker");
+    public static final Identifier BOOKMARK_LEFT_SPRITE = MapAtlasesMod.res("bookmark_left");
+    public static final Identifier BOOKMARK_LEFT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_left_selected");
+    public static final Identifier BOOKMARK_RIGHT_SPRITE = MapAtlasesMod.res("bookmark_right");
+    public static final Identifier BOOKMARK_RIGHT_SELECTED_SPRITE = MapAtlasesMod.res("bookmark_right_selected");
+    public static final Identifier SLICE_BOOKMARK_SPRITE = MapAtlasesMod.res("slice_bookmark");
 
-    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_SPRITE = MapAtlasesMod.res("cartography_table_left");
-    public static final ResourceLocation CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_left_hovered");
-    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_SPRITE = MapAtlasesMod.res("cartography_table_right");
-    public static final ResourceLocation CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_right_hovered");
+    public static final Identifier CARTOGRAPHY_TABLE_LEFT_SPRITE = MapAtlasesMod.res("cartography_table_left");
+    public static final Identifier CARTOGRAPHY_TABLE_LEFT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_left_hovered");
+    public static final Identifier CARTOGRAPHY_TABLE_RIGHT_SPRITE = MapAtlasesMod.res("cartography_table_right");
+    public static final Identifier CARTOGRAPHY_TABLE_RIGHT_HOVERED_SPRITE = MapAtlasesMod.res("cartography_table_right_hovered");
 
-    public static final ResourceLocation DELETE_MARKER_SPRITE = MapAtlasesMod.res("delete_marker");
-    public static final ResourceLocation FOCUS_MARKER_SPRITE = MapAtlasesMod.res("focus_marker");
-    public static final ResourceLocation PIN_BUTTON_SPRITE = MapAtlasesMod.res("pin_button");
-    public static final ResourceLocation PIN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("pin_button_hovered");
-    public static final ResourceLocation SHEAR_BUTTON_SPRITE = MapAtlasesMod.res("shear_button");
-    public static final ResourceLocation SHEAR_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("shear_button_hovered");
-    public static final ResourceLocation SHEAR_MAP_SPRITE = MapAtlasesMod.res("shear_map");
-    public static final ResourceLocation SHEAR_MAP_READY_SPRITE = MapAtlasesMod.res("shear_map_ready");
-    public static final ResourceLocation PLACE_PIN_SPRITE = MapAtlasesMod.res("place_pin");
-    public static final ResourceLocation PLACE_PIN_READY_SPRITE = MapAtlasesMod.res("place_pin_ready");
-    public static final ResourceLocation ZOOM_IN_BUTTON_SPRITE = MapAtlasesMod.res("zoom_in_button");
-    public static final ResourceLocation ZOOM_IN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("zoom_in_button_hovered");
+    public static final Identifier DELETE_MARKER_SPRITE = MapAtlasesMod.res("delete_marker");
+    public static final Identifier FOCUS_MARKER_SPRITE = MapAtlasesMod.res("focus_marker");
+    public static final Identifier PIN_BUTTON_SPRITE = MapAtlasesMod.res("pin_button");
+    public static final Identifier PIN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("pin_button_hovered");
+    public static final Identifier SHEAR_BUTTON_SPRITE = MapAtlasesMod.res("shear_button");
+    public static final Identifier SHEAR_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("shear_button_hovered");
+    public static final Identifier SHEAR_MAP_SPRITE = MapAtlasesMod.res("shear_map");
+    public static final Identifier SHEAR_MAP_READY_SPRITE = MapAtlasesMod.res("shear_map_ready");
+    public static final Identifier PLACE_PIN_SPRITE = MapAtlasesMod.res("place_pin");
+    public static final Identifier PLACE_PIN_READY_SPRITE = MapAtlasesMod.res("place_pin_ready");
+    public static final Identifier ZOOM_IN_BUTTON_SPRITE = MapAtlasesMod.res("zoom_in_button");
+    public static final Identifier ZOOM_IN_BUTTON_HOVERED_SPRITE = MapAtlasesMod.res("zoom_in_button_hovered");
 
-    public static final ResourceLocation SLICE_DOWN_SPRITE = MapAtlasesMod.res("slice_down");
-    public static final ResourceLocation SLICE_DOWN_HOVERED_SPRITE = MapAtlasesMod.res("slice_down_hovered");
-    public static final ResourceLocation SLICE_DOWN_INACTIVE_SPRITE = MapAtlasesMod.res("slice_down_inactive");
-    public static final ResourceLocation SLICE_UP_SPRITE = MapAtlasesMod.res("slice_up");
-    public static final ResourceLocation SLICE_UP_HOVERED_SPRITE = MapAtlasesMod.res("slice_up_hovered");
-    public static final ResourceLocation SLICE_UP_INACTIVE_SPRITE = MapAtlasesMod.res("slice_up_inactive");
+    public static final Identifier SLICE_DOWN_SPRITE = MapAtlasesMod.res("slice_down");
+    public static final Identifier SLICE_DOWN_HOVERED_SPRITE = MapAtlasesMod.res("slice_down_hovered");
+    public static final Identifier SLICE_DOWN_INACTIVE_SPRITE = MapAtlasesMod.res("slice_down_inactive");
+    public static final Identifier SLICE_UP_SPRITE = MapAtlasesMod.res("slice_up");
+    public static final Identifier SLICE_UP_HOVERED_SPRITE = MapAtlasesMod.res("slice_up_hovered");
+    public static final Identifier SLICE_UP_INACTIVE_SPRITE = MapAtlasesMod.res("slice_up_inactive");
 
-    public static final ResourceLocation FILTER_SPRITE = MapAtlasesMod.res("filter");
-    public static final ResourceLocation FILTER_HOVERED_SPRITE = MapAtlasesMod.res("filter_hovered");
-    public static final ResourceLocation FILTER_ACTIVE_SPRITE = MapAtlasesMod.res("filter_active");
+    public static final Identifier FILTER_SPRITE = MapAtlasesMod.res("filter");
+    public static final Identifier FILTER_HOVERED_SPRITE = MapAtlasesMod.res("filter_hovered");
+    public static final Identifier FILTER_ACTIVE_SPRITE = MapAtlasesMod.res("filter_active");
 
-    public static final ResourceLocation MAP_OVERWORLD_SPRITE = MapAtlasesMod.res("map_overworld");
-    public static final ResourceLocation MAP_AETHER_SPRITE = MapAtlasesMod.res("map_the_aether");
-    public static final ResourceLocation MAP_END_SPRITE = MapAtlasesMod.res("map_end");
-    public static final ResourceLocation MAP_NETHER_SPRITE = MapAtlasesMod.res("map_nether");
-    public static final ResourceLocation MAP_BUMBLEZONE_SPRITE = MapAtlasesMod.res("map_the_bumblezone");
+    public static final Identifier MAP_OVERWORLD_SPRITE = MapAtlasesMod.res("map_overworld");
+    public static final Identifier MAP_AETHER_SPRITE = MapAtlasesMod.res("map_the_aether");
+    public static final Identifier MAP_END_SPRITE = MapAtlasesMod.res("map_end");
+    public static final Identifier MAP_NETHER_SPRITE = MapAtlasesMod.res("map_nether");
+    public static final Identifier MAP_BUMBLEZONE_SPRITE = MapAtlasesMod.res("map_the_bumblezone");
 
-    public static final ResourceLocation MAP_TYPE_VANILLA_SPRITE = MapAtlasesMod.res("map_type_vanilla");
-    public static final ResourceLocation MAP_TYPE_MAGIC_SPRITE = MapAtlasesMod.res("map_type_magic");
-    public static final ResourceLocation MAP_TYPE_MAZE_SPRITE = MapAtlasesMod.res("map_type_maze");
-    public static final ResourceLocation MAP_TYPE_ORE_SPRITE = MapAtlasesMod.res("map_type_ore");
-
-
-    public static final ResourceLocation ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
-    public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
-    public static final ResourceLocation ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
-    public static final ResourceLocation GUI_ICONS_TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/icons.png");
-    public static final ResourceLocation MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
-    public static final ResourceLocation MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
+    public static final Identifier MAP_TYPE_VANILLA_SPRITE = MapAtlasesMod.res("map_type_vanilla");
+    public static final Identifier MAP_TYPE_MAGIC_SPRITE = MapAtlasesMod.res("map_type_magic");
+    public static final Identifier MAP_TYPE_MAZE_SPRITE = MapAtlasesMod.res("map_type_maze");
+    public static final Identifier MAP_TYPE_ORE_SPRITE = MapAtlasesMod.res("map_type_ore");
 
 
-    public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(Level.OVERWORLD.location().toString(),
-            Level.NETHER.location().toString(), Level.END.location().toString(),
+    public static final Identifier ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
+    public static final Identifier ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
+    public static final Identifier ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
+    public static final Identifier GUI_ICONS_TEXTURE = Identifier.withDefaultNamespace("textures/gui/icons.png");
+    public static final Identifier MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
+    public static final Identifier MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
+
+
+    public static final List<String> DIMENSION_TEXTURE_ORDER = List.of(Level.OVERWORLD.identifier().toString(),
+            Level.NETHER.identifier().toString(), Level.END.identifier().toString(),
             "aether:the_aether", "twilightforest:twilight_forest", "undergarden:undergarden",
             "tropicraft:tropics", "thebetweenlands:betweenlands", "blue_skies:everbright",
             "the_bumblezone:the_bumblezone");
@@ -257,7 +257,7 @@ public class MapAtlasesClient {
         boolean unlocked = !MapAtlasItem.isLocked(stack);
 
         ResourceKey<Level> dimension = world.dimension();
-        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.identifier().toString());
         if (i == -1) return unlocked ? 0.96f : 1;
         return i / 10f + (unlocked ? 0 : 0.05f);
     }

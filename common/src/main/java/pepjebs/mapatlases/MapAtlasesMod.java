@@ -9,7 +9,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Unit;
@@ -18,7 +18,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.apache.logging.log4j.LogManager;
@@ -142,16 +141,13 @@ public class MapAtlasesMod {
     static {
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RegHelper.registerRecipeSerializer(res("crafting_atlas"),
-                MapAtlasCreateRecipe.Serializer::new);
-        MAP_ATLAS_ADD_RECIPE = RegHelper.registerRecipeSerializer(res("adding_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesAddRecipe::new));
-        MAP_ATLAS_CUT_RECIPE = RegHelper.registerRecipeSerializer(res("cutting_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(MapAtlasesCutExistingRecipe::new));
-        MAP_ANTIQUE_RECIPE = RegHelper.registerRecipeSerializer(res("antique_atlas"),
-                () -> new SimpleCraftingRecipeSerializer<>(AntiqueAtlasRecipe::new));
+                () -> new RecipeSerializer<>(MapAtlasCreateRecipe.CODEC, MapAtlasCreateRecipe.STREAM_CODEC));
+        MAP_ATLAS_ADD_RECIPE = RegHelper.registerSpecialRecipe(res("adding_atlas"), MapAtlasesAddRecipe::new);
+        MAP_ATLAS_CUT_RECIPE = RegHelper.registerSpecialRecipe(res("cutting_atlas"), MapAtlasesCutExistingRecipe::new);
+        MAP_ANTIQUE_RECIPE = RegHelper.registerSpecialRecipe(res("antique_atlas"), AntiqueAtlasRecipe::new);
         // Register items
         MAP_ATLAS = RegHelper.registerItem(res("atlas"),
-                () -> new MapAtlasItem(new Item.Properties()
+                p -> new MapAtlasItem(p
                         .component(EMPTY_MAPS.get(), EmptyMaps.EMPTY)
                         .component(MAP_COLLECTION.get(), MapIds.EMPTY)
                         .stacksTo(16)));
@@ -163,8 +159,8 @@ public class MapAtlasesMod {
         event.addAfter(CreativeModeTabs.TOOLS_AND_UTILITIES, i -> i.is(Items.MAP), MAP_ATLAS.get());
     }
 
-    public static ResourceLocation res(String name) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, name);
+    public static Identifier res(String name) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, name);
     }
 
     public static TriState containsHack() {

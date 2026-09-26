@@ -28,10 +28,6 @@ import java.util.List;
 
 public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
 
-    public MapAtlasesCutExistingRecipe(CraftingBookCategory category) {
-        super(category);
-    }
-
     @Override
     public boolean matches(CraftingInput inv, Level level) {
         ItemStack atlas = ItemStack.EMPTY;
@@ -54,7 +50,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput inv) {
         Level level = getLevel();
         ItemStack atlas = ItemStack.EMPTY;
         for (ItemStack i : inv.items()) {
@@ -142,12 +138,7 @@ public class MapAtlasesCutExistingRecipe extends AbstractAtlasRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width + height >= 2;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<MapAtlasesCutExistingRecipe> getSerializer() {
         return MapAtlasesMod.MAP_ATLAS_CUT_RECIPE.get();
     }
 }

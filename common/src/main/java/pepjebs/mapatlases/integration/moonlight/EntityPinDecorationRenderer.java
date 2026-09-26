@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,7 @@ import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class EntityPinDecorationRenderer extends AtlasOnlyDecorationRenderer<EntityPinDecoration> {
 
-    public EntityPinDecorationRenderer(ResourceLocation texture) {
+    public EntityPinDecorationRenderer(Identifier texture) {
         super(texture);
     }
 

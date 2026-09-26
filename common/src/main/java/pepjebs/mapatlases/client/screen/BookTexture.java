@@ -2,10 +2,10 @@ package pepjebs.mapatlases.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
-record BookTexture(ResourceLocation texture, int width, int height, int textureWidth,
+record BookTexture(Identifier texture, int width, int height, int textureWidth,
                    int mapWidth, int mapHeight, int mapYOffset, int rightEdgeU, int leftEdgeU) {
 
     static final BookTexture SMALL = new BookTexture(MapAtlasesClient.ATLAS_BACKGROUND_TEXTURE, 162, 167, 256, 128, 128, 5, 189, 194);

@@ -3,7 +3,7 @@ package pepjebs.mapatlases.integration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.RecipeBookCategories;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
@@ -33,7 +33,7 @@ public class SpecialRecipeDisplays {
             l.add(Ingredient.of(new ItemStack(Items.FILLED_MAP)));
 
             NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY, l.toArray(Ingredient[]::new));
-            ResourceLocation id = MapAtlasesMod.res("craft_atlas");
+            Identifier id = MapAtlasesMod.res("craft_atlas");
             ShapelessRecipe recipe = new ShapelessRecipe(group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
             recipes.add(new RecipeHolder<>(id,recipe));
         }

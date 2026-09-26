@@ -56,7 +56,7 @@ class DimensionListPanel extends BookmarkListPanel<DimensionBookmarkButton> {
     }
 
     private static int displayOrder(ResourceKey<Level> dimension) {
-        int i = MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(dimension.location().toString());
+        int i = MapAtlasesClient.DIMENSION_TEXTURE_ORDER.indexOf(dimension.identifier().toString());
         return i == -1 ? 999 : i;
     }
 

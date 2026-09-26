@@ -18,7 +18,7 @@ public class DummyEmptyChunk {
         if (cached != null && cached.getLevel() == level) return cached;
 
         LevelChunk fresh = new EmptyLevelChunk(level, ChunkPos.ZERO,
-                level.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.FOREST));
+                level.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.FOREST));
         MinecraftServer server = level.getServer();
         if (server != null && server.isRunning()) {
             cachedChunk = fresh;

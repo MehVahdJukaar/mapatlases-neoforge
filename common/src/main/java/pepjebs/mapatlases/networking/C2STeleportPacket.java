@@ -13,7 +13,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.RelativeMovement;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -64,8 +64,8 @@ public class C2STeleportPacket implements Message {
         pZ = result.getSecond().z;
         BlockPos blockpos = BlockPos.containing(pX, pY, pZ);
         if (Level.isInSpawnableBounds(blockpos)) {
-            if (player.teleportTo(pLevel, pX, pY, pZ, EnumSet.noneOf(RelativeMovement.class),
-                    player.getYRot(), player.getXRot())) {
+            if (player.teleportTo(pLevel, pX, pY, pZ, EnumSet.noneOf(Relative.class),
+                    player.getYRot(), player.getXRot(), true)) {
 
                 if (!player.isFallFlying()) {
                     player.setDeltaMovement(player.getDeltaMovement().multiply(1.0D, 0, 1.0D).add(0, -5, 0));
@@ -101,7 +101,7 @@ public class C2STeleportPacket implements Message {
         if (this.y.isEmpty()) {
             ChunkAccess chunk = level.getChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z), ChunkStatus.FULL, false);
             if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
-                y = level.getMaxBuildHeight();
+                y = level.getMaxY();
                 MinecraftServer server = level.getServer();
                 server.tell(new TickTask(server.getTickCount(), () -> {
                     performTeleport(player, level, x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);

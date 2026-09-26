@@ -42,7 +42,7 @@ public abstract class LecternBlockMixin extends Block {
             } else if (player instanceof ServerPlayer sp) {
                 MapAtlasItem.syncAndOpenGui(sp, ((LecternBlockEntity) al).getBook(), Optional.of(pos), false);
             }
-            cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
+            cir.setReturnValue(InteractionResult.SUCCESS));
         }
     }
 }

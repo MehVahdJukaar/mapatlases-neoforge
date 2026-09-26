@@ -14,7 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
@@ -376,7 +376,7 @@ public class AtlasOverviewScreen extends Screen {
             renderCrosshair(graphics);
         }
 
-        ResourceLocation cursorIcon = selectedCursorAction.getIcon(cursorActionHasTarget);
+        Identifier cursorIcon = selectedCursorAction.getIcon(cursorActionHasTarget);
         if (cursorIcon != null) {
             poseStack.pushPose();
             poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);

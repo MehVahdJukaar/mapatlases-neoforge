@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -29,7 +29,7 @@ import java.util.WeakHashMap;
 
 public class ClientMarkersRenderer {
 
-    private static final WeakHashMap<MLMapDecorationType<?, ?>, ResourceLocation> SMALL_PINS = new WeakHashMap<>();
+    private static final WeakHashMap<MLMapDecorationType<?, ?>, Identifier> SMALL_PINS = new WeakHashMap<>();
 
     public static void renderDecorationPreview(GuiGraphics pGuiGraphics, float x, float y, int index, boolean outline, int alpha) {
         CustomDecorationButton.renderStaticMarker(pGuiGraphics, ClientMarkers.getPinWithIndex(index), x, y, 1, outline, alpha);
@@ -65,7 +65,7 @@ public class ClientMarkersRenderer {
                     matrixStack.scale(4, 4, 0);
                     matrixStack.translate(-0.25, -0.25, 0);
 
-                    ResourceLocation texture = SMALL_PINS.computeIfAbsent(marker.getType().value(), t ->
+                    Identifier texture = SMALL_PINS.computeIfAbsent(marker.getType().value(), t ->
                             reg.getKey(t).withPath(k -> k + "_small"));
                     TextureAtlasSprite sprite = Minecraft.getInstance().getMapDecorationTextures().getSprite(texture);
                     RenderUtil.renderSprite(matrixStack, vertexBuilder, LightTexture.FULL_BRIGHT, i++, 255, 255, 255, sprite);

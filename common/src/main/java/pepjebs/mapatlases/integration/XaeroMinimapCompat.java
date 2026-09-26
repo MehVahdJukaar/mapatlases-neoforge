@@ -9,7 +9,7 @@ import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
@@ -73,7 +73,7 @@ public class XaeroMinimapCompat {
     }
 
     private static final HolderRef<MLMapDecorationType<?, ?>> DEF_TYPE = HolderRef.of(
-            ResourceLocation.fromNamespaceAndPath("moonlight", "generic_structure"),
+            Identifier.fromNamespaceAndPath("moonlight", "generic_structure"),
             MapDataRegistry.MAP_DECORATION_REGISTRY_KEY);
 
     public static void loadXaeroWaypoints(MapId pMapName, MapItemSavedData data, RegistryAccess registries) {
@@ -116,7 +116,7 @@ public class XaeroMinimapCompat {
         } else if (dimKey == Level.END) {
             return "dim%1";
         } else {
-            ResourceLocation identifier = dimKey.location();
+            Identifier identifier = dimKey.identifier();
             return "dim%" + identifier.getNamespace() + "$" + identifier.getPath().replace('/', '%');
         }
     }

@@ -5,7 +5,7 @@ import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import org.jetbrains.annotations.Nullable;
@@ -17,11 +17,11 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
     protected final String id;
     protected final AtlasMap data;
     protected final String sortingString;
-    private final ResourceLocation typeId;
+    private final Identifier typeId;
     @Nullable
     private final Component name;
 
-    protected DecorationHolder(String id, AtlasMap data, ResourceLocation typeId, @Nullable Component name) {
+    protected DecorationHolder(String id, AtlasMap data, Identifier typeId, @Nullable Component name) {
         this.id = id;
         this.data = data;
         this.typeId = typeId;

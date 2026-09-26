@@ -5,14 +5,14 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
 public class AtlasOnlyDecorationRenderer<T extends MLMapDecoration> extends MapDecorationRenderer<T> {
 
-    public AtlasOnlyDecorationRenderer(ResourceLocation texture) {
+    public AtlasOnlyDecorationRenderer(Identifier texture) {
         super(texture);
     }
 

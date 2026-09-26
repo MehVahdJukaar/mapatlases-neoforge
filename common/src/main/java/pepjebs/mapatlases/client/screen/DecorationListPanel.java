@@ -3,7 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
@@ -135,7 +135,7 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         }
 
         @Override
-        public ResourceLocation getSprite() {
+        public Identifier getSprite() {
             if (hasActiveFilter()) return MapAtlasesClient.FILTER_ACTIVE_SPRITE;
             return isHovered ? highlightedSprite : sprite;
         }

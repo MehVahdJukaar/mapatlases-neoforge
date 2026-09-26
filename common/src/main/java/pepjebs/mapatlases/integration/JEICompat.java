@@ -5,16 +5,16 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.MapAtlasesMod;
 
 @JeiPlugin
 public class JEICompat implements IModPlugin {
 
-    private static final ResourceLocation ID = MapAtlasesMod.res("jei_plugin");
+    private static final Identifier ID = MapAtlasesMod.res("jei_plugin");
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return ID;
     }
 

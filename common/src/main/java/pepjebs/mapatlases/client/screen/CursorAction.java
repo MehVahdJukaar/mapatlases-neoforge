@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import static pepjebs.mapatlases.client.MapAtlasesClient.*;
@@ -9,7 +9,7 @@ public enum CursorAction {
     NONE, PLACING_PIN, SHEARING;
 
     @Nullable
-    public ResourceLocation getIcon(boolean cursorActionHasTarget) {
+    public Identifier getIcon(boolean cursorActionHasTarget) {
         return switch (this) {
             case NONE -> null;
             case PLACING_PIN -> cursorActionHasTarget ? PLACE_PIN_READY_SPRITE : PLACE_PIN_SPRITE;

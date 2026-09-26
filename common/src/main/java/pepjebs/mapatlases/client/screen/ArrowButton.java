@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
 abstract class ArrowButton extends AtlasButton {
@@ -9,7 +9,7 @@ abstract class ArrowButton extends AtlasButton {
     static final int HEIGHT = 5;
 
     protected final boolean down;
-    private final ResourceLocation inactiveSprite;
+    private final Identifier inactiveSprite;
 
     ArrowButton(int x, int y, boolean down, AtlasOverviewScreen screen) {
         super(x, y, WIDTH, HEIGHT, screen,
@@ -24,7 +24,7 @@ abstract class ArrowButton extends AtlasButton {
     protected abstract void step();
 
     @Override
-    public ResourceLocation getSprite() {
+    public Identifier getSprite() {
         if (isAtLimit()) return inactiveSprite;
         return isHovered ? highlightedSprite : sprite;
     }

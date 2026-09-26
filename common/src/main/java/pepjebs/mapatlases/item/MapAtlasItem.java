@@ -82,15 +82,15 @@ public class MapAtlasItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
             boolean wasLocked = toggleLocked(stack);
-            if (level.isClientSide) {
+            if (level.isClientSide()) {
                 player.displayClientMessage(Component.translatable(wasLocked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
             }
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
         }
         if (player instanceof ServerPlayer sp) {
             syncAndOpenGui(sp, stack, Optional.empty(), false);
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }
 
 
@@ -110,15 +110,15 @@ public class MapAtlasItem extends Item {
                 ah.mapatlases$setAtlas(player, stack);
                 //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS);
         }
         if (blockState.is(BlockTags.BANNERS)) {
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 MapCollection maps = getMaps(stack, level);
                 AtlasMap mapUnderPlayer = maps.getMapAt(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
                 if (mapUnderPlayer == null || !mapUnderPlayer.data.toggleBanner(level, blockPos)) return InteractionResult.FAIL;
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS);
         }
         //others deco
         return super.useOn(context);
@@ -128,7 +128,7 @@ public class MapAtlasItem extends Item {
     public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
         super.onCraftedBy(stack, level, pPlayer);
 
-        if (!level.isClientSide && MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
+        if (!level.isClientSide() && MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
             SupplementariesCompat.convertAllMapsToAntique(stack, level);
         }
         validateSelectedSlices(stack, level);

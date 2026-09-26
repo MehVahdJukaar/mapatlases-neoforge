@@ -4,7 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
@@ -14,7 +14,7 @@ public class CursorActionButton extends AtlasButton {
     private final String translationKey;
 
     private CursorActionButton(int x, int y, AtlasOverviewScreen screen, CursorAction action, String translationKey,
-                               ResourceLocation sprite, ResourceLocation hoveredSprite) {
+                               Identifier sprite, Identifier hoveredSprite) {
         super(x, y, 16, 16, screen, sprite, hoveredSprite);
         this.action = action;
         this.translationKey = translationKey;
@@ -40,7 +40,7 @@ public class CursorActionButton extends AtlasButton {
     }
 
     @Override
-    public ResourceLocation getSprite() {
+    public Identifier getSprite() {
         return isHovered ? highlightedSprite : sprite;
     }
 

@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.MapRenderer;
 import net.minecraft.client.gui.components.AbstractContainerWidget;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -36,7 +36,7 @@ public class SupplementariesClientCompat {
         }
 
         @Override
-        protected void apply(Map<ResourceLocation, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+        protected void apply(Map<Identifier, JsonElement> pObject, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
             try {
                 dayTexture = TextureImage.open(pResourceManager, MapAtlasesMod.res("item/lightmap_day")).getImage();
                 nightTexture = TextureImage.open(pResourceManager, MapAtlasesMod.res("item/lightmap_night")).getImage();

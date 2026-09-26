@@ -24,7 +24,7 @@ public final class VanillaDecorationHolder extends DecorationHolder {
     private final MapDecoration deco;
 
     VanillaDecorationHolder(MapDecoration deco, String id, AtlasMap data) {
-        super(id, data, deco.type().unwrapKey().get().location(), deco.name().orElse(null));
+        super(id, data, deco.type().unwrapKey().get().identifier(), deco.name().orElse(null));
         this.deco = deco;
     }
 

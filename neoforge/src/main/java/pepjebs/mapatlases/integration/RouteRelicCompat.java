@@ -25,7 +25,7 @@ public class RouteRelicCompat {
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         Player player = event.getEntity();
         ItemStack relic = event.getItemStack();
-        if (player.level().isClientSide || !(relic.getItem() instanceof RouteRelicItem)){
+        if (player.level().isClientSide() || !(relic.getItem() instanceof RouteRelicItem)){
             return;
         }
         if (!(event.getTarget() instanceof ItemFrame frame)) return;
@@ -40,7 +40,7 @@ public class RouteRelicCompat {
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
         ItemStack relic = event.getItemStack();
-        if (player.level().isClientSide || !(relic.getItem() instanceof RouteRelicItem)) return;
+        if (player.level().isClientSide() || !(relic.getItem() instanceof RouteRelicItem)) return;
         if (!(player.level().getBlockEntity(event.getPos()) instanceof LecternBlockEntity lectern)) return;
         ItemStack atlas = lectern.getBook();
         if (!atlas.is(MapAtlasesMod.MAP_ATLAS.get())) return;
@@ -59,7 +59,7 @@ public class RouteRelicCompat {
 
         event.setCanceled(true);
         Player player = event.getPlayer();
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             drawRouteWithFeedback(player, atlas, RouteRelicItem.getRelicColor(relic));
         }
     }
@@ -79,7 +79,7 @@ public class RouteRelicCompat {
         String routeDimension = session.getLastFinishedDimension();
         boolean baked = false;
         for (AtlasMap holder : MapAtlasItem.getMaps(atlas, player.level()).getAllFound()) {
-            if (!holder.data.dimension.location().toString().equals(routeDimension)) continue;
+            if (!holder.data.dimension.identifier().toString().equals(routeDimension)) continue;
             ItemStack mapStack = new ItemStack(Items.FILLED_MAP);
             mapStack.set(DataComponents.MAP_ID, holder.id);
             baked |= RouteMapPainter.bakeLastRouteToMap(mapStack, holder.data, session, color);

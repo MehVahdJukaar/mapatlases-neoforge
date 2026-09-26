@@ -10,20 +10,20 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public abstract class AtlasButton extends AbstractWidget {
 
-    protected final ResourceLocation sprite;
-    protected final ResourceLocation highlightedSprite;
+    protected final Identifier sprite;
+    protected final Identifier highlightedSprite;
     protected final AtlasOverviewScreen parentScreen;
     private boolean selected = true;
 
     protected AtlasButton(int pX, int pY, int width, int height, AtlasOverviewScreen screen,
-                          ResourceLocation sprite, ResourceLocation highlightedSprite) {
+                          Identifier sprite, Identifier highlightedSprite) {
         super(pX, pY, width, height, Component.empty());
         this.parentScreen = screen;
         this.sprite = sprite;
@@ -58,7 +58,7 @@ public abstract class AtlasButton extends AbstractWidget {
     protected void renderContents(GuiGraphics graphics) {
     }
 
-    public ResourceLocation getSprite() {
+    public Identifier getSprite() {
         return selected ? highlightedSprite : sprite;
     }
 

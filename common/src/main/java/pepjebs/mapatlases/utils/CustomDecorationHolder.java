@@ -16,7 +16,7 @@ public final class CustomDecorationHolder extends DecorationHolder {
     private final MLMapDecoration deco;
 
     CustomDecorationHolder(MLMapDecoration deco, String id, AtlasMap data) {
-        super(id, data, deco.getType().unwrapKey().get().location(), deco.getDisplayName());
+        super(id, data, deco.getType().unwrapKey().get().identifier(), deco.getDisplayName());
         this.deco = deco;
     }
 

@@ -180,7 +180,7 @@ public class MapCollection {
         AtlasMap found = AtlasMap.find(id, type, level);
         if (found == null) {
             if (level instanceof ServerLevel) {
-                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", id, level.dimension().location());
+                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", id, level.dimension().identifier());
             } else {
                 //wait till we receive data from server
                 notSyncedIds.add(Pair.of(type, id));
@@ -199,7 +199,7 @@ public class MapCollection {
         //from now on we assume that all client maps cant have their center and data unfilled
         if (maps.containsKey(key)) {
             // Existing atlases can carry a lot of these, so log at debug rather than error.
-            MapAtlasesMod.LOGGER.debug("Duplicate map key {} found in level {}", key, level.dimension().location());
+            MapAtlasesMod.LOGGER.debug("Duplicate map key {} found in level {}", key, level.dimension().identifier());
             return false;
         }
         maps.put(key, found);

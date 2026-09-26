@@ -11,7 +11,7 @@ import net.mehvahdjukaar.moonlight.api.map.decoration.MLSpecialMapDecorationType
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -32,8 +32,8 @@ public class MoonlightCompat {
     private static final TagKey<MLMapDecorationType<?, ?>> NOT_ON_ATLAS = TagKey.create(MapDataRegistry.MAP_DECORATION_REGISTRY_KEY,
             MapAtlasesMod.res("no_button_on_atlas"));
 
-    private static final ResourceLocation PIN_TYPE_ID = MapAtlasesMod.res("pin");
-    private static final ResourceLocation PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
+    private static final Identifier PIN_TYPE_ID = MapAtlasesMod.res("pin");
+    private static final Identifier PIN_ENTITY_TYPE_ID = MapAtlasesMod.res("entity_pin");
 
     public static void init() {
         MapDataRegistry.registerSpecialMapDecorationTypeFactory(PIN_TYPE_ID, () -> MLSpecialMapDecorationType.standaloneCustomMarker(PinMarker.DIRECT_CODEC, PinDecoration.STREAM_CODEC));
@@ -53,8 +53,8 @@ public class MoonlightCompat {
                 .map(a -> DecorationHolder.custom(a.getValue(), a.getKey(), map)).toList();
     }
 
-    public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, ResourceLocation id, @Nullable Component name) {
-        var type = MapDataRegistry.getMapDecorationRegistry(level.registryAccess()).getHolder(id);
+    public static void addDecoration(Level level, MapItemSavedData data, BlockPos pos, Identifier id, @Nullable Component name) {
+        var type = MapDataRegistry.getMapDecorationRegistry(level.registryAccess()).get(id);
         if (type.isPresent()) {
             MLMapMarker<?> defaultMarker = new PinMarker(type.get(), pos, Optional.ofNullable(name), false);
             ((ExpandedMapData) data).ml$addCustomMarker(defaultMarker);

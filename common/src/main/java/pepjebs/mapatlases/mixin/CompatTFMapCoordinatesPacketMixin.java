@@ -95,7 +95,7 @@ class CompatTFMapCoordinatesMagic2PacketMixin {
                 //we are assuming here that this packet i FOR the vanilla map. we'll need to add additional constructor logic to se these for another mod map in a mixin... I dont see a way around this, we are missing information
                 if (data != null) {
                     exp.moonlight$setMapCenter(data.centerX, data.centerZ);
-                    exp.moonlight$setDimension(data.dimension.location());
+                    exp.moonlight$setDimension(data.dimension.identifier());
                 }
             }
         }
@@ -121,7 +121,7 @@ class CompatTFMapCoordinatesMaze2PacketMixin {
                 //we are assuming here that this packet i FOR the vanilla map. we'll need to add additional constructor logic to se these for another mod map in a mixin... I dont see a way around this, we are missing information
                 if (data != null) {
                     exp.moonlight$setMapCenter(data.centerX, data.centerZ);
-                    exp.moonlight$setDimension(data.dimension.location());
+                    exp.moonlight$setDimension(data.dimension.identifier());
                 }
             }
         }

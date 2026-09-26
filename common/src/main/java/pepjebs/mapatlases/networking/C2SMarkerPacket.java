@@ -8,7 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -79,11 +79,11 @@ public class C2SMarkerPacket implements Message {
             double d1 = pos.z() + 0.5D;
             String str = MapAtlasesConfig.pinMarkerId.get();
             if (!str.isEmpty()) {
-                ResourceLocation id = ResourceLocation.parse(str);
+                Identifier id = Identifier.parse(str);
 
                 MutableComponent literal = name == null ? null : Component.literal(name);
                 if (id.getNamespace().equals("minecraft")) {
-                    var opt = BuiltInRegistries.MAP_DECORATION_TYPE.getHolder(id);
+                    var opt = BuiltInRegistries.MAP_DECORATION_TYPE.get(id);
                     opt.ifPresent(type -> d.invokeAddDecoration(
                             type, level,
                             "pin_" + pos,

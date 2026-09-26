@@ -339,8 +339,8 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
         if (key.isPresent()) {
             ResourceKey<Biome> biomeKey = key.get();
             // datapack biomes often ship no lang
-            biomeToDisplay = Component.translatableWithFallback(Util.makeDescriptionId("biome", biomeKey.location()),
-                    LangBuilder.getReadableName(biomeKey.location().getPath())).getString();
+            biomeToDisplay = Component.translatableWithFallback(Util.makeDescriptionId("biome", biomeKey.identifier()),
+                    LangBuilder.getReadableName(biomeKey.identifier().getPath())).getString();
         }
         AtlasGuiUtils.drawScaledText(context, font, x, y, biomeToDisplay,
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));

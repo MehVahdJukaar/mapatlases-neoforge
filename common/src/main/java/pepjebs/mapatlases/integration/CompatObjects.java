@@ -2,7 +2,7 @@ package pepjebs.mapatlases.integration;
 
 import net.mehvahdjukaar.moonlight.api.misc.OptRegSupplier;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 import java.util.function.Supplier;
@@ -25,6 +25,6 @@ public class CompatObjects {
     }
 
     private static OptRegSupplier<Item> modItem(String namespace, String id) {
-        return OptRegSupplier.of(ResourceLocation.fromNamespaceAndPath(namespace, id), BuiltInRegistries.ITEM);
+        return OptRegSupplier.of(Identifier.fromNamespaceAndPath(namespace, id), BuiltInRegistries.ITEM);
     }
 }

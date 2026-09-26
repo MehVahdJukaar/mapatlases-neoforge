@@ -19,7 +19,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.NotNull;
@@ -143,7 +143,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         poseStack.translate(0, 0, 4);
         graphics.drawString(mc.font,
                 Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
-                x, y + height - 8, FastColor.ABGR32.color(a, 255, 255, 255));
+                x, y + height - 8, ARGB.color(a, 255, 255, 255));
         poseStack.popPose();
     }
 

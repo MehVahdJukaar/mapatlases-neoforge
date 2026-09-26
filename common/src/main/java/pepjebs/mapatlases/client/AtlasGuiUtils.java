@@ -39,8 +39,8 @@ public final class AtlasGuiUtils {
     }
 
     public static void drawStringWithLighterShadow(GuiGraphics context, Font font, String text, float x, float y) {
-        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0x595959, false);
-        PlatStuff.drawString(context, font, text, x, y, 0xE0E0E0, false);
+        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0xFF595959, false);
+        PlatStuff.drawString(context, font, text, x, y, 0xFFE0E0E0, false);
     }
 
     public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {

@@ -11,7 +11,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CartographyTableMenu;
 import net.minecraft.world.level.Level;
@@ -27,8 +27,8 @@ public class CartographyTableAtlasButton extends AbstractWidget {
 
     private final boolean left;
     private final AbstractContainerMenu menu;
-    private final ResourceLocation hoveredSprite;
-    private final ResourceLocation sprite;
+    private final Identifier hoveredSprite;
+    private final Identifier sprite;
 
     public CartographyTableAtlasButton(AbstractContainerScreen<?> screen, boolean left, AbstractContainerMenu menu) {
         super(screen.leftPos + (left ? 71 : 122), screen.topPos + 65, 7, 11, Component.empty());
@@ -68,7 +68,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                     int y0 = 0;
                     if (!dim.equals(Level.OVERWORLD)) {
                         pGuiGraphics.drawString(Minecraft.getInstance().font,
-                                Component.literal(LangBuilder.getReadableName(dim.location().getPath())),
+                                Component.literal(LangBuilder.getReadableName(dim.identifier().getPath())),
                                 this.getX() - 52, this.getY() - 50, -1);
                         y0 += 8;
                     }

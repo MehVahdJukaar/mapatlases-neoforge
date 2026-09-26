@@ -12,10 +12,6 @@ import pepjebs.mapatlases.integration.SupplementariesCompat;
 
 public class AntiqueAtlasRecipe extends CustomRecipe {
 
-    public AntiqueAtlasRecipe(CraftingBookCategory category) {
-        super(category);
-    }
-
     @Override
     public boolean matches(CraftingInput inv, Level level) {
         if (!MapAtlasesMod.SUPPLEMENTARIES) return false;
@@ -38,7 +34,7 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
 
     // this runs on every grid change, so the maps themselves are only swapped in MapAtlasItem.onCraftedBy
     @Override
-    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput inv) {
         for (int j = 0; j < inv.size(); ++j) {
             ItemStack itemstack = inv.getItem(j);
             if (itemstack.is(MapAtlasesMod.MAP_ATLAS.get())) {
@@ -51,13 +47,8 @@ public class AntiqueAtlasRecipe extends CustomRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<AntiqueAtlasRecipe> getSerializer() {
         return MapAtlasesMod.MAP_ANTIQUE_RECIPE.get();
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 2;
     }
 
 }

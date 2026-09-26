@@ -3,7 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.Slice;
@@ -53,7 +53,7 @@ public class SliceBookmarkButton extends AtlasButton {
 
     @Override
     protected void renderContents(GuiGraphics graphics) {
-        ResourceLocation typeSprite = switch (slice.type()) {
+        Identifier typeSprite = switch (slice.type()) {
             case VANILLA, SLICED -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
             case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
             case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;

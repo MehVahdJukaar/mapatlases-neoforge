@@ -6,7 +6,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.joml.Matrix4f;
@@ -15,7 +15,7 @@ import pepjebs.mapatlases.utils.AtlasMap;
 
 public class AtlasInHandRenderer {
 
-    private static final RenderType MAP_BACKGROUND_CHECKERBOARD = RenderType.text(ResourceLocation.parse("textures/map/map_background_checkerboard.png"));
+    private static final RenderType MAP_BACKGROUND_CHECKERBOARD = RenderType.text(Identifier.parse("textures/map/map_background_checkerboard.png"));
     private static final float MAP_PRE_ROT_SCALE = 0.38F;
     private static final float MAP_GLOBAL_X_POS = -0.5F;
     private static final float MAP_GLOBAL_Y_POS = -0.5F;

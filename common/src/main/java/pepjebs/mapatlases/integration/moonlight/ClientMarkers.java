@@ -279,7 +279,7 @@ public class ClientMarkers {
 
     protected static Holder<MLMapDecorationType<?, ?>> getPinWithIndex(int index) {
         Optional<HolderSet.Named<MLMapDecorationType<?, ?>>> tag =
-                MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
+                MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess()).get(PINS);
 
         if (tag.isEmpty()) throw new AssertionError("map_atlases:pins tag missing");
 

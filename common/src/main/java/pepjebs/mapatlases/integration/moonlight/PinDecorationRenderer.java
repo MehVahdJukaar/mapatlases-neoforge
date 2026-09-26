@@ -1,10 +1,10 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PinDecorationRenderer extends AtlasOnlyDecorationRenderer<PinDecoration> {
 
-    public PinDecorationRenderer(ResourceLocation texture) {
+    public PinDecorationRenderer(Identifier texture) {
         super(texture);
     }
 

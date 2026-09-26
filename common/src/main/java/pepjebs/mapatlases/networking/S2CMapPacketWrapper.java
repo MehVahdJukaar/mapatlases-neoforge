@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -19,7 +19,7 @@ public class S2CMapPacketWrapper implements Message {
     );
 
     public final ClientboundMapItemDataPacket packet;
-    public final ResourceLocation dimension;
+    public final Identifier dimension;
     public final int centerX;
     public final int centerZ;
 
@@ -27,7 +27,7 @@ public class S2CMapPacketWrapper implements Message {
         this.packet = packet;
         this.centerX = data.centerX;
         this.centerZ = data.centerZ;
-        this.dimension = data.dimension.location();
+        this.dimension = data.dimension.identifier();
     }
 
     public S2CMapPacketWrapper(FriendlyByteBuf buf) {
