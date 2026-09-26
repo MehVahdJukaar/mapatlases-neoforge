@@ -15,7 +15,6 @@ import pepjebs.mapatlases.utils.MapDataHolder;
 
 public class AtlasInHandRenderer {
 
-    private static final RenderType MAP_BACKGROUND = RenderType.text(ResourceLocation.parse("textures/map/map_background.png"));
     private static final RenderType MAP_BACKGROUND_CHECKERBOARD = RenderType.text(ResourceLocation.parse("textures/map/map_background_checkerboard.png"));
     private static final float MAP_PRE_ROT_SCALE = 0.38F;
     private static final float MAP_GLOBAL_X_POS = -0.5F;
@@ -41,15 +40,13 @@ public class AtlasInHandRenderer {
 
 
             MapItemSavedData data = state.data;
-            VertexConsumer vertexconsumer = pBuffer.getBuffer(data == null ? MAP_BACKGROUND : MAP_BACKGROUND_CHECKERBOARD);
+            VertexConsumer vertexconsumer = pBuffer.getBuffer(MAP_BACKGROUND_CHECKERBOARD);
             Matrix4f matrix4f = pPoseStack.last().pose();
             vertexconsumer.addVertex(matrix4f, -MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).setColor(255, 255, 255, 255).setUv(0.0F, 1.0F).setLight(pCombinedLight);
             vertexconsumer.addVertex(matrix4f, MAP_WIDTH + MAP_BORDER, MAP_HEIGHT + MAP_BORDER, 0.0F).setColor(255, 255, 255, 255).setUv(1.0F, 1.0F).setLight(pCombinedLight);
             vertexconsumer.addVertex(matrix4f, MAP_WIDTH + MAP_BORDER, -MAP_BORDER, 0.0F).setColor(255, 255, 255, 255).setUv(1.0F, 0.0F).setLight(pCombinedLight);
             vertexconsumer.addVertex(matrix4f, -MAP_BORDER, -MAP_BORDER, 0.0F).setColor(255, 255, 255, 255).setUv(0.0F, 0.0F).setLight(pCombinedLight);
-            if (data != null) {
-                mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
-            }
+            mc.gameRenderer.getMapRenderer().render(pPoseStack, pBuffer, state.id, data, false, pCombinedLight);
 
             MapAtlasesClient.setIsDrawingAtlas(false);
         }

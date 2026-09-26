@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -46,24 +47,22 @@ public class MapAtlasesAccessUtils {
     }
 
     public static boolean isValidFilledMap(ItemStack item) {
-        MapType mapType = MapType.fromFilledMap(item.getItem());
-        return mapType != null && mapType.getMapId(item) != null;
+        return findMapId(item) != null;
     }
 
     @Nullable
     public static MapId findMapId(ItemStack itemstack) {
-        MapType type = MapType.fromFilledMap(itemstack.getItem());
-        if (type == null) return null;
-        return type.getMapId(itemstack);
+        if (MapType.fromFilledMap(itemstack.getItem()) == null) {
+            return null;
+        }
+        return itemstack.get(DataComponents.MAP_ID);
     }
 
     @Nullable
     public static MapDataHolder findMapFromItemStack(Level level, ItemStack itemStack) {
-        MapType type = MapType.fromFilledMap(itemStack.getItem());
-        if (type == null) return null;
-        MapId id = type.getMapId(itemStack);
+        MapId id = findMapId(itemStack);
         if (id == null) return null;
-        return MapDataHolder.find(id, type, level);
+        return MapDataHolder.find(id, MapType.fromFilledMap(itemStack.getItem()), level);
     }
 
     @NotNull

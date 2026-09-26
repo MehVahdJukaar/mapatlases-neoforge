@@ -6,7 +6,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.utils.AtlasLectern;
 
@@ -41,10 +40,7 @@ public class C2STakeAtlasPacket implements Message {
             if (!player.mayBuild()) {
                 return;
             }
-            ItemStack itemstack = lectern.mapatlases$removeAtlas();
-            if (!player.getInventory().add(itemstack)) {
-                player.drop(itemstack, false);
-            }
+            player.getInventory().placeItemBackInInventory(lectern.mapatlases$removeAtlas());
         }
     }
 

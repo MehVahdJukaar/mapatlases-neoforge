@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.LecternRenderer;
+import net.minecraft.client.resources.model.Material;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,19 +25,12 @@ public abstract class LecternRendererMixin {
     private VertexConsumer renderMapAtlasInLectern(VertexConsumer original, @Local(argsOnly = true) LecternBlockEntity tile, @Local(argsOnly = true) MultiBufferSource buffer) {
         if (tile instanceof AtlasLectern ah && ah.mapatlases$hasAtlas() && buffer != null) {
             Level level = tile.getLevel();
-            if (level == null) {
-                return OTHER_TEXTURE.buffer(buffer, RenderType::entitySolid);
-            }
-            var dimension = level.dimension();
-            if (dimension == Level.OVERWORLD) {
-                return OVERWORLD_TEXTURE.buffer(buffer, RenderType::entitySolid);
-            } else if (dimension == Level.NETHER) {
-                return NETHER_TEXTURE.buffer(buffer, RenderType::entitySolid);
-            } else if (dimension == Level.END) {
-                return END_TEXTURE.buffer(buffer, RenderType::entitySolid);
-            } else {
-                return OTHER_TEXTURE.buffer(buffer, RenderType::entitySolid);
-            }
+            var dimension = level == null ? null : level.dimension();
+            Material texture = OTHER_TEXTURE;
+            if (dimension == Level.OVERWORLD) texture = OVERWORLD_TEXTURE;
+            else if (dimension == Level.NETHER) texture = NETHER_TEXTURE;
+            else if (dimension == Level.END) texture = END_TEXTURE;
+            return texture.buffer(buffer, RenderType::entitySolid);
         }
         return original;
     }

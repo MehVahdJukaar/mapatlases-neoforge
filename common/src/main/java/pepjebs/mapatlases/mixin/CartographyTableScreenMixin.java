@@ -2,7 +2,6 @@ package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
@@ -20,7 +19,6 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.CartographyTableAtlasButton;
 import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapDataHolder;
-import pepjebs.mapatlases.utils.MapType;
 
 @Mixin(CartographyTableScreen.class)
 public abstract class CartographyTableScreenMixin extends AbstractContainerScreen<CartographyTableMenu> {
@@ -43,21 +41,17 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
 
         if (pMapData == null && pMapId == null && this.menu.slots.get(0).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) {
             ItemStack item = this.menu.slots.get(2).getItem();
-            if (MapType.fromFilledMap(item.getItem()) != null) {
-                MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(this.minecraft.level, item);
-                if (holder != null) {
-                    mapid.set(holder.id);
-                    data.set(holder.data);
-                }
+            MapDataHolder holder = MapAtlasesAccessUtils.findMapFromItemStack(this.minecraft.level, item);
+            if (holder != null) {
+                mapid.set(holder.id);
+                data.set(holder.data);
             }
         }
     }
 
     @Override
     public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta,double yDelta) {
-        int pId = pDelta > 0 ? 4 : 5;
-        if (this.menu.clickMenuButton(Minecraft.getInstance().player, pId)) {
-            Minecraft.getInstance().gameMode.handleInventoryButtonClick((this.menu).containerId, pId);
+        if (CartographyTableAtlasButton.pressMenuButton(this.menu, pDelta > 0 ? 4 : 5)) {
             return true;
         }
         return super.mouseScrolled(pMouseX, pMouseY, pDelta, yDelta);

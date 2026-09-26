@@ -41,13 +41,7 @@ public abstract class LecternBlockEntityMixin extends BlockEntity implements Atl
 
     @Override
     public boolean mapatlases$setAtlas(Player player, ItemStack atlas) {
-        // Flag must be set before tryPlaceBook because that triggers sendBlockUpdated,
-        // which serialises the block entity and sends it to the client. Setting it after
-        // would mean the client receives has_atlas=false in that packet.
-        if (LecternBlock.tryPlaceBook(player, level, worldPosition, getBlockState(), atlas)) {
-            return true;
-        }
-        return false;
+        return LecternBlock.tryPlaceBook(player, level, worldPosition, getBlockState(), atlas);
     }
 
     @Override

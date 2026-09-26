@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ColumnPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -231,13 +232,8 @@ public class AtlasOverviewScreen extends Screen {
     protected boolean isValid() {
         if (this.minecraft == null || this.minecraft.player == null) return false;
         if (lectern == null) return true;
-        return !lectern.isRemoved() && lectern.getBook().is(MapAtlasesMod.MAP_ATLAS.get())
-                && !playerIsTooFarAwayToEdit(this.minecraft.player, lectern);
-    }
-
-    protected static boolean playerIsTooFarAwayToEdit(Player player, LecternBlockEntity tile) {
-        BlockPos pos = tile.getBlockPos();
-        return player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) > 64.0D;
+        return Container.stillValidBlockEntity(lectern, this.minecraft.player)
+                && lectern.getBook().is(MapAtlasesMod.MAP_ATLAS.get());
     }
 
     @Override

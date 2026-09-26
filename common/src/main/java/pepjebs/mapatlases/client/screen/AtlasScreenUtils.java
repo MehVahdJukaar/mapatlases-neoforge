@@ -4,32 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
 import pepjebs.mapatlases.PlatStuff;
 
 public final class AtlasScreenUtils {
-
-    @NotNull
-    public static String getReadableName(ResourceLocation id) {
-        return getReadableName(id.getPath());
-    }
-
-    @NotNull
-    public static String getReadableName(String s) {
-        s = s.replace(".", " ").replace("_", " ");
-        char[] array = s.toCharArray();
-        array[0] = Character.toUpperCase(array[0]);
-        for (int j = 1; j < array.length; j++) {
-            if (Character.isWhitespace(array[j - 1])) {
-                array[j] = Character.toUpperCase(array[j]);
-            }
-        }
-        return new String(array);
-    }
 
     public static Vector4d scaleVector(double mouseX, double mouseZ, float scale, int w, int h) {
         Matrix4d matrix4d = new Matrix4d();
@@ -42,8 +22,6 @@ public final class AtlasScreenUtils {
         matrix4d.transform(v);
         return v;
     }
-
-    // ── HUD drawing helpers ───────────────────────────────────────────────
 
     public static void drawScaledComponent(
             GuiGraphics context, Font font, int x, int y,
@@ -83,9 +61,5 @@ public final class AtlasScreenUtils {
             y = -radius;
         }
         return Pair.of(x, y);
-    }
-
-    public static int towardsZero(double d) {
-        return d < 0.0 ? -1 * (int) Math.floor(-d) : (int) Math.floor(d);
     }
 }

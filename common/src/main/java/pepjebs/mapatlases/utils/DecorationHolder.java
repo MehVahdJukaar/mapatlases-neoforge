@@ -1,22 +1,33 @@
 package pepjebs.mapatlases.utils;
 
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
+import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Optional;
 
 public abstract sealed class DecorationHolder permits VanillaDecorationHolder, CustomDecorationHolder {
     protected final String id;
     protected final MapDataHolder data;
     protected final String sortingString;
+    private final ResourceLocation typeId;
+    @Nullable
+    private final Component name;
 
-    protected DecorationHolder(String id, MapDataHolder data, String sortingString) {
+    protected DecorationHolder(String id, MapDataHolder data, ResourceLocation typeId, @Nullable Component name) {
         this.id = id;
         this.data = data;
-        this.sortingString = sortingString;
+        this.typeId = typeId;
+        this.name = name!=null ? name : Component.literal(LangBuilder.getReadableName(
+                typeId.getPath().toLowerCase(Locale.ROOT)));
+        this.sortingString = name == null ? typeId.getPath() : typeId.getPath() + " " + name.getString();
     }
 
     public String id() {
@@ -31,13 +42,25 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
         return sortingString;
     }
 
-    public abstract double decorationDistSq(double px, double pz);
+    protected abstract int decoX();
 
-    public abstract double getWorldX();
+    protected abstract int decoY();
 
-    public abstract double getWorldZ();
+    public double getWorldX() {
+        return data.data.centerX + (1 << data.data.scale) * decoX() / 2.0;
+    }
 
-    public abstract Component getDecorationName();
+    public double getWorldZ() {
+        return data.data.centerZ + (1 << data.data.scale) * decoY() / 2.0;
+    }
+
+    public double decorationDistSq(double px, double pz) {
+        return Mth.square(getWorldX() - px) + Mth.square(getWorldZ() - pz);
+    }
+
+    public Component getDecorationName() {
+        return name;
+    }
 
     public abstract void renderDecoration(GuiGraphics graphics, float centerX, float centerY);
 

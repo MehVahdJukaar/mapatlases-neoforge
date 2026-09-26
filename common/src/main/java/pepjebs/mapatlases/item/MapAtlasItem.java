@@ -40,8 +40,6 @@ import java.util.Optional;
 
 public class MapAtlasItem extends Item {
 
-    public static final String TYPE_NBT = "type";
-
     public MapAtlasItem(Properties settings) {
         super(settings);
     }
@@ -64,10 +62,7 @@ public class MapAtlasItem extends Item {
     }
 
     private static void giveMapToPlayer(ServerPlayer player, MapDataHolder holder) {
-        ItemStack item = holder.createExistingMapItem();
-        if (!player.getInventory().add(item)) {
-            player.drop(item, false);
-        }
+        player.getInventory().placeItemBackInInventory(holder.createExistingMapItem());
     }
 
     @Override
@@ -107,7 +102,7 @@ public class MapAtlasItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
-            boolean locked = stack.has(MapAtlasesMod.LOCKED.get());
+            boolean locked = isLocked(stack);
             if (locked) {
                 stack.remove(MapAtlasesMod.LOCKED.get());
             } else {

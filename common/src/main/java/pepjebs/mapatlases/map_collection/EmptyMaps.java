@@ -54,21 +54,21 @@ public class EmptyMaps {
         return this.maps.getOrDefault(type, 0);
     }
 
-    //very very dumb
-    //todo make poper map type sliced
     public int get(Slice slice) {
-        if (slice.type() == MapType.VANILLA && slice.height().isPresent() && MapAtlasesConfig.requireSliceMaps.get()) {
-            return get(MapType.SLICED);
-        }
-        return get(slice.type());
+        return get(emptyTypeFor(slice));
     }
 
     public void addAndAssigns(ItemStack stack, Slice slice, int amount) {
+        addAndAssigns(stack, emptyTypeFor(slice), amount);
+    }
+
+    //very very dumb
+    //todo make poper map type sliced
+    private static MapType emptyTypeFor(Slice slice) {
         if (slice.type() == MapType.VANILLA && slice.height().isPresent() && MapAtlasesConfig.requireSliceMaps.get()) {
-            addAndAssigns(stack, MapType.SLICED, amount);
-        } else {
-            addAndAssigns(stack, slice.type(), amount);
+            return MapType.SLICED;
         }
+        return slice.type();
     }
 
     public void addAndAssigns(ItemStack stack, MapType type, int amount) {
@@ -81,15 +81,13 @@ public class EmptyMaps {
             newMap.merge(entry.getKey(), entry.getValue(), Integer::sum);
         }
         newMap.replaceAll((type, count) -> Math.max(0, count));
-        EmptyMaps newEmpty = new EmptyMaps(newMap);
-        atlas.set(MapAtlasesMod.EMPTY_MAPS.get(), newEmpty);
+        atlas.set(MapAtlasesMod.EMPTY_MAPS.get(), new EmptyMaps(newMap));
     }
 
     public void setAndAssign(ItemStack stack, MapType type, int count) {
         Map<MapType, Integer> newMap = new HashMap<>(this.maps);
         newMap.put(type, count);
-        EmptyMaps newEmpty = new EmptyMaps(newMap);
-        stack.set(MapAtlasesMod.EMPTY_MAPS.get(), newEmpty);
+        stack.set(MapAtlasesMod.EMPTY_MAPS.get(), new EmptyMaps(newMap));
     }
 
     @Override
@@ -109,7 +107,7 @@ public class EmptyMaps {
         int maxMapCount = MapAtlasItem.getMaxMapCount();
         if (maxMapCount != -1 && fullSize + size >= maxMapCount) {
             return List.of(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
-                    .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY));
+                    .withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
         }
 
         List<Component> tooltips = new ArrayList<>();

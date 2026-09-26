@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
 import net.mehvahdjukaar.candlelight.api.VirtualOverride;
+import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
@@ -39,7 +40,8 @@ public class DimensionBookmarkButton extends AtlasButton {
 
     @Override
     public Tooltip createTooltip() {
-        return Tooltip.create(Component.literal(AtlasScreenUtils.getReadableName(dimension.location())));
+        return Tooltip.create(Component.literal(
+                LangBuilder.getReadableName(dimension.location().getPath())));
     }
 
     public ResourceKey<Level> getDimension() {

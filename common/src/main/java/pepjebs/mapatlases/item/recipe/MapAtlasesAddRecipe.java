@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.item.recipe;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
@@ -89,7 +90,7 @@ public class MapAtlasesAddRecipe extends AbstractAtlasRecipe {
                 atlas = itemstack.copyWithCount(1);
             } else if (MapAtlasesAccessUtils.isValidFilledMap(itemstack)) {
                 MapType mapType = MapType.fromFilledMap(itemstack.getItem());
-                MapId mapId = mapType.getMapId(itemstack);
+                MapId mapId = itemstack.get(DataComponents.MAP_ID);
                 mapIds.computeIfAbsent(mapType, k -> new ArrayList<>()).add(mapId);
             }else{
                 MapType mapType = MapAtlasesAccessUtils.getEmptyMapType(itemstack);

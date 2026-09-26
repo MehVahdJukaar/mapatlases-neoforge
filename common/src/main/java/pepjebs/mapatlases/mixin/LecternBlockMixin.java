@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LecternBlock;
@@ -39,27 +38,11 @@ public abstract class LecternBlockMixin extends Block {
         if (state.getValue(LecternBlock.HAS_BOOK) && level.getBlockEntity(pos) instanceof AtlasLectern al
                 && al.mapatlases$hasAtlas()) {
             if (player.isSecondaryUseActive() && player.mayBuild()) {
-                LecternBlockEntity lbe = (LecternBlockEntity) al;
-                ItemStack atlas = lbe.getBook();
-                if (!player.getInventory().add(atlas)) {
-                    player.drop(atlas, false);
-                }
-                al.mapatlases$removeAtlas();
-                cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
-            } else {
-                LecternBlockEntity lbe = (LecternBlockEntity) al;
-                ItemStack atlas = lbe.getBook();
-
-                if(level.isClientSide) {
-
-                    if(atlas.getItem() instanceof MapAtlasItem) {
-                        //MapAtlasesClient.openScreen(atlas, lbe);
-                    }
-                }else{
-                    MapAtlasItem.syncAndOpenGui((ServerPlayer) player, atlas, Optional.ofNullable(pos), false);
-                }
-                cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
+                player.getInventory().placeItemBackInInventory(al.mapatlases$removeAtlas());
+            } else if (player instanceof ServerPlayer sp) {
+                MapAtlasItem.syncAndOpenGui(sp, ((LecternBlockEntity) al).getBook(), Optional.of(pos), false);
             }
+            cir.setReturnValue(InteractionResult.sidedSuccess(level.isClientSide));
         }
     }
 }

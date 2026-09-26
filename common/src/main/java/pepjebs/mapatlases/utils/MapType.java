@@ -3,6 +3,7 @@ package pepjebs.mapatlases.utils;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
+import net.mehvahdjukaar.moonlight.api.misc.OptRegSupplier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -37,7 +38,7 @@ public enum MapType implements StringRepresentable {
     MAGIC("magicmap_", tf("filled_magic_map"), tf("magic_map")),
     MAZE("mazemap_", tf("filled_maze_map"), tf("maze_map")),
     ORE_MAZE("mazemap_", tf("filled_ore_map"), tf("ore_map")),
-    SLICED("map_", () -> Items.FILLED_MAP, sup("slice_map")); //just used for empty maps
+    SLICED("map_", () -> Items.FILLED_MAP, modItem("supplementaries", "slice_map")); //just used for empty maps
 
     public static final Codec<MapType> CODEC = StringRepresentable.fromEnum(MapType::values);
     public static final StreamCodec<ByteBuf, MapType> STREAM_CODEC =
@@ -101,13 +102,11 @@ public enum MapType implements StringRepresentable {
     }
 
     private static Supplier<Item> tf(String id) {
-        return Suppliers.memoize(() -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("twilightforest", id))
-                .orElse(null));
+        return modItem("twilightforest", id);
     }
 
-    private static Supplier<Item> sup(String id) {
-        return Suppliers.memoize(() -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("supplementaries", id))
-                .orElse(null));
+    private static Supplier<Item> modItem(String namespace, String id) {
+        return OptRegSupplier.of(ResourceLocation.fromNamespaceAndPath(namespace, id), BuiltInRegistries.ITEM);
     }
 
     //twilight types only have an item when the mod is on
@@ -148,17 +147,11 @@ public enum MapType implements StringRepresentable {
 
     public ItemStack createExistingMapItem(MapId id, Optional<Integer> height) {
         if (!isLoaded()) return ItemStack.EMPTY;
-        return switch (this) {
-            case VANILLA, SLICED -> {
-                if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) yield SupplementariesCompat.createExistingSliced(id);
-                ItemStack map = new ItemStack(Items.FILLED_MAP);
-                map.set(DataComponents.MAP_ID, id);
-                yield map;
-            }
-            case MAGIC -> TwilightForestCompat.makeExistingMagic(id);
-            case MAZE -> TwilightForestCompat.makeExistingMaze(id);
-            case ORE_MAZE -> TwilightForestCompat.makeExistingOre(id);
-        };
+        boolean isSupplementariesSlice = (this == VANILLA || this == SLICED) && height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES;
+        if (isSupplementariesSlice) return SupplementariesCompat.createExistingSliced(id);
+        ItemStack map = new ItemStack(getFilled());
+        map.set(DataComponents.MAP_ID, id);
+        return map;
     }
 
     public ItemStack createNewMapItem(int destX, int destZ, byte scale, Level level, Optional<Integer> height, ItemStack atlas) {
@@ -211,10 +204,6 @@ public enum MapType implements StringRepresentable {
     @Override
     public String getSerializedName() {
         return id;
-    }
-
-    public MapId getMapId(ItemStack item) {
-        return item.get(DataComponents.MAP_ID);
     }
 
 }

@@ -1,6 +1,5 @@
 package pepjebs.mapatlases.map_collection;
 
-import net.minecraft.Util;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -22,11 +21,7 @@ import java.util.function.Predicate;
 
 public class MapCollection {
 
-    private static final TreeSet<Integer> TOP = Util.make(() -> {
-        var t = new TreeSet<Integer>();
-        t.add(Integer.MAX_VALUE);
-        return t;
-    });
+    private static final TreeSet<Integer> TOP = new TreeSet<>(List.of(Integer.MAX_VALUE));
 
     private final MapIds ids;
     private final Map<MapGridKey, MapDataHolder> maps = new HashMap<>();
@@ -66,9 +61,7 @@ public class MapCollection {
     }
 
     public Collection<MapType> getAvailableTypes(ResourceKey<Level> dimension) {
-        var mapTypeTreeSetMap = mapHeights.get(dimension);
-        if (mapTypeTreeSetMap != null) return mapTypeTreeSetMap.keySet();
-        else return List.of();
+        return mapHeights.getOrDefault(dimension, Map.of()).keySet();
     }
 
     public Collection<ResourceKey<Level>> getAvailableDimensions() {
@@ -81,11 +74,7 @@ public class MapCollection {
 
     //DONT MODIFY THIS SET
     public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType kind) {
-        Map<MapType, TreeSet<Integer>> d = mapHeights.get(dimension);
-        if (d != null) {
-            return d.getOrDefault(kind, TOP);
-        }
-        return TOP;
+        return mapHeights.getOrDefault(dimension, Map.of()).getOrDefault(kind, TOP);
     }
 
     public Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
@@ -124,10 +113,6 @@ public class MapCollection {
 
     public List<MapDataHolder> selectSection(Slice slice) {
         return filter(m -> Objects.equals(m.slice, slice));
-    }
-
-    public List<MapDataHolder> filterSection(Slice slice, Predicate<MapItemSavedData> predicate) {
-        return filter(m -> Objects.equals(m.slice, slice) && predicate.test(m.data));
     }
 
     public List<MapDataHolder> filter(Predicate<MapDataHolder> predicate) {
@@ -178,12 +163,6 @@ public class MapCollection {
 
     private boolean populateInDataStructure(MapId intId, MapType type, Level level) {
         MapDataHolder found = MapDataHolder.find(intId, type, level);
-        // scale comes from the first map that resolves. Cant use initialized here as on the client
-        // the collection can be initialized before any map data has arrived
-        if (found != null && maps.isEmpty()) {
-            scale = found.data.scale;
-        }
-
         if (found == null) {
             if (level instanceof ServerLevel) {
                 MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().location());
@@ -194,22 +173,23 @@ public class MapCollection {
             return false;
         }
 
-        MapItemSavedData d = found.data;
-
-        if (d != null && d.scale == scale) {
-            MapGridKey key = found.makeKey();
-            //from now on we assume that all client maps cant have their center and data unfilled
-            if (maps.containsKey(key)) {
-                // Existing atlases can carry a lot of these, so log at debug rather than error.
-                MapAtlasesMod.LOGGER.debug("Duplicate map key {} found in level {}", key, level.dimension().location());
-                return false;
-
-            }
-            maps.put(key, found);
-            addToDimensionMap(key);
-            return true;
+        // scale comes from the first map that resolves. Cant use initialized here as on the client
+        // the collection can be initialized before any map data has arrived
+        if (maps.isEmpty()) {
+            scale = found.data.scale;
         }
-        return false;
+        if (found.data.scale != scale) return false;
+
+        MapGridKey key = found.makeKey();
+        //from now on we assume that all client maps cant have their center and data unfilled
+        if (maps.containsKey(key)) {
+            // Existing atlases can carry a lot of these, so log at debug rather than error.
+            MapAtlasesMod.LOGGER.debug("Duplicate map key {} found in level {}", key, level.dimension().location());
+            return false;
+        }
+        maps.put(key, found);
+        addToDimensionMap(key);
+        return true;
     }
 
     private void addToDimensionMap(MapGridKey j) {

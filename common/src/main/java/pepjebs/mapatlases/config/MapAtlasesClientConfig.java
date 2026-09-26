@@ -156,9 +156,6 @@ public class MapAtlasesClientConfig {
         worldMapCompactSliceIndicator = builder
                 .comment("Rearranges the position of the slice indicator to be more compact. You will need supplementaries slice maps to use this")
                 .define("compact_slices_indicator", false);
-
-        worldMapFollowPlayer = builder.comment("Allows minimap to follow player movement instead of only displaying current map")
-                .define("follow_player", true);
         builder.pop();
 
         builder.icon("minecraft:note_block").push("misc");
@@ -227,7 +224,6 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Boolean> worldMapCompactSliceIndicator;
     public static final Supplier<Boolean> miniMapRotate;
     public static final Supplier<Boolean> miniMapFollowPlayer;
-    public static final Supplier<Boolean> worldMapFollowPlayer;
     public static final Supplier<Boolean> yOnlyWithSlice;
     public static final Supplier<Boolean> worldMapSmoothPanning;
     public static final Supplier<Boolean> worldMapSmoothZooming;

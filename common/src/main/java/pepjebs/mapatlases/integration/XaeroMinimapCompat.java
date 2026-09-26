@@ -6,7 +6,6 @@ import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapMarker;
 import net.mehvahdjukaar.moonlight.api.map.decoration.SimpleMapMarker;
 import net.mehvahdjukaar.moonlight.api.misc.HolderRef;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
@@ -24,7 +23,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 public class XaeroMinimapCompat {
@@ -39,7 +37,7 @@ public class XaeroMinimapCompat {
 
         try (DirectoryStream<Path> directories = Files.newDirectoryStream(path, Files::isDirectory);) {
             for (Path directory : directories) {
-                Path waypointsFile = Paths.get(directory.toString(), "waypoints.txt");
+                Path waypointsFile = directory.resolve("waypoints.txt");
 
                 if (Files.exists(waypointsFile)) {
                     MapAtlasesMod.LOGGER.info("Loaded XaeroMinimap waypoint data for world {}", worldFolderName);
@@ -110,20 +108,6 @@ public class XaeroMinimapCompat {
 
 
     // Xaero logic for dim string
-    private static ResourceKey<Level> findDimensionKey(String validatedName) {
-        Minecraft minecraft = Minecraft.getInstance();
-        Set<ResourceKey<Level>> allDimensions = minecraft.player.connection.levels();
-
-        for (ResourceKey<Level> dimensionKey : allDimensions) {
-            String dimensionPath = dimensionKey.location().getPath().replaceAll("\\W+", "");
-            if (validatedName.equals(dimensionPath)) {
-                return dimensionKey;
-            }
-        }
-
-        return null;
-    }
-
     private static String getDimensionDirectoryName(ResourceKey<Level> dimKey) {
         if (dimKey == Level.OVERWORLD) {
             return "dim%0";
@@ -133,8 +117,7 @@ public class XaeroMinimapCompat {
             return "dim%1";
         } else {
             ResourceLocation identifier = dimKey.location();
-            String var10000 = identifier.getNamespace();
-            return "dim%" + var10000 + "$" + identifier.getPath().replace('/', '%');
+            return "dim%" + identifier.getNamespace() + "$" + identifier.getPath().replace('/', '%');
         }
     }
 

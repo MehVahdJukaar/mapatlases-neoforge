@@ -62,10 +62,7 @@ public class EntityRadar {
             if (typeHolder == null) continue;
             var type = typeHolder.getHolder(level);
             if (type != null) {
-                EntityPinMarker marker = new EntityPinMarker(type, e);
-                if (marker instanceof EntityPinMarker m) {
-                    set.add(marker);
-                }
+                set.add(new EntityPinMarker(type, e));
             }
         }
     }

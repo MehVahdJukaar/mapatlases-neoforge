@@ -11,6 +11,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
@@ -54,15 +55,15 @@ public class MapAtlasesClient {
             new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
     public static final Material MAP_BORDER_TEXTURE = new Material(
-            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            Sheets.SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
     public static final Material MAP_HOVERED_TEXTURE = new Material(
-            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            Sheets.SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
     public static final Material MAP_BACKGROUND_TEXTURE = new Material(
-            ResourceLocation.withDefaultNamespace("textures/atlas/shulker_boxes.png"), //so we have mipmap here too
+            Sheets.SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_background"));
 
     //sprites
@@ -314,30 +315,20 @@ public class MapAtlasesClient {
     }
 
     public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
-        Float scale = globalDecorationTextScale.get();
-        if (scale != null) {
-            float s = textWidth * textScale / 2.0F;
-            poseStack.translate(s, -4, 0);
+        float scale = globalDecorationTextScale.get();
+        float s = textWidth * textScale / 2.0F;
+        poseStack.translate(s, -4, 0);
 
-            Float rot = globalDecorationRotation.get();
-            if (rot != null) {
-                poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
-            }
-            poseStack.translate(-s * scale, 4 * scale, 0);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(globalDecorationRotation.get()));
+        poseStack.translate(-s * scale, 4 * scale, 0);
 
-            poseStack.scale(scale, scale, 1);
-        }
+        poseStack.scale(scale, scale, 1);
     }
 
     public static void modifyDecorationTransform(PoseStack poseStack) {
-        Float rot = globalDecorationRotation.get();
-        if (rot != null) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(rot));
-        }
-        Float scale = globalDecorationScale.get();
-        if (scale != null) {
-            poseStack.scale(scale, scale, 1);
-        }
+        poseStack.mulPose(Axis.ZP.rotationDegrees(globalDecorationRotation.get()));
+        float scale = globalDecorationScale.get();
+        poseStack.scale(scale, scale, 1);
     }
 
     @Deprecated(forRemoval = true)

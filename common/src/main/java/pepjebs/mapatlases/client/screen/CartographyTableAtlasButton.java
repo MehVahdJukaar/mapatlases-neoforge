@@ -107,10 +107,16 @@ public class CartographyTableAtlasButton extends AbstractWidget {
 
     @Override
     public void onClick(double mouseX, double mouseY) {
-        int pId = left ? 4 : 5;
-        if (this.menu.clickMenuButton(Minecraft.getInstance().player, pId)) {
-            Minecraft.getInstance().gameMode.handleInventoryButtonClick((this.menu).containerId, pId);
+        pressMenuButton(menu, left ? 4 : 5);
+    }
+
+    public static boolean pressMenuButton(AbstractContainerMenu menu, int id) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!menu.clickMenuButton(mc.player, id)){
+            return false;
         }
+        mc.gameMode.handleInventoryButtonClick(menu.containerId, id);
+        return true;
     }
 
     @VirtualOverride("neoforge")

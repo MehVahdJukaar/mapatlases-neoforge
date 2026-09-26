@@ -98,30 +98,29 @@ public class MoonlightCompat {
     public static void updateMarkers(MapItemSavedData data, Player player, int maxRange) {
 
         ExpandedMapData d = ((ExpandedMapData) data);
-        Map<String, MLMapMarker<?>> markers = new HashMap<>(d.ml$getCustomMarkers());
-        if (!markers.isEmpty()) {
-            markers.entrySet().removeIf(m -> !m.getValue().shouldRefreshFromWorld());
-            List<String> toRemove = new ArrayList<>();
-            List<MLMapMarker<?>> toAdd = new ArrayList<>();
-            Level level = player.level();
-            for (var m : markers.entrySet()) {
-                var marker = m.getValue();
-                BlockPos pos = marker.getPos();
-                if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
-                    if (level.isLoaded(pos)) {
-                        MLMapMarker<?> newMarker = marker.getType().value().createMarkerFromWorld(level, marker.getPos());
-                        String id = m.getKey();
-                        if (newMarker == null) {
-                            toRemove.add(id);
-                        } else if (!Objects.equals(marker, newMarker)) {
-                            toRemove.add(id);
-                            toAdd.add(newMarker);
-                        }
+        List<String> toRemove = new ArrayList<>();
+        List<MLMapMarker<?>> toAdd = new ArrayList<>();
+        Level level = player.level();
+        for (var m : d.ml$getCustomMarkers().entrySet()) {
+            var marker = m.getValue();
+            if (!marker.shouldRefreshFromWorld()){
+                continue;
+            }
+            BlockPos pos = marker.getPos();
+            if (pos.distToCenterSqr(player.position()) < (maxRange * maxRange)) {
+                if (level.isLoaded(pos)) {
+                    MLMapMarker<?> newMarker = marker.getType().value().createMarkerFromWorld(level, pos);
+                    String id = m.getKey();
+                    if (newMarker == null) {
+                        toRemove.add(id);
+                    } else if (!Objects.equals(marker, newMarker)) {
+                        toRemove.add(id);
+                        toAdd.add(newMarker);
                     }
                 }
             }
-            toRemove.forEach(d::ml$removeCustomMarker);
-            toAdd.forEach(d::ml$addCustomMarker);
         }
+        toRemove.forEach(d::ml$removeCustomMarker);
+        toAdd.forEach(d::ml$addCustomMarker);
     }
 }
