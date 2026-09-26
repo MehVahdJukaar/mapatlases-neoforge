@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 
 public class MapCollection {
 
-    private static final TreeSet<Integer> TOP = new TreeSet<>(List.of(Integer.MAX_VALUE));
+    private static final NavigableSet<Integer> TOP = Collections.unmodifiableNavigableSet(new TreeSet<>(List.of(Integer.MAX_VALUE)));
 
     private final MapIds ids;
     private final Map<MapGridKey, MapDataHolder> maps = new HashMap<>();
@@ -73,8 +73,9 @@ public class MapCollection {
     }
 
     //DONT MODIFY THIS SET
-    public TreeSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType kind) {
-        return mapHeights.getOrDefault(dimension, Map.of()).getOrDefault(kind, TOP);
+    public NavigableSet<Integer> getHeightTree(ResourceKey<Level> dimension, MapType kind) {
+        var tree = mapHeights.getOrDefault(dimension, Map.of()).get(kind);
+        return tree == null ? TOP : Collections.unmodifiableNavigableSet(tree);
     }
 
     public Slice closestAvailableSlice(ResourceKey<Level> dimension, Slice preferred) {
@@ -86,14 +87,14 @@ public class MapCollection {
     }
 
     public Slice sliceNearHeight(ResourceKey<Level> dimension, MapType type, int height) {
-        TreeSet<Integer> heights = getHeightTree(dimension, type);
+        NavigableSet<Integer> heights = getHeightTree(dimension, type);
         Integer below = heights.floor(height);
         return Slice.of(type, below == null ? heights.first() : below, dimension);
     }
 
     @Nullable
     public Slice adjacentSlice(Slice slice, boolean up) {
-        TreeSet<Integer> heights = getHeightTree(slice.dimension(), slice.type());
+        NavigableSet<Integer> heights = getHeightTree(slice.dimension(), slice.type());
         int current = slice.heightOrTop();
         Integer next = up ? heights.ceiling(current + 1) : heights.floor(current - 1);
         return next == null ? null : Slice.of(slice.type(), next, slice.dimension());
@@ -161,14 +162,14 @@ public class MapCollection {
         return maps.keySet().stream().anyMatch(k -> k.slice.height().isPresent());
     }
 
-    private boolean populateInDataStructure(MapId intId, MapType type, Level level) {
-        MapDataHolder found = MapDataHolder.find(intId, type, level);
+    private boolean populateInDataStructure(MapId id, MapType type, Level level) {
+        MapDataHolder found = MapDataHolder.find(id, type, level);
         if (found == null) {
             if (level instanceof ServerLevel) {
-                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", intId, level.dimension().location());
+                MapAtlasesMod.LOGGER.error("Map with id {} not found in level {}", id, level.dimension().location());
             } else {
                 //wait till we receive data from server
-                notSyncedIds.add(Pair.of(type, intId));
+                notSyncedIds.add(Pair.of(type, id));
             }
             return false;
         }
@@ -188,14 +189,14 @@ public class MapCollection {
             return false;
         }
         maps.put(key, found);
-        addToDimensionMap(key);
+        registerSliceHeight(key.slice);
         return true;
     }
 
-    private void addToDimensionMap(MapGridKey j) {
-        mapHeights.computeIfAbsent(j.slice.dimension(), d -> new EnumMap<>(MapType.class))
-                .computeIfAbsent(j.slice.type(), a -> new TreeSet<>())
-                .add(j.slice.heightOrTop());
+    private void registerSliceHeight(Slice slice) {
+        mapHeights.computeIfAbsent(slice.dimension(), d -> new EnumMap<>(MapType.class))
+                .computeIfAbsent(slice.type(), a -> new TreeSet<>())
+                .add(slice.heightOrTop());
     }
 
     // if a duplicate exists its likely that its data was not synced yet
@@ -211,7 +212,7 @@ public class MapCollection {
             if (accepted.contains(id)) continue;
             MapDataHolder found = MapDataHolder.find(id, type, level);
             if (found == null) {
-                // not resolvable yet on the client, so let populateInDataStructure judge it later
+                // not resolvable yet on the client, so let indexMap judge it later
                 accepted.add(id);
                 continue;
             }

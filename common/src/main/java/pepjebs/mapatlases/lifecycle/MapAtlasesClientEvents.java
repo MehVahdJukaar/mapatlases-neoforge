@@ -27,8 +27,8 @@ import pepjebs.mapatlases.utils.MapAtlasesAccessUtils;
 import pepjebs.mapatlases.utils.MapType;
 import pepjebs.mapatlases.utils.Slice;
 
+import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.TreeSet;
 
 public class MapAtlasesClientEvents {
 
@@ -117,7 +117,7 @@ public class MapAtlasesClientEvents {
     @Nullable
     public static Integer getClosestSlice(Player player, Level level, MapCollection cap, ResourceKey<Level> dim, MapType type) {
         //check locked
-        TreeSet<Integer> heightTree = cap.getHeightTree(dim, type);
+        NavigableSet<Integer> heightTree = cap.getHeightTree(dim, type);
         if (heightTree.size() == 1) return null;
         int y = player.getBlockY();
 

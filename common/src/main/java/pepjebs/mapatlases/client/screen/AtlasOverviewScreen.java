@@ -542,7 +542,7 @@ public class AtlasOverviewScreen extends Screen {
             recalculateDecorationWidgets();
         }
         var dim = selectedSlice.dimension();
-        TreeSet<Integer> heights = currentMaps.getHeightTree(dim, selectedSlice.type());
+        NavigableSet<Integer> heights = currentMaps.getHeightTree(dim, selectedSlice.type());
         boolean manyHeights = heights.size() > 1;
         sliceButton.refreshState(manyHeights, currentMaps.getAvailableTypes(dim).size() != 1);
         sliceDown.setActive(manyHeights);

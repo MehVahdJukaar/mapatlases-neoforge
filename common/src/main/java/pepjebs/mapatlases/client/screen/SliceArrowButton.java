@@ -2,7 +2,7 @@ package pepjebs.mapatlases.client.screen;
 
 import net.minecraft.client.sounds.SoundManager;
 
-import java.util.TreeSet;
+import java.util.NavigableSet;
 
 public class SliceArrowButton extends ArrowButton {
 
@@ -41,7 +41,7 @@ public class SliceArrowButton extends ArrowButton {
         playPageTurnSound(soundManager);
     }
 
-    public void setLimitHeight(TreeSet<Integer> heightTree) {
+    public void setLimitHeight(NavigableSet<Integer> heightTree) {
         if (heightTree.isEmpty()) return;
         limitHeight = down ? heightTree.first() : heightTree.last();
     }

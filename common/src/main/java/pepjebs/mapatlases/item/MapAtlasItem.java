@@ -159,7 +159,6 @@ public class MapAtlasItem extends Item {
 
 // Utilities functions
 
-
     public static void syncAndOpenGui(ServerPlayer player, ItemStack atlas, @NotNull Optional<BlockPos> lecternPos, boolean pinOnly) {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
@@ -237,12 +236,13 @@ public class MapAtlasItem extends Item {
     private static void validateSelectedSlices(ItemStack pStack, Level level) {
         // Populate default slices
         MapCollection maps = getMaps(pStack, level);
-        var dim = maps.getAvailableDimensions();
-        for (var d : dim) {
-            for (var k : maps.getAvailableTypes(d)) {
-                var av = maps.getHeightTree(d, k);
-                if (!av.contains(getSelectedSlice(pStack, d).heightOrTop())) {
-                    setSelectedSlice(pStack, Slice.of(k, av.first(), d), level);
+        var dimensions = maps.getAvailableDimensions();
+        for (var dim : dimensions) {
+            Slice selectedSliceAt = getSelectedSlice(pStack, dim);
+            for (MapType mapType : maps.getAvailableTypes(dim)) {
+                var heightTree = maps.getHeightTree(dim, mapType);
+                if (!heightTree.contains(selectedSliceAt.heightOrTop())) {
+                    setSelectedSlice(pStack, Slice.of(mapType, heightTree.first(), dim), level);
                 }
             }
         }
