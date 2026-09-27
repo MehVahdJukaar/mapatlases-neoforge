@@ -1,5 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.resources.Identifier;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 
@@ -19,6 +20,11 @@ abstract class ArrowButton extends AtlasButton {
         this.inactiveSprite = down ? MapAtlasesClient.SLICE_DOWN_INACTIVE_SPRITE : MapAtlasesClient.SLICE_UP_INACTIVE_SPRITE;
     }
 
+    @Override
+    protected boolean drawnOverBookEdge() {
+        return true;
+    }
+
     protected abstract boolean isAtLimit();
 
     protected abstract void step();
@@ -30,17 +36,12 @@ abstract class ArrowButton extends AtlasButton {
     }
 
     @Override
-    protected float zOffset() {
-        return 2;
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        return !isAtLimit() && super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected boolean clicked(double mouseX, double mouseY) {
-        return !isAtLimit() && super.clicked(mouseX, mouseY);
-    }
-
-    @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         step();
     }
 }

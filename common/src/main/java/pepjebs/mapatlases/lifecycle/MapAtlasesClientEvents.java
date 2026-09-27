@@ -2,6 +2,7 @@ package pepjebs.mapatlases.lifecycle;
 
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.entity.player.Player;
@@ -47,29 +48,29 @@ public class MapAtlasesClientEvents {
         }
     }
 
-    public static void onKeyPressed(int key, int code) {
+    public static void onKeyPressed(KeyEvent event) {
 
         Minecraft client = Minecraft.getInstance();
         if (client.screen != null || client.level == null || client.player == null) return;
-        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(key, code)) {
+        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(event)) {
             requestAtlasScreen(client.player, false);
         }
-        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(key, code) && MapAtlasesClientConfig.pinsEnabled.get()) {
+        if (MapAtlasesClient.PLACE_PIN_KEYBIND.matches(event) && MapAtlasesClientConfig.pinsEnabled.get()) {
             requestAtlasScreen(client.player, true);
         }
 
         ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
         if (!atlas.isEmpty()) {
-            if (MapAtlasesClient.DECREASE_MINIMAP_ZOOM.matches(key, code)) {
+            if (MapAtlasesClient.DECREASE_MINIMAP_ZOOM.matches(event)) {
                 MapAtlasesClient.decreaseHoodZoom();
             }
 
-            if (MapAtlasesClient.INCREASE_MINIMAP_ZOOM.matches(key, code)) {
+            if (MapAtlasesClient.INCREASE_MINIMAP_ZOOM.matches(event)) {
                 MapAtlasesClient.increaseHoodZoom();
             }
 
-            boolean up = MapAtlasesClient.INCREASE_SLICE.matches(key, code);
-            if (up || MapAtlasesClient.DECREASE_SLICE.matches(key, code)) {
+            boolean up = MapAtlasesClient.INCREASE_SLICE.matches(event);
+            if (up || MapAtlasesClient.DECREASE_SLICE.matches(event)) {
                 MapCollection maps = MapAtlasItem.getMaps(atlas, client.level);
                 Slice selected = MapAtlasItem.getSelectedSlice(atlas, client.level.dimension());
                 Slice next = maps.adjacentSlice(selected, up);

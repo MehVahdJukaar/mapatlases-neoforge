@@ -10,7 +10,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Relative;
@@ -94,7 +93,7 @@ public class C2STeleportPacket implements Message {
         if (!(context.getPlayer() instanceof ServerPlayer player)) return;
         if (!MapAtlasItem.canPlayerTeleport(player)) return;
 
-        ServerLevel level = player.getServer().getLevel(dimension);
+        ServerLevel level = player.level().getServer().getLevel(dimension);
         if (level == null) return;
 
         int y;
@@ -103,9 +102,7 @@ public class C2STeleportPacket implements Message {
             if (chunk == null || (chunk instanceof LevelChunk lc && lc.isEmpty())) {
                 y = level.getMaxY();
                 MinecraftServer server = level.getServer();
-                server.tell(new TickTask(server.getTickCount(), () -> {
-                    performTeleport(player, level, x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z);
-                }));
+                server.execute(() -> performTeleport(player, level, x, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z), z));
             } else {
                 y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
 

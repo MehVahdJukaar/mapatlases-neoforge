@@ -3,12 +3,8 @@
   "required": true,
   "compatibilityLevel": "JAVA_21",
   "package": "pepjebs.mapatlases.mixin.neoforge",
-  "client": [
-    "ItemInHandRendererMixin"
-  ],
-  "mixins": [
-    "MixinCartographyTableAbstractContainerMenuSecondSlotMaps"
-  ],
+  "client": [],
+  "mixins": [],
   "injectors": {
     "defaultRequire": 1
   }

@@ -64,7 +64,7 @@ public class AtlasMap {
     public void tickCarriedByAndSync(ServerPlayer player, ItemStack atlas, TriState forceBeingCarried) {
         MapAtlasesMod.setMapInInventoryHack(forceBeingCarried);
         //hack. just to be sure so contains will fail
-        data.tickCarriedBy(player, atlas);
+        data.tickCarriedBy(player, atlas, null);
         syncToClient(player);
         MapAtlasesMod.setMapInInventoryHack(TriState.PASS);
     }

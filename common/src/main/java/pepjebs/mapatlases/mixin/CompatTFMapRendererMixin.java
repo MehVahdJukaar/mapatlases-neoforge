@@ -1,5 +1,7 @@
 package pepjebs.mapatlases.mixin;
 
+//TODO: twilight forest isnt on 26.1 yet. maps in the gui are drawn in 2d now so this needs a moonlight DecorationTransform or similar
+/*
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.MapDecorationTextureManager;
@@ -24,3 +26,4 @@ public abstract class CompatTFMapRendererMixin {
         MapAtlasesClient.modifyDecorationTransform(stack);
     }
 }
+*/

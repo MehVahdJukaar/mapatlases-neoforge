@@ -1,20 +1,15 @@
 package pepjebs.mapatlases.utils;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
-import net.mehvahdjukaar.moonlight.api.client.util.RenderUtil;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
-import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.MapDecorationTextureManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
-import pepjebs.mapatlases.PlatStuff;
+import org.joml.Matrix3x2fStack;
+import pepjebs.mapatlases.client.AtlasGuiUtils;
 import pepjebs.mapatlases.networking.C2SRemoveMarkerPacket;
 
 import java.util.Map;
@@ -43,23 +38,16 @@ public final class VanillaDecorationHolder extends DecorationHolder {
     }
 
     @Override
-    public void renderDecoration(GuiGraphics pGuiGraphics, float centerX, float centerY) {
-        PoseStack matrices = pGuiGraphics.pose();
-        MultiBufferSource.BufferSource bufferSource = pGuiGraphics.bufferSource();
-
-        matrices.pushPose();
-        matrices.translate(centerX, centerY, 0.001);
-        matrices.mulPose(Axis.ZP.rotationDegrees((deco.rot() * 360) / 16.0F));
-        matrices.scale(-4, -4, 1);
-
-        MapDecorationTextureManager textures = Minecraft.getInstance().gameRenderer.getMapRenderer().decorationTextures;
-        if (!PlatStuff.renderForgeMapDecoration(deco, matrices, bufferSource, data.data,
-                textures, true, LightTexture.FULL_BRIGHT, 0)) {
-            TextureAtlasSprite sprite = textures.get(deco);
-            VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.text(sprite.atlasLocation()));
-            RenderUtil.renderSprite(matrices, vertexConsumer, LightTexture.FULL_BRIGHT, 255, 255, 255, 255, sprite);
-        }
-        matrices.popPose();
+    public void renderDecoration(GuiGraphicsExtractor graphics, float centerX, float centerY) {
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager()
+                .getAtlasOrThrow(AtlasIds.MAP_DECORATIONS).getSprite(deco.getSpriteLocation());
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(centerX, centerY);
+        pose.rotate((deco.rot() * 360) / 16.0F * Mth.DEG_TO_RAD);
+        pose.scale(4);
+        AtlasGuiUtils.drawMarkerSprite(graphics, sprite, -1, false);
+        pose.popMatrix();
     }
 
     @Override

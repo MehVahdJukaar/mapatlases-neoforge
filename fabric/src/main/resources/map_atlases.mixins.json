@@ -3,12 +3,8 @@
   "minVersion": "0.8",
   "package": "pepjebs.mapatlases.mixin.fabric",
   "compatibilityLevel": "JAVA_21",
-  "client": [
-    "ItemInHandRendererMixin"
-  ],
-  "mixins": [
-    "MixinCartographyTableAbstractContainerMenuSecondSlotMaps"
-  ],
+  "client": [],
+  "mixins": [],
   "injectors": {
     "defaultRequire": 1
   }

@@ -2,9 +2,12 @@ package pepjebs.mapatlases.client.screen;
 
 import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -30,10 +33,9 @@ public class DimensionBookmarkButton extends AtlasButton {
     }
 
     private static Identifier findDimensionIcon(ResourceKey<Level> dimension) {
-        var guiSprites = Minecraft.getInstance().getGuiSprites();
+        TextureAtlas guiSprites = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.GUI);
         Identifier icon = MapAtlasesMod.res("dimensions/" + dimension.identifier().getPath());
-        TextureAtlasSprite missing = guiSprites.getSprite(MapAtlasesMod.res("missing"));
-        if (guiSprites.getSprite(icon) == missing) return MapAtlasesMod.res("dimensions/overworld");
+        if (guiSprites.getSprite(icon) == guiSprites.missingSprite()) return MapAtlasesMod.res("dimensions/overworld");
         return icon;
     }
 
@@ -48,17 +50,12 @@ public class DimensionBookmarkButton extends AtlasButton {
     }
 
     @Override
-    protected float zOffset() {
-        return selected() ? 2 : 0;
+    protected void renderContents(GuiGraphicsExtractor graphics) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, dimensionIconSprite, this.getX() + 4, this.getY(), 16, 16);
     }
 
     @Override
-    protected void renderContents(GuiGraphics graphics) {
-        graphics.blitSprite(dimensionIconSprite, this.getX() + 4, this.getY(), 16, 16);
-    }
-
-    @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         this.setSelected(true);
         parentScreen.selectDimension(dimension);
     }

@@ -14,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
@@ -174,7 +175,7 @@ public enum MapType implements StringRepresentable {
                 if (height.isPresent() && MapAtlasesMod.SUPPLEMENTARIES) {
                     newMap = SupplementariesCompat.createSliced(level, destX, destZ, scale, true, false, height.get());
                 } else {
-                    newMap = MapItem.create(level, destX, destZ, scale, true, false);
+                    newMap = MapItem.create((ServerLevel) level, destX, destZ, scale, true, false);
                 }
                 if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(atlas)) {
                     SupplementariesCompat.setMapAntique(newMap, level);

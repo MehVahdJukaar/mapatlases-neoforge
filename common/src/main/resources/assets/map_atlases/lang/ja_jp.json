@@ -18,7 +18,7 @@
   "key.map_atlases.increase_slice": "層を上げる",
   "key.map_atlases.decrease_slice": "層を下げる",
   "key.map_atlases.place_pin": "印付け",
-  "category.map_atlases.minimap": "地図帳",
+  "key.category.map_atlases.minimap": "地図帳",
   "subtitles.map_atlases.atlas_open": "地図帳を開く",
   "subtitles.map_atlases.atlas_page_turn": "ページがめくられる",
   "subtitles.map_atlases.atlas_create_map": "地図が描かれる",

@@ -1,0 +1,167 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "minecraft:has_component",
+    "component": "map_atlases:locked",
+    "on_true": {
+      "type": "minecraft:select",
+      "property": "minecraft:context_dimension",
+      "cases": [
+        {
+          "when": "minecraft:overworld",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_overworld_locked"
+          }
+        },
+        {
+          "when": "minecraft:the_nether",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_nether_locked"
+          }
+        },
+        {
+          "when": "minecraft:the_end",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_end_locked"
+          }
+        },
+        {
+          "when": "aether:the_aether",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_aether_locked"
+          }
+        },
+        {
+          "when": "twilightforest:twilight_forest",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_twilight_forest_locked"
+          }
+        },
+        {
+          "when": "undergarden:undergarden",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_undergarden_locked"
+          }
+        },
+        {
+          "when": "tropicraft:tropics",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_tropics_locked"
+          }
+        },
+        {
+          "when": "thebetweenlands:betweenlands",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_betweenlands_locked"
+          }
+        },
+        {
+          "when": "blue_skies:everbright",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_blue_skies_locked"
+          }
+        },
+        {
+          "when": "the_bumblezone:the_bumblezone",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_the_bumblezone_locked"
+          }
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:model",
+        "model": "map_atlases:item/atlas_generic_locked"
+      }
+    },
+    "on_false": {
+      "type": "minecraft:select",
+      "property": "minecraft:context_dimension",
+      "cases": [
+        {
+          "when": "minecraft:overworld",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_overworld"
+          }
+        },
+        {
+          "when": "minecraft:the_nether",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_nether"
+          }
+        },
+        {
+          "when": "minecraft:the_end",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_end"
+          }
+        },
+        {
+          "when": "aether:the_aether",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_aether"
+          }
+        },
+        {
+          "when": "twilightforest:twilight_forest",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_twilight_forest"
+          }
+        },
+        {
+          "when": "undergarden:undergarden",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_undergarden"
+          }
+        },
+        {
+          "when": "tropicraft:tropics",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_tropics"
+          }
+        },
+        {
+          "when": "thebetweenlands:betweenlands",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_betweenlands"
+          }
+        },
+        {
+          "when": "blue_skies:everbright",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_blue_skies"
+          }
+        },
+        {
+          "when": "the_bumblezone:the_bumblezone",
+          "model": {
+            "type": "minecraft:model",
+            "model": "map_atlases:item/atlas_the_bumblezone"
+          }
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:model",
+        "model": "map_atlases:item/atlas_generic"
+      }
+    }
+  }
+}

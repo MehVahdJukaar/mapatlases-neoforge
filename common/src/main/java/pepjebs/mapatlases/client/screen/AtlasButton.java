@@ -1,9 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -39,34 +37,22 @@ public abstract class AtlasButton extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.enableDepthTest();
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         if (!visible || !active) return;
         if (parentScreen.isEditingText()) isHovered = false;
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(0, 0, zOffset());
-        graphics.blitSprite(getSprite(), this.getX(), this.getY(), this.width, this.height);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, getSprite(), this.getX(), this.getY(), this.width, this.height);
         renderContents(graphics);
-        pose.popPose();
     }
 
-    protected float zOffset() {
-        return 0;
+    protected void renderContents(GuiGraphicsExtractor graphics) {
     }
 
-    protected void renderContents(GuiGraphics graphics) {
+    protected boolean drawnOverBookEdge() {
+        return false;
     }
 
     public Identifier getSprite() {
         return selected ? highlightedSprite : sprite;
-    }
-
-    @Nullable
-    @Override
-    public Tooltip getTooltip() {
-        if (!visible || !active) return null;
-        return super.getTooltip();
     }
 
     @Override
@@ -82,11 +68,6 @@ public abstract class AtlasButton extends AbstractWidget {
     @Nullable
     public Tooltip createTooltip() {
         return null;
-    }
-
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 
     protected static void playPageTurnSound(SoundManager soundManager) {

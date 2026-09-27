@@ -1,4 +1,4 @@
-package pepjebs.mapatlases.mixin.fabric;
+package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,26 +23,28 @@ import pepjebs.mapatlases.item.MapAtlasItem;
 @Mixin(ItemInHandRenderer.class)
 public abstract class ItemInHandRendererMixin {
 
-    @Shadow @Final private Minecraft minecraft;
+    @Shadow
+    @Final
+    private Minecraft minecraft;
     @Unique
     private boolean mapatlases$renderingAtlas = false;
 
-    @ModifyExpressionValue(method = "renderArmWithItem", at =  @At(value = "INVOKE",
-            ordinal = 0,
-            target = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z"))
-    public boolean renderMapAtlasItem(boolean isNormalMap, @Local(argsOnly = true) ItemStack pStack, @Local(argsOnly = true) AbstractClientPlayer player){
-        if(pStack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(pStack)){
-            if (!MapAtlasItem.getMaps(pStack, player.level()).hasDimension(player.level().dimension())) return isNormalMap;
+    @ModifyExpressionValue(method = "renderArmWithItem", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/world/item/ItemStack;has(Lnet/minecraft/core/component/DataComponentType;)Z"))
+    private boolean mapAtlases$renderAtlasAsMap(boolean isMap, @Local(argsOnly = true) ItemStack stack,
+                                                @Local(argsOnly = true) AbstractClientPlayer player) {
+        if (stack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(stack)) {
+            if (!MapAtlasItem.getMaps(stack, player.level()).hasDimension(player.level().dimension())) return isMap;
             mapatlases$renderingAtlas = true;
             return true;
         }
-        return isNormalMap;
+        return isMap;
     }
 
     @Inject(method = "renderMap", at = @At("HEAD"), cancellable = true)
-    public void renderMapAtlasInHand(PoseStack pPoseStack, MultiBufferSource pBuffer, int pCombinedLight, ItemStack pStack, CallbackInfo ci){
-        if(mapatlases$renderingAtlas){
-            AtlasInHandRenderer.render(pPoseStack, pBuffer, pCombinedLight, pStack, this.minecraft);
+    private void mapAtlases$renderAtlasInHand(PoseStack poseStack, SubmitNodeCollector collector, int light, ItemStack stack, CallbackInfo ci) {
+        if (mapatlases$renderingAtlas) {
+            AtlasInHandRenderer.render(poseStack, collector, light, stack, this.minecraft);
             mapatlases$renderingAtlas = false;
             ci.cancel();
         }

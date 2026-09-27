@@ -42,7 +42,7 @@
     "${mod_id}-common.mixins.json"
   ],
   "depends": {
-    "fabric": "*",
+    "fabric-api": "*",
     "minecraft": "=${minecraft_version}",
     "moonlight": ">=${moonlight_min_version}"
   },

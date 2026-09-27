@@ -1,33 +1,29 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
 import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationRenderer;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecorationType;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
+import net.minecraft.util.ARGB;
+import org.joml.Matrix3x2fStack;
+import pepjebs.mapatlases.client.AtlasGuiUtils;
 
 public class CustomDecorationButton {
 
-    public static void renderStaticMarker(GuiGraphics pGuiGraphics,
+    public static void renderStaticMarker(GuiGraphicsExtractor graphics,
                                           Holder<MLMapDecorationType<?, ?>> type,
-                                          float x, float y,
-                                          int index, boolean outline, int alpha) {
+                                          float x, float y, boolean outline, int alpha) {
         MapDecorationRenderer<?> renderer = MapDecorationClientManager.getRenderer(type);
         if (renderer != null) {
-            PoseStack poseStack = pGuiGraphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(x, y, 0.005);
-            poseStack.scale(4, 4, -3);
-
-            var buffer = pGuiGraphics.bufferSource();
-            VertexConsumer vertexBuilder = buffer.getBuffer(MapDecorationClientManager.MAP_MARKERS_RENDER_TYPE);
-            renderer.renderDecorationSprite(poseStack, buffer, vertexBuilder, LightTexture.FULL_BRIGHT, index,
-                    -1, alpha, outline);
-
-            poseStack.popPose();
+            TextureAtlasSprite sprite = MapDecorationClientManager.getSprite(renderer.getDefaultSprite());
+            Matrix3x2fStack pose = graphics.pose();
+            pose.pushMatrix();
+            pose.translate(x, y);
+            pose.scale(4);
+            AtlasGuiUtils.drawMarkerSprite(graphics, sprite, ARGB.color(alpha, 0xFFFFFF), outline);
+            pose.popMatrix();
         }
     }
 }

@@ -4,7 +4,7 @@
  * /hunternif/mc/impl/atlas/mixin/prod/MixinCartographyTableHandlerSlot.java
  * Under the GPL-3 license.
  */
-package pepjebs.mapatlases.mixin.neoforge;
+package pepjebs.mapatlases.mixin;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +24,7 @@ import pepjebs.mapatlases.utils.AtlasCartographyTable;
 import pepjebs.mapatlases.utils.MapType;
 
 @Mixin(targets = "net.minecraft.world.inventory.CartographyTableMenu$5")
-class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
+class CartographyTableResultSlotMixin {
 
 
     @Shadow
@@ -43,7 +43,7 @@ class MixinCartographyTableAbstractContainerMenuSecondSlotMaps {
                 atlas.grow(1);
                 slotOneItem.grow(1);
                 if (player instanceof ServerPlayer sp) {
-                    slotOneItem.hurtAndBreak(1, sp.serverLevel(), sp, b -> {
+                    slotOneItem.hurtAndBreak(1, sp.level(), sp, b -> {
                     });
                 }
                 menu.mapatlases$setSelectedMapIndex(0);

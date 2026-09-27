@@ -12,11 +12,11 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class MapAtlasItem extends Item {
 
@@ -48,8 +49,8 @@ public class MapAtlasItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, context, display, tooltipComponents, tooltipFlag);
 
         if (PlatHelper.getPhysicalSide().isServer()) return;
 
@@ -57,40 +58,40 @@ public class MapAtlasItem extends Item {
         MapCollection maps = getMaps(stack, level);
         int mapSize = maps.getCount();
 
-        tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_maps", mapSize).withStyle(ChatFormatting.GRAY));
 
         addEmptyMapsTooltip(getEmptyMaps(stack), mapSize, tooltipComponents);
 
-        tooltipComponents.add(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.accept(Component.translatable("filled_map.scale", 1 << maps.getScale()).withStyle(ChatFormatting.GRAY));
 
         if (isLocked(stack)) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
+            tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_locked").withStyle(ChatFormatting.GRAY));
         }
         Slice selected = getSelectedSlice(stack, level.dimension());
         selected.height().ifPresent(h ->
-                tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_slice", h).withStyle(ChatFormatting.GRAY)));
+                tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_slice", h).withStyle(ChatFormatting.GRAY)));
         if (selected.type() != MapType.VANILLA) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_type", selected.type().getName()).withStyle(ChatFormatting.GRAY));
+            tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_type", selected.type().getName()).withStyle(ChatFormatting.GRAY));
         }
         if (MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.supplementaries_antique").withStyle(ChatFormatting.GRAY));
+            tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.supplementaries_antique").withStyle(ChatFormatting.GRAY));
         }
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (player.isSecondaryUseActive()) {
             boolean wasLocked = toggleLocked(stack);
             if (level.isClientSide()) {
-                player.displayClientMessage(Component.translatable(wasLocked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"), true);
+                player.sendOverlayMessage(Component.translatable(wasLocked ? "message.map_atlases.locked" : "message.map_atlases.unlocked"));
             }
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         if (player instanceof ServerPlayer sp) {
             syncAndOpenGui(sp, stack, Optional.empty(), false);
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
 
@@ -110,7 +111,7 @@ public class MapAtlasItem extends Item {
                 ah.mapatlases$setAtlas(player, stack);
                 //height.sendBlockUpdated(blockPos, blockState, blockState, 3);
             }
-            return InteractionResult.SUCCESS);
+            return InteractionResult.SUCCESS;
         }
         if (blockState.is(BlockTags.BANNERS)) {
             if (!level.isClientSide()) {
@@ -118,15 +119,16 @@ public class MapAtlasItem extends Item {
                 AtlasMap mapUnderPlayer = maps.getMapAt(MapGridKey.atEntityPosition(maps.getScale(), getSelectedSlice(stack, level.dimension()), player));
                 if (mapUnderPlayer == null || !mapUnderPlayer.data.toggleBanner(level, blockPos)) return InteractionResult.FAIL;
             }
-            return InteractionResult.SUCCESS);
+            return InteractionResult.SUCCESS;
         }
         //others deco
         return super.useOn(context);
     }
 
     @Override
-    public void onCraftedBy(ItemStack stack, Level level, Player pPlayer) {
-        super.onCraftedBy(stack, level, pPlayer);
+    public void onCraftedBy(ItemStack stack, Player pPlayer) {
+        super.onCraftedBy(stack, pPlayer);
+        Level level = pPlayer.level();
 
         if (!level.isClientSide() && MapAtlasesMod.SUPPLEMENTARIES && SupplementariesCompat.hasAntiqueInk(stack)) {
             SupplementariesCompat.convertAllMapsToAntique(stack, level);
@@ -228,11 +230,11 @@ public class MapAtlasItem extends Item {
         }
     }
 
-    private static void addEmptyMapsTooltip(EmptyMaps emptyMaps, int mapCount, List<Component> tooltipComponents) {
+    private static void addEmptyMapsTooltip(EmptyMaps emptyMaps, int mapCount, Consumer<Component> tooltipComponents) {
         int emptyCount = emptyMaps.getTotalCount();
         int maxMapCount = MapAtlasesConfig.maxMapCount.get();
         if (maxMapCount != -1 && mapCount + emptyCount >= maxMapCount) {
-            tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
+            tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_full", "", null)
                     .withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
             return;
         }
@@ -243,7 +245,7 @@ public class MapAtlasItem extends Item {
             // If there are no maps & no empty maps, the atlas is "inactive", so display how many empty maps
             // they *would* receive if they activated the atlas
             if (usesEmptyMaps && pity > 0) {
-                tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", pity).withStyle(ChatFormatting.GRAY));
+                tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_empty", pity).withStyle(ChatFormatting.GRAY));
             }
             return;
         }
@@ -254,9 +256,9 @@ public class MapAtlasItem extends Item {
             MapType type = entry.getKey();
             int empties = entry.getValue();
             if (hasNonVanilla) {
-                tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_empty_type", type.getName(), empties).withStyle(ChatFormatting.GRAY));
+                tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_empty_type", type.getName(), empties).withStyle(ChatFormatting.GRAY));
             } else {
-                tooltipComponents.add(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
+                tooltipComponents.accept(Component.translatable("item.map_atlases.atlas.tooltip_empty", empties).withStyle(ChatFormatting.GRAY));
             }
         }
     }

@@ -78,7 +78,7 @@ public class AtlasLookup {
 
     @Nullable
     public static LecternBlockEntity getLecternInReach(ServerPlayer player, BlockPos pos) {
-        if (!player.canInteractWithBlock(pos, 4)) return null;
+        if (!player.isWithinBlockInteractionRange(pos, 4)) return null;
         return player.level().getBlockEntity(pos) instanceof LecternBlockEntity lectern ? lectern : null;
     }
 

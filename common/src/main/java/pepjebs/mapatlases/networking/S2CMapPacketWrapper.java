@@ -1,14 +1,14 @@
 package pepjebs.mapatlases.networking;
 
-import net.mehvahdjukaar.moonlight.api.platform.network.Message;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.client.MapAtlasesClient;
+//import net.mehvahdjukaar.moonlight.api.platform.network.Message;
+//import net.minecraft.network.FriendlyByteBuf;
+//import net.minecraft.network.RegistryFriendlyByteBuf;
+//import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
+//import net.minecraft.resources.Identifier;
+//import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+//import pepjebs.mapatlases.MapAtlasesMod;
+//import pepjebs.mapatlases.client.MapAtlasesClient;
 
 /*
 public class S2CMapPacketWrapper implements Message {

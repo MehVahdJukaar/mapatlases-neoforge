@@ -19,7 +19,7 @@
   "key.map_atlases.increase_slice": "Увеличить выбранный срез",
   "key.map_atlases.decrease_slice": "Уменьшить выбранный срез",
   "key.map_atlases.place_pin": "Расположить отметку",
-  "category.map_atlases.minimap": "Привязка клавиш для карт географического атласа",
+  "key.category.map_atlases.minimap": "Привязка клавиш для карт географического атласа",
   "subtitles.map_atlases.atlas_open": "Географический атлас открывается",
   "subtitles.map_atlases.atlas_page_turn": "Географический атлас переворачивает страницу",
   "subtitles.map_atlases.atlas_create_map": "Рисование карты географического атласа",

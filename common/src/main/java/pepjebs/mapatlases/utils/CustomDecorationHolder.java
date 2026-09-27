@@ -4,7 +4,7 @@ import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.CustomDecorationButton;
 import pepjebs.mapatlases.integration.moonlight.PinDecoration;
@@ -35,9 +35,9 @@ public final class CustomDecorationHolder extends DecorationHolder {
     }
 
     @Override
-    public void renderDecoration(GuiGraphics graphics, float centerX, float centerY) {
+    public void renderDecoration(GuiGraphicsExtractor graphics, float centerX, float centerY) {
         CustomDecorationButton.renderStaticMarker(graphics, deco.getType(), centerX, centerY,
-                1, deco instanceof PinDecoration p && p.isFocused(), 255);
+                deco instanceof PinDecoration p && p.isFocused(), 255);
     }
 
     @Override

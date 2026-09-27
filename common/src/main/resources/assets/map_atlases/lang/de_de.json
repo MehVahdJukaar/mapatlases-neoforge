@@ -11,7 +11,7 @@
   "item.map_atlases.dummy_filled_map": "Karte",
   "item.map_atlases.dummy_filled_map.dummy": "Testkarte",
   "item.map_atlases.dummy_filled_map.desc": "Bitte gefüllte Karte benutzen",
-  "category.map_atlases.minimap": "Map Atlases",
+  "key.category.map_atlases.minimap": "Map Atlases",
   "subtitles.map_atlases.atlas_open": "Atlas geöffnet",
   "subtitles.map_atlases.atlas_page_turn": "Atlas umgeblättert",
   "subtitles.map_atlases.atlas_create_map": "Atlaskarte gezeichnet",

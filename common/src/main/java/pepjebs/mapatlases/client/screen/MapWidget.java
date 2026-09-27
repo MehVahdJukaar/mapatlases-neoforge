@@ -1,19 +1,16 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ColumnPos;
@@ -76,14 +73,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     @Override
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
-        var v = mapScreen.bookToScreenCoords(x, y);
-        var v2 = mapScreen.bookToScreenCoords(x1, y1);
-        super.applyScissors(graphics, (int) v.x, (int) v.y, (int) v2.x, (int) v2.y);
-    }
-
-    @Override
-    public void render(GuiGraphics graphics, int pMouseX, int pMouseY, float pPartialTick) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int pMouseX, int pMouseY, float pPartialTick) {
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
@@ -91,8 +81,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         this.isHovered = isMouseOver(pMouseX, pMouseY);
 
         // Handle zooming markers hack
-        MapAtlasesClient.setDecorationsScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get());
-        MapAtlasesClient.setDecorationsTextScale(zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationTextScale.get());
+        this.decorationScale = zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationScale.get();
+        this.decorationTextScale = zoomLevel * (float) (double) MapAtlasesClientConfig.worldMapDecorationTextScale.get();
 
         MapItemSavedData hoveredData = null;
         boolean shearing = mapScreen.isShearing();
@@ -101,10 +91,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             hoveredData = d != null ? d.data : null;
         }
         this.drawAtlas(graphics, x, y, width, height, zoomLevel, mapScreen.getSelectedSlice().type(),
-                LightTexture.FULL_BRIGHT, shearing ? hoveredData : null);
-
-        MapAtlasesClient.setDecorationsScale(1);
-        MapAtlasesClient.setDecorationsTextScale(1);
+                -1, shearing ? hoveredData : null);
 
         mapScreen.onMapViewMoved((int) currentXCenter, (int) currentZCenter,
                 (zoomLevel / 2) * mapBlocksSize);
@@ -118,8 +105,10 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
             if (mapScreen.canTeleport()) {
                 //deferred so it doesnt get the book scale
-                mapScreen.setTooltipForNextRenderPass(Tooltip.splitTooltip(mc,
-                        Component.translatable("chat.coordinates.tooltip").withStyle(ChatFormatting.GREEN)));
+                var screenPos = mapScreen.bookToScreenCoords(pMouseX, pMouseY);
+                graphics.setTooltipForNextFrame(mc.font,
+                        Component.translatable("chat.coordinates.tooltip").withStyle(ChatFormatting.GREEN),
+                        (int) screenPos.x, (int) screenPos.y);
             }
             if (PlatHelper.isDev()) {
                 var d = getHoveredMap(pMouseX, pMouseY);
@@ -132,19 +121,15 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         renderScaleText(graphics, mc);
     }
 
-    private void renderScaleText(GuiGraphics graphics, Minecraft mc) {
+    private void renderScaleText(GuiGraphicsExtractor graphics, Minecraft mc) {
         boolean zooming = zoomLevel != targetZoomLevel;
         if (zooming) scaleAlpha = 1;
         else scaleAlpha = Math.max(0, scaleAlpha - 0.03f);
         int a = (int) (scaleAlpha * 255);
         if (a <= 10) return;
-        PoseStack poseStack = graphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(0, 0, 4);
-        graphics.drawString(mc.font,
+        graphics.text(mc.font,
                 Component.translatable("message.map_atlases.map_scale", String.format("%.1f", targetZoomLevel)),
                 x, y + height - 8, ARGB.color(a, 255, 255, 255));
-        poseStack.popPose();
     }
 
     @Override
@@ -162,7 +147,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
         return mapScreen.findMapWithCenter(centerX, centerZ);
     }
 
-    private void renderPositionText(GuiGraphics graphics, Font font, int mouseX, int mouseY) {
+    private void renderPositionText(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY) {
         if (!MapAtlasesClientConfig.drawWorldMapCoords.get()) return;
         ColumnPos pos = getHoveredPos(mouseX, mouseY);
         float textScaling = (float) (double) MapAtlasesClientConfig.worldMapCoordsScale.get();
@@ -178,8 +163,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     @Override
-    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double deltaX, double deltaY) {
-        if (pButton == 0) {
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        if (event.button() == 0) {
             cumulativeMouseX += deltaX;
             cumulativeMouseY += deltaY;
             double newXCenter;
@@ -206,7 +191,7 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
             followingPlayer = false;
             return true;
         }
-        return GuiEventListener.super.mouseDragged(pMouseX, pMouseY, pButton, deltaX, deltaY);
+        return GuiEventListener.super.mouseDragged(event, deltaX, deltaY);
     }
 
     @Override
@@ -219,7 +204,8 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
 
         if (MapAtlasesClientConfig.worldMapSmoothZooming.get()) {
             double v = -scrollY / 25d * MapAtlasesClientConfig.worldMapZoomScrollSpeed.get();
-            if (Screen.hasShiftDown() || Screen.hasControlDown()) v *= 3;
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.hasShiftDown() || mc.hasControlDown()) v *= 3;
             targetZoomLevel = Mth.clamp(targetZoomLevel + targetZoomLevel * (float) v, MIN_ZOOM, MAX_ZOOM);
             zoomLevel = targetZoomLevel - 0.001f;
         } else {
@@ -231,9 +217,9 @@ public class MapWidget extends AbstractAtlasDisplay implements Renderable, GuiEv
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int pButton) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (!isHovered) return false;
-        ColumnPos pos = getHoveredPos(mouseX, mouseY);
+        ColumnPos pos = getHoveredPos(event.x(), event.y());
         if (mapScreen.isPlacingPin()) {
             mapScreen.placePinAt(pos);
             playClickSound(SoundEvents.ITEM_FRAME_ADD_ITEM);

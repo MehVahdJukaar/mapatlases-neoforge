@@ -100,7 +100,7 @@ public class C2SRemoveMarkerPacket implements Message {
                 rotation += 8.0;
                 d = (byte) ((int) (rotation * 16.0 / 360.0));
                 if (data.dimension == Level.NETHER && level != null) {
-                    int k = (int) (level.getLevelData().getDayTime() / 10L);
+                    int k = (int) (level.getOverworldClockTime() / 10L);
                     d = (byte) (k * k * 34187121 + k * 121 >> 15 & 15);
                 }
             } else {

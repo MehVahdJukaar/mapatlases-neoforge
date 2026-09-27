@@ -2,7 +2,6 @@ package pepjebs.mapatlases.platform;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
-import net.mehvahdjukaar.moonlight.api.platform.RegHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +17,6 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.platform.MapAtlasesClientImpl;
-import pepjebs.mapatlases.integration.RouteRelicCompat;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 
@@ -26,14 +24,16 @@ import pepjebs.mapatlases.lifecycle.MapAtlasesServerEvents;
 public class MapAtlasesForge {
 
     public MapAtlasesForge(IEventBus bus) {
-        RegHelper.startRegisteringFor(bus);
         MapAtlasesMod.init();
         NeoForge.EVENT_BUS.register(this);
+        //TODO: route relic compat, see RouteRelicCompat
+        /*
         if (PlatHelper.isModLoaded("routerelic")) {
             NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, RouteRelicCompat::onEntityInteract);
             NeoForge.EVENT_BUS.addListener(RouteRelicCompat::onItemStackedOnOther);
             NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, RouteRelicCompat::onRightClickBlock);
         }
+        */
 
         if (PlatHelper.getPhysicalSide().isClient()) {
             MapAtlasesClientImpl.init(bus);
@@ -73,7 +73,7 @@ public class MapAtlasesForge {
     @SubscribeEvent
     public void onKeyPress(InputEvent.Key event) {
         if (event.getAction() == InputConstants.PRESS) {
-            MapAtlasesClientEvents.onKeyPressed(event.getKey(), event.getScanCode());
+            MapAtlasesClientEvents.onKeyPressed(event.getKeyEvent());
         }
     }
 }

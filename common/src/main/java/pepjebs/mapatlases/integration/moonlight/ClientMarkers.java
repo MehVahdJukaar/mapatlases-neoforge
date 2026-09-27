@@ -203,11 +203,11 @@ public class ClientMarkers {
     }
 
     private static void load(CompoundTag tag, HolderLookup.Provider registries) {
-        for (var k : tag.getAllKeys()) {
+        for (var k : tag.keySet()) {
             MapId id = mapIdFromString(k);
-            ListTag listNbt = tag.getList(k, Tag.TAG_COMPOUND);
+            ListTag listNbt = tag.getListOrEmpty(k);
             for (int j = 0; j < listNbt.size(); ++j) {
-                CompoundTag c = listNbt.getCompound(j);
+                CompoundTag c = listNbt.getCompoundOrEmpty(j);
                 var marker = MarkerHolder.parse(c, registries);
                 if (marker != null) {
                     addMarker(id, marker);
@@ -238,7 +238,7 @@ public class ClientMarkers {
         var pins = MARKERS_PER_MAP.get(mapId);
         if (pins != null) {
             Set<MLMapMarker<?>> set = pins.stream().map(m -> m.marker).collect(Collectors.toSet());
-            HolderOwner<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess()).holderOwner();
+            HolderOwner<MLMapDecorationType<?, ?>> reg = MapDataRegistry.getMapDecorationRegistry(Utils.hackyGetRegistryAccess());
             for (var s : set) {
                 if (!s.getType().canSerializeIn(reg)) {
                     MapAtlasesMod.LOGGER.error("Found a marker that does not belong to this registry. How? Skipping all client pins");

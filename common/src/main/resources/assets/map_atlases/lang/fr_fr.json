@@ -16,7 +16,7 @@
   "item.map_atlases.dummy_filled_map": "Carte",
   "item.map_atlases.dummy_filled_map.dummy": "Dummy",
   "item.map_atlases.dummy_filled_map.desc": "Utilisez n'importe quel carte complète",
-  "category.map_atlases.minimap": "Map Atlas raccourcis clavier",
+  "key.category.map_atlases.minimap": "Map Atlas raccourcis clavier",
   "subtitles.map_atlases.atlas_open": "Ouverture",
   "subtitles.map_atlases.atlas_page_turn": "La page tourne",
   "subtitles.map_atlases.atlas_create_map": "Carte dessinée",

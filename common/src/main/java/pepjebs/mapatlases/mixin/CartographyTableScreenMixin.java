@@ -2,7 +2,7 @@ package pepjebs.mapatlases.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CartographyTableScreen;
 import net.minecraft.network.chat.Component;
@@ -32,9 +32,9 @@ public abstract class CartographyTableScreenMixin extends AbstractContainerScree
         this.addRenderableWidget(new CartographyTableAtlasButton(this, false, this.menu));
     }
 
-    @Inject(method = "renderResultingMap", at = @At(value = "HEAD"))
-    void mapAtlases$renderAtlasMap(GuiGraphics guiGraphics, MapId pMapId, MapItemSavedData pMapData, boolean hasMap, boolean hasPaper,
-                                   boolean hasGlassPane, boolean isMaxSize, CallbackInfo ci,
+    @Inject(method = "extractResultingMap", at = @At(value = "HEAD"))
+    void mapAtlases$renderAtlasMap(GuiGraphicsExtractor guiGraphics, MapId pMapId, MapItemSavedData pMapData, boolean isDuplication, boolean isScaling,
+                                   boolean isLocking, boolean locked, CallbackInfo ci,
                                    @Local(argsOnly = true) LocalRef<MapId> mapid,
                                    @Local(argsOnly = true) LocalRef<MapItemSavedData> data) {
 

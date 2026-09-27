@@ -19,7 +19,7 @@
   "key.map_atlases.increase_slice": "Increase selected Slice",
   "key.map_atlases.decrease_slice": "Decrease selected Slice",
   "key.map_atlases.place_pin": "Place pin",
-  "category.map_atlases.minimap": "Map Atlases Keybinds",
+  "key.category.map_atlases.minimap": "Map Atlases Keybinds",
   "subtitles.map_atlases.atlas_open": "Atlas opens",
   "subtitles.map_atlases.atlas_page_turn": "Atlas page turns",
   "subtitles.map_atlases.atlas_create_map": "Atlas map drawn",
@@ -192,5 +192,7 @@
   "map_atlases.configuration.markers.night_lightmap": "Night Lightmap",
   "map_atlases.configuration.markers.night_lightmap.description": "Recolors map texture at night to make them use night lightmap. Requires light_map config in common configs",
   "map_atlases.configuration.markers.convert_xaeros_waypoints": "Convert Xaeros Waypoints",
-  "map_atlases.configuration.markers.convert_xaeros_waypoints.description": "Turn on to convert Xaeros minimap waypoints. Conversion will happen on world boot. Remember to turn back off"
+  "map_atlases.configuration.markers.convert_xaeros_waypoints.description": "Turn on to convert Xaeros minimap waypoints. Conversion will happen on world boot. Remember to turn back off",
+  "map_atlases.configuration.markers.player_markers_radius": "Player Markers Radius",
+  "map_atlases.configuration.markers.player_markers_radius.description": "How far around you other players show up on atlas maps. 0 hides them"
 }

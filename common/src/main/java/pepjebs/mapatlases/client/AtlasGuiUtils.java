@@ -1,13 +1,15 @@
 package pepjebs.mapatlases.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4d;
 import org.joml.Vector4d;
-import pepjebs.mapatlases.PlatStuff;
 
 public final class AtlasGuiUtils {
 
@@ -24,23 +26,45 @@ public final class AtlasGuiUtils {
     }
 
     public static void drawScaledText(
-            GuiGraphics context, Font font, int x, int y,
+            GuiGraphicsExtractor context, Font font, int x, int y,
             String text, float textScaling, int maxTextWidth, int centeredAreaWidth) {
-        PoseStack pose = context.pose();
+        Matrix3x2fStack pose = context.pose();
         float textWidth = font.width(text);
         float scale = Math.min(1, maxTextWidth * textScaling / textWidth) * textScaling;
         float centerX = x + centeredAreaWidth / 2f;
-        pose.pushPose();
-        pose.translate(centerX, y + 4, 5);
-        pose.scale(scale, scale, 1);
-        pose.translate(-textWidth / 2f, -4, 0);
+        pose.pushMatrix();
+        pose.translate(centerX, y + 4);
+        pose.scale(scale);
+        pose.translate(-textWidth / 2f, -4);
         drawStringWithLighterShadow(context, font, text, 0, 0);
-        pose.popPose();
+        pose.popMatrix();
     }
 
-    public static void drawStringWithLighterShadow(GuiGraphics context, Font font, String text, float x, float y) {
-        PlatStuff.drawString(context, font, text, x + 1, y + 1, 0xFF595959, false);
-        PlatStuff.drawString(context, font, text, x, y, 0xFFE0E0E0, false);
+    public static void drawStringWithLighterShadow(GuiGraphicsExtractor context, Font font, String text, float x, float y) {
+        Matrix3x2fStack pose = context.pose();
+        pose.pushMatrix();
+        pose.translate(x, y);
+        context.text(font, text, 1, 1, 0xFF595959, false);
+        context.text(font, text, 0, 0, 0xFFE0E0E0, false);
+        pose.popMatrix();
+    }
+
+    public static void drawMarkerSprite(GuiGraphicsExtractor graphics, TextureAtlasSprite sprite, int color, boolean outline) {
+        Matrix3x2fStack pose = graphics.pose();
+        if (outline) {
+            //outline
+            int outlineColor = ARGB.color(ARGB.alpha(color), 0);
+            for (int j = -1; j <= 1; ++j) {
+                for (int k = -1; k <= 1; ++k) {
+                    if (j == 0 && k == 0) continue;
+                    pose.pushMatrix();
+                    pose.translate(j * 0.125f, k * 0.125f);
+                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, -1, -1, 2, 2, outlineColor);
+                    pose.popMatrix();
+                }
+            }
+        }
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, -1, -1, 2, 2, color);
     }
 
     public static Pair<Float, Float> getDirectionPos(float radius, float angleDegrees) {

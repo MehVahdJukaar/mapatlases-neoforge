@@ -11,7 +11,7 @@
   "item.map_atlases.dummy_filled_map": "Mapa",
   "item.map_atlases.dummy_filled_map.dummy": "Tylko na pokaz w REI",
   "item.map_atlases.dummy_filled_map.desc": "Użyj każdej wypełnionej mapy",
-  "category.map_atlases.minimap": "Map Atlases",
+  "key.category.map_atlases.minimap": "Map Atlases",
   "subtitles.map_atlases.atlas_open": "Atlas się otwiera",
   "subtitles.map_atlases.atlas_page_turn": "Atlas zmienia stronę",
   "subtitles.map_atlases.atlas_create_map": "Mapa w Atlasie wypełniona",

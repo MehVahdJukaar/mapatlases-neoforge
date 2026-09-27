@@ -1,6 +1,9 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -38,6 +41,11 @@ public class SliceBookmarkButton extends AtlasButton {
                 Component.translatable("item.map_atlases.atlas.tooltip_slice", slice.height().get()));
     }
 
+    @Override
+    protected boolean drawnOverBookEdge() {
+        return true;
+    }
+
     public Slice getSlice() {
         return slice;
     }
@@ -47,25 +55,19 @@ public class SliceBookmarkButton extends AtlasButton {
     }
 
     @Override
-    protected float zOffset() {
-        return 2;
-    }
-
-    @Override
-    protected void renderContents(GuiGraphics graphics) {
+    protected void renderContents(GuiGraphicsExtractor graphics) {
         Identifier typeSprite = switch (slice.type()) {
             case VANILLA, SLICED -> MapAtlasesClient.MAP_TYPE_VANILLA_SPRITE;
             case MAZE -> MapAtlasesClient.MAP_TYPE_MAZE_SPRITE;
             case ORE_MAZE -> MapAtlasesClient.MAP_TYPE_ORE_SPRITE;
             case MAGIC -> MapAtlasesClient.MAP_TYPE_MAGIC_SPRITE;
         };
-        graphics.blitSprite(typeSprite, this.getX() + 8, this.getY() + 2, 16, 16);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, typeSprite, this.getX() + 8, this.getY() + 2, 16, 16);
 
         if (hasMultipleHeights) {
-            graphics.pose().translate(0, 0, 1);
             Component text = slice.height().map(h -> (Component) Component.literal(String.valueOf(h)))
                     .orElseGet(() -> Component.translatable("message.map_atlases.atlas.slice_default"));
-            graphics.drawCenteredString(parentScreen.getMinecraft().font,
+            graphics.centeredText(parentScreen.getMinecraft().font,
                     text, this.getX() + (compact ? 17 : 39), this.getY() + 7, -1);
         }
 
@@ -75,13 +77,13 @@ public class SliceBookmarkButton extends AtlasButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         if (parentScreen.isShearing()) parentScreen.shearSlice(slice);
         else parentScreen.cycleSliceType();
     }
 
     @Override
-    protected boolean isValidClickButton(int pButton) {
+    protected boolean isValidClickButton(MouseButtonInfo buttonInfo) {
         return hasMultipleTypes;
     }
 }

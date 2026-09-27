@@ -1,56 +1,58 @@
 package pepjebs.mapatlases.integration;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.RecipeBookCategories;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.*;
-import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
+//TODO: recipe viewers now read Recipe.display(), which MapAtlasCreateRecipe implements. needs the 26.1 jei/emi/rei apis to check
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+//import net.minecraft.client.Minecraft;
+//import net.minecraft.client.RecipeBookCategories;
+//import net.minecraft.core.NonNullList;
+//import net.minecraft.resources.Identifier;
+//import net.minecraft.world.item.ItemStack;
+//import net.minecraft.world.item.Items;
+//import net.minecraft.world.item.crafting.*;
+//import pepjebs.mapatlases.MapAtlasesMod;
+//import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
 
-public class SpecialRecipeDisplays {
+//import java.util.ArrayList;
+//import java.util.List;
+//import java.util.function.Consumer;
 
-
-    //TODO: add other 2
-    private static List<RecipeHolder<CraftingRecipe>> makeAtlasCreateRecipe() {
-
-        var rec = Minecraft.getInstance().level.getRecipeManager().byKey(MapAtlasesMod.res("craft_atlas"));
-
-        List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
-
-        if (rec.isPresent() && rec.get().value() instanceof MapAtlasCreateRecipe create) {
-
-            String group = "map_atlases.create_atlas";
-
-            var ing = create.getIngredients();
-            List<Ingredient> l = new ArrayList<>(ing);
-            l.add(Ingredient.of(new ItemStack(Items.FILLED_MAP)));
-
-            NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY, l.toArray(Ingredient[]::new));
-            Identifier id = MapAtlasesMod.res("craft_atlas");
-            ShapelessRecipe recipe = new ShapelessRecipe(group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
-            recipes.add(new RecipeHolder<>(id,recipe));
-        }
-        return recipes;
-    }
+//public class SpecialRecipeDisplays {
 
 
-    public static void registerCraftingRecipes(Consumer<List<RecipeHolder<CraftingRecipe>>> registry) {
-        for (var c : RecipeBookCategories.AGGREGATE_CATEGORIES.get(RecipeBookCategories.CRAFTING_SEARCH)) {
-            registerRecipes(c, registry);
-        }
-    }
+//    //TODO: add other 2
+//    private static List<RecipeHolder<CraftingRecipe>> makeAtlasCreateRecipe() {
 
-    public static void registerRecipes(RecipeBookCategories category, Consumer<List<RecipeHolder<CraftingRecipe>>> registry) {
+//        var rec = Minecraft.getInstance().level.getRecipeManager().byKey(MapAtlasesMod.res("craft_atlas"));
 
-        if (category == RecipeBookCategories.CRAFTING_MISC) {
-            registry.accept(makeAtlasCreateRecipe());
-        }
-    }
-}
+//        List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
+
+//        if (rec.isPresent() && rec.get().value() instanceof MapAtlasCreateRecipe create) {
+
+//            String group = "map_atlases.create_atlas";
+
+//            var ing = create.getIngredients();
+//            List<Ingredient> l = new ArrayList<>(ing);
+//            l.add(Ingredient.of(new ItemStack(Items.FILLED_MAP)));
+
+//            NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY, l.toArray(Ingredient[]::new));
+//            Identifier id = MapAtlasesMod.res("craft_atlas");
+//            ShapelessRecipe recipe = new ShapelessRecipe(group, CraftingBookCategory.MISC, new ItemStack(MapAtlasesMod.MAP_ATLAS.get()), inputs);
+//            recipes.add(new RecipeHolder<>(id,recipe));
+//        }
+//        return recipes;
+//    }
+
+
+//    public static void registerCraftingRecipes(Consumer<List<RecipeHolder<CraftingRecipe>>> registry) {
+//        for (var c : RecipeBookCategories.AGGREGATE_CATEGORIES.get(RecipeBookCategories.CRAFTING_SEARCH)) {
+//            registerRecipes(c, registry);
+//        }
+//    }
+
+//    public static void registerRecipes(RecipeBookCategories category, Consumer<List<RecipeHolder<CraftingRecipe>>> registry) {
+
+//        if (category == RecipeBookCategories.CRAFTING_MISC) {
+//            registry.accept(makeAtlasCreateRecipe());
+//        }
+//    }
+//}

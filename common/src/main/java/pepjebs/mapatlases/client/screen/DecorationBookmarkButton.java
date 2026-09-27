@@ -1,10 +1,13 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import pepjebs.mapatlases.client.CompoundTooltip;
 import pepjebs.mapatlases.client.MapAtlasesClient;
@@ -32,20 +35,21 @@ public class DecorationBookmarkButton extends AtlasButton {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyPressed(KeyEvent event) {
         updateModifierKeys();
         return false;
     }
 
     @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyReleased(KeyEvent event) {
         updateModifierKeys();
         return false;
     }
 
     private void updateModifierKeys() {
-        this.shiftDown = Screen.hasShiftDown();
-        this.controlDown = Screen.hasControlDown();
+        Minecraft mc = Minecraft.getInstance();
+        this.shiftDown = mc.hasShiftDown();
+        this.controlDown = mc.hasControlDown();
         this.setTooltip(this.createTooltip());
     }
 
@@ -58,9 +62,16 @@ public class DecorationBookmarkButton extends AtlasButton {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    protected boolean isValidClickButton(MouseButtonInfo buttonInfo) {
+        return buttonInfo.button() == 0 || buttonInfo.button() == 1;
+    }
+
+    @Override
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         this.setSelected(true);
-        if (willDelete()) {
+        if (event.button() == 1 && holder.canFocusMarker()) {
+            holder.focusMarker();
+        } else if (willDelete()) {
             holder.deleteMarker(parentScreen.lecternPos());
             parentScreen.recalculateDecorationWidgets();
         } else if (willFocus()) {
@@ -70,31 +81,16 @@ public class DecorationBookmarkButton extends AtlasButton {
         }
     }
 
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        this.setSelected(true);
-        if (button == 1 && holder.canFocusMarker()) {
-            holder.focusMarker();
-        } else {
-            onClick(mouseX, mouseY);
-        }
-    }
-
     public double getWorldX() { return holder.getWorldX(); }
     public double getWorldZ() { return holder.getWorldZ(); }
 
     @Override
-    protected float zOffset() {
-        return 0.01f * listIndex;
-    }
-
-    @Override
-    protected void renderContents(GuiGraphics graphics) {
+    protected void renderContents(GuiGraphicsExtractor graphics) {
         if (!parentScreen.isPlacingPin() && !parentScreen.isEditingText()) {
             if (willFocus()) {
-                graphics.blitSprite(FOCUS_MARKER_SPRITE, getX(), getY(), 5, 5);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, FOCUS_MARKER_SPRITE, getX(), getY(), 5, 5);
             } else if (willDelete()) {
-                graphics.blitSprite(DELETE_MARKER_SPRITE, getX(), getY(), 5, 5);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, DELETE_MARKER_SPRITE, getX(), getY(), 5, 5);
             }
         }
         holder.renderDecoration(graphics, getX() + width / 2f, getY() + height / 2f);

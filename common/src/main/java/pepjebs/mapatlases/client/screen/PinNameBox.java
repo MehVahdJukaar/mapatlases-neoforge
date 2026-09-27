@@ -1,10 +1,11 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import org.joml.Matrix3x2fStack;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -48,11 +49,9 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float partialTicks) {
-        PoseStack p = pGuiGraphics.pose();
-        p.pushPose();
-        p.translate(0, 0, 30);
-        super.renderWidget(pGuiGraphics, pMouseX, pMouseY, partialTicks);
+    public void extractWidgetRenderState(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float partialTicks) {
+        Matrix3x2fStack p = pGuiGraphics.pose();
+        super.extractWidgetRenderState(pGuiGraphics, pMouseX, pMouseY, partialTicks);
         // int col = this.isFocused() ? -1 : -6250336;
         //  pGuiGraphics.fill(this.getX() - 1 - this.height, this.getY() - 1,
         //        this.getX() + 1, this.getY() + this.height + 1, col);
@@ -60,10 +59,9 @@ public class PinNameBox extends EditBox {
         //       this.getX(), this.getY() + this.height, -16777216);
         this.markerHovered = pMouseX >= (double) this.getX() - height - 1 && pMouseY >= this.getY() &&
                 pMouseX < (this.getX()) && pMouseY < (this.getY() + this.height);
-        p.pushPose();
-        p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f - 1, 0);
-        p.scale(2, 2, 1);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
+        p.pushMatrix();
+        p.translate(this.getX() - height / 2f - 2, this.getY() + height / 2f - 1);
+        p.scale(2);
 
 
         float popIn = Mth.lerp(partialTicks, scrollPopInAnimationO, scrollPopInAnimation) * 3;
@@ -73,7 +71,7 @@ public class PinNameBox extends EditBox {
         float remainder = displayInd % 1;
         int closestInd = (int) displayInd;
 
-        p.translate(0, remainder * popIn, 0);
+        p.translate(0, remainder * popIn);
         int alphaDecrement = 120;
         int aa = (int) Mth.lerp(Mth.abs(remainder), 255, alphaDecrement);
         ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, 0,
@@ -81,19 +79,17 @@ public class PinNameBox extends EditBox {
 
         if (popIn != 0) {
             for (int dir = 1; dir >= -1; dir -= 2) {
-                p.pushPose();
+                p.pushMatrix();
                 for (int j = 1; j < 4; j++) {
                     int al = (int) Mth.clamp(255 - (dir * remainder + j) * alphaDecrement, 0, 255);
-                    p.translate(0, 0, -0.01);
                     if (al <= 0) break;
                     ClientMarkersRenderer.renderDecorationPreview(pGuiGraphics, 0, dir * j * popIn, closestInd - dir * j,
                             false, al);
                 }
-                p.popPose();
+                p.popMatrix();
             }
         }
-        p.popPose();
-        p.popPose();
+        p.popMatrix();
     }
 
     public void tick() {
@@ -121,8 +117,9 @@ public class PinNameBox extends EditBox {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if ((pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) && active && canConsumeInput()) {
             onDone.run();
             scrollVisibleCounter = 0;
             displayIndex = currentIndex;
@@ -131,17 +128,17 @@ public class PinNameBox extends EditBox {
             scrollPopInAnimationO = 0;
             return true;
         }
-        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    protected boolean clicked(double pMouseX, double pMouseY) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (this.markerHovered) {
             increasePinIndex();
             Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return false;
         }
-        return super.clicked(pMouseX, pMouseY);
+        return super.mouseClicked(event, doubleClick);
     }
 
     public void increasePinIndex() {

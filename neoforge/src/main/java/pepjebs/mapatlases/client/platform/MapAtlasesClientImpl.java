@@ -1,14 +1,12 @@
 package pepjebs.mapatlases.client.platform;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
 import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
@@ -16,7 +14,7 @@ import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
 
 public class MapAtlasesClientImpl {
 
-    private static final MapAtlasesHUDImpl HUD = new MapAtlasesHUDImpl();
+    private static final MapAtlasesHUD HUD = new MapAtlasesHUD();
 
     public static void init(IEventBus bus) {
         bus.addListener(MapAtlasesClientImpl::registerOverlay);
@@ -24,10 +22,7 @@ public class MapAtlasesClientImpl {
     }
 
     public static void registerOverlay(RegisterGuiLayersEvent event) {
-        event.registerBelow(VanillaGuiLayers.DEBUG_OVERLAY, MapAtlasesMod.res("atlas"), HUD);
-    }
-
-    private static class MapAtlasesHUDImpl extends MapAtlasesHUD implements LayeredDraw.Layer {
+        event.registerAboveAll(MapAtlasesMod.res("atlas"), HUD::render);
     }
 
     @SubscribeEvent

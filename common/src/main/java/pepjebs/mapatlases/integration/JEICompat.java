@@ -2,11 +2,11 @@ package pepjebs.mapatlases.integration;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.registration.IRecipeRegistration;
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
+import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import pepjebs.mapatlases.MapAtlasesMod;
+import pepjebs.mapatlases.item.recipe.MapAtlasCreateRecipe;
 
 @JeiPlugin
 public class JEICompat implements IModPlugin {
@@ -18,12 +18,11 @@ public class JEICompat implements IModPlugin {
         return ID;
     }
 
+    //jei skips special recipes unless something claims them
     @Override
-    public void registerRecipes(IRecipeRegistration registry) {
-        if (!PlatHelper.isModLoaded("roughly_enough_items")) {
-            SpecialRecipeDisplays.registerCraftingRecipes(r -> registry.addRecipes(RecipeTypes.CRAFTING, r));
-        }
+    public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
+        registration.getCraftingCategory().addExtension(MapAtlasCreateRecipe.class,
+                r -> ((ShapelessCraftingRecipeDisplay) r.value().display().getFirst()).ingredients());
     }
-
 
 }

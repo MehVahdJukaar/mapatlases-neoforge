@@ -11,7 +11,7 @@
   "item.map_atlases.dummy_filled_map": "Мапа",
   "item.map_atlases.dummy_filled_map.dummy": "Макет",
   "item.map_atlases.dummy_filled_map.desc": "Використовуйте будь-яку заповнену мапу",
-  "category.map_atlases.minimap": "Map Atlases",
+  "key.category.map_atlases.minimap": "Map Atlases",
   "subtitles.map_atlases.atlas_open": "Атлас відкривається",
   "subtitles.map_atlases.atlas_page_turn": "Сторінка атласу перегортається",
   "subtitles.map_atlases.atlas_create_map": "Мапу атласу накреслено",

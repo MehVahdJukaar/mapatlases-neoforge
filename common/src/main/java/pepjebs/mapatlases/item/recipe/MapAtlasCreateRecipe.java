@@ -1,19 +1,19 @@
 package pepjebs.mapatlases.item.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import pepjebs.mapatlases.MapAtlasesMod;
-import pepjebs.mapatlases.PlatStuff;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.MapCollection;
 import pepjebs.mapatlases.utils.AtlasMap;
@@ -24,32 +24,38 @@ import java.util.List;
 
 public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
 
+    public static final MapCodec<MapAtlasCreateRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(r -> r.bookInfo),
+            Ingredient.CODEC.listOf(1, 8).fieldOf("ingredients").forGetter(r -> r.ingredients)
+    ).apply(instance, MapAtlasCreateRecipe::new));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, MapAtlasCreateRecipe> STREAM_CODEC = StreamCodec.composite(
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, r -> r.bookInfo,
+            Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), r -> r.ingredients,
+            MapAtlasCreateRecipe::new);
+
     // some logic copied from shapeless recipes
-    private final NonNullList<Ingredient> ingredients;
-    private final boolean isSimple;
-    private final String group;
+    private final CraftingRecipe.CraftingBookInfo bookInfo;
+    private final List<Ingredient> ingredients;
 
-    public MapAtlasCreateRecipe(String group, CraftingBookCategory category, NonNullList<Ingredient> ingredients) {
-        super(category);
-        this.group = group;
+    public MapAtlasCreateRecipe(CraftingRecipe.CraftingBookInfo bookInfo, List<Ingredient> ingredients) {
+        this.bookInfo = bookInfo;
         this.ingredients = ingredients;
-        this.isSimple = PlatStuff.isSimple(ingredients);
     }
 
     @Override
-    public String getGroup() {
-        return group;
+    public String group() {
+        return bookInfo.group();
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients() {
-        return ingredients;
+    public CraftingBookCategory category() {
+        return bookInfo.category();
     }
 
     @Override
     public boolean matches(CraftingInput inv, Level level) {
-        StackedContents stackedcontents = new StackedContents();
-        List<ItemStack> inputs = new ArrayList<>();
+        StackedItemContents stackedContents = new StackedItemContents();
         int i = 0;
         boolean hasMap = false;
         for (int j = 0; j < inv.size(); ++j) {
@@ -61,14 +67,10 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
                 hasMap = true;
             } else if (!itemstack.isEmpty()) {
                 ++i;
-                if (isSimple)
-                    stackedcontents.accountStack(itemstack, 1);
-                else inputs.add(itemstack);
+                stackedContents.accountStack(itemstack, 1);
             }
         }
-        boolean matches = i == this.ingredients.size() && hasMap &&
-                (isSimple ? stackedcontents.canCraft(this, null) :
-                        PlatStuff.findMatches(inputs, ingredients));
+        boolean matches = i == this.ingredients.size() && hasMap && stackedContents.canCraft(this.ingredients, null);
 
         if (matches) {
             rememberLevel(level);
@@ -77,7 +79,7 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput inv) {
         ItemStack mapItemStack = null;
         for (var item : inv.items()) {
             if (MapType.isFilledMap(item)) {
@@ -105,62 +107,18 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return MapAtlasesMod.MAP_ATLAS_CREATE_RECIPE.get();
+    public List<RecipeDisplay> display() {
+        List<SlotDisplay> slots = new ArrayList<>();
+        for (Ingredient ingredient : ingredients) slots.add(ingredient.display());
+        slots.add(new SlotDisplay.ItemSlotDisplay(Items.FILLED_MAP));
+        return List.of(new ShapelessCraftingRecipeDisplay(slots,
+                new SlotDisplay.ItemSlotDisplay(MapAtlasesMod.MAP_ATLAS.get()),
+                new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 3;
+    public RecipeSerializer<MapAtlasCreateRecipe> getSerializer() {
+        return MapAtlasesMod.MAP_ATLAS_CREATE_RECIPE.get();
     }
-
-    public static class Serializer implements RecipeSerializer<MapAtlasCreateRecipe> {
-
-        private static final MapCodec<MapAtlasCreateRecipe> CODEC = RecordCodecBuilder.mapCodec((instance) -> instance.group(
-                Codec.STRING.optionalFieldOf("group", "").forGetter((shapelessRecipe) -> shapelessRecipe.group),
-                CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(CustomRecipe::category),
-                Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").flatXmap((list) -> {
-                    Ingredient[] ingredients = list.stream().filter((ingredient) -> !ingredient.isEmpty()).toArray(Ingredient[]::new);
-                    if (ingredients.length == 0) {
-                        return DataResult.error(() -> "No ingredients for shapeless recipe");
-                    } else {
-                        return ingredients.length > 9 ? DataResult.error(() -> "Too many ingredients for shapeless recipe") : DataResult.success(NonNullList.of(Ingredient.EMPTY, ingredients));
-                    }
-                }, DataResult::success).forGetter((shapelessRecipe) -> shapelessRecipe.ingredients)
-        ).apply(instance, MapAtlasCreateRecipe::new));
-
-        public static final StreamCodec<RegistryFriendlyByteBuf, MapAtlasCreateRecipe> STREAM_CODEC = StreamCodec.of(
-                MapAtlasCreateRecipe.Serializer::toNetwork, MapAtlasCreateRecipe.Serializer::fromNetwork);
-
-
-        private static MapAtlasCreateRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
-            String string = buffer.readUtf();
-            CraftingBookCategory craftingBookCategory = buffer.readEnum(CraftingBookCategory.class);
-            int i = buffer.readVarInt();
-            NonNullList<Ingredient> nonNullList = NonNullList.withSize(i, Ingredient.EMPTY);
-            nonNullList.replaceAll((ingredient) -> Ingredient.CONTENTS_STREAM_CODEC.decode(buffer));
-            return new MapAtlasCreateRecipe(string, craftingBookCategory, nonNullList);
-        }
-
-        private static void toNetwork(RegistryFriendlyByteBuf buffer, MapAtlasCreateRecipe recipe) {
-            buffer.writeUtf(recipe.group);
-            buffer.writeEnum(recipe.category());
-            buffer.writeVarInt(recipe.ingredients.size());
-            for (Ingredient ingredient : recipe.ingredients) {
-                Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, ingredient);
-            }
-        }
-
-        @Override
-        public MapCodec<MapAtlasCreateRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, MapAtlasCreateRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
-    }
-
 
 }

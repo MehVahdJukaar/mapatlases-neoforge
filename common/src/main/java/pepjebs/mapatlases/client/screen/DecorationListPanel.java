@@ -1,6 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -141,34 +142,30 @@ class DecorationListPanel extends BookmarkListPanel<DecorationBookmarkButton> {
         }
 
         @Override
-        protected float zOffset() {
-            return 2;
-        }
-
-        @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            super.mouseClicked(mouseX, mouseY, button);
+        public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+            super.mouseClicked(event, doubleClick);
             return false; //never focus this widget.
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
             if (hasActiveFilter()) applyFilter("");
             else screen.openFilterBox();
         }
 
-        @Nullable
         @Override
-        public Tooltip getTooltip() {
-            if (!visible || !active) return null;
-            if (hasActiveFilter()) return Tooltip.create(Component.literal("\"" + filterText + "\""));
-            return Tooltip.create(Component.translatable("tooltip.map_atlases.filter"));
+        protected boolean drawnOverBookEdge() {
+            return true;
         }
 
         void updateActiveState(boolean needsScroll) {
-            if (hasActiveFilter()) return;
-            this.active = needsScroll;
-            this.visible = needsScroll;
+            if (!hasActiveFilter()) {
+                this.active = needsScroll;
+                this.visible = needsScroll;
+            }
+            Tooltip tooltip = hasActiveFilter() ? Tooltip.create(Component.literal("\"" + filterText + "\"")) :
+                    Tooltip.create(Component.translatable("tooltip.map_atlases.filter"));
+            this.setTooltip(visible && active ? tooltip : null);
         }
     }
 }

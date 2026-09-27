@@ -11,7 +11,7 @@
   "item.map_atlases.dummy_filled_map": "地图",
   "item.map_atlases.dummy_filled_map.dummy": "任意",
   "item.map_atlases.dummy_filled_map.desc": "任何已用过的地图",
-  "category.map_atlases.minimap": "地图册快捷键绑定",
+  "key.category.map_atlases.minimap": "地图册快捷键绑定",
   "subtitles.map_atlases.atlas_open": "打开地图册",
   "subtitles.map_atlases.atlas_page_turn": "翻页",
   "subtitles.map_atlases.atlas_create_map": "绘制地图册",

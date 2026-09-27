@@ -18,7 +18,7 @@
   "item.map_atlases.dummy_filled_map": "Mapa",
   "item.map_atlases.dummy_filled_map.dummy": "Fictício",
   "item.map_atlases.dummy_filled_map.desc": "Use qualquer mapa preenchido",
-  "category.map_atlases.minimap": "Atalho mapa Atlases",
+  "key.category.map_atlases.minimap": "Atalho mapa Atlases",
   "subtitles.map_atlases.atlas_open": "Atlas abre",
   "subtitles.map_atlases.atlas_page_turn": "Atlas virando página",
   "subtitles.map_atlases.atlas_create_map": "Atlas sendo desenhado",

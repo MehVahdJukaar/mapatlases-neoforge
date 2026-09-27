@@ -3,24 +3,19 @@ package pepjebs.mapatlases.client;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.mehvahdjukaar.candlelight.api.PlatformImpl;
 import net.mehvahdjukaar.moonlight.api.platform.ClientHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
@@ -44,27 +39,27 @@ import java.util.concurrent.TimeUnit;
 
 public class MapAtlasesClient {
 
-    public static final Material OVERWORLD_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas"));
-    public static final Material NETHER_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_nether"));
-    public static final Material END_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_end"));
-    public static final Material OTHER_TEXTURE =
-            new Material(InventoryMenu.BLOCK_ATLAS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
+    public static final SpriteId OVERWORLD_TEXTURE =
+            new SpriteId(TextureAtlas.LOCATION_BLOCKS, MapAtlasesMod.res("entity/lectern_atlas"));
+    public static final SpriteId NETHER_TEXTURE =
+            new SpriteId(TextureAtlas.LOCATION_BLOCKS, MapAtlasesMod.res("entity/lectern_atlas_nether"));
+    public static final SpriteId END_TEXTURE =
+            new SpriteId(TextureAtlas.LOCATION_BLOCKS, MapAtlasesMod.res("entity/lectern_atlas_end"));
+    public static final SpriteId OTHER_TEXTURE =
+            new SpriteId(TextureAtlas.LOCATION_BLOCKS, MapAtlasesMod.res("entity/lectern_atlas_unknown"));
 
     //not Sheets.SHULKER_SHEET, that would load Sheets too early
     private static final Identifier SHULKER_SHEET = Identifier.withDefaultNamespace("textures/atlas/shulker_boxes.png");
 
-    public static final Material MAP_BORDER_TEXTURE = new Material(
+    public static final SpriteId MAP_BORDER_TEXTURE = new SpriteId(
             SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_border"));
 
-    public static final Material MAP_HOVERED_TEXTURE = new Material(
+    public static final SpriteId MAP_HOVERED_TEXTURE = new SpriteId(
             SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_hovered"));
 
-    public static final Material MAP_BACKGROUND_TEXTURE = new Material(
+    public static final SpriteId MAP_BACKGROUND_TEXTURE = new SpriteId(
             SHULKER_SHEET, //so we have mipmap here too
             MapAtlasesMod.res("gui/screen/map_background"));
 
@@ -120,7 +115,7 @@ public class MapAtlasesClient {
     public static final Identifier ATLAS_OVERLAY_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_overlay.png");
     public static final Identifier ATLAS_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/screen/atlas_background.png");
     public static final Identifier ATLAS_BACKGROUND_TEXTURE_BIG = MapAtlasesMod.res("textures/gui/screen/atlas_background_big.png");
-    public static final Identifier GUI_ICONS_TEXTURE = Identifier.withDefaultNamespace("textures/gui/icons.png");
+    public static final Identifier CROSSHAIR_SPRITE = Identifier.withDefaultNamespace("hud/crosshair");
     public static final Identifier MAP_HUD_BACKGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_background.png");
     public static final Identifier MAP_HUD_FOREGROUND_TEXTURE = MapAtlasesMod.res("textures/gui/hud/map_foreground.png");
 
@@ -131,50 +126,47 @@ public class MapAtlasesClient {
             "tropicraft:tropics", "thebetweenlands:betweenlands", "blue_skies:everbright",
             "the_bumblezone:the_bumblezone");
 
+    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(MapAtlasesMod.res("minimap"));
+
     public static final KeyMapping OPEN_ATLAS_KEYBIND = new KeyMapping(
             "key.map_atlases.open_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_M,
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
 
     public static final KeyMapping PLACE_PIN_KEYBIND = new KeyMapping(
             "key.map_atlases.place_pin",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_B,
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
 
     public static final KeyMapping INCREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_in_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_KP_ADD,
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
 
     public static final KeyMapping DECREASE_MINIMAP_ZOOM = new KeyMapping(
             "key.map_atlases.zoom_out_minimap",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_KP_SUBTRACT,
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
 
     public static final KeyMapping INCREASE_SLICE = new KeyMapping(
             "key.map_atlases.increase_slice",
             InputConstants.UNKNOWN.getValue(),
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
 
     public static final KeyMapping DECREASE_SLICE = new KeyMapping(
             "key.map_atlases.decrease_slice",
             InputConstants.UNKNOWN.getValue(),
-            "category.map_atlases.minimap"
+            KEY_CATEGORY
     );
-
-
-    private static final ThreadLocal<Float> globalDecorationScale = ThreadLocal.withInitial(() -> 1f);
-    private static final ThreadLocal<Float> globalDecorationTextScale = ThreadLocal.withInitial(() -> 1f);
-    private static final ThreadLocal<Float> globalDecorationRotation = ThreadLocal.withInitial(() -> 0f);
 
     @Nullable
     private static MapGridKey currentActiveMapKey = null;
@@ -229,13 +221,6 @@ public class MapAtlasesClient {
 
     public static void init() {
         ClientHelper.addKeyBindRegistration(MapAtlasesClient::registerKeyBinding);
-        ClientHelper.addClientSetup(MapAtlasesClient::clientSetup);
-    }
-
-    public static void clientSetup() {
-        // Register ModelPredicate
-        ItemProperties.register(MapAtlasesMod.MAP_ATLAS.get(), MapAtlasesMod.res("atlas"),
-                MapAtlasesClient::getPredicateForAtlas);
     }
 
     public static void registerKeyBinding(ClientHelper.KeyBindEvent event) {
@@ -248,39 +233,6 @@ public class MapAtlasesClient {
             event.register(DECREASE_SLICE);
         }
     }
-
-    public static float getPredicateForAtlas(ItemStack stack, ClientLevel world, LivingEntity entity, int seed) {
-        // Using ClientLevel will render default Atlas in inventories
-        if (world == null && entity != null)
-            world = (ClientLevel) entity.level();
-        if (world == null) return 0.0f;
-        boolean unlocked = !MapAtlasItem.isLocked(stack);
-
-        ResourceKey<Level> dimension = world.dimension();
-        int i = DIMENSION_TEXTURE_ORDER.indexOf(dimension.identifier().toString());
-        if (i == -1) return unlocked ? 0.96f : 1;
-        return i / 10f + (unlocked ? 0 : 0.05f);
-    }
-
-    /*
-    public static void handleMapPacketWrapperPacket(S2CMapPacketWrapper packet) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) return;
-
-        Minecraft.getInstance().player.connection.handleMapItemData(packet.packet);
-
-        var data = level.getMapData(packet.packet.mapId());
-        if (data instanceof MapItemSavedDataAccessor d) {
-            try {
-                d.setCenterX(packet.centerX);
-                d.setCenterZ(packet.centerZ);
-                d.setDimension(ResourceKey.create(Registries.DIMENSION, packet.dimension));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-    */
 
     public static void openScreen(Optional<BlockPos> lecternPos, boolean pinOnly) {
         @Nullable LecternBlockEntity lectern = null;
@@ -314,52 +266,18 @@ public class MapAtlasesClient {
         return ContainerLevelAccess.create(Minecraft.getInstance().level, BlockPos.ZERO);
     }
 
-    public static void modifyTextDecorationTransform(PoseStack poseStack, float textWidth, float textScale) {
-        float scale = globalDecorationTextScale.get();
-        float s = textWidth * textScale / 2.0F;
-        poseStack.translate(s, -4, 0);
-
-        poseStack.mulPose(Axis.ZP.rotationDegrees(globalDecorationRotation.get()));
-        poseStack.translate(-s * scale, 4 * scale, 0);
-
-        poseStack.scale(scale, scale, 1);
-    }
-
-    public static void modifyDecorationTransform(PoseStack poseStack) {
-        poseStack.mulPose(Axis.ZP.rotationDegrees(globalDecorationRotation.get()));
-        float scale = globalDecorationScale.get();
-        poseStack.scale(scale, scale, 1);
-    }
-
-    @Deprecated(forRemoval = true)
-    public static float getWorldMapZoomLevel() {
-        return globalDecorationScale.get();
-    }
-
-    public static void setDecorationsScale(float i) {
-        globalDecorationScale.set(i);
-    }
-
-    public static void setDecorationsTextScale(float i) {
-        globalDecorationTextScale.set(i);
-    }
-
-    public static void setDecorationRotation(float i) {
-        globalDecorationRotation.set(i);
-    }
-
     //debug stuff
     public static void debugMapUpdated(MapId mapId, MapType mapType) {
         CACHE.put(Pair.of(mapId, mapType), 10);
     }
 
-    public static int debugIsMapUpdated(int light, MapId stringId, MapType mapType) {
+    public static int debugIsMapUpdated(int tint, MapId stringId, MapType mapType) {
         Integer value = getValue(stringId, mapType);
         if (value != null) {
-            int pBlockLight = Mth.clamp((int) (value / (float) 10 * 15f), 0, 15);
-            return LightTexture.pack(pBlockLight, pBlockLight);
+            int brightness = Mth.clamp((int) (value / 10f * 255), 0, 255);
+            return ARGB.multiply(tint, ARGB.color(255, brightness, brightness, brightness));
         }
-        return light;
+        return tint;
     }
 
     private static Integer getValue(MapId id, MapType type) {

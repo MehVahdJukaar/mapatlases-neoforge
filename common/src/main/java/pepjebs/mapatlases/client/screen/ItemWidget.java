@@ -1,8 +1,7 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -18,9 +17,8 @@ public class ItemWidget extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        RenderSystem.disableDepthTest();
-        graphics.renderItem(Minecraft.getInstance().player, item, this.getX(), this.getY(), 0);
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        graphics.item(Minecraft.getInstance().player, item, this.getX(), this.getY(), 0);
     }
 
     @Override

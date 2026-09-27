@@ -22,6 +22,6 @@ dependencies {
     modCompileOnly("maven.modrinth:route-relic:0.1.3-NF")
 
     modCompileOnly("curse.maven:emi-580555:6420931")
-    modCompileOnly("curse.maven:jei-238222:7420587")
+    modCompileOnly("mezz.jei:jei-26.1.2-neoforge-api:29.16.0.48")
     modCompileOnly("curse.maven:roughly-enough-items-310111:6199140")
 }

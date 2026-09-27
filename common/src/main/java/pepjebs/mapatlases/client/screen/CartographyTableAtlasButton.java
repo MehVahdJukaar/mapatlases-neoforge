@@ -1,11 +1,10 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.mehvahdjukaar.candlelight.api.VirtualOverride;
 import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -44,20 +43,16 @@ public class CartographyTableAtlasButton extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
+    protected void extractWidgetRenderState(GuiGraphicsExtractor pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         if (!PlatStuff.isShear(menu.getSlot(CartographyTableMenu.ADDITIONAL_SLOT).getItem()) ||
                 !menu.getSlot(CartographyTableMenu.MAP_SLOT).getItem().is(MapAtlasesMod.MAP_ATLAS.get())) return;
-        RenderSystem.enableDepthTest();
         if (!visible) return;
-        PoseStack pose = pGuiGraphics.pose();
-        pose.pushPose();
-        pose.translate(0, 0, 5);
-        pGuiGraphics.blitSprite(isHovered ? hoveredSprite : sprite,
+        pGuiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, isHovered ? hoveredSprite : sprite,
                 this.getX(), this.getY(), this.width, this.height);
 
         if (this.menu instanceof AtlasCartographyTable at) {
             if (left) {
-                pGuiGraphics.drawCenteredString(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index",
+                pGuiGraphics.centeredText(Minecraft.getInstance().font, Component.translatable("message.map_atlases.map_index",
                                 at.mapatlases$getSelectedMapIndex()),
                         this.getX() + 30, this.getY() + 2, -1);
             } else {
@@ -67,33 +62,26 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                     var dim = slice.dimension();
                     int y0 = 0;
                     if (!dim.equals(Level.OVERWORLD)) {
-                        pGuiGraphics.drawString(Minecraft.getInstance().font,
+                        pGuiGraphics.text(Minecraft.getInstance().font,
                                 Component.literal(LangBuilder.getReadableName(dim.identifier().getPath())),
                                 this.getX() - 52, this.getY() - 50, -1);
                         y0 += 8;
                     }
                     MapType type = slice.type();
                     if (type != MapType.VANILLA) {
-                        pGuiGraphics.drawString(Minecraft.getInstance().font, type.getName(),
+                        pGuiGraphics.text(Minecraft.getInstance().font, type.getName(),
                                 this.getX() - 52, y0 + this.getY() - 50, -1);
                         y0 += 8;
                     }
                     var height = slice.height();
                     if (height.isPresent()) {
-                        pGuiGraphics.drawString(Minecraft.getInstance().font,
+                        pGuiGraphics.text(Minecraft.getInstance().font,
                                 Component.translatable("message.map_atlases.slice_height", height.get()),
                                 this.getX() - 52, y0 + this.getY() - 50, -1);
                     }
                 }
             }
         }
-        pose.popPose();
-    }
-
-    @Nullable
-    @Override
-    public Tooltip getTooltip() {
-        return null;
     }
 
 
@@ -103,7 +91,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    public void onClick(MouseButtonEvent event, boolean doubleClick) {
         pressMenuButton(menu, left ? 4 : 5);
     }
 
@@ -114,10 +102,5 @@ public class CartographyTableAtlasButton extends AbstractWidget {
         }
         mc.gameMode.handleInventoryButtonClick(menu.containerId, id);
         return true;
-    }
-
-    @VirtualOverride("neoforge")
-    public void onClick(double mouseX, double mouseY, int button) {
-        onClick(mouseX, mouseY);
     }
 }

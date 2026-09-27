@@ -2,7 +2,7 @@ package pepjebs.mapatlases.utils;
 
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -62,7 +62,7 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
         return name;
     }
 
-    public abstract void renderDecoration(GuiGraphics graphics, float centerX, float centerY);
+    public abstract void renderDecoration(GuiGraphicsExtractor graphics, float centerX, float centerY);
 
     public abstract void deleteMarker(Optional<BlockPos> lecternPos);
 

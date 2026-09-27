@@ -1,29 +1,34 @@
 package pepjebs.mapatlases.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import net.mehvahdjukaar.moonlight.api.map.ExpandedMapData;
+import net.mehvahdjukaar.moonlight.api.map.client.MLDecorationRenderState;
+import net.mehvahdjukaar.moonlight.api.map.client.MapDecorationClientManager;
+import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ColumnPos;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix3x2fStack;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.utils.AtlasMap;
 import pepjebs.mapatlases.utils.MapType;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -43,6 +48,9 @@ public abstract class AbstractAtlasDisplay {
 
     protected boolean rotatesWithPlayer = false;
     protected boolean drawBigPlayerMarker = true;
+    protected float decorationScale = 1;
+    protected float decorationTextScale = 1;
+    protected float decorationRotation = 0;
 
     protected AbstractAtlasDisplay(int mapsPerSide) {
         this.mapsPerSide = mapsPerSide;
@@ -59,14 +67,13 @@ public abstract class AbstractAtlasDisplay {
         this.currentZCenter = mapWherePlayerIs.data.centerZ;
     }
 
-    public void drawAtlas(GuiGraphics graphics, int x, int y, int width, int height,
-                          float zoomLevelDim, MapType type, int light, @Nullable MapItemSavedData selectedData) {
+    public void drawAtlas(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
+                          float zoomLevelDim, MapType type, int tint, @Nullable MapItemSavedData selectedData) {
 
-        MapAtlasesClient.setIsDrawingAtlas(true);
         Player player = Minecraft.getInstance().player;
 
-        PoseStack poseStack = graphics.pose();
-        poseStack.pushPose();
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
 
         float widgetScale = width / (float) (mapsPerSide * MAP_DIMENSION);
         float zoomScale = mapsPerSide / zoomLevelDim;
@@ -79,20 +86,12 @@ public abstract class AbstractAtlasDisplay {
         int centerMapX = c.x();
         int centerMapZ = c.z();
 
+        graphics.enableScissor(x, y, x + width, y + height);
+
         //translate to center
-        poseStack.translate(x + width / 2f, y + height / 2f, 0);
+        pose.translate(x + width / 2f, y + height / 2f);
         //widget scale + zoom
-
-        poseStack.scale(widgetScale * zoomScale, widgetScale * zoomScale, -1);
-
-        // Draw maps, putting active map in middle of grid
-
-        MultiBufferSource.BufferSource vcp = graphics.bufferSource();
-
-        List<Matrix4f> drawnMaps = new ArrayList<>();
-        List<Matrix4f> hoveredMaps = new ArrayList<>();
-
-        applyScissors(graphics, x, y, (x + width), (y + height));
+        pose.scale(widgetScale * zoomScale);
 
         double mapCenterOffsetX = currentXCenter - centerMapX;
         double mapCenterOffsetZ = currentZCenter - centerMapZ;
@@ -101,9 +100,9 @@ public abstract class AbstractAtlasDisplay {
         //dont ask me why all this stuff is like that
 
         if (rotatesWithPlayer) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(180 - player.getYRot()));
+            pose.rotate((180 - player.getYRot()) * Mth.DEG_TO_RAD);
         }
-        poseStack.translate(-mapCenterOffsetX / scaleIndex, -mapCenterOffsetZ / scaleIndex, 0);
+        pose.translate((float) (-mapCenterOffsetX / scaleIndex), (float) (-mapCenterOffsetZ / scaleIndex));
 
         //grid side len
         double sideLength = mapBlocksSize * zoomScale;
@@ -137,64 +136,19 @@ public abstract class AbstractAtlasDisplay {
                 if (shouldDraw) {
                     AtlasMap state = getMapWithCenter(centerMapX + (j * mapBlocksSize), centerMapZ + (i * mapBlocksSize));
                     if (state != null) {
-                        Matrix4f pose = drawMap(player, poseStack, vcp, i, j, state, light);
-                        (state.data == selectedData ? hoveredMaps : drawnMaps).add(pose);
+                        drawMap(graphics, player, i, j, state, tint, state.data == selectedData);
                     }
                 }
             }
         }
-        vcp.endBatch();
 
-        if (showMapBorders()) {
-            VertexConsumer outlineVC = MapAtlasesClient.MAP_BORDER_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-            //using this so we use mipmap. cant use blit sprite
-            for (var matrix4f : drawnMaps) {
-                drawOutline(matrix4f, outlineVC);
-            }
-            if (showMapBackground()) {
-                VertexConsumer backVC = MapAtlasesClient.MAP_BACKGROUND_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-                //using this so we use mipmap. cant use blit sprite
-                for (var matrix4f : drawnMaps) {
-                    drawOutline(matrix4f.translate(0, 0, 1), backVC);
-                }
-            }
-            VertexConsumer outlineVC2 = MapAtlasesClient.MAP_HOVERED_TEXTURE.buffer(vcp, RenderType::text); //its already on block atlas
-            for (var matrix4f : hoveredMaps) {
-                drawOutline(matrix4f, outlineVC2);
-            }
-            vcp.endBatch();
-        }
-
-        poseStack.popPose();
+        pose.popMatrix();
         graphics.disableScissor();
-
-        MapAtlasesClient.setIsDrawingAtlas(false);
     }
 
     protected abstract boolean showMapBackground();
 
     protected abstract boolean showMapBorders();
-
-    private static void drawOutline(Matrix4f matrix4f, VertexConsumer outlineVC) {
-        //cause of vertex consumer chaining bug...
-        float zOffset = -1;
-        outlineVC.addVertex(matrix4f, 0.0F, 128.0F, zOffset).setColor(255, 255, 255, 255);
-        outlineVC.setUv(0.0F, 1.0F)
-                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 128.0F, 128.0F, zOffset).setColor(255, 255, 255, 255);
-        outlineVC.setUv(1.0F, 1.0F)
-                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 128.0F, 0.0F, zOffset).setColor(255, 255, 255, 255);
-        outlineVC.setUv(1.0F, 0.0F)
-                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-        outlineVC.addVertex(matrix4f, 0.0F, 0.0F, zOffset).setColor(255, 255, 255, 255);
-        outlineVC.setUv(0.0F, 0.0F)
-                .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-    }
-
-    protected void applyScissors(GuiGraphics graphics, int x, int y, int x1, int y1) {
-        graphics.enableScissor(x, y, x1, y1);
-    }
 
     @Nullable
     public abstract AtlasMap getMapWithCenter(int centerX, int centerZ);
@@ -203,46 +157,102 @@ public abstract class AbstractAtlasDisplay {
         this.followingPlayer = followingPlayer;
     }
 
-    private Matrix4f drawMap(Player player, PoseStack poseStack, MultiBufferSource.BufferSource vcp,
-                             int ix, int iy, AtlasMap state, int light) {
-        // Draw the map
+    private void drawMap(GuiGraphicsExtractor graphics, Player player, int ix, int iy, AtlasMap map, int tint, boolean hovered) {
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
         int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;
-        poseStack.pushPose();
-        poseStack.translate(curMapComponentX, curMapComponentY, 0.0);
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(curMapComponentX, curMapComponentY);
 
-        MapItemSavedData data = state.data;
-        Map<String, MapDecoration> originalDecorations = new LinkedHashMap<>(data.decorations);
-        replacePlayerMarkers(data, player);
+        boolean borders = showMapBorders();
+        //using block atlas sprites so we get mipmaps. cant use gui sprites
+        if (borders && showMapBackground()) blitMapSprite(graphics, MapAtlasesClient.MAP_BACKGROUND_TEXTURE);
 
-        light = MapAtlasesClient.debugIsMapUpdated(light, state.id, state.type);
+        MapItemSavedData data = map.data;
+        tint = MapAtlasesClient.debugIsMapUpdated(tint, map.id, map.type);
+        Identifier texture = Minecraft.getInstance().getMapTextureManager().prepareMapTexture(map.id, data);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, 0, 0, 0, 0,
+                MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, tint);
+        drawDecorations(graphics, data, player, tint);
 
-        try {
-            Minecraft.getInstance().gameRenderer.getMapRenderer()
-                    .render(
-                            poseStack,
-                            vcp,
-                            state.id,
-                            data,
-                            false,//(1+ix+iy)*50
-                            light //
-                    );
-        } finally {
-            data.decorations.clear();
-            data.decorations.putAll(originalDecorations);
+        if (borders) {
+            blitMapSprite(graphics, MapAtlasesClient.MAP_BORDER_TEXTURE);
+            if (hovered) blitMapSprite(graphics, MapAtlasesClient.MAP_HOVERED_TEXTURE);
         }
+        pose.popMatrix();
+    }
 
-        Matrix4f pose = new Matrix4f(poseStack.last().pose());
-        poseStack.popPose();
-        return pose;
+    private static void blitMapSprite(GuiGraphicsExtractor graphics, SpriteId sprite) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, graphics.getSprite(sprite), 0, 0, MAP_DIMENSION, MAP_DIMENSION);
+    }
+
+    // like GuiGraphicsExtractor.map but with our marker transforms and moonlight decorations
+    private void drawDecorations(GuiGraphicsExtractor graphics, MapItemSavedData data, Player player, int tint) {
+        TextureAtlas atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.MAP_DECORATIONS);
+        for (MapDecoration deco : data.decorations.values()) {
+            if (isPlayerMarker(deco)) continue;
+            drawDecoration(graphics, atlas.getSprite(deco.getSpriteLocation()), deco.x(), deco.y(), deco.rot(),
+                    tint, false, deco.name().orElse(null));
+        }
+        for (MapDecoration deco : makePlayerMarkers(data, player)) {
+            drawDecoration(graphics, atlas.getSprite(deco.getSpriteLocation()), deco.x(), deco.y(), deco.rot(),
+                    tint, false, null);
+        }
+        if (data instanceof ExpandedMapData expanded) {
+            MapAtlasesClient.setIsDrawingAtlas(true);
+            for (MLMapDecoration deco : expanded.ml$getCustomDecorations().values()) {
+                MLDecorationRenderState state = new MLDecorationRenderState();
+                if (MapDecorationClientManager.extract(deco, data, state)) {
+                    drawDecoration(graphics, state.sprite, state.x, state.y, state.rot,
+                            ARGB.multiply(tint, state.color), state.outline, state.name);
+                }
+            }
+            MapAtlasesClient.setIsDrawingAtlas(false);
+        }
+    }
+
+    private void drawDecoration(GuiGraphicsExtractor graphics, @Nullable TextureAtlasSprite sprite, byte x, byte y, byte rot,
+                                int color, boolean outline, @Nullable Component name) {
+        if (sprite == null || ARGB.alpha(color) == 0) return;
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(x / 2f + 64, y / 2f + 64);
+        pose.rotate((rot * 360 / 16f + decorationRotation) * Mth.DEG_TO_RAD);
+        pose.scale(4 * decorationScale);
+        pose.translate(-0.125f, 0.125f);
+        AtlasGuiUtils.drawMarkerSprite(graphics, sprite, color, outline);
+        pose.popMatrix();
+        if (name != null) drawDecorationName(graphics, x, y, name, color);
+    }
+
+    private void drawDecorationName(GuiGraphicsExtractor graphics, byte x, byte y, Component name, int color) {
+        Font font = Minecraft.getInstance().font;
+        float width = font.width(name);
+        float scale = Mth.clamp(25f / width, 0, 6f / 9f);
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(x / 2f + 64 - width * scale / 2f, y / 2f + 64 + 4);
+        //rotate and scale around the marker, not the text corner
+        float s = width * scale / 2f;
+        pose.translate(s, -4);
+        pose.rotate(decorationRotation * Mth.DEG_TO_RAD);
+        pose.translate(-s * decorationTextScale, 4 * decorationTextScale);
+        pose.scale(scale * decorationTextScale);
+        graphics.fill(-1, -1, (int) width + 1, font.lineHeight, Integer.MIN_VALUE);
+        graphics.text(font, name, 0, 0, color, false);
+        pose.popMatrix();
+    }
+
+    private static boolean isPlayerMarker(MapDecoration d) {
+        return d.type().is(MapDecorationTypes.PLAYER) || d.type().is(MapDecorationTypes.PLAYER_OFF_MAP)
+                || d.type().is(MapDecorationTypes.PLAYER_OFF_LIMITS);
     }
 
     // client side decorations are keyed icon-N so we cant tell whose is whose. just redraw every player
-    private void replacePlayerMarkers(MapItemSavedData data, Player player) {
-        data.decorations.values().removeIf(d -> d.type().is(MapDecorationTypes.PLAYER)
-                || d.type().is(MapDecorationTypes.PLAYER_OFF_MAP) || d.type().is(MapDecorationTypes.PLAYER_OFF_LIMITS));
-        if (!data.dimension.equals(player.level().dimension())) return;
+    private List<MapDecoration> makePlayerMarkers(MapItemSavedData data, Player player) {
+        if (!data.dimension.equals(player.level().dimension())) return List.of();
 
+        List<MapDecoration> markers = new ArrayList<>();
         int i = 1 << data.scale;
         int radius = MapAtlasesClientConfig.playerMarkersRadius.get();
         for (Player p : player.level().players()) {
@@ -260,9 +270,9 @@ public abstract class AbstractAtlasDisplay {
 
             byte b0 = (byte) ((int) ((f * 2.0F) + 0.5D));
             byte b1 = (byte) ((int) ((f1 * 2.0F) + 0.5D));
-            data.decorations.put("map_atlases_player_" + p.getStringUUID(), new MapDecoration(MapDecorationTypes.PLAYER,
-                    b0, b1, getPlayerMarkerRot(p), Optional.empty()));
+            markers.add(new MapDecoration(MapDecorationTypes.PLAYER, b0, b1, getPlayerMarkerRot(p), Optional.empty()));
         }
+        return markers;
     }
 
     private static byte getPlayerMarkerRot(Player p) {

@@ -1,11 +1,11 @@
 package pepjebs.mapatlases.client.platform;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.DeltaTracker;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.client.ui.MapAtlasesHUD;
 import pepjebs.mapatlases.lifecycle.MapAtlasesClientEvents;
@@ -22,17 +22,13 @@ public class MapAtlasesClientImpl {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(MapAtlasesClientImpl::mapAtlasClientTick);
-        HudRenderCallback.EVENT.register(MapAtlasesClientImpl::onRenderHud);
-    }
-
-    private static void onRenderHud(GuiGraphics graphics, DeltaTracker deltaTracker) {
-        HUD.render(graphics, deltaTracker);
+        HudElementRegistry.addLast(MapAtlasesMod.res("atlas"), HUD::render);
     }
 
     private static void mapAtlasClientTick(Minecraft minecraft) {
         for (var k : KEYBINDS) {
             if (k.consumeClick()) {
-                MapAtlasesClientEvents.onKeyPressed(k.key.getValue(), k.key.getValue());
+                MapAtlasesClientEvents.onKeyPressed(new KeyEvent(k.key.getValue(), k.key.getValue(), 0));
             }
         }
     }

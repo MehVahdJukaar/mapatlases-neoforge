@@ -1,13 +1,11 @@
 package pepjebs.mapatlases.integration.moonlight;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.mehvahdjukaar.moonlight.api.map.client.MLDecorationRenderState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import org.jetbrains.annotations.Nullable;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 
 public class EntityPinDecorationRenderer extends AtlasOnlyDecorationRenderer<EntityPinDecoration> {
@@ -17,8 +15,7 @@ public class EntityPinDecorationRenderer extends AtlasOnlyDecorationRenderer<Ent
     }
 
     @Override
-    public boolean render(EntityPinDecoration decoration, PoseStack matrixStack, VertexConsumer vertexBuilder,
-                          MultiBufferSource buffer, @Nullable MapItemSavedData data, boolean isOnFrame, int light, int index, boolean rendersText) {
+    public boolean extract(EntityPinDecoration decoration, MapItemSavedData data, MLDecorationRenderState state) {
         Entity entity = decoration.getEntity();
         if (entity == null || data == null || entity.isRemoved()) return false;
         double worldX = entity.getX();
@@ -40,18 +37,18 @@ public class EntityPinDecorationRenderer extends AtlasOnlyDecorationRenderer<Ent
             decoration.setX(mapX);
             decoration.setY(mapY);
 
-            return super.render(decoration, matrixStack, vertexBuilder, buffer, data, isOnFrame, light, index, rendersText);
+            return super.extract(decoration, data, state);
         }
         return false;
     }
 
-
     @Override
-    public int getAlpha(EntityPinDecoration decoration) {
+    protected int getColor(EntityPinDecoration decoration) {
         double y = Minecraft.getInstance().player.getY();
-        double diff = Math.abs(decoration.getEntity().getY() - y)/15;
+        double diff = Math.abs(decoration.getEntity().getY() - y) / 15;
         double i = diff * diff * diff;
-        return (int) Math.max(0, 255 * (1 - i));
+        int alpha = (int) Math.max(0, 255 * (1 - i));
+        return ARGB.color(alpha, 0xFFFFFF);
     }
 
 

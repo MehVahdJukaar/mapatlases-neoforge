@@ -1,14 +1,16 @@
 package pepjebs.mapatlases.client.screen;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import net.mehvahdjukaar.moonlight.api.platform.network.NetworkHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import org.joml.Matrix3x2fStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
@@ -48,7 +50,7 @@ import pepjebs.mapatlases.utils.*;
 
 import java.util.*;
 
-import static pepjebs.mapatlases.client.MapAtlasesClient.GUI_ICONS_TEXTURE;
+import static pepjebs.mapatlases.client.MapAtlasesClient.CROSSHAIR_SPRITE;
 
 public class AtlasOverviewScreen extends Screen {
 
@@ -291,30 +293,31 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
-        if (pKeyCode == GLFW.GLFW_KEY_ESCAPE && cancelCurrentKeyPressed()) return true;
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && cancelCurrentKeyPressed()) return true;
         if (activeTextBox != null) {
-            boolean enter = pKeyCode == GLFW.GLFW_KEY_ENTER || pKeyCode == GLFW.GLFW_KEY_KP_ENTER;
+            boolean enter = keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER;
             if (enter && activeTextBox == filterBox) {
                 decorationPanel.applyFilter(filterBox.getValue());
                 closeTextBox();
             } else {
-                activeTextBox.keyPressed(pKeyCode, pScanCode, pModifiers);
+                activeTextBox.keyPressed(event);
             }
             return true;
         }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound()
-                && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
+                && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(event)) {
             if (!isPinOnly && pinButton != null) toggleCursorAction(CursorAction.PLACING_PIN);
             return true;
         }
-        if (super.keyPressed(pKeyCode, pScanCode, pModifiers)) return true;
-        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(pKeyCode, pScanCode)) {
+        if (super.keyPressed(event)) return true;
+        if (MapAtlasesClient.OPEN_ATLAS_KEYBIND.matches(event)) {
             this.onClose();
             return true;
         }
         for (var v : decorationPanel.getVisibleButtons()) {
-            if (v.keyPressed(pKeyCode, pScanCode, pModifiers)) return true;
+            if (v.keyPressed(event)) return true;
         }
         return false;
     }
@@ -338,63 +341,59 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+    public boolean keyReleased(KeyEvent event) {
         for (var v : decorationPanel.getVisibleButtons()) {
-            v.keyReleased(pKeyCode, pScanCode, pModifiers);
+            v.keyReleased(event);
         }
-        return super.keyReleased(pKeyCode, pScanCode, pModifiers);
+        return super.keyReleased(event);
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(graphics);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        this.extractTransparentBackground(graphics);
         bookBackground.render(graphics, width, height);
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        PoseStack poseStack = graphics.pose();
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        Matrix3x2fStack pose = graphics.pose();
 
-        if (!isPinOnly) {
-            poseStack.pushPose();
-            poseStack.translate(width / 2f, height / 2f, 0);
-            poseStack.scale(globalScale, globalScale, 1);
-            poseStack.translate(-width / 2f, -height / 2f, 0.2);
-            RenderSystem.enableDepthTest();
-            var v = screenToBookCoords(mouseX, mouseY);
-            boolean editing = isEditingText();
-            super.render(graphics, editing ? -1 : (int) v.x, editing ? -1 : (int) v.y, delta);
-            poseStack.popPose();
-        }
+        if (!isPinOnly) extractScaledWidgets(graphics, mouseX, mouseY, delta, false);
+        bookBackground.renderEdges(graphics, width, height);
+        if (!isPinOnly) extractScaledWidgets(graphics, mouseX, mouseY, delta, true);
 
+        graphics.nextStratum();
         if (activeTextBox != null) {
-            poseStack.pushPose();
-            poseStack.translate(0, 0, 30);
-            activeTextBox.render(graphics, mouseX, mouseY, delta);
-            poseStack.popPose();
+            activeTextBox.extractRenderState(graphics, mouseX, mouseY, delta);
         } else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
-            renderCrosshair(graphics);
+            graphics.blitSprite(RenderPipelines.CROSSHAIR, CROSSHAIR_SPRITE, (width - 15) / 2, (height - 15) / 2, 15, 15);
         }
 
         Identifier cursorIcon = selectedCursorAction.getIcon(cursorActionHasTarget);
         if (cursorIcon != null) {
-            poseStack.pushPose();
-            poseStack.translate(mouseX - 2.5f, mouseY - 2.5f, 10);
-            graphics.blitSprite(cursorIcon, 0, 0, 8, 8);
-            poseStack.popPose();
+            pose.pushMatrix();
+            pose.translate(mouseX - 2.5f, mouseY - 2.5f);
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, cursorIcon, 0, 0, 8, 8);
+            pose.popMatrix();
         }
         this.cursorActionHasTarget = false;
     }
 
-    private void renderCrosshair(GuiGraphics graphics) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 5);
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        graphics.blit(GUI_ICONS_TEXTURE, (width - 15) / 2, (height - 15) / 2, 0, 0, 15, 15);
-        RenderSystem.defaultBlendFunc();
-        graphics.pose().popPose();
+    private void extractScaledWidgets(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, boolean overBookEdge) {
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate(width / 2f, height / 2f);
+        pose.scale(globalScale);
+        pose.translate(-width / 2f, -height / 2f);
+        var v = screenToBookCoords(mouseX, mouseY);
+        boolean editing = isEditingText();
+        int bookMouseX = editing ? -1 : (int) v.x;
+        int bookMouseY = editing ? -1 : (int) v.y;
+        for (Renderable r : this.renderables) {
+            boolean isOverEdge = r instanceof AtlasButton b && b.drawnOverBookEdge();
+            if (isOverEdge == overBookEdge) r.extractRenderState(graphics, bookMouseX, bookMouseY, delta);
+        }
+        pose.popMatrix();
     }
 
     @Override
@@ -411,19 +410,22 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
-        if (activeTextBox != null) return activeTextBox.mouseClicked(pMouseX, pMouseY, pButton);
-        var v = screenToBookCoords(pMouseX, pMouseY);
-        boolean result = super.mouseClicked(v.x, v.y, pButton);
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (activeTextBox != null) return activeTextBox.mouseClicked(event, doubleClick);
+        boolean result = super.mouseClicked(toBookCoords(event), doubleClick);
         applyPendingPanelRefreshes();
         return result;
     }
 
     @Override
-    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
-        if (activeTextBox != null) return activeTextBox.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
-        var v = screenToBookCoords(pMouseX, pMouseY);
-        return super.mouseDragged(v.x, v.y, pButton, pDragX, pDragY);
+    public boolean mouseDragged(MouseButtonEvent event, double pDragX, double pDragY) {
+        if (activeTextBox != null) return activeTextBox.mouseDragged(event, pDragX, pDragY);
+        return super.mouseDragged(toBookCoords(event), pDragX, pDragY);
+    }
+
+    private MouseButtonEvent toBookCoords(MouseButtonEvent event) {
+        var v = screenToBookCoords(event.x(), event.y());
+        return new MouseButtonEvent(v.x, v.y, event.buttonInfo());
     }
 
     public Vector4d screenToBookCoords(double mouseX, double mouseY) {
@@ -594,7 +596,7 @@ public class AtlasOverviewScreen extends Screen {
         if (selected != null) {
             pinNameBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
-            if (hasShiftDown() || hasAltDown()) openPinNameBox();
+            if (minecraft.hasShiftDown() || minecraft.hasAltDown()) openPinNameBox();
             else addNewPin();
         }
         this.clearCursorAction();
@@ -639,7 +641,7 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     public boolean canTeleport() {
-        return hasShiftDown() && MapAtlasItem.canPlayerTeleport(player) &&
+        return minecraft.hasShiftDown() && MapAtlasItem.canPlayerTeleport(player) &&
                 selectedCursorAction == CursorAction.NONE && !isEditingText();
     }
 
