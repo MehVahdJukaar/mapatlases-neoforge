@@ -156,7 +156,6 @@ public class AtlasOverviewScreen extends Screen {
         int bookRight = (width + bookBackground.width()) / 2;
         int bookTop = (height - bookBackground.height()) / 2;
 
-        // text boxes render above the scaled book so they arent added as widgets
         this.activeTextBox = null;
         this.pinNameBox = new PinNameBox(this.font, modalX(), modalY(), MODAL_W, MODAL_H,
                 Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
@@ -253,7 +252,6 @@ public class AtlasOverviewScreen extends Screen {
             return;
         }
         if (!initialized) return;
-        // the inventory stack gets replaced on every server sync, so the one we opened with goes stale
         ItemStack syncedAtlas = lectern == null ? AtlasLookup.getAtlasFromPlayerByConfig(player) : lectern.getBook();
         if (syncedAtlas.isEmpty()) {
             this.onClose();
@@ -351,7 +349,7 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         this.extractTransparentBackground(graphics);
-        bookBackground.render(graphics, width, height);
+        bookBackground.render(graphics, width, height, globalScale);
     }
 
     @Override
@@ -359,7 +357,7 @@ public class AtlasOverviewScreen extends Screen {
         Matrix3x2fStack pose = graphics.pose();
 
         if (!isPinOnly) extractScaledWidgets(graphics, mouseX, mouseY, delta, false);
-        bookBackground.renderEdges(graphics, width, height);
+        bookBackground.renderEdges(graphics, width, height, globalScale);
         if (!isPinOnly) extractScaledWidgets(graphics, mouseX, mouseY, delta, true);
 
         graphics.nextStratum();
@@ -481,7 +479,6 @@ public class AtlasOverviewScreen extends Screen {
 
     public void selectDimension(ResourceKey<Level> dimension) {
         boolean sameDim = selectedSlice.dimension().equals(dimension);
-        // On first call from init we keep the atlas's saved slice; afterwards use the per-dim saved slice.
         Slice saved = !initialized ? selectedSlice : MapAtlasItem.getSelectedSlice(atlas, dimension);
         boolean sliceChanged = selectSlice(currentMaps.closestAvailableSlice(dimension, saved));
         dimensionPanel.setSelectedDimension(dimension);

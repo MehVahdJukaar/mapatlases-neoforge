@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
+import net.mehvahdjukaar.moonlight.api.util.TextHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -63,7 +63,7 @@ public class CartographyTableAtlasButton extends AbstractWidget {
                     int y0 = 0;
                     if (!dim.equals(Level.OVERWORLD)) {
                         pGuiGraphics.text(Minecraft.getInstance().font,
-                                Component.literal(LangBuilder.getReadableName(dim.identifier().getPath())),
+                                Component.literal(TextHelper.getReadableName(dim.identifier().getPath())),
                                 this.getX() - 52, this.getY() - 50, -1);
                         y0 += 8;
                     }

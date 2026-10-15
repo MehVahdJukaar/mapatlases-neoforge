@@ -18,6 +18,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +26,6 @@ import org.apache.logging.log4j.Logger;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.integration.SupplementariesCompat;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.EmptyMaps;
@@ -98,8 +98,7 @@ public class MapAtlasesMod {
     public static final boolean TRINKETS = PlatHelper.isModLoaded("trinkets");
     public static final boolean SUPPLEMENTARIES = PlatHelper.isModLoaded("supplementaries");
     /**
-     * @deprecated moonlight is a required dependency, so this is always true. Kept only so external mods
-     * that read it keep linking.
+     * @deprecated moonlight is required so this is always true
      */
     @Deprecated(forRemoval = true)
     public static final boolean MOONLIGHT = true;
@@ -135,13 +134,13 @@ public class MapAtlasesMod {
 
 
         MoonlightCompat.init();
-        if (SUPPLEMENTARIES) SupplementariesCompat.init();
     }
 
     static {
         // Register special recipes
         MAP_ATLAS_CREATE_RECIPE = RegHelper.registerRecipeSerializer(res("crafting_atlas"),
                 () -> new RecipeSerializer<>(MapAtlasCreateRecipe.CODEC, MapAtlasCreateRecipe.STREAM_CODEC));
+        RegHelper.addClientSyncedRecipes(e -> e.add(MAP_ATLAS_CREATE_RECIPE.get(), RecipeType.CRAFTING));
         MAP_ATLAS_ADD_RECIPE = RegHelper.registerSpecialRecipe(res("adding_atlas"), MapAtlasesAddRecipe::new);
         MAP_ATLAS_CUT_RECIPE = RegHelper.registerSpecialRecipe(res("cutting_atlas"), MapAtlasesCutExistingRecipe::new);
         MAP_ANTIQUE_RECIPE = RegHelper.registerSpecialRecipe(res("antique_atlas"), AntiqueAtlasRecipe::new);

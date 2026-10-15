@@ -7,6 +7,8 @@ accessible field net/minecraft/client/multiplayer/ClientLevel mapData Ljava/util
 
 accessible field net/minecraft/client/gui/components/Tooltip cachedTooltip Ljava/util/List;
 accessible field net/minecraft/client/gui/screens/Screen renderables Ljava/util/List;
+accessible method net/minecraft/client/renderer/ItemInHandRenderer renderOneHandedMap (Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;IFLnet/minecraft/world/entity/HumanoidArm;FLnet/minecraft/world/item/ItemStack;)V
+accessible method net/minecraft/client/renderer/ItemInHandRenderer renderTwoHandedMap (Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;IFFF)V
 
 
 accessible field net/minecraft/world/inventory/CraftingMenu player Lnet/minecraft/world/entity/player/Player;

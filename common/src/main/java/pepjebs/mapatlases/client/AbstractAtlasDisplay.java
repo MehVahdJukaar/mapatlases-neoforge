@@ -115,6 +115,7 @@ public abstract class AbstractAtlasDisplay {
                 Mth.square(radius + (sideLength * 0.71)) :
                 (o + 1) * sideLength * 0.5;
 
+        List<VisibleMap> visibleMaps = new ArrayList<>();
         for (int i = o; i >= -o; i--) {
             for (int j = o; j >= -o; j--) {
                 double gridCenterI = i * sideLength;
@@ -135,11 +136,18 @@ public abstract class AbstractAtlasDisplay {
                 }
                 if (shouldDraw) {
                     AtlasMap state = getMapWithCenter(centerMapX + (j * mapBlocksSize), centerMapZ + (i * mapBlocksSize));
-                    if (state != null) {
-                        drawMap(graphics, player, i, j, state, tint, state.data == selectedData);
-                    }
+                    if (state != null) visibleMaps.add(new VisibleMap(i, j, state));
                 }
             }
+        }
+        for (VisibleMap v : visibleMaps) {
+            drawMap(graphics, v.ix, v.iy, v.map, tint, v.map.data == selectedData);
+        }
+        //draws after so stuff doesnt get cutoff by maps
+        for (VisibleMap v : visibleMaps) {
+            pushMapTransform(graphics, v.ix, v.iy);
+            drawDecorations(graphics, v.map.data, player, MapAtlasesClient.debugIsMapUpdated(tint, v.map.id, v.map.type));
+            graphics.pose().popMatrix();
         }
 
         pose.popMatrix();
@@ -157,12 +165,18 @@ public abstract class AbstractAtlasDisplay {
         this.followingPlayer = followingPlayer;
     }
 
-    private void drawMap(GuiGraphicsExtractor graphics, Player player, int ix, int iy, AtlasMap map, int tint, boolean hovered) {
+    private record VisibleMap(int ix, int iy, AtlasMap map) {
+    }
+
+    private static void pushMapTransform(GuiGraphicsExtractor graphics, int ix, int iy) {
         int curMapComponentX = (MAP_DIMENSION * iy) - MAP_DIMENSION / 2;
         int curMapComponentY = (MAP_DIMENSION * ix) - MAP_DIMENSION / 2;
-        Matrix3x2fStack pose = graphics.pose();
-        pose.pushMatrix();
-        pose.translate(curMapComponentX, curMapComponentY);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(curMapComponentX, curMapComponentY);
+    }
+
+    private void drawMap(GuiGraphicsExtractor graphics, int ix, int iy, AtlasMap map, int tint, boolean hovered) {
+        pushMapTransform(graphics, ix, iy);
 
         boolean borders = showMapBorders();
         //using block atlas sprites so we get mipmaps. cant use gui sprites
@@ -173,13 +187,12 @@ public abstract class AbstractAtlasDisplay {
         Identifier texture = Minecraft.getInstance().getMapTextureManager().prepareMapTexture(map.id, data);
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, 0, 0, 0, 0,
                 MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, MAP_DIMENSION, tint);
-        drawDecorations(graphics, data, player, tint);
 
         if (borders) {
             blitMapSprite(graphics, MapAtlasesClient.MAP_BORDER_TEXTURE);
             if (hovered) blitMapSprite(graphics, MapAtlasesClient.MAP_HOVERED_TEXTURE);
         }
-        pose.popMatrix();
+        graphics.pose().popMatrix();
     }
 
     private static void blitMapSprite(GuiGraphicsExtractor graphics, SpriteId sprite) {
@@ -248,7 +261,6 @@ public abstract class AbstractAtlasDisplay {
                 || d.type().is(MapDecorationTypes.PLAYER_OFF_LIMITS);
     }
 
-    // client side decorations are keyed icon-N so we cant tell whose is whose. just redraw every player
     private List<MapDecoration> makePlayerMarkers(MapItemSavedData data, Player player) {
         if (!data.dimension.equals(player.level().dimension())) return List.of();
 

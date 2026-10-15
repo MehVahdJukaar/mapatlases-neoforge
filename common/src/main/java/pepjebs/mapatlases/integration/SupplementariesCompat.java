@@ -1,9 +1,7 @@
 package pepjebs.mapatlases.integration;
 
-import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.mehvahdjukaar.supplementaries.common.items.AntiqueInkItem;
 import net.mehvahdjukaar.supplementaries.common.misc.map_data.DepthDataHandler;
-import net.mehvahdjukaar.supplementaries.common.misc.map_data.MapLightHandler;
 import net.mehvahdjukaar.supplementaries.common.misc.map_data.WeatheredHandler;
 import net.mehvahdjukaar.supplementaries.reg.ModRegistry;
 import net.minecraft.world.entity.player.Player;
@@ -25,14 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SupplementariesCompat {
-
-    public static void init() {
-        if (PlatHelper.getPhysicalSide().isClient()) {
-            SupplementariesClientCompat.init();
-        }
-        // turn on map light
-        MapLightHandler.setActive(true);
-    }
 
     public static Optional<Integer> getSlice(@NotNull MapItemSavedData data) {
         return DepthDataHandler.getMapHeight(data);

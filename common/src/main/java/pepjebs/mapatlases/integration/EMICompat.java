@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.integration;
 
-//TODO: recipe viewers now read Recipe.display(), which MapAtlasCreateRecipe implements. needs the 26.1 jei/emi/rei apis to check
+//TODO: check if this is even needed, MapAtlasCreateRecipe has display() already
 
 //import dev.emi.emi.api.EmiPlugin;
 //import dev.emi.emi.api.EmiRegistry;

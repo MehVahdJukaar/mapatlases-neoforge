@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.client.screen;
 
-import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
+import net.mehvahdjukaar.moonlight.api.util.TextHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -42,7 +42,7 @@ public class DimensionBookmarkButton extends AtlasButton {
     @Override
     public Tooltip createTooltip() {
         return Tooltip.create(Component.literal(
-                LangBuilder.getReadableName(dimension.identifier().getPath())));
+                TextHelper.getReadableName(dimension.identifier().getPath())));
     }
 
     public ResourceKey<Level> getDimension() {

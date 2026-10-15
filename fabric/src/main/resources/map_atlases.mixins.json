@@ -3,7 +3,9 @@
   "minVersion": "0.8",
   "package": "pepjebs.mapatlases.mixin.fabric",
   "compatibilityLevel": "JAVA_21",
-  "client": [],
+  "client": [
+    "ItemInHandRendererMixin"
+  ],
   "mixins": [],
   "injectors": {
     "defaultRequire": 1

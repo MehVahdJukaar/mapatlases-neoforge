@@ -53,6 +53,12 @@ public class MapAtlasCreateRecipe extends AbstractAtlasRecipe {
         return bookInfo.category();
     }
 
+    //jei skips special ones
+    @Override
+    public boolean isSpecial() {
+        return false;
+    }
+
     @Override
     public boolean matches(CraftingInput inv, Level level) {
         StackedItemContents stackedContents = new StackedItemContents();

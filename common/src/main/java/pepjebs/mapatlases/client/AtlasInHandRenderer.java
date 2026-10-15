@@ -9,8 +9,12 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.MapRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.screen.AtlasOverviewScreen;
+import pepjebs.mapatlases.config.MapAtlasesClientConfig;
+import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.utils.AtlasMap;
 
 public class AtlasInHandRenderer {
@@ -50,5 +54,10 @@ public class AtlasInHandRenderer {
             MapAtlasesClient.setIsDrawingAtlas(false);
             mapRenderer.render(MAP_RENDER_STATE, pPoseStack, collector, false, pCombinedLight);
         }
+    }
+
+    public static boolean shouldRenderAsMap(ItemStack stack, Player player) {
+        return stack.is(MapAtlasesMod.MAP_ATLAS.get()) && MapAtlasesClientConfig.inHandMode.get().isOn(stack)
+                && MapAtlasItem.getMaps(stack, player.level()).hasDimension(player.level().dimension());
     }
 }

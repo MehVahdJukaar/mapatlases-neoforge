@@ -1,7 +1,7 @@
 package pepjebs.mapatlases.utils;
 
 import net.mehvahdjukaar.moonlight.api.map.decoration.MLMapDecoration;
-import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
+import net.mehvahdjukaar.moonlight.api.util.TextHelper;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -25,7 +25,7 @@ public abstract sealed class DecorationHolder permits VanillaDecorationHolder, C
         this.id = id;
         this.data = data;
         this.typeId = typeId;
-        this.name = name!=null ? name : Component.literal(LangBuilder.getReadableName(
+        this.name = name!=null ? name : Component.literal(TextHelper.getReadableName(
                 typeId.getPath().toLowerCase(Locale.ROOT)));
         this.sortingString = name == null ? typeId.getPath() : typeId.getPath() + " " + name.getString();
     }

@@ -54,9 +54,6 @@ public class MapAtlasesConfig {
         pinMarkerId = builder.comment("Marker id associated with the red pin button on the atlas screen. Set to empty string to disable")
                 .define("pin_marked_id", "map_atlases:pin");
 
-        lightMap = builder.comment("Shows light color on maps")
-                .define("light_map", false);
-
         entityRadar = builder.icon("minecraft:spider_eye")
                 .comment("Show nearby mobs on minimap. Needs matching client config also set")
                 .feature("mob_radar", false);
@@ -97,7 +94,6 @@ public class MapAtlasesConfig {
     public static final Supplier<Boolean> enableEmptyMapEntryAndFill;
     public static final Supplier<Boolean> creativeTeleport;
     public static final Supplier<UpdateFashion> updateFashion;
-    public static final Supplier<Boolean> lightMap;
     public static final Supplier<Boolean> entityRadar;
     public static final Supplier<String> pinMarkerId;
     public static final Supplier<Integer> mapUpdatePerTick;

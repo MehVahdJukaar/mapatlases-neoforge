@@ -7,11 +7,9 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
-import pepjebs.mapatlases.integration.SupplementariesClientCompat;
 import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.EntityRadar;
 import pepjebs.mapatlases.item.MapAtlasItem;
@@ -29,9 +27,6 @@ public class MapAtlasesClientEvents {
         long gameTime = level.getGameTime();
 
         //offsets so these dont all run on the same tick
-        if (MapAtlasesMod.SUPPLEMENTARIES && (gameTime + 27) % 40 == 0) {
-            SupplementariesClientCompat.onClientTick(level);
-        }
         if (client.screen == null && (gameTime + 5) % 40 == 0 && MapAtlasesClientConfig.automaticSlice.get()) {
             ItemStack atlas = MapAtlasesClient.getCurrentActiveAtlas();
             if (!atlas.isEmpty()) {

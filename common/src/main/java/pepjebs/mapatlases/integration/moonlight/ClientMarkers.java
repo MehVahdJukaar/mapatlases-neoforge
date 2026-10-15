@@ -218,7 +218,8 @@ public class ClientMarkers {
     }
 
     private static MapId mapIdFromString(String id) {
-        return new MapId(Integer.parseInt(id.substring(4)));
+        //map_4, or maps/4
+        return new MapId(Integer.parseInt(id.replaceAll("\\D", "")));
     }
 
     private static CompoundTag save(HolderLookup.Provider registries) {
@@ -229,7 +230,7 @@ public class ClientMarkers {
                 Tag markerSaved = marker.savedMarker;
                 listNBT.add(markerSaved);
             }
-            tag.put(v.getKey().key(), listNBT);
+            tag.put("map_" + v.getKey().id(), listNBT);
         }
         return tag;
     }

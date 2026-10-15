@@ -23,5 +23,6 @@ dependencies {
 
     modCompileOnly("curse.maven:emi-580555:6420931")
     modCompileOnly("mezz.jei:jei-26.1.2-neoforge-api:29.16.0.48")
+    modRuntimeOnly("mezz.jei:jei-26.1.2-neoforge:29.16.0.48")
     modCompileOnly("curse.maven:roughly-enough-items-310111:6199140")
 }

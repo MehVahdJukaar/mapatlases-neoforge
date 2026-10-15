@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.client.ui;
 
-import net.mehvahdjukaar.moonlight.api.resources.assets.LangBuilder;
+import net.mehvahdjukaar.moonlight.api.util.TextHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -324,7 +324,7 @@ public class MapAtlasesHUD extends AbstractAtlasDisplay {
             ResourceKey<Biome> biomeKey = key.get();
             // datapack biomes often ship no lang
             biomeToDisplay = Component.translatableWithFallback(Util.makeDescriptionId("biome", biomeKey.identifier()),
-                    LangBuilder.getReadableName(biomeKey.identifier().getPath())).getString();
+                    TextHelper.getReadableName(biomeKey.identifier().getPath())).getString();
         }
         AtlasGuiUtils.drawScaledText(context, font, x, y, biomeToDisplay,
                 textScaling / globalScale, targetWidth, (int) (targetWidth / globalScale));

@@ -186,8 +186,6 @@ public class MapAtlasesClientConfig {
                 .define("radar_pins_rotate", false);
         radarColor = builder.comment("Uses yellow markers for all mobs")
                 .define("radar_single_color", false);
-        nightLightMap = builder.comment("Recolors map texture at night to make them use night lightmap. Requires light_map config in common configs")
-                .define("night_lightmap", true);
         convertXaero = builder.comment("Turn on to convert Xaeros minimap waypoints. Conversion will happen on world boot. Remember to turn back off")
                 .define("convert_xaeros_waypoints", false);
 
@@ -248,7 +246,6 @@ public class MapAtlasesClientConfig {
     public static final Supplier<Integer> radarRadius;
     public static final Supplier<Integer> playerMarkersRadius;
     public static final Supplier<Boolean> radarColor;
-    public static final Supplier<Boolean> nightLightMap;
     public static final Supplier<Boolean> radarRotation;
     public static final Supplier<Boolean> convertXaero;
     public static final Supplier<Boolean> showsMapBackground;

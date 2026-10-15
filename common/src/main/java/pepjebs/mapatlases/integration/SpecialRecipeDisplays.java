@@ -1,6 +1,6 @@
 package pepjebs.mapatlases.integration;
 
-//TODO: recipe viewers now read Recipe.display(), which MapAtlasCreateRecipe implements. needs the 26.1 jei/emi/rei apis to check
+//TODO: probably useless with Recipe.display(). check once jei/emi are out
 
 //import net.minecraft.client.Minecraft;
 //import net.minecraft.client.RecipeBookCategories;

@@ -144,7 +144,6 @@ public class MapAtlasItem extends Item {
         if (atlas.isEmpty()) return;
         //we need to send all data for all dimensions as they are not sent automatically
         MapCollection maps = MapAtlasItem.getMaps(atlas, player.level());
-        // a lectern atlas isnt in the inventory, so vanilla would drop the holder and never send anything
         TriState carried = lecternPos.isPresent() ? TriState.SET_TRUE : TriState.PASS;
         for (var info : maps.getAllFound()) {
             // update all maps and sends them to player, if needed
